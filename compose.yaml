@@ -1,0 +1,129 @@
+name: phasscode-platform
+x-app: &app
+  build:
+    context: .
+    dockerfile: infrastructure/docker/Dockerfile
+  image: phasscode-platform:local
+  init: true
+  networks: [backend]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  environment: &app-env
+    NODE_ENV: production
+    HOST: 0.0.0.0
+    PORT: 3000
+    PERSISTENCE: postgres
+    DATABASE_URL: postgresql://${POSTGRES_USER:-phasscode}:${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD em .env}@postgres:5432/${POSTGRES_DB:-phasscode}
+    REDIS_URL: redis://redis:6379
+    CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    TRUST_PROXY: ${TRUST_PROXY:-}
+    LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+    LLM_MODEL: ${LLM_MODEL:-}
+    LLM_API_KEY: ${LLM_API_KEY:-}
+    LLM_BASE_URL: ${LLM_BASE_URL:-}
+    LLM_API_MODE: ${LLM_API_MODE:-responses}
+    LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-15000}
+    LLM_MAX_OUTPUT_TOKENS: ${LLM_MAX_OUTPUT_TOKENS:-800}
+    CHAT_RETENTION_DAYS: ${CHAT_RETENTION_DAYS:-7}
+    CHAT_HISTORY_MESSAGES: ${CHAT_HISTORY_MESSAGES:-12}
+    CHAT_CONTEXT_CHARS: ${CHAT_CONTEXT_CHARS:-12000}
+    RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-30}
+    RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-phasscode}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD em .env}
+      POSTGRES_DB: ${POSTGRES_DB:-phasscode}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    networks: [backend]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, 'yes', --maxmemory, 128mb, --maxmemory-policy, noeviction]
+    volumes: [redis-data:/data]
+    networks: [backend]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+  migrate:
+    <<: *app
+    command: [npm, run, migrate:prod]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: 'no'
+  api:
+    <<: *app
+    ports: ['127.0.0.1:3000:3000']
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3000/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+  retention:
+    <<: *app
+    profiles: [maintenance]
+    command: [node, dist/packages/database/src/retention.js]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: 'no'
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    profiles: [rabbitmq]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-phasscode}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-local-rabbitmq-only}
+    networks: [backend]
+    volumes: [rabbitmq-data:/var/lib/rabbitmq]
+    healthcheck:
+      test: [CMD, rabbitmq-diagnostics, -q, ping]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+  kafka:
+    image: apache/kafka:4.1.0
+    profiles: [kafka]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    networks: [backend]
+    volumes: [kafka-data:/var/lib/kafka/data]
+networks:
+  backend:
+volumes:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+  kafka-data:

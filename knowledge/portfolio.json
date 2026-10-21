@@ -1,0 +1,42 @@
+[
+  {
+    "type": "project",
+    "id": "web-portfolio-v2",
+    "title": "Portfólio PHASSCODE",
+    "url": "https://github.com/SladeSouzaSantos/web-portfolio-v2",
+    "content": "PHASSCODE é um portfólio profissional com interface inspirada em RPG medieval e pixel art. O frontend existente utiliza React, TypeScript e Vite. O Orbe Mágico é o chatbot visual do portfólio. O site de produção é https://gbc.phasscode.com e o de desenvolvimento é https://devgbc.phasscode.com.",
+    "keywords": [
+      "portfolio",
+      "frontend",
+      "react",
+      "typescript",
+      "vite",
+      "pixel art",
+      "rpg",
+      "orbe",
+      "projetos"
+    ]
+  },
+  {
+    "type": "platform",
+    "id": "phasscode-platform",
+    "title": "Plataforma PHASSCODE em desenvolvimento",
+    "url": "https://github.com/SladeSouzaSantos/phasscode-platform",
+    "content": "PHASSCODE Platform é o backend em desenvolvimento para integrar o Orbe Mágico a IA real, conhecimento estruturado, agendamento e notificações. O incremento inicial implementa a fundação e o chat em Node.js e TypeScript. Agendamento, Google Calendar, notificações, a implementação Java, RabbitMQ e Kafka são evoluções planejadas; não estão disponíveis nesta versão. O projeto demonstra arquitetura hexagonal pragmática e evolução incremental.",
+    "keywords": [
+      "backend",
+      "node",
+      "typescript",
+      "ia",
+      "inteligencia artificial",
+      "java",
+      "projeto",
+      "plataforma",
+      "calendar",
+      "agendamento",
+      "reuniao",
+      "disponibilidade",
+      "notificacoes"
+    ]
+  }
+]
