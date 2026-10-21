@@ -1,0 +1,7 @@
+# Somente infraestrutura para executar Node no host. Portas restritas a loopback.
+# docker compose -f compose.yaml -f compose.dev.yaml up -d postgres redis
+services:
+  postgres:
+    ports: ['127.0.0.1:5432:5432']
+  redis:
+    ports: ['127.0.0.1:6379:6379']
