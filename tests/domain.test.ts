@@ -18,24 +18,65 @@ describe('configuração', () => {
     );
     expect(() => loadConfig({ PORT: 'secret' })).toThrow('Configuração inválida: PORT');
   });
+  it('preserva o padrão do provedor quando reasoning não foi configurado', () => {
+    expect(loadConfig().OPENROUTER_REASONING_ENABLED).toBeUndefined();
+    expect(
+      loadConfig({ OPENROUTER_REASONING_ENABLED: '' }).OPENROUTER_REASONING_ENABLED,
+    ).toBeUndefined();
+  });
+  it.each(['true', 'false'])(
+    'aceita controle explícito de reasoning=%s no modo compatível',
+    (enabled) => {
+      const config = loadConfig({
+        LLM_PROVIDER: 'openai-compatible',
+        LLM_API_MODE: 'chat-completions',
+        LLM_BASE_URL: 'https://example.com/v1',
+        LLM_API_KEY: 'test-only',
+        LLM_MODEL: 'test',
+        OPENROUTER_REASONING_ENABLED: enabled,
+      });
+      expect(config.OPENROUTER_REASONING_ENABLED).toBe(enabled === 'true');
+    },
+  );
+  it.each(['yes', '1', '0', 'FALSE', 'secret-never-echo'])(
+    'recusa booleano inválido de reasoning %#',
+    (enabled) => {
+      expect(() => loadConfig({ OPENROUTER_REASONING_ENABLED: enabled })).toThrow(
+        'Configuração inválida: OPENROUTER_REASONING_ENABLED',
+      );
+    },
+  );
+  it.each([
+    { LLM_PROVIDER: 'mock', LLM_API_MODE: 'chat-completions' },
+    { LLM_PROVIDER: 'openai', LLM_API_MODE: 'chat-completions' },
+    { LLM_PROVIDER: 'openai-compatible', LLM_API_MODE: 'responses' },
+  ])('recusa controle de reasoning em modo incompatível %#', (mode) => {
+    expect(() => loadConfig({ ...mode, OPENROUTER_REASONING_ENABLED: 'false' })).toThrow(
+      'OPENROUTER_REASONING_ENABLED requer',
+    );
+  });
   it.each(['*', 'https://example.com/path', 'file:///secret', ''])('recusa CORS %s', (origin) =>
     expect(() => loadConfig({ CORS_ORIGINS: origin })).toThrow('CORS_ORIGINS'),
   );
 });
 describe('conhecimento e conversas', () => {
-  it('recupera fatos públicos sem inventar biografia ausente', async () => {
+  it('recupera fatos públicos e distingue cursos declarados de credenciais não confirmadas', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     expect(knowledge.search('React').map((doc) => doc.id)).toContain('web-portfolio-v2');
-    expect(knowledge.search('certificado Kubernetes')).toEqual([]);
+    expect(knowledge.search('certificado Kubernetes').map((doc) => doc.id)).toContain(
+      'trajetoria-a-confirmar',
+    );
+    expect(knowledge.search('xilofone interplanetário')).toEqual([]);
     const service = new ChatService(
       new MemoryConversationStore(),
       new MockChatProvider(),
       knowledge,
       loadConfig(),
     );
-    expect((await service.execute({ message: 'Quais certificados você tem?' })).answer).toContain(
-      'ainda não consta',
-    );
+    const response = await service.execute({ message: 'Quais certificados você tem?' });
+    expect(response.sources.map((source) => source.id)).toContain('cursos-declarados');
+    expect(response.answer).toContain('autodeclarados');
+    expect(response.answer).toContain('Não há confirmação de certificação Kubernetes');
   });
   it('limita histórico por quantidade e orçamento de contexto', async () => {
     const seen: GenerationInput[] = [];

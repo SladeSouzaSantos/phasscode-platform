@@ -18,7 +18,7 @@ try {
       : new LangChainChatProvider(
           config,
           knowledge,
-          await readFile('apps/orbe-node/prompts/v1.md', 'utf8'),
+          await readFile('apps/orbe-node/prompts/v3.md', 'utf8'),
         );
   const store =
     config.PERSISTENCE === 'memory'

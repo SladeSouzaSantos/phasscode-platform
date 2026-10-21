@@ -2,142 +2,108 @@
 
 Atualizado em 21/10/2026, America/Sao_Paulo.
 
-## Incremento entregue
+## Estado atual
 
-Fase 1 implementada e validada: npm workspaces, Node.js 24, TypeScript strict, Fastify, configuração
-validada, contratos Zod/OpenAPI, Swagger, PostgreSQL/Redis, migrations controladas, Dockerfile
-multi-stage, Compose, healthchecks, testes, lint/formatação e workflows independentes do frontend.
+**Fases 1 e 2 concluídas e validadas localmente.** A próxima entrega é P3-00: login Google OIDC,
+sessão e JWT, antes dos endpoints administrativos e do agendamento.
 
-Fase 2 iniciada com endpoint funcional: `POST /api/v1/chat`, recuperação lexical, fontes públicas,
-prompt versionado, histórico limitado, tokens de conversa, modos mock e real separados, LangChain,
-tool calling somente de leitura, orçamento compartilhado entre rodadas, timeout/cancelamento,
-erros seguros, rate limiting, CORS e retenção. Não há fallback silencioso para respostas simuladas.
+O chat já permite integração local do frontend em `http://localhost:3000/api/v1/chat`.
+Swagger: `http://localhost:3000/docs/`. O [guia do frontend](api/frontend-integration.md) e o
+[cliente TypeScript](../examples/frontend-client.ts) registram o contrato disponível. O proprietário
+implementará a integração visual em seu repositório; esse frontend permanece sem alterações aqui.
 
-Somente fatos fornecidos no briefing e o stack do frontend público foram usados. Formação,
-biografia, certificados, clientes e experiência não foram inventados. O frontend não foi alterado.
+## Entregas concluídas
 
-## Verificações efetivamente executadas
+A fundação usa Node.js 24, TypeScript strict, Fastify, npm workspaces, contratos Zod/OpenAPI,
+Swagger, PostgreSQL/Redis, migrations, Docker/Compose, healthchecks e CI. O Orbe oferece chat com
+fontes, histórico limitado, token de conversa emitido uma vez, ferramentas públicas somente de
+leitura, mock explícito e integração real LangChain/OpenRouter, sem fallback silencioso.
 
-| Verificação                                        | Resultado                                                              |
-| -------------------------------------------------- | ---------------------------------------------------------------------- |
-| Instalação npm e lockfile                          | Concluída                                                              |
-| ESLint                                             | Aprovado; atualizado para ESLint 10 suportado                          |
-| Prettier                                           | Aprovado                                                               |
-| TypeScript strict                                  | Aprovado                                                               |
-| Conformidade do OpenAPI gerado                     | Aprovada                                                               |
-| Unitários, HTTP, contrato e SDK simulado           | 32 testes aprovados                                                    |
-| Build Node.js                                      | Aprovado                                                               |
-| Smoke do build em processo e socket HTTP reais     | Aprovado: health, ready e dois turnos                                  |
-| Integração PostgreSQL 17 + Redis 7 reais em Docker | 4 testes aprovados                                                     |
-| Auditoria npm                                      | Nenhuma vulnerabilidade reportada na instalação/auditoria desta sessão |
-| YAML de Compose e workflows                        | Parse aprovado; Compose validado pelo CLI                              |
-| Dockerfile multi-stage de runtime                  | Build aprovado                                                         |
-| Compose completo                                   | Migrations concluídas; API, PostgreSQL e Redis saudáveis               |
-| Reinício da API                                    | Conversa retomada com o mesmo ID/token após reiniciar                  |
-| Usuário do container API                           | UID 1000, sem root                                                     |
-| Smoke real OpenRouter — HTTP                       | Dois turnos aprovados, mesma conversa e `simulated=false`              |
-| Smoke real OpenRouter — ferramenta                 | Uma execução de `search_portfolio`, fontes e resposta final aprovadas  |
+A base foi ampliada de dois para **31 documentos**: perfil, quatro experiências, sete formações,
+cursos, idiomas e projetos. A curadoria usa o portfólio antigo, repositórios públicos, currículo
+autorizado e confirmações diretas do proprietário. [SOURCES.md](../knowledge/SOURCES.md) registra
+revisões, páginas do currículo, origem e conflitos. O LinkedIn bloqueou a leitura pública; nenhum
+conteúdo dele foi presumido. O PDF e seu texto integral não foram incorporados ao Git.
 
-Total: 36 testes automatizados, além dos smokes de processo e Compose. O adaptador real LangChain
-foi testado contra HTTP simulado para Responses/Chat Completions, incluindo respostas de
-ferramentas. Posteriormente, três chamadas funcionais foram validadas com o modelo OpenRouter
-gratuito configurado (dois turnos HTTP e um smoke do ciclo de ferramenta); elas não alteram a
-contagem de testes automatizados. A CI e o CodeQL estão configurados, mas o
-workflow remoto ainda não foi executado; a publicação no GitHub permanece pendente.
+Confirmações de 21/10/2026 prevalecem sobre o currículo antigo:
 
-O Docker inicialmente estava inacessível no sandbox e houve falha de rede no pull e erro 500
-durante atualização do Desktop. Após acesso autorizado ao contexto desktop-linux e recuperação
-do daemon, as imagens e integrações foram validadas. O primeiro teste Redis expôs um problema de
-inicialização do cliente de teste; foi corrigido para aguardar conexão antes de enviar comandos,
-e os quatro testes passaram na reexecução. Não há bloqueio Docker restante desta sessão.
+- Atuação atual na Greencity Sustainable Energy.
+- Somente a pós em Segurança da Informação concluída na FacPrisma, sem data de conclusão informada.
+- Ciência da Computação/UNISUL trancada nas últimas disciplinas, com previsão de conclusão em
+  dezembro de 2027.
 
-Ferramentas locais: Node 24.11.1, npm 11.6.2 e Docker Desktop/Engine funcionais. O Java local é 8 e
-Maven não está disponível; isso não bloqueia este incremento. A Fase 4 deverá usar Java LTS
-compatível com a versão de Spring Boot/LangChain4j selecionada e fazer validação própria.
+A divergência da conclusão da UnP (dezembro/2014 no CV, fevereiro/2015 no site), a associação de
+Lithology e outros pontos históricos permanecem identificados. Cursos livres não são tratados como
+certificações profissionais verificadas.
 
-## Estado operacional
+## Validação executada
 
-O ambiente foi validado inicialmente em mock usando `.env.example`. Atualmente o Compose usa `.env`
-com OpenRouter, `LLM_PROVIDER=openai-compatible` e `LLM_API_MODE=chat-completions`, publicado apenas
-em `127.0.0.1:3000`. Swagger: `http://localhost:3000/docs/`. Bancos não publicam portas. Os volumes
-locais de desenvolvimento foram preservados. Para parar: `docker compose down`.
-Os containers exclusivos da suíte de testes foram removidos com
-`docker compose -f compose.test.yaml down --volumes`. O comando de retenção também foi executado
-com sucesso no banco local e não removeu conversas recentes.
+| Verificação                                              | Resultado                                                                    |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Lint, formatação, TypeScript e conformidade OpenAPI      | Aprovados                                                                    |
+| Testes locais: domínio, HTTP, contexto, SDK e avaliação  | 98 aprovados                                                                 |
+| Integração PostgreSQL 17 + Redis 7 em ambiente exclusivo | 4 aprovados, reexecutados nesta etapa                                        |
+| Build e smoke em processo/socket HTTP reais              | Aprovados                                                                    |
+| Conexão HTTP com geração acima de dez segundos           | Regressão aprovada                                                           |
+| Imagem e Compose com a base atual                        | API, PostgreSQL e Redis saudáveis; migrations concluídas                     |
+| Auditoria de dependências durante build Docker           | Nenhuma vulnerabilidade reportada                                            |
+| Núcleo real OpenRouter, matriz v1 e catálogo anterior    | 16 cenários / 18 turnos aprovados em uma passagem completa                   |
+| Ampliação de conhecimento e atualização do proprietário  | Seis cenários novos ou afetados avaliados, com reexecuções registradas       |
+| Recuperação no catálogo atual, matriz v3                 | Fontes obrigatórias presentes e completas nos 22 turnos, verificação sem LLM |
 
-### Validação posterior com OpenRouter — 21/10/2026
+São **102 testes automatizados**, além dos smokes e chamadas reais. A matriz disponível agora é
+`orbe-phase2-v3`, com 20 cenários/22 turnos. Ela evoluiu durante a curadoria; não foi executada
+integralmente numa única passagem contra o catálogo final de 31 documentos. O fechamento combina
+a passagem completa anterior com regressões direcionadas e revisão semântica pelo Codex. Não se
+declara uma aprovação integral da v3 nem revisão humana realizada.
 
-O proprietário criou `.env` com chave e modelo OpenRouter. Foram corrigidas somente as opções
-`LLM_PROVIDER=openai-compatible` e `LLM_API_MODE=chat-completions`, preservando sua chave e o modelo
-`nvidia/nemotron-3.5-super-vl:free`. A API foi recriada com `docker compose` usando esse `.env`.
-PostgreSQL, Redis e readiness permanecem saudáveis. O arquivo `.env` está ignorado pelo Git.
+Resultados, configurações, falhas e a correspondência entre cenários e relatórios estão em
+[phase2-closeout.md](../evaluation/reports/phase2-closeout.md). Os relatórios automáticos mantêm
+`humanReview: pending`. Essa amostra não mede carga, estabilidade estatística ou segurança exaustiva.
 
-A chamada real ao chat retornou `502 LLM_UNAVAILABLE`; o diagnóstico direto ao provedor retornou
-`401 User not found.`. A consulta autenticada `GET /api/v1/key` retornou 200 e confirmou as flags
-`is_management_key=true` e `is_provisioning_key=true`. O container carrega a mesma chave do arquivo
-local; a comparação foi feita por hash somente em memória, sem exibir chave nem hash.
+## Ajustes derivados da avaliação
 
-A primeira chave era gerencial e não permitia inferência, conforme a documentação oficial:
-<https://openrouter.ai/docs/guides/overview/auth/management-api-keys>. O proprietário substituiu a
-credencial por uma chave comum. A consulta autenticada passou a informar `is_management_key=false`
-e `is_provisioning_key=false`; foi confirmado que o container usa a nova chave do arquivo local.
-Nenhuma chave, hash ou token de conversa foi exibido no diagnóstico.
+- Recuperação por termos completos, aliases, ponderação de especificidade e frases exatas para
+  distinguir Java/JavaScript e priorizar o projeto solicitado.
+- Continuações consecutivas preservam o tópico. O histórico seleciona pares completos e exclui
+  turnos recusados por escopo, injection ou funcionalidades indisponíveis.
+- O escopo reconhece palavras-chave dos novos documentos, sem exigir nomes de projetos no código.
+- O socket HTTP aguarda o orçamento da LLM; antes encerrava a conexão após dez segundos.
+- Prompt ativo `orbe-v3` distingue informação não confirmada de negação de uma qualificação.
+- `OPENROUTER_REASONING_ENABLED` permite controlar explicitamente a extensão do provedor; vazio
+  preserva seu padrão. Localmente é `false`, evitando consumir o pequeno orçamento de saída antes
+  do texto final. Raciocínio interno nunca é usado como resposta alternativa.
 
-Após a troca, `POST /api/v1/chat` retornou HTTP 200 com `meta.simulated=false` e respondeu que o
-frontend usa React, TypeScript e Vite. A primeira resposta levou aproximadamente 3,1 segundos.
-Uma segunda mensagem, com o mesmo ID e token, respondeu `Vite` à pergunta sobre a ferramenta de
-build e não reemitiu token. A medida é pontual, sem caracterizar desempenho sob carga.
+Ocorreram timeouts, indisponibilidade e resposta vazia durante a avaliação; os registros foram
+preservados. No caso Laravel, a pergunta foi ajustada para pedir tecnologias explicitamente,
+mantendo o check do framework e as fontes; a reexecução passou.
 
-Também foi exercitado o adaptador real com contexto inicial vazio e repositório público
-instrumentado apenas para contar buscas: o modelo solicitou `search_portfolio`, a ferramenta foi
-executada uma vez e o modelo produziu resposta final com fontes em aproximadamente 5,6 segundos.
-O teste usou a configuração atual, incluindo `strict: true`, sem alterar o código da aplicação.
-Esse sucesso não estabelece garantia universal de conformidade estrita do provedor.
+## Estado operacional e publicação
 
-A integração real, continuidade de conversa e ciclo de ferramenta estão validados. A Fase 2
-permanece em andamento para complementação dos dados públicos e avaliação sistemática de
-qualidade, comportamento adversarial e latência. Nenhuma credencial foi criada nem revogada pelo
-agente; a troca foi feita pelo proprietário no `.env`, que permanece ignorado pelo Git.
+Compose usa `.env` ignorado pelo Git, OpenRouter em `chat-completions`, modelo
+`nvidia/nemotron-3.5-super-vl:free`, timeout de 30 segundos, saída de 800 tokens e contexto de
+12.000 caracteres. A API publica somente `127.0.0.1:3000`; bancos não publicam portas. Volumes de
+desenvolvimento foram preservados. O ambiente exclusivo de integração foi removido após os testes.
 
-Nenhum servidor remoto, DNS, domínio, certificado, credencial ou Nginx compartilhado foi alterado.
-Primeiro commit de implementação preparado com Conventional Commits. A publicação remota
-permanece pendente. Mensagem do incremento:
+A fundação foi publicada pelo proprietário em `dev/984d0e9` e incorporada pela PR #1 em
+`main/e78ef0a`. Foram conferidos os resultados de [Backend CI](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39670852615)
+e [CodeQL](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39670852661): sucesso.
+As alterações de fechamento desta fase permanecem locais e ainda não têm commit ou CI próprios.
+Não houve novo push, deploy, alteração de DNS, certificados ou Nginx compartilhado por este trabalho.
 
-```text
-feat: bootstrap backend platform and implement Orbe chat
-```
+No diagnóstico inicial, a chave OpenRouter de gerenciamento não permitia inferência. O proprietário
+a substituiu por uma chave comum e a integração real passou. Chaves, hashes de chaves e tokens de
+conversa não foram registrados nos relatórios.
 
-## Credenciais e configuração externa
+## Próxima fase
 
-IA real está configurada localmente com OpenRouter. Em uma instalação nova: `LLM_API_KEY` e
-`LLM_MODEL`; `LLM_BASE_URL` e modo de API para outro provedor compatível. A chave precisa permitir
-inferência e o modelo precisa de capacidade de tool calling. O operador
-deve validar qualidade, custos e política de dados antes de exposição pública.
+Seguir [TASKS.md](TASKS.md), começando por **P3-00 — Google OIDC**. O chat e o portfólio continuam
+públicos; o login será exigido para funções específicas, especialmente administração. Separar
+`User`, identidades vinculadas, credenciais e sessões; Node e Java/Spring compartilharão identidade,
+papéis e contratos. Detalhes na [arquitetura de autenticação](architecture/authentication.md).
 
-Fase 3: OAuth client ID/secret e refresh token Google com escopos mínimos, IDs dos calendários
-autorizados, credenciais SMTP, Telegram bot token/chat ID e autenticação administrativa por provedor
-de identidade. Variáveis futuras não são fingidas como já suportadas pela aplicação.
-
-## Continuar exatamente daqui
-
-1. Confirmar `npm run check`, `npm run smoke` e a suíte em `compose.test.yaml` após qualquer mudança.
-2. Complementar `knowledge/portfolio.json` com dados públicos verificados e avaliar respostas com
-   LLM real configurado. Testar consultas adversariais; heurísticas não garantem ausência de injection.
-3. Iniciar Fase 3 pelo domínio de reuniões e contratos: expediente, fuso America/Sao_Paulo, duração,
-   antecedência, intervalos e máquina de estados. Não distribuir regras entre Node e Java.
-4. Adicionar migration de solicitações/reuniões com exclusão de intervalos, chave de idempotência,
-   auditoria, outbox e acesso ao status por token. Testar concorrência real antes de criar eventos.
-5. Implementar portas de calendário e adaptadores fake explícito/Google FreeBusy + events. Revalidar
-   conflitos e só marcar CONFIRMED após criação verificável; usar identificador externo estável e
-   reconciliação para falhas intermediárias.
-6. Proteger os endpoints administrativos com autenticação e papéis verificáveis antes de expô-los.
-7. Implementar outbox dispatcher e notification-worker BullMQ com retries, backoff, deduplicação,
-   entregas auditáveis e adaptadores SMTP/Telegram separados. Telegram/e-mail não alteram o estado
-   transacional da reunião. Considerar impossibilidade de exactly-once em envio externo genérico.
-8. Só depois: Java com conformidade do contrato, gateway com seleção interna, RabbitMQ, Kafka e
-   observabilidade/homologação. Perfis dos brokers existem, mas seus adaptadores não foram
-   implementados nem esses brokers executados nesta sessão.
-
-Antes de publicação, definir cotas globais de custo, proteção contra abuso distribuído, aviso de
-privacidade, rotina diária de retenção e backups. A fundação não é uma declaração de prontidão
-para produção de todas as fases planejadas.
+E-mail/senha com Argon2id e recuperação/verificação seguras, GitHub com vinculação, MFA e passkeys
+estão no roadmap, sem stubs. O consentimento Google Calendar será independente do login Google.
+Após autenticação, implementar domínio/contratos de reuniões, persistência concorrente/idempotente,
+Calendar, outbox, worker BullMQ e notificações. Java, RabbitMQ, Kafka e publicação vêm nas fases
+seguintes. O proprietário será avisado quando os contratos de login e reuniões estiverem integráveis.

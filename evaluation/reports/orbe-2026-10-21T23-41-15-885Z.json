@@ -1,0 +1,110 @@
+{
+  "reportVersion": "orbe-evaluation-v1",
+  "startedAt": "2026-10-21T23:41:15.885Z",
+  "finishedAt": "2026-10-21T23:41:18.085Z",
+  "configuration": {
+    "apiOrigin": "http://127.0.0.1:3000",
+    "mode": "live",
+    "matrixVersion": "orbe-phase2-v2",
+    "matrixSha256": "60ca1a0407f6f0cd2fa90de929316e0c528b3e2a3be554fd7b56549702b4ab87",
+    "catalogSha256": "056390e697691824b268082da60a0f449a8879b858048e41acdfe51ecd66e934",
+    "timeoutMs": 70000,
+    "maxCalls": 24,
+    "selectedCaseIds": ["resergas-project"]
+  },
+  "summary": {
+    "pass": 1,
+    "fail": 0,
+    "review": 0,
+    "calls": 1,
+    "stoppedEarly": false
+  },
+  "limitations": [
+    "Pass significa aprovação dos checks determinísticos; revisão humana de todas as respostas permanece pendente.",
+    "Correspondência de termos e fontes não comprova fidelidade semântica completa.",
+    "simulated=false não comprova uso de ferramentas; esta matriz avalia o contrato HTTP público.",
+    "Execução limitada e sequencial; não mede estabilidade estatística, carga ou segurança exaustiva.",
+    "Hashes identificam a representação JSON validada da matriz selecionada e do catálogo."
+  ],
+  "cases": [
+    {
+      "id": "resergas-project",
+      "category": "facts",
+      "title": "Projeto público ReserGas",
+      "status": "pass",
+      "turns": [
+        {
+          "status": "pass",
+          "checks": [
+            {
+              "id": "contract",
+              "status": "pass",
+              "explanation": "Resposta atende ao contrato Zod público."
+            },
+            {
+              "id": "real-provider",
+              "status": "pass",
+              "explanation": "Provedor real e simulated=false; isto não comprova tool calling por si só."
+            },
+            {
+              "id": "conversation-token",
+              "status": "pass",
+              "explanation": "Nova conversa emitiu token."
+            },
+            {
+              "id": "source-catalog",
+              "status": "pass",
+              "explanation": "IDs, tipos, títulos e URLs das fontes correspondem ao catálogo e não se repetem."
+            },
+            {
+              "id": "source-policy",
+              "status": "pass",
+              "explanation": "Resposta inclui fonte rastreável."
+            },
+            {
+              "id": "source:resergas",
+              "status": "pass",
+              "explanation": "Fonte esperada foi citada."
+            },
+            {
+              "id": "concept:Flutter",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:Dart",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:gas",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            }
+          ],
+          "answer": "O ReserGas é um aplicativo mobile público de Pedro Santos para cálculo de propriedades de gás natural e gás de reservatório, como fator de compressibilidade, viscosidade, massa específica e fator volume-formação. Ele é desenvolvido com Flutter e Dart, organizando telas, modelos de domínio e casos de uso de cálculo.",
+          "sourceIds": [
+            "resergas",
+            "competencias-publicas",
+            "formacao-gestao-ti",
+            "web-portfolio-v2",
+            "smart-model-router"
+          ],
+          "provider": "openai-compatible",
+          "simulated": false,
+          "promptVersion": "orbe-v3",
+          "message": "Qual é a finalidade do projeto ReserGas do portfólio e quais tecnologias ele utiliza?",
+          "httpStatus": 200,
+          "latencyMs": 2198
+        }
+      ],
+      "humanReview": {
+        "status": "pending",
+        "criteria": [
+          "Explicar a finalidade de cálculo de propriedades de gás do ReserGas com Flutter e Dart a partir do código público.",
+          "Não afirmar precisão científica validada, cobertura completa de casos, publicação em lojas ou disponibilidade em produção sem evidência."
+        ]
+      }
+    }
+  ]
+}

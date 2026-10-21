@@ -18,9 +18,17 @@ import {
   isInjection,
   isInScope,
   scopeRefusal,
+  unknownAnswer,
+  meetingUnavailable,
+  greetingAnswer,
+  isGreeting,
+  isMeetingRequest,
+  isOffTopicTask,
+  isContextualFollowUp,
 } from '../domain/security.js';
+import { eligibleHistory } from './context.js';
 
-export const PROMPT_VERSION = 'orbe-v1';
+export const PROMPT_VERSION = 'orbe-v3';
 export class ChatService {
   constructor(
     private readonly store: ConversationStore,
@@ -37,9 +45,34 @@ export class ChatService {
     return this.store.runTurn(
       { id: conversationId, tokenHash: hashToken(conversationToken), isNew },
       async (history) => {
+        const eligible = eligibleHistory(history);
+        const previous = [...eligible]
+          .reverse()
+          .find((message) => message.role === 'user' && !isContextualFollowUp(message.content));
+        const followUp = Boolean(previous && isContextualFollowUp(request.message));
+        const query = followUp ? `${previous!.content}\n${request.message}` : request.message;
+        const retrieved = this.knowledge.search(query);
         let result;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
-        else if (!isInScope(request.message)) result = { answer: scopeRefusal, sources: [] };
+        else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
+        else if (isOffTopicTask(request.message)) result = { answer: scopeRefusal, sources: [] };
+        else if (isMeetingRequest(request.message))
+          result = {
+            answer: meetingUnavailable,
+            sources: this.knowledge
+              .search('phasscode-platform')
+              .filter((doc) => doc.id === 'phasscode-platform')
+              .map(({ type, id, title, url }) => ({ type, id, title, ...(url ? { url } : {}) })),
+          };
+        else if (
+          !isInScope(
+            request.message,
+            retrieved.flatMap((doc) => doc.keywords),
+          ) &&
+          !followUp
+        )
+          result = { answer: scopeRefusal, sources: [] };
+        else if (retrieved.length === 0) result = { answer: unknownAnswer, sources: [] };
         else {
           const bounded: Message[] = [];
           // Reserva fixa para prompt, metadados JSON e protocolo das ferramentas.
@@ -49,22 +82,25 @@ export class ChatService {
           );
           const historyBudget = Math.floor(dataBudget / 2);
           let chars = 0;
-          for (const message of history.slice(-this.config.CHAT_HISTORY_MESSAGES).reverse()) {
-            if (chars + message.content.length > historyBudget) break;
-            chars += message.content.length;
-            bounded.unshift(message);
+          for (let index = eligible.length - 2; index >= 0; index -= 2) {
+            const pair = eligible.slice(index, index + 2);
+            const pairChars = pair.reduce((sum, message) => sum + message.content.length, 0);
+            if (
+              bounded.length + 2 > this.config.CHAT_HISTORY_MESSAGES ||
+              chars + pairChars > historyBudget
+            )
+              break;
+            chars += pairChars;
+            bounded.unshift(...pair);
           }
           // Recuperação tem orçamento independente para manter toda chamada limitada.
           let remaining = dataBudget - historyBudget;
-          const documents = this.knowledge
-            .search(request.message)
-            .slice(0, 5)
-            .flatMap((doc) => {
-              if (remaining <= 0) return [];
-              const content = doc.content.slice(0, remaining);
-              remaining -= content.length;
-              return [{ ...doc, content }];
-            });
+          const documents = retrieved.slice(0, 5).flatMap((doc) => {
+            if (remaining <= 0) return [];
+            const content = doc.content.slice(0, remaining);
+            remaining -= content.length;
+            return [{ ...doc, content }];
+          });
           const controller = new AbortController();
           let timer: ReturnType<typeof setTimeout> | undefined;
           try {

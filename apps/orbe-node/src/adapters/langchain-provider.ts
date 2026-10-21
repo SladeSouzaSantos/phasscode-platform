@@ -37,7 +37,12 @@ export class LangChainChatProvider implements ChatProvider {
       maxRetries: 0,
       timeout: config.LLM_TIMEOUT_MS,
       maxTokens: config.LLM_MAX_OUTPUT_TOKENS,
-      modelKwargs: { store: false },
+      modelKwargs: {
+        store: false,
+        ...(config.OPENROUTER_REASONING_ENABLED !== undefined
+          ? { reasoning: { enabled: config.OPENROUTER_REASONING_ENABLED } }
+          : {}),
+      },
       ...(config.LLM_BASE_URL ? { configuration: { baseURL: config.LLM_BASE_URL } } : {}),
     });
   }
