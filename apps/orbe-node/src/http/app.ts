@@ -66,11 +66,16 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
   });
   await app.register(rateLimit, {
     global: false,
+    // Mantém as chaves já usadas pelo limitador desta rota após envolver seu hook.
+    nameSpace: 'fastify-rate-limit-POST/api/v1/chat-',
     max: config.RATE_LIMIT_MAX,
     timeWindow: config.RATE_LIMIT_WINDOW_MS,
     ...(redis ? { redis } : {}),
     skipOnError: false,
+    errorResponseBuilder: () =>
+      new AppError('RATE_LIMITED', 429, 'Muitas requisições. Aguarde antes de tentar novamente.'),
   });
+  const limitChat = app.rateLimit();
   await app.register(swagger, {
     mode: 'static',
     specification: {
@@ -116,6 +121,13 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
             } as Record<number, string>
           )[status] ?? 'Erro interno. Tente novamente mais tarde.');
     request.log.warn({ code, status, correlationId: request.id }, 'request_failed');
+    if (
+      error instanceof AppError &&
+      Number.isSafeInteger(error.retryAfterSeconds) &&
+      error.retryAfterSeconds! > 0
+    ) {
+      reply.header('Retry-After', error.retryAfterSeconds!);
+    }
     reply.status(status).send({ error: { code, message, correlationId: request.id } });
   });
   app.setNotFoundHandler((request, reply) =>
@@ -152,8 +164,18 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
   app.post(
     '/api/v1/chat',
     {
-      config: {
-        rateLimit: { max: config.RATE_LIMIT_MAX, timeWindow: config.RATE_LIMIT_WINDOW_MS },
+      onRequest: async (request, reply) => {
+        try {
+          await limitChat.call(app, request, reply);
+        } catch (error) {
+          if (error instanceof AppError) throw error;
+          throw new AppError(
+            'RATE_LIMIT_UNAVAILABLE',
+            503,
+            'O controle de requisições está indisponível. Tente novamente.',
+            1,
+          );
+        }
       },
     },
     async (request) => {

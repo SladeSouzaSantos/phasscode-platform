@@ -1,0 +1,50 @@
+name: Connect to Tailscale
+description: Prefer complete OAuth credentials; retain authkey only for an explicit existing setup.
+inputs:
+  oauth-client-id:
+    description: Tailscale OAuth client ID
+    required: false
+  oauth-secret:
+    description: Tailscale OAuth client secret
+    required: false
+  tags:
+    description: Tags already authorized for the OAuth client
+    default: tag:ci
+  authkey:
+    description: Legacy authkey used only when neither OAuth credential is configured
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Select configured authentication
+      id: auth
+      shell: bash
+      env:
+        OAUTH_CLIENT_ID: ${{ inputs.oauth-client-id }}
+        OAUTH_SECRET: ${{ inputs.oauth-secret }}
+        LEGACY_AUTHKEY: ${{ inputs.authkey }}
+      run: |
+        set -euo pipefail
+        if [[ -n "$OAUTH_CLIENT_ID" && -n "$OAUTH_SECRET" ]]; then
+          echo 'mode=oauth' >> "$GITHUB_OUTPUT"
+        elif [[ -n "$OAUTH_CLIENT_ID" || -n "$OAUTH_SECRET" ]]; then
+          echo '::error::Configure both TAILSCALE_OAUTH_CLIENT_ID and TAILSCALE_OAUTH_SECRET.'
+          exit 1
+        elif [[ -n "$LEGACY_AUTHKEY" ]]; then
+          echo 'mode=authkey' >> "$GITHUB_OUTPUT"
+        else
+          echo '::error::Configure Tailscale credentials before connecting.'
+          exit 1
+        fi
+    - name: Connect with OAuth
+      if: steps.auth.outputs.mode == 'oauth'
+      uses: tailscale/github-action@v4
+      with:
+        oauth-client-id: ${{ inputs.oauth-client-id }}
+        oauth-secret: ${{ inputs.oauth-secret }}
+        tags: ${{ inputs.tags }}
+    - name: Connect with legacy authkey
+      if: steps.auth.outputs.mode == 'authkey'
+      uses: tailscale/github-action@v4
+      with:
+        authkey: ${{ inputs.authkey }}

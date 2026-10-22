@@ -14,9 +14,17 @@ export function normalize(text: string): string {
 }
 // Defesa em camadas: filtro heurístico, prompt separado, ferramentas apenas de leitura.
 export function isInjection(text: string): boolean {
-  return /(?:ignore|disregard|forget|esqueca|desconsidere|substitua|sobrescreva)[\s\S]{0,100}(?:instructions|instrucoes|prompt|regras)|(?:reveal|mostre|revele|exiba|qual)[\s\S]{0,60}(?:system prompt|prompt (?:do sistema|interno)|segredo|secret|(?:api[ _.-]?key)|chave (?:de api|secreta)|token de (?:acesso|autenticacao))|(?:system|developer)\s*:|<\/?(?:system|developer)>|\[\/?INST\]|<\|(?:im_start|im_end|system|developer)\|>/i.test(
-    normalize(text),
-  );
+  const query = normalize(text);
+  const directSecretRequest =
+    /(?:ignore|disregard|forget|esqueca|desconsidere|substitua|sobrescreva)[\s\S]{0,100}(?:instructions|instrucoes|prompt|regras)|(?:reveal|mostre|revele|exiba)[\s\S]{0,60}(?:system prompt|prompt (?:do sistema|interno)|segredo|secret|(?:api[ _.-]?key)|chave (?:de api|secreta)|token de (?:acesso|autenticacao))|qual[\s\S]{0,60}(?:system prompt|prompt (?:do sistema|interno)|segredo|secret|(?:api[ _.-]?key)|chave (?:de api|secreta))|(?:system|developer)\s*:|<\/?(?:system|developer)>|\[\/?INST\]|<\|(?:im_start|im_end|system|developer)\|>/i.test(
+      query,
+    );
+  const tokenQuestion = /\bqual[\s\S]{0,60}token de (?:acesso|autenticacao)\b/.test(query);
+  const tokenConcept =
+    /\b(?:papel|funcao|formato|tipo|validade|finalidade|duracao)\b[\s\S]{0,40}\btoken de (?:acesso|autenticacao)\b/.test(
+      query,
+    );
+  return directSecretRequest || (tokenQuestion && !tokenConcept);
 }
 export function isInScope(text: string, publicKeywords: string[] = []): boolean {
   const words = (value: string) =>

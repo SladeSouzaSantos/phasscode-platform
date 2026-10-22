@@ -1,6 +1,8 @@
 node_modules/
 dist/
 /nginx.conf
+/.deployment/
+/.deploy-lock/
 coverage/
 .env
 .env.*

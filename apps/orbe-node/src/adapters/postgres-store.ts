@@ -4,6 +4,9 @@ import type { ConversationStore, Message, TurnResult } from '../domain/ports.js'
 import { AppError, conversationNotFound } from '../domain/errors.js';
 import { equalHashes } from '../domain/security.js';
 
+// Compartilhado por todas as stores que usam o mesmo pool neste processo. Sem fila ilimitada.
+const admissions = new WeakMap<pg.Pool, { active: number }>();
+
 export class PostgresConversationStore implements ConversationStore {
   constructor(
     private readonly pool: pg.Pool,
@@ -14,8 +17,34 @@ export class PostgresConversationStore implements ConversationStore {
     input: { id: string; tokenHash: string; isNew: boolean },
     operation: (history: Message[]) => Promise<TurnResult>,
   ): Promise<ChatResponse> {
-    const client = await this.pool.connect();
+    let admission = admissions.get(this.pool);
+    if (!admission) {
+      admission = { active: 0 };
+      admissions.set(this.pool, admission);
+    }
+    // Reserva duas conexões para consultas/readiness no pool padrão (10). Um pool de tamanho
+    // 1 continua utilizável, mas não pode oferecer essa reserva; não é a configuração do runtime.
+    const capacity = Math.max(1, (this.pool.options.max ?? 10) - 2);
+    if (admission.active >= capacity)
+      throw new AppError(
+        'CHAT_CAPACITY_REACHED',
+        503,
+        'O chat está ocupado. Tente novamente em instantes.',
+        1,
+      );
+    admission.active++;
+    let client: pg.PoolClient | undefined;
     try {
+      try {
+        client = await this.pool.connect();
+      } catch {
+        throw new AppError(
+          'DB_UNAVAILABLE',
+          503,
+          'O histórico de conversas está temporariamente indisponível.',
+          1,
+        );
+      }
       await client.query('BEGIN');
       if (input.isNew)
         await client.query('INSERT INTO conversations(id, token_hash) VALUES ($1, $2)', [
@@ -46,7 +75,7 @@ export class PostgresConversationStore implements ConversationStore {
       await client.query('COMMIT');
       return result.response;
     } catch (error) {
-      await client.query('ROLLBACK').catch(() => undefined);
+      await client?.query('ROLLBACK').catch(() => undefined);
       if (typeof error === 'object' && error && 'code' in error && error.code === '55P03')
         throw new AppError(
           'CONVERSATION_BUSY',
@@ -55,7 +84,11 @@ export class PostgresConversationStore implements ConversationStore {
         );
       throw error;
     } finally {
-      client.release();
+      try {
+        client?.release();
+      } finally {
+        admission.active--;
+      }
     }
   }
   async ready(): Promise<void> {

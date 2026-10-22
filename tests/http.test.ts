@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
+import type { Redis } from 'ioredis';
 import Ajv from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { chatResponseSchema, openApiDocument } from '../packages/contracts/src/index.js';
@@ -8,6 +9,7 @@ import { loadConfig } from '../packages/shared-config/src/index.js';
 import type { ChatProvider, GenerationResult } from '../apps/orbe-node/src/domain/ports.js';
 import { testApp } from './helpers.js';
 import { MemoryConversationStore } from '../apps/orbe-node/src/adapters/memory-store.js';
+import { AppError } from '../apps/orbe-node/src/domain/errors.js';
 
 const apps: FastifyInstance[] = [];
 afterEach(async () => {
@@ -130,7 +132,74 @@ describe('API HTTP e contrato', () => {
     const limited = await post(app, { message: 'oi' });
     expect(limited.statusCode).toBe(429);
     expect(limited.json().error.code).toBe('RATE_LIMITED');
+    expect(Number(limited.headers['retry-after'])).toBeGreaterThan(0);
     expect((await app.inject('/health')).statusCode).toBe(200);
+  });
+  it('falha fechada com 503 público quando Redis do rate limit está indisponível', async () => {
+    const generate = vi.fn<ChatProvider['generate']>();
+    const unavailableRedis = {
+      rateLimit: (...args: unknown[]) => {
+        const callback = args.at(-1) as (error: Error) => void;
+        callback(new Error('synthetic-secret-redis-driver'));
+      },
+      ping: async () => {
+        throw new Error('synthetic-secret-redis-driver');
+      },
+      quit: async () => undefined,
+      disconnect: () => undefined,
+    } as unknown as Redis;
+    const app = await setup({ redis: unavailableRedis, provider: { name: 'openai', generate } });
+    const response = await post(
+      app,
+      { message: 'Projetos React do portfólio' },
+      { origin: 'http://localhost:5173' },
+    );
+    expect(response.statusCode).toBe(503);
+    expect(response.json().error.code).toBe('RATE_LIMIT_UNAVAILABLE');
+    expect(response.body).not.toContain('synthetic-secret-redis-driver');
+    expect(response.headers['retry-after']).toBe('1');
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.headers['access-control-expose-headers']).toContain('Retry-After');
+    expect(generate).not.toHaveBeenCalled();
+    expect((await app.inject('/health')).statusCode).toBe(200);
+    expect((await app.inject('/ready')).statusCode).toBe(503);
+  });
+  it('expõe esgotamento global e Retry-After sem alterar o contrato nem simular resposta', async () => {
+    const app = await setup({
+      provider: {
+        name: 'openai-compatible',
+        generate: async () => {
+          throw new AppError('LLM_BUDGET_EXHAUSTED', 429, 'Limite global atingido.', 42);
+        },
+      },
+    });
+    const response = await post(
+      app,
+      { message: 'Quais projetos usam React?' },
+      {
+        origin: 'http://localhost:5173',
+      },
+    );
+    expect(response.statusCode).toBe(429);
+    expect(response.headers['retry-after']).toBe('42');
+    expect(response.headers['access-control-expose-headers']).toContain('Retry-After');
+    expect(response.json()).toEqual({
+      error: {
+        code: 'LLM_BUDGET_EXHAUSTED',
+        message: 'Limite global atingido.',
+        correlationId: response.headers['x-correlation-id'],
+      },
+    });
+    expect((await app.inject('/health')).statusCode).toBe(200);
+  });
+  it('mantém headers de segurança nos endpoints públicos', async () => {
+    const app = await setup();
+    for (const url of ['/health', '/ready', '/api/v1/openapi.json']) {
+      const response = await app.inject(url);
+      expect(response.headers['x-content-type-options']).toBe('nosniff');
+      expect(response.headers['x-frame-options']).toBe('SAMEORIGIN');
+      expect(response.headers['cache-control']).toBe('no-store');
+    }
   });
   it('não aceita X-Forwarded-For arbitrário para contornar rate limit', async () => {
     const app = await setup({

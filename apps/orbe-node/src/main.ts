@@ -7,19 +7,13 @@ import { MemoryConversationStore } from './adapters/memory-store.js';
 import { PostgresConversationStore } from './adapters/postgres-store.js';
 import { MockChatProvider } from './adapters/mock-provider.js';
 import { LangChainChatProvider } from './adapters/langchain-provider.js';
+import { RedisLlmCallBudget } from './adapters/redis-llm-budget.js';
+import type { ChatProvider } from './domain/ports.js';
 import { buildApp } from './http/app.js';
 
 try {
   const config = loadConfig();
   const knowledge = await JsonKnowledgeRepository.load();
-  const provider =
-    config.LLM_PROVIDER === 'mock'
-      ? new MockChatProvider()
-      : new LangChainChatProvider(
-          config,
-          knowledge,
-          await readFile('apps/orbe-node/prompts/v3.md', 'utf8'),
-        );
   const store =
     config.PERSISTENCE === 'memory'
       ? new MemoryConversationStore(
@@ -45,12 +39,26 @@ try {
   redis?.on('error', () => {
     /* Readiness reporta falhas sem registrar credenciais do driver. */
   });
+  let provider: ChatProvider;
   try {
     await store.ready();
     if (redis) {
       await redis.connect();
       await redis.ping();
     }
+    provider =
+      config.LLM_PROVIDER === 'mock'
+        ? new MockChatProvider()
+        : new LangChainChatProvider(
+            config,
+            knowledge,
+            await readFile('apps/orbe-node/prompts/v3.md', 'utf8'),
+            new RedisLlmCallBudget(redis!, {
+              key: config.LLM_GLOBAL_BUDGET_KEY,
+              maxCalls: config.LLM_GLOBAL_MAX_CALLS!,
+              windowMs: config.LLM_GLOBAL_WINDOW_MS,
+            }),
+          );
   } catch {
     await store.close();
     redis?.disconnect();

@@ -101,6 +101,12 @@ export class ChatService {
             remaining -= content.length;
             return [{ ...doc, content }];
           });
+          if (documents.length === 0)
+            throw new AppError(
+              'LLM_CONTEXT_LIMIT',
+              502,
+              'Limite de contexto do assistente atingido. Envie uma mensagem mais curta.',
+            );
           const controller = new AbortController();
           let timer: ReturnType<typeof setTimeout> | undefined;
           try {
@@ -113,7 +119,6 @@ export class ChatService {
               }),
               new Promise<never>((_, reject) => {
                 timer = setTimeout(() => {
-                  controller.abort();
                   reject(
                     new AppError(
                       'LLM_TIMEOUT',
@@ -121,6 +126,9 @@ export class ChatService {
                       'O assistente demorou para responder. Tente novamente.',
                     ),
                   );
+                  // Escolhe o erro 504 antes de o listener de abort do transporte poder
+                  // rejeitar a geração e transformá-lo incorretamente em LLM_UNAVAILABLE.
+                  controller.abort();
                 }, this.config.LLM_TIMEOUT_MS);
               }),
             ]);

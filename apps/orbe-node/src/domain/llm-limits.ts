@@ -1,0 +1,3 @@
+export const MAX_MODEL_CALLS_PER_TURN = 3;
+export const MAX_TOOL_CALLS_PER_ROUND = 3;
+export const MAX_TOOL_ROUNDS_PER_TURN = MAX_MODEL_CALLS_PER_TURN - 1;

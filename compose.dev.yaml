@@ -2,6 +2,6 @@
 # docker compose -f compose.yaml -f compose.dev.yaml up -d postgres redis
 services:
   postgres:
-    ports: ['127.0.0.1:5432:5432']
+    ports: ['127.0.0.1:${PHASSCODE_POSTGRES_PORT:-5432}:5432']
   redis:
-    ports: ['127.0.0.1:6379:6379']
+    ports: ['127.0.0.1:${PHASSCODE_REDIS_PORT:-6379}:6379']

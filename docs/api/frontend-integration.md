@@ -81,12 +81,19 @@ internos. O mesmo `404` protege token incorreto, conversa inexistente e conversa
 | `403`                      | Conferir origem autorizada no backend; a configuração CORS precisa corresponder à URL do frontend.                                            |
 | `404`                      | Limpar ID/token, informar que a conversa não está disponível e permitir iniciar outra. Preservar o texto digitado para novo envio consciente. |
 | `409`                      | Aguardar o turno atual antes de permitir outro envio.                                                                                         |
-| `429`                      | Respeitar `Retry-After`; usar espera crescente com limite quando necessário e liberar nova tentativa após a espera.                           |
+| `429`                      | Respeitar `Retry-After` e liberar nova tentativa manual após a espera; pode ser limite por IP ou orçamento global da LLM.                     |
 | `502`, `503`, `504`, `500` | Manter o texto, encerrar loading e mostrar falha com correlação; permitir nova tentativa.                                                     |
 
 Não repetir silenciosamente uma mensagem após timeout de rede: a solicitação anterior pode ter
 sido concluída e o chat ainda não oferece chave de idempotência. Cancelar a espera no navegador
 também não prova que o servidor cancelou ou desfez o processamento.
+
+`LLM_BUDGET_EXHAUSTED` identifica o 429 global. `LLM_BUDGET_UNAVAILABLE`,
+`CHAT_CAPACITY_REACHED`, `DB_UNAVAILABLE` e `RATE_LIMIT_UNAVAILABLE` são 503 transitórios; os três últimos sugerem
+`Retry-After: 1`. Preservar o texto digitado, encerrar loading e permitir tentativa consciente.
+Mensagens aceitas podem conter dados pessoais enviados espontaneamente: o aviso deve informar
+persistência temporária e envio ao provedor externo, desencorajar dados sensíveis e indicar contato
+para exclusão. Não há anonimização automática garantida.
 
 ## CORS e ambiente
 

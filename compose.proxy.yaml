@@ -1,0 +1,13 @@
+# Opt-in: confirmar primeiro a rede real do Nginx compartilhado e um alias exclusivo do ambiente.
+# docker compose --env-file .env -p PROJETO -f compose.yaml -f compose.proxy.yaml up -d api
+services:
+  api:
+    networks:
+      backend: {}
+      proxy:
+        aliases:
+          ['${PHASSCODE_PROXY_ALIAS:?Configure um alias exclusivo confirmado para este ambiente}']
+networks:
+  proxy:
+    external: true
+    name: ${PHASSCODE_PROXY_NETWORK:?Configure a rede externa existente do proxy compartilhado}

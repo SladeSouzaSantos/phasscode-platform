@@ -1,11 +1,12 @@
 # Progresso e continuidade
 
-Atualizado em 21/10/2026, America/Sao_Paulo.
+Atualizado em 22/10/2026, America/Sao_Paulo.
 
 ## Estado atual
 
-**Fases 1 e 2 concluídas e validadas localmente.** A próxima entrega é P3-00: login Google OIDC,
-sessão e JWT, antes dos endpoints administrativos e do agendamento.
+**Fases 1 e 2 concluídas e publicadas pela PR #2.** A revisão pós-Fase 2 prepara homologação no
+`minimac-server`. A próxima entrega funcional é P3-00: Google OIDC, sessão e JWT. Esta revisão
+ainda é local e precisa de seu próprio commit e CI.
 
 O chat já permite integração local do frontend em `http://localhost:3000/api/v1/chat`.
 Swagger: `http://localhost:3000/docs/`. O [guia do frontend](api/frontend-integration.md) e o
@@ -36,7 +37,7 @@ A divergência da conclusão da UnP (dezembro/2014 no CV, fevereiro/2015 no site
 Lithology e outros pontos históricos permanecem identificados. Cursos livres não são tratados como
 certificações profissionais verificadas.
 
-## Validação executada
+## Validação histórica da Fase 2
 
 | Verificação                                              | Resultado                                                                    |
 | -------------------------------------------------------- | ---------------------------------------------------------------------------- |
@@ -78,18 +79,86 @@ Ocorreram timeouts, indisponibilidade e resposta vazia durante a avaliação; os
 preservados. No caso Laravel, a pergunta foi ajustada para pedir tecnologias explicitamente,
 mantendo o check do framework e as fontes; a reexecução passou.
 
+## Revisão pós-Fase 2
+
+O contrato do chat e os 31 documentos foram preservados. Este incremento entrega:
+
+- Compose com projeto, imagem, porta, volumes e redes privados separados por ambiente, override
+  de proxy opt-in e scripts com projeto/arquivo de ambiente explícitos.
+- Orçamento global Redis atômico por invocação real, incluindo tool calling; 429 com Retry-After,
+  falha fechada em indisponibilidade e nenhum fallback mock. Limite deve ser escolhido pelo operador.
+- Admissão PostgreSQL de oito turnos por pool padrão de dez, preservando espaço para readiness.
+  Transações ainda duram durante a geração; leases/transações curtas dependem de carga demonstrada.
+- Bloqueio de geração sem documentos por falta de contexto, 504 preservado no cancelamento e
+  correção da recusa de perguntas conceituais legítimas sobre tokens. A busca continua lexical.
+- Máximo de três invocações e duas rodadas com três buscas locais por turno. A terceira chamada
+  não executa buscas que nunca seriam consumidas por outra geração.
+- Release manual seguindo o portfólio: CI/SAST, GHCR por digest, DAST mock descartável,
+  Tailscale/SSH e verificação. Configuração e execução externas ainda pendentes.
+
+A [revisão do chat](testing/post-phase2-chat-review.md) registra evidências e limites. A v3 mantém
+20 cenários/22 turnos. A regressão offline usa o ChatService real com provedor sintético para
+verificar fontes completas e políticas, sem avaliar geração: 19 turnos elegíveis e três
+determinísticos, até 57 invocações (38 adicionais após ferramentas) e 114 buscas locais. O plano
+imprime também o teto conservador de 66 invocações para quaisquer 22 turnos. `--max-calls=22`
+limita HTTP, não chamadas ao modelo. Não foi executado `--live` nesta revisão; aprovação integral
+real da v3 e revisão humana continuam pendentes.
+
 ## Estado operacional e publicação
 
-Compose usa `.env` ignorado pelo Git, OpenRouter em `chat-completions`, modelo
+Validação desta revisão, em 22/10/2026:
+
+| Verificação                          | Resultado                                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------------------- |
+| `npm ci --ignore-scripts`            | Concluído, lockfile preservado                                                        |
+| `npm run check`                      | Lint, formatação, tipos, contrato OpenAPI, **153 testes locais** e build aprovados    |
+| `npm run test:infrastructure`        | **25 testes aprovados**, Compose real sem daemon e scripts com ferramentas simuladas  |
+| PostgreSQL 17 + Redis 7 descartáveis | **17 testes aprovados**, incluindo concorrência do orçamento e headroom do pool       |
+| `npm run smoke`                      | Processo compilado, health/readiness e dois turnos por socket HTTP aprovados com mock |
+| `npm audit --audit-level=high`       | Nenhuma vulnerabilidade reportada                                                     |
+| `npm run eval:orbe`                  | Plano v3, 20 cenários/22 mensagens e tetos de consumo; zero chamadas HTTP/LLM         |
+
+Total: **195 testes automatizados**. O primeiro `check` parou por formatação em `docs/TASKS.md`;
+após corrigir, a execução completa passou. A instalação npm inicialmente falhou no sandbox ao
+gravar seu cache/log; foi repetida com acesso permitido e concluiu. O projeto Docker exclusivo
+`phasscode-review-20261022-r1` foi conferido vazio, criado para integração e removido com seus dados
+descartáveis após o sucesso. Nenhum volume existente de desenvolvimento/produção foi removido.
+
+Na conferência final, a imagem runtime também foi reconstruída e testada com configuração de
+produção, PostgreSQL/Redis descartáveis e mock, incluindo restart, retenção e Nginx privado.
+O modelo de proxy passou por troca de IP da API sem reload; `/ready` interno respondeu 200 e
+externo 404, com `/health` público 200. Não houve publicação GHCR, ZAP, Tailscale, SSH ou deploy remoto.
+
+A [auditoria requisito a requisito](testing/post-phase2-audit.md) registra lacunas adicionais
+corrigidas: pré-validação OCI, persistência do modo de proxy, contexto com prompt/JSON, integridade
+de TTL Redis, 503 no limitador por IP, bloqueio de diagnóstico SDK e atualização do modelo Nginx.
+Um teste de infraestrutura atingiu dez segundos sob build concorrente; o limite específico foi
+ajustado para 30 segundos e a suíte isolada passou 25/25, sem remover asserções.
+Os projetos exclusivos `phasscode-audit-tests-20261022-r2` e `phasscode-audit-runtime-20261022`
+foram removidos após a validação, preservando dados existentes dos demais ambientes.
+
+Na avaliação anterior, o Compose usou `.env` ignorado pelo Git, OpenRouter em `chat-completions`, modelo
 `nvidia/nemotron-3.5-super-vl:free`, timeout de 30 segundos, saída de 800 tokens e contexto de
 12.000 caracteres. A API publica somente `127.0.0.1:3000`; bancos não publicam portas. Volumes de
 desenvolvimento foram preservados. O ambiente exclusivo de integração foi removido após os testes.
+Nenhum segredo local foi alterado nesta revisão. Antes de recriar uma API real, configurar
+`LLM_GLOBAL_MAX_CALLS`. Instâncias do mesmo ambiente compartilham Redis/chave/política;
+ambientes isolados precisam repartir a cota da conta se usarem o mesmo provedor/credencial.
+Na conferência final, o `.env` local continua sem esse limite; foi verificada somente sua
+presença/validade, sem imprimir segredos. A API real revisada requer configurá-lo antes de iniciar.
 
-A fundação foi publicada pelo proprietário em `dev/984d0e9` e incorporada pela PR #1 em
-`main/e78ef0a`. Foram conferidos os resultados de [Backend CI](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39670852615)
-e [CodeQL](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39670852661): sucesso.
-As alterações de fechamento desta fase permanecem locais e ainda não têm commit ou CI próprios.
-Não houve novo push, deploy, alteração de DNS, certificados ou Nginx compartilhado por este trabalho.
+A fundação foi publicada pela PR #1. A [PR #2](https://github.com/SladeSouzaSantos/phasscode-platform/pull/2)
+publicou o fechamento da Fase 2 em `main/7357329`, sincronizado em `dev/85ebca3`.
+Conferidos remotamente: [CI main](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39697791259),
+[CodeQL main](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39697791304),
+[CI dev](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39697973470) e
+[CodeQL dev](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39697973426), todos aprovados.
+Esses checks são do fechamento publicado; esta revisão aguarda commit e CI próprios.
+Não houve commit, push, deploy, publicação GHCR ou alteração de DNS, certificados e Nginx nesta revisão.
+
+Os arquivos fornecidos do frontend orientaram o fluxo preparado; não foram editados.
+O [guia do Mac Mini](deployment/README.md) separa plano, aplicação manual e configuração externa.
+O include compartilhado `/opt/projects/*/nginx.conf` permanece.
 
 No diagnóstico inicial, a chave OpenRouter de gerenciamento não permitia inferência. O proprietário
 a substituiu por uma chave comum e a integração real passou. Chaves, hashes de chaves e tokens de

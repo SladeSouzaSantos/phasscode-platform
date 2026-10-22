@@ -4,8 +4,33 @@ Entradas usam Zod strict, limites HTTP e de mensagem, sem aceitar campos para es
 URL ou implementação. CORS possui lista explícita; não substitui autenticação nem protege contra
 clientes fora do navegador. Rate limiting usa Redis quando configurado, por IP, e não confia em
 X-Forwarded-For sem `TRUST_PROXY` explícito. Falha de Redis não libera o chat sem limitação.
-Antes de exposição pública, definir cotas globais de custo e proteção adicional contra abuso
-distribuído no proxy. O rate limit por IP não resolve sozinho ataques distribuídos.
+O rate limit por IP não resolve sozinho ataques distribuídos. O orçamento global agora limita
+chamadas reais da LLM entre instâncias com o mesmo Redis/chave. Proteção adicional no proxy e
+monitoramento continuam necessários: um atacante ainda pode consumir o orçamento e causar
+indisponibilidade para outros visitantes.
+
+Provedor real requer `LLM_GLOBAL_MAX_CALLS` explícito e Redis, inclusive fora de produção.
+`LLM_GLOBAL_WINDOW_MS` define a janela fixa iniciada na primeira reserva; o relógio, incremento e
+expiração são atômicos em Lua no Redis. Cada `model.invoke` conta, inclusive rodadas depois de
+ferramentas, falhas do provedor e cancelamentos após reserva; não há reembolso ou retry de geração.
+Mock e políticas determinísticas não reservam chamadas. Esse limite não mede tokens ou dinheiro,
+não consulta saldo/cota OpenRouter e não cobre outros clientes que usam a mesma conta.
+
+Esgotamento retorna `LLM_BUDGET_EXHAUSTED`/429 com `Retry-After` em segundos. Redis indisponível,
+resposta inválida ou políticas divergentes na mesma chave retornam `LLM_BUDGET_UNAVAILABLE`/503,
+sem invocar o modelo. Falha Redis no limitador por IP retorna `RATE_LIMIT_UNAVAILABLE`/503,
+com `Retry-After: 1`, sem executar o chat. O frontend deve
+respeitar os headers e oferecer nova tentativa manual, sem loop automático. Não trocar a chave ou
+limpar Redis para liberar consumo; Redis isolado por ambiente exige repartir o orçamento da conta
+entre produção e desenvolvimento. AOF e `noeviction` reduzem perda de contadores, mas não substituem
+reconciliação com o provedor após perda/restauração de estado.
+
+O pool PostgreSQL padrão tem dez conexões. A admissão de chat reserva duas para consultas/readiness
+e rejeita excesso com `CHAT_CAPACITY_REACHED`/503, sem criar uma fila de turnos. Falha no checkout
+retorna `DB_UNAVAILABLE`/503. Ambos oferecem `Retry-After: 1`. O controle é por pool/processo, não
+distribuído. A transação e o lock por conversa ainda duram durante a geração, limitada por timeout;
+isso mantém rollback/atomicidade atuais. Medir carga antes de substituir por leases e transações
+curtas. Configurações com pool de tamanho um não oferecem reserva de conexão.
 
 Produção exige PostgreSQL e Redis. Conversas usam tokens aleatórios de 256 bits, hash SHA-256 e
 comparação constante; UUID não concede acesso. Tokens não são registrados nem enviados ao modelo.
@@ -24,6 +49,17 @@ está ignorado por Git e Docker. A API envia `store: false` ao modelo; isso não
 Retention na conta do fornecedor. Avalie contrato, localização e retenção do provedor antes de
 enviar dados de visitantes.
 
+`LANGCHAIN_VERBOSE=true` pode instalar callbacks que imprimem mensagens completas, independentemente
+do logger HTTP. A configuração e o construtor do provedor rejeitam esse modo e também
+`LANGCHAIN_TRACING`, `LANGCHAIN_TRACING_V2`, `LANGSMITH_TRACING` e `LANGSMITH_TRACING_V2` quando
+habilitados com `true`. Tracing de conteúdo exige uma decisão futura explícita de privacidade;
+não é ativado neste incremento. Valores de outras variáveis não entram no erro de configuração.
+
+`/ready` consulta PostgreSQL/Redis e fica disponível para probes internos. O modelo Nginx bloqueia
+essa rota externamente; a verificação pública usa `/health`, que não consulta os bancos. A API
+continua publicada apenas no loopback do host. O modelo precisa ser instalado manualmente para
+essa restrição valer no servidor. Cotas de LLM não substituem proteção operacional contra DoS.
+
 Retenção padrão: sete dias desde a última atividade, até doze mensagens por conversa. Acesso a
 conversa expirada é negado; execute diariamente `db:retention` ou o serviço `retention` para exclusão
 física em cascata. Backups precisam da própria política de expiração. O modo memória elimina
@@ -33,6 +69,14 @@ Não peça informações pessoais no chat nesta fase. Para operação pública, 
 base legal adequada, aviso de privacidade, contato do controlador e processo de exclusão/solicitação
 do titular. Estas são tarefas de configuração e governança do projeto, não uma declaração de
 conformidade jurídica automática com LGPD.
+
+Visitantes podem enviar dados pessoais espontaneamente. Não existe detecção/anonimização automática
+que garanta sua remoção: conteúdo aceito pode ser persistido no histórico e enviado ao provedor
+externo com o contexto da conversa. O frontend deve mostrar aviso antes do primeiro envio,
+desencorajar dados pessoais/sensíveis e disponibilizar contato e processo de exclusão. A exclusão
+local não comprova exclusão no fornecedor ou em backups. Não registrar corpos para diagnosticar
+abuso; usar código público, correlação e métricas sem conteúdo. Nesta revisão não foi acrescentada
+coleta de dados nem um fluxo de agendamento.
 
 Tokens OAuth Google e refresh tokens ainda não são armazenados. A implementação futura deve usar
 secret manager ou criptografia autenticada com biblioteca padrão e chave fora do banco, escopos

@@ -9,6 +9,11 @@ import {
   runEvaluation,
 } from '../evaluation/runner.js';
 import { catalogSchema, categorySchema, matrixSchema } from '../evaluation/schema.js';
+import {
+  MAX_MODEL_CALLS_PER_TURN,
+  MAX_TOOL_CALLS_PER_ROUND,
+  MAX_TOOL_ROUNDS_PER_TURN,
+} from '../apps/orbe-node/src/domain/llm-limits.js';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -57,7 +62,14 @@ async function main(): Promise<void> {
   }
   const origin = apiOrigin(process.env['EVAL_API_URL'], args.includes('--allow-remote'));
   console.info(
-    `${matrix.cases.length} cenários; ${plannedCalls} chamadas previstas; limite ${maxCalls}.`,
+    `${matrix.cases.length} cenários; ${plannedCalls} mensagens HTTP previstas; limite HTTP ${maxCalls}.`,
+  );
+  const boundedMessages = Math.min(plannedCalls, maxCalls);
+  console.info(
+    `Teto conservador: ${boundedMessages * MAX_MODEL_CALLS_PER_TURN} chamadas ao provedor, incluindo até ${boundedMessages * (MAX_MODEL_CALLS_PER_TURN - 1)} adicionais após ferramentas.`,
+  );
+  console.info(
+    `Por mensagem: até ${MAX_MODEL_CALLS_PER_TURN} chamadas ao modelo e ${MAX_TOOL_ROUNDS_PER_TURN * MAX_TOOL_CALLS_PER_ROUND} buscas locais; políticas determinísticas e mock não consomem o provedor. Tokens consumidos variam.`,
   );
   if (!args.includes('--live')) {
     console.info(matrix.cases.map(({ id, category }) => `${id} (${category})`).join('\n'));

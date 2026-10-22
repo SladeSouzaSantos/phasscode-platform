@@ -123,6 +123,62 @@ describe('PostgreSQL e Redis reais', () => {
       await pending;
     }
   });
+  it('mantém readiness durante oito gerações, rejeita excesso e recupera vagas após falha', async () => {
+    let release!: () => void;
+    let started!: () => void;
+    let count = 0;
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const entered = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    const provider: ChatProvider = {
+      name: 'mock',
+      generate: async () => {
+        const index = ++count;
+        if (index <= 8) {
+          if (index === 8) started();
+          await blocked;
+          if (index === 1) throw new Error('synthetic provider failure');
+        }
+        return { answer: 'Resposta pública.', sources: [] };
+      },
+    };
+    const knowledge = await JsonKnowledgeRepository.load();
+    const firstStore = new PostgresConversationStore(pool);
+    const secondStore = new PostgresConversationStore(pool);
+    const first = new ChatService(firstStore, provider, knowledge, loadConfig());
+    const second = new ChatService(secondStore, provider, knowledge, loadConfig());
+    const pending = Array.from({ length: 8 }, (_, index) =>
+      (index % 2 ? first : second).execute({ message: 'Projetos PHASSCODE' }),
+    );
+    const settled = Promise.allSettled(pending);
+    await entered;
+    try {
+      await expect(secondStore.ready()).resolves.toBeUndefined();
+      await expect(pool.query('SELECT 1')).resolves.toMatchObject({ rowCount: 1 });
+      await expect(first.execute({ message: 'Projetos PHASSCODE' })).rejects.toMatchObject({
+        code: 'CHAT_CAPACITY_REACHED',
+        status: 503,
+        retryAfterSeconds: 1,
+      });
+      expect(count).toBe(8);
+    } finally {
+      release();
+      const results = await settled;
+      for (const result of results)
+        if (result.status === 'fulfilled') ids.push(result.value.conversationId);
+    }
+    const results = await settled;
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(7);
+    expect(results.find((result) => result.status === 'rejected')).toMatchObject({
+      reason: { code: 'LLM_UNAVAILABLE', status: 502 },
+    });
+    const recovered = await first.execute({ message: 'Projetos PHASSCODE' });
+    ids.push(recovered.conversationId);
+    expect(recovered.answer).toBe('Resposta pública.');
+  });
   it('faz rate limiting compartilhado em Redis entre duas instâncias HTTP', async () => {
     const config = loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent', RATE_LIMIT_MAX: '1' });
     // O prefixo de IP isola esta suíte sem FLUSHDB em um Redis compartilhado.
