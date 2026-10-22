@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": ["orbe-phase2-v1", "orbe-phase2-v2", "orbe-phase2-v3"]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "minItems": 1,
+      "maxItems": 20,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "facts",
+              "missing-information",
+              "continuity",
+              "scope",
+              "security",
+              "unavailable-features"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "humanReview": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "turns": {
+            "minItems": 1,
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "expect": {
+                  "type": "object",
+                  "properties": {
+                    "sourcePolicy": {
+                      "type": "string",
+                      "enum": ["required", "optional", "none"]
+                    },
+                    "requiredSourceIds": {
+                      "default": [],
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "concepts": {
+                      "default": [],
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "anyOf": {
+                            "minItems": 1,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "missing": {
+                            "default": "fail",
+                            "type": "string",
+                            "enum": ["fail", "review"]
+                          }
+                        },
+                        "required": ["label", "anyOf", "missing"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "forbiddenTerms": {
+                      "default": [],
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "required": ["sourcePolicy", "requiredSourceIds", "concepts", "forbiddenTerms"],
+                  "additionalProperties": false
+                }
+              },
+              "required": ["message", "expect"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["id", "category", "title", "humanReview", "turns"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["version", "description", "cases"],
+  "additionalProperties": false
+}

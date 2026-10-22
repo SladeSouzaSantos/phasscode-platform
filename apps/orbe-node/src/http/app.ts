@@ -24,7 +24,8 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
   const app = Fastify({
     bodyLimit: 8192,
     requestTimeout: 65000,
-    connectionTimeout: 10000,
+    // O socket precisa aguardar a geração para receber a resposta ou o erro 504 da aplicação.
+    connectionTimeout: config.LLM_TIMEOUT_MS + 5000,
     trustProxy: config.trustedProxies.length ? config.trustedProxies : false,
     logController: new LogController({ disableRequestLogging: true }),
     genReqId: () => randomUUID(),

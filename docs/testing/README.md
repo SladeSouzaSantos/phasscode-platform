@@ -9,6 +9,17 @@ rollback de geração, expiração, configuração, erros e timeout com abort. O
 exercitado de ponta a ponta até o transporte HTTP simulado, incluindo ferramentas nas duas APIs.
 Isso não comprova disponibilidade nem comportamento de um modelo real específico.
 
+As regressões da Fase 2 cobrem recuperação de termos (Java/JavaScript e IA), seguimentos consecutivos,
+preservação de pares no histórico e exclusão de turnos recusados do contexto enviado à LLM. A suíte
+de avaliação testa classificações de resultados, proveniência das fontes, continuidade, redação de
+relatórios e limites do runner com transporte em memória.
+
+`npm run eval:orbe` lista os 20 cenários/22 chamadas da matriz v3 sem usar a LLM. Com a API real configurada,
+`npm run eval:orbe -- --live --max-calls=22` executa a matriz HTTP sequencial. Os relatórios ficam em
+`evaluation/reports`; não contêm tokens de conversa. Esse comando é opt-in e não faz parte da CI.
+Veja [a rubrica](../../evaluation/RUBRIC.md): checks determinísticos e revisão semântica têm
+resultados separados, e uma passagem não é teste de carga ou garantia de segurança.
+
 A suíte `npm run test:integration` requer `TEST_DATABASE_URL` e `TEST_REDIS_URL`. Use banco e Redis
 de teste descartáveis. Ela não usa skip automático quando as variáveis faltam. Aplica migrations
 duas vezes, verifica retenção de quantidade de mensagens, hash de token, rollback, lock concorrente

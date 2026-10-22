@@ -1,0 +1,117 @@
+{
+  "reportVersion": "orbe-evaluation-v1",
+  "startedAt": "2026-10-21T23:40:56.620Z",
+  "finishedAt": "2026-10-21T23:40:59.264Z",
+  "configuration": {
+    "apiOrigin": "http://127.0.0.1:3000",
+    "mode": "live",
+    "matrixVersion": "orbe-phase2-v2",
+    "matrixSha256": "83973281fd241db0e8aff3321b360a31dc8b9532d8b478794278b507f1df444b",
+    "catalogSha256": "056390e697691824b268082da60a0f449a8879b858048e41acdfe51ecd66e934",
+    "timeoutMs": 70000,
+    "maxCalls": 24,
+    "selectedCaseIds": ["education-history"]
+  },
+  "summary": {
+    "pass": 1,
+    "fail": 0,
+    "review": 0,
+    "calls": 1,
+    "stoppedEarly": false
+  },
+  "limitations": [
+    "Pass significa aprovação dos checks determinísticos; revisão humana de todas as respostas permanece pendente.",
+    "Correspondência de termos e fontes não comprova fidelidade semântica completa.",
+    "simulated=false não comprova uso de ferramentas; esta matriz avalia o contrato HTTP público.",
+    "Execução limitada e sequencial; não mede estabilidade estatística, carga ou segurança exaustiva.",
+    "Hashes identificam a representação JSON validada da matriz selecionada e do catálogo."
+  ],
+  "cases": [
+    {
+      "id": "education-history",
+      "category": "facts",
+      "title": "Formação declarada e previsão de conclusão",
+      "status": "pass",
+      "turns": [
+        {
+          "status": "pass",
+          "checks": [
+            {
+              "id": "contract",
+              "status": "pass",
+              "explanation": "Resposta atende ao contrato Zod público."
+            },
+            {
+              "id": "real-provider",
+              "status": "pass",
+              "explanation": "Provedor real e simulated=false; isto não comprova tool calling por si só."
+            },
+            {
+              "id": "conversation-token",
+              "status": "pass",
+              "explanation": "Nova conversa emitiu token."
+            },
+            {
+              "id": "source-catalog",
+              "status": "pass",
+              "explanation": "IDs, tipos, títulos e URLs das fontes correspondem ao catálogo e não se repetem."
+            },
+            {
+              "id": "source-policy",
+              "status": "pass",
+              "explanation": "Resposta inclui fonte rastreável."
+            },
+            {
+              "id": "source:formacao-petroleo",
+              "status": "pass",
+              "explanation": "Fonte esperada foi citada."
+            },
+            {
+              "id": "source:formacao-prisma",
+              "status": "pass",
+              "explanation": "Fonte esperada foi citada."
+            },
+            {
+              "id": "concept:UnP",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:FacPrisma",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:previsao",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            }
+          ],
+          "answer": "Na UnP, consta Bacharelado declarado em Engenharia de Petróleo e Gás, sem mês de conclusão confirmado devido à divergência entre dezembro de 2014 no currículo e fevereiro de 2015 no site antigo.\n\nNa FacPrisma, consta pós-graduação lato sensu prevista em Computação e TIC, com previsão de conclusão em julho de 2026. Essa previsão não confirma que a pós-graduação terminou, pois a base não possui confirmação posterior de andamento ou término.",
+          "sourceIds": [
+            "formacao-prisma",
+            "formacao-petroleo",
+            "formacao-computacao",
+            "formacao-energia-eletrica",
+            "trajetoria-a-confirmar"
+          ],
+          "provider": "openai-compatible",
+          "simulated": false,
+          "promptVersion": "orbe-v3",
+          "message": "O que consta sobre a formação na UnP e na FacPrisma? A previsão de conclusão confirma que a pós-graduação terminou?",
+          "httpStatus": 200,
+          "latencyMs": 2642
+        }
+      ],
+      "humanReview": {
+        "status": "pending",
+        "criteria": [
+          "Apresentar Engenharia de Petróleo e Gás na UnP como conclusão declarada nas fontes, sem alegar verificação independente do diploma.",
+          "Se mencionar o mês de conclusão da UnP, preservar a divergência entre dezembro de 2014 no currículo e fevereiro de 2015 no site; não escolher um mês como fato resolvido.",
+          "Apresentar a pós-graduação da FacPrisma com previsão de julho de 2026 declarada no currículo antigo, sem inferir conclusão porque essa data já passou.",
+          "Distinguir curso declarado, previsão e conclusão atual confirmada."
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "reportVersion": "orbe-evaluation-v1",
+  "startedAt": "2026-10-21T23:45:51.368Z",
+  "finishedAt": "2026-10-21T23:45:53.884Z",
+  "configuration": {
+    "apiOrigin": "http://127.0.0.1:3000",
+    "mode": "live",
+    "matrixVersion": "orbe-phase2-v3",
+    "matrixSha256": "e9d9578ec240192f910b2b2345b711b67355003ad7fd7eb4545c70ecaabfc91c",
+    "catalogSha256": "e448c4c30e29df8257c92f77465f5bcd20a2b1ff1c8dff5f16c8ee7e936dc86e",
+    "timeoutMs": 70000,
+    "maxCalls": 24,
+    "selectedCaseIds": ["education-history"]
+  },
+  "summary": {
+    "pass": 1,
+    "fail": 0,
+    "review": 0,
+    "calls": 1,
+    "stoppedEarly": false
+  },
+  "limitations": [
+    "Pass significa aprovação dos checks determinísticos; revisão humana de todas as respostas permanece pendente.",
+    "Correspondência de termos e fontes não comprova fidelidade semântica completa.",
+    "simulated=false não comprova uso de ferramentas; esta matriz avalia o contrato HTTP público.",
+    "Execução limitada e sequencial; não mede estabilidade estatística, carga ou segurança exaustiva.",
+    "Hashes identificam a representação JSON validada da matriz selecionada e do catálogo."
+  ],
+  "cases": [
+    {
+      "id": "education-history",
+      "category": "facts",
+      "title": "Formação declarada, conclusão confirmada e graduação trancada",
+      "status": "pass",
+      "turns": [
+        {
+          "status": "pass",
+          "checks": [
+            {
+              "id": "contract",
+              "status": "pass",
+              "explanation": "Resposta atende ao contrato Zod público."
+            },
+            {
+              "id": "real-provider",
+              "status": "pass",
+              "explanation": "Provedor real e simulated=false; isto não comprova tool calling por si só."
+            },
+            {
+              "id": "conversation-token",
+              "status": "pass",
+              "explanation": "Nova conversa emitiu token."
+            },
+            {
+              "id": "source-catalog",
+              "status": "pass",
+              "explanation": "IDs, tipos, títulos e URLs das fontes correspondem ao catálogo e não se repetem."
+            },
+            {
+              "id": "source-policy",
+              "status": "pass",
+              "explanation": "Resposta inclui fonte rastreável."
+            },
+            {
+              "id": "source:formacao-petroleo",
+              "status": "pass",
+              "explanation": "Fonte esperada foi citada."
+            },
+            {
+              "id": "source:formacao-prisma",
+              "status": "pass",
+              "explanation": "Fonte esperada foi citada."
+            },
+            {
+              "id": "source:formacao-computacao",
+              "status": "pass",
+              "explanation": "Fonte esperada foi citada."
+            },
+            {
+              "id": "concept:UnP",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:FacPrisma",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:SegurancaInformacao",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:conclusao",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:UNISUL",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:trancamento",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:ano-previsto",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:mes-previsto",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:previsao",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            }
+          ],
+          "answer": "De acordo com a base pública verificada:\n\n- UnP (Engenharia de Petróleo e Gás): declarado como concluído, com divergência de datas entre dezembro de 2014 (currículo) e fevereiro de 2015 (site antigo).\n- FacPrisma (pós-graduação em Segurança da Informação): declarado como concluído, sem data informada.\n- UNISUL (Bacharelado em Ciência da Computação): trancado, com previsão de conclusão em dezembro de 2027.\n\nObs.: as formações são autodeclaradas pelo proprietário, sem verificação independente de diploma.",
+          "sourceIds": [
+            "formacao-computacao",
+            "formacao-prisma",
+            "formacao-petroleo",
+            "trajetoria-a-confirmar",
+            "formacao-eletrotecnica"
+          ],
+          "provider": "openai-compatible",
+          "simulated": false,
+          "promptVersion": "orbe-v3",
+          "message": "Quais são os status atuais declarados das formações na UnP, FacPrisma e UNISUL, e qual é a previsão informada para Ciência da Computação?",
+          "httpStatus": 200,
+          "latencyMs": 2513
+        }
+      ],
+      "humanReview": {
+        "status": "pending",
+        "criteria": [
+          "Apresentar Engenharia de Petróleo e Gás na UnP como conclusão declarada nas fontes, sem alegar verificação independente do diploma.",
+          "Se mencionar o mês de conclusão da UnP, preservar a divergência entre dezembro de 2014 no currículo e fevereiro de 2015 no site; não escolher um mês como fato resolvido.",
+          "Informar que somente a pós-graduação em Segurança da Informação da FacPrisma foi concluída, conforme confirmação do proprietário em 21/10/2026; não afirmar conclusão das demais áreas do currículo antigo.",
+          "Não inventar data de conclusão da FacPrisma: o proprietário confirmou o status, sem fornecer data.",
+          "Informar que Ciência da Computação na UNISUL está trancada nas últimas disciplinas, com nova previsão declarada de conclusão em dezembro de 2027; não inferir matrícula ativa, retomada ou conclusão efetiva.",
+          "Distinguir confirmação atual autodeclarada, dados históricos e previsão futura."
+        ]
+      }
+    }
+  ]
+}

@@ -16,6 +16,7 @@
     "start": "node --env-file-if-exists=.env dist/apps/orbe-node/src/main.js",
     "build": "tsc -p tsconfig.build.json",
     "smoke": "node scripts/smoke.mjs",
+    "eval:orbe": "node --env-file-if-exists=.env --import tsx scripts/evaluate-orbe.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",

@@ -69,6 +69,71 @@ const responseObject = (output: object[]) => ({
 });
 
 describe('adaptador real LangChain com transporte HTTP simulado', () => {
+  it.each(['true', 'false'])(
+    'envia reasoning.enabled=%s no payload HTTP sem expor raciocínio',
+    async (enabled) => {
+      const stub = await llmServer(() =>
+        completion({
+          role: 'assistant',
+          content: 'Resposta pública do portfólio.',
+          reasoning: 'internal_reasoning_never_return',
+        }),
+      );
+      const provider = new LangChainChatProvider(
+        loadConfig({
+          LLM_PROVIDER: 'openai-compatible',
+          LLM_API_KEY: 'test-only',
+          LLM_MODEL: 'test',
+          LLM_BASE_URL: stub.baseUrl,
+          LLM_API_MODE: 'chat-completions',
+          OPENROUTER_REASONING_ENABLED: enabled,
+        }),
+        await JsonKnowledgeRepository.load(),
+        'Use apenas as fontes.',
+      );
+      const result = await provider.generate({
+        message: 'Portfólio PHASSCODE',
+        history: [],
+        documents: [],
+        signal: new AbortController().signal,
+      });
+      expect(stub.paths).toEqual(['/v1/chat/completions']);
+      expect(stub.requests[0]?.reasoning).toEqual({ enabled: enabled === 'true' });
+      expect(stub.requests[0]?.store).toBe(false);
+      expect(result.answer).toBe('Resposta pública do portfólio.');
+      expect(JSON.stringify(result)).not.toContain('internal_reasoning');
+    },
+  );
+
+  it('recusa conteúdo vazio sem usar reasoning como fallback da resposta', async () => {
+    const stub = await llmServer(() =>
+      completion(
+        { role: 'assistant', content: '', reasoning: 'internal_reasoning_never_return' },
+        'length',
+      ),
+    );
+    const provider = new LangChainChatProvider(
+      loadConfig({
+        LLM_PROVIDER: 'openai-compatible',
+        LLM_API_KEY: 'test-only',
+        LLM_MODEL: 'test',
+        LLM_BASE_URL: stub.baseUrl,
+        LLM_API_MODE: 'chat-completions',
+      }),
+      await JsonKnowledgeRepository.load(),
+      'Use apenas as fontes.',
+    );
+    await expect(
+      provider.generate({
+        message: 'Portfólio PHASSCODE',
+        history: [],
+        documents: [],
+        signal: new AbortController().signal,
+      }),
+    ).rejects.toMatchObject({ code: 'LLM_INVALID_RESPONSE' });
+    expect(stub.requests[0]).not.toHaveProperty('reasoning');
+  });
+
   it('limita rodadas e mantém o orçamento de contexto ao repetir ferramentas', async () => {
     const stub = await llmServer(() =>
       completion(
@@ -166,6 +231,7 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     expect(stub.requests).toHaveLength(2);
     expect(stub.paths).toEqual(['/v1/chat/completions', '/v1/chat/completions']);
     expect(stub.requests[0]!.store).toBe(false);
+    expect(stub.requests.every((request) => !Object.hasOwn(request, 'reasoning'))).toBe(true);
     expect(JSON.stringify(stub.requests[1]!.messages)).toContain('call_1');
   });
   it('usa Responses API sem armazenamento remoto e conclui a ferramenta', async () => {
@@ -212,6 +278,7 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     expect(result.answer).toContain('React');
     expect(stub.paths).toEqual(['/v1/responses', '/v1/responses']);
     expect(stub.requests.every((request) => request.store === false)).toBe(true);
+    expect(stub.requests.every((request) => !Object.hasOwn(request, 'reasoning'))).toBe(true);
     expect(JSON.stringify(stub.requests[1]!.input)).toContain('function_call_output');
   });
   it('recusa ferramenta não autorizada antes de qualquer efeito externo', async () => {

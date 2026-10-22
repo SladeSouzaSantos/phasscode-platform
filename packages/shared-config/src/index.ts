@@ -4,6 +4,13 @@ const optionalText = z.preprocess(
   (value) => (value === '' ? undefined : value),
   z.string().optional(),
 );
+const optionalBoolean = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .optional(),
+);
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().default('127.0.0.1'),
@@ -25,6 +32,7 @@ const envSchema = z.object({
   LLM_API_KEY: optionalText,
   LLM_BASE_URL: optionalText,
   LLM_API_MODE: z.enum(['responses', 'chat-completions']).default('responses'),
+  OPENROUTER_REASONING_ENABLED: optionalBoolean,
   LLM_TIMEOUT_MS: z.coerce.number().int().min(100).max(60000).default(15000),
   LLM_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(64).max(2000).default(800),
 });
@@ -63,6 +71,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     (config.PERSISTENCE !== 'postgres' || !config.REDIS_URL)
   ) {
     throw new Error('Produção requer PostgreSQL e Redis configurados.');
+  }
+  if (
+    config.OPENROUTER_REASONING_ENABLED !== undefined &&
+    (config.LLM_PROVIDER !== 'openai-compatible' || config.LLM_API_MODE !== 'chat-completions')
+  ) {
+    throw new Error(
+      'OPENROUTER_REASONING_ENABLED requer LLM_PROVIDER=openai-compatible e LLM_API_MODE=chat-completions.',
+    );
   }
   if (config.LLM_PROVIDER !== 'mock' && (!config.LLM_API_KEY || !config.LLM_MODEL)) {
     throw new Error('LLM_API_KEY e LLM_MODEL são obrigatórios para o provedor real.');

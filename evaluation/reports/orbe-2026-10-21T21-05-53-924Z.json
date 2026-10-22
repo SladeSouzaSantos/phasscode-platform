@@ -1,0 +1,109 @@
+{
+  "reportVersion": "orbe-evaluation-v1",
+  "startedAt": "2026-10-21T21:05:53.924Z",
+  "finishedAt": "2026-10-21T21:06:02.281Z",
+  "configuration": {
+    "apiOrigin": "http://127.0.0.1:3000",
+    "mode": "live",
+    "matrixVersion": "orbe-phase2-v1",
+    "matrixSha256": "5e5a058ab9e2e7eb4d721140fcfb5f582ed59881bacc660a82dd17f15e2cbb5e",
+    "catalogSha256": "8ea40bc31a5f391367806a8d9d95602af3a88e2e5ca3fbb25986b9d3610a4f8e",
+    "timeoutMs": 70000,
+    "maxCalls": 24,
+    "selectedCaseIds": ["followup-explain"]
+  },
+  "summary": {
+    "pass": 0,
+    "fail": 1,
+    "review": 0,
+    "calls": 2,
+    "stoppedEarly": false
+  },
+  "limitations": [
+    "Pass significa aprovação dos checks determinísticos; revisão humana de todas as respostas permanece pendente.",
+    "Correspondência de termos e fontes não comprova fidelidade semântica completa.",
+    "simulated=false não comprova uso de ferramentas; esta matriz avalia o contrato HTTP público.",
+    "Execução limitada e sequencial; não mede estabilidade estatística, carga ou segurança exaustiva.",
+    "Hashes identificam a representação JSON validada da matriz selecionada e do catálogo."
+  ],
+  "cases": [
+    {
+      "id": "followup-explain",
+      "category": "continuity",
+      "title": "Pedido curto de explicação",
+      "status": "fail",
+      "turns": [
+        {
+          "status": "pass",
+          "checks": [
+            {
+              "id": "contract",
+              "status": "pass",
+              "explanation": "Resposta atende ao contrato Zod público."
+            },
+            {
+              "id": "real-provider",
+              "status": "pass",
+              "explanation": "Provedor real e simulated=false; isto não comprova tool calling por si só."
+            },
+            {
+              "id": "conversation-token",
+              "status": "pass",
+              "explanation": "Nova conversa emitiu token."
+            },
+            {
+              "id": "source-catalog",
+              "status": "pass",
+              "explanation": "IDs, tipos, títulos e URLs das fontes correspondem ao catálogo e não se repetem."
+            },
+            {
+              "id": "source-policy",
+              "status": "pass",
+              "explanation": "Resposta inclui fonte rastreável."
+            },
+            {
+              "id": "concept:assistente",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            }
+          ],
+          "answer": "O Orbe Mágico é o chatbot visual do portfólio PHASSCODE. Na versão pública consultada, ele utiliza respostas predefinidas, enquanto a integração com IA real está em desenvolvimento na PHASSCODE Platform, que expõe o contrato POST /api/v1/chat. O login do baú é apenas uma simulação em memória: não autentica credenciais, não usa JWT/OAuth e não representa uma área administrativa real.",
+          "sourceIds": [
+            "web-portfolio-v2",
+            "phasscode-platform",
+            "smart-model-router",
+            "competencias-publicas",
+            "contato-publico"
+          ],
+          "provider": "openai-compatible",
+          "simulated": false,
+          "promptVersion": "orbe-v3",
+          "message": "O que é o Orbe Mágico do portfólio?",
+          "httpStatus": 200,
+          "latencyMs": 3685
+        },
+        {
+          "message": "Pode explicar melhor?",
+          "httpStatus": 502,
+          "latencyMs": 4670,
+          "status": "fail",
+          "sourceIds": [],
+          "errorCode": "LLM_INVALID_RESPONSE",
+          "checks": [
+            {
+              "id": "http",
+              "status": "fail",
+              "explanation": "HTTP 502: chamada não concluída. Corpo do erro omitido."
+            }
+          ]
+        }
+      ],
+      "humanReview": {
+        "status": "pending",
+        "criteria": [
+          "Explicar melhor a função do Orbe no segundo turno sem perder o contexto nem prometer recursos futuros."
+        ]
+      }
+    }
+  ]
+}

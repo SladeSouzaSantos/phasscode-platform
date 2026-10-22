@@ -1,0 +1,110 @@
+{
+  "reportVersion": "orbe-evaluation-v1",
+  "startedAt": "2026-10-21T23:46:00.656Z",
+  "finishedAt": "2026-10-21T23:46:06.629Z",
+  "configuration": {
+    "apiOrigin": "http://127.0.0.1:3000",
+    "mode": "live",
+    "matrixVersion": "orbe-phase2-v3",
+    "matrixSha256": "f8fe9d9b820a91f6d1e48910576331a037158751b1185411cf5179374dee9e1f",
+    "catalogSha256": "e448c4c30e29df8257c92f77465f5bcd20a2b1ff1c8dff5f16c8ee7e936dc86e",
+    "timeoutMs": 70000,
+    "maxCalls": 24,
+    "selectedCaseIds": ["laravel-budget-project"]
+  },
+  "summary": {
+    "pass": 1,
+    "fail": 0,
+    "review": 0,
+    "calls": 1,
+    "stoppedEarly": false
+  },
+  "limitations": [
+    "Pass significa aprovação dos checks determinísticos; revisão humana de todas as respostas permanece pendente.",
+    "Correspondência de termos e fontes não comprova fidelidade semântica completa.",
+    "simulated=false não comprova uso de ferramentas; esta matriz avalia o contrato HTTP público.",
+    "Execução limitada e sequencial; não mede estabilidade estatística, carga ou segurança exaustiva.",
+    "Hashes identificam a representação JSON validada da matriz selecionada e do catálogo."
+  ],
+  "cases": [
+    {
+      "id": "laravel-budget-project",
+      "category": "facts",
+      "title": "Projeto público de orçamento em Laravel",
+      "status": "pass",
+      "turns": [
+        {
+          "status": "pass",
+          "checks": [
+            {
+              "id": "contract",
+              "status": "pass",
+              "explanation": "Resposta atende ao contrato Zod público."
+            },
+            {
+              "id": "real-provider",
+              "status": "pass",
+              "explanation": "Provedor real e simulated=false; isto não comprova tool calling por si só."
+            },
+            {
+              "id": "conversation-token",
+              "status": "pass",
+              "explanation": "Nova conversa emitiu token."
+            },
+            {
+              "id": "source-catalog",
+              "status": "pass",
+              "explanation": "IDs, tipos, títulos e URLs das fontes correspondem ao catálogo e não se repetem."
+            },
+            {
+              "id": "source-policy",
+              "status": "pass",
+              "explanation": "Resposta inclui fonte rastreável."
+            },
+            {
+              "id": "source:greencity-api-orcamento",
+              "status": "pass",
+              "explanation": "Fonte esperada foi citada."
+            },
+            {
+              "id": "concept:Laravel",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:orcamento",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            },
+            {
+              "id": "concept:PDF",
+              "status": "pass",
+              "explanation": "Texto contém ao menos um dos termos conceituais previstos; revisão semântica permanece pendente."
+            }
+          ],
+          "answer": "A API de orçamento Laravel gera propostas comerciais para sistemas fotovoltaicos, incluindo projeções financeiras e de geração ao longo de 25 anos. Ela utiliza PHP, Laravel 12, DomPDF e templates Blade, com o endpoint POST /gerar-orcamento definido em routes/api.php. O gerenciamento do pedido ocorre no OrcamentoController, que valida os dados, chama o OrcamentoService e produz o PDF a partir da view pdf.orcamento.\n\nAinda não consta na base pública verificada se essa API está em operação em produção.",
+          "sourceIds": [
+            "greencity-api-orcamento",
+            "gestao-empresarial-api",
+            "hsp-simulator",
+            "formacao-gestao-ti",
+            "lithology"
+          ],
+          "provider": "openai-compatible",
+          "simulated": false,
+          "promptVersion": "orbe-v3",
+          "message": "O que faz a API de orçamento Laravel do portfólio, quais tecnologias ela utiliza e como gera o documento PDF?",
+          "httpStatus": 200,
+          "latencyMs": 5970
+        }
+      ],
+      "humanReview": {
+        "status": "pending",
+        "criteria": [
+          "Descrever a API de orçamento com PHP/Laravel e geração de PDF com DomPDF/Blade conforme o código público.",
+          "Não afirmar autenticação implementada, envio externo, uso empresarial atual, produção ou conformidade fiscal sem fonte."
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "reportVersion": "orbe-evaluation-v1",
+  "startedAt": "2026-10-21T21:04:51.470Z",
+  "finishedAt": "2026-10-21T21:05:21.566Z",
+  "configuration": {
+    "apiOrigin": "http://127.0.0.1:3000",
+    "mode": "live",
+    "matrixVersion": "orbe-phase2-v1",
+    "matrixSha256": "5e5a058ab9e2e7eb4d721140fcfb5f582ed59881bacc660a82dd17f15e2cbb5e",
+    "catalogSha256": "8ea40bc31a5f391367806a8d9d95602af3a88e2e5ca3fbb25986b9d3610a4f8e",
+    "timeoutMs": 70000,
+    "maxCalls": 24,
+    "selectedCaseIds": ["followup-explain"]
+  },
+  "summary": {
+    "pass": 0,
+    "fail": 1,
+    "review": 0,
+    "calls": 1,
+    "stoppedEarly": false
+  },
+  "limitations": [
+    "Pass significa aprovação dos checks determinísticos; revisão humana de todas as respostas permanece pendente.",
+    "Correspondência de termos e fontes não comprova fidelidade semântica completa.",
+    "simulated=false não comprova uso de ferramentas; esta matriz avalia o contrato HTTP público.",
+    "Execução limitada e sequencial; não mede estabilidade estatística, carga ou segurança exaustiva.",
+    "Hashes identificam a representação JSON validada da matriz selecionada e do catálogo."
+  ],
+  "cases": [
+    {
+      "id": "followup-explain",
+      "category": "continuity",
+      "title": "Pedido curto de explicação",
+      "status": "fail",
+      "turns": [
+        {
+          "message": "O que é o Orbe Mágico do portfólio?",
+          "httpStatus": 502,
+          "latencyMs": 30094,
+          "status": "fail",
+          "sourceIds": [],
+          "errorCode": "LLM_UNAVAILABLE",
+          "checks": [
+            {
+              "id": "http",
+              "status": "fail",
+              "explanation": "HTTP 502: chamada não concluída. Corpo do erro omitido."
+            }
+          ]
+        }
+      ],
+      "humanReview": {
+        "status": "pending",
+        "criteria": [
+          "Explicar melhor a função do Orbe no segundo turno sem perder o contexto nem prometer recursos futuros."
+        ]
+      }
+    }
+  ]
+}

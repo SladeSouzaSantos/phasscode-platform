@@ -21,8 +21,9 @@ SHA-256. O UUID identifica a conversa, mas não autoriza acesso. Os tokens nunca
 
 O histórico persistido é limitado por quantidade. A aplicação usa orçamento de caracteres para
 selecionar contexto, e limita a saída e as rodadas do modelo. A recuperação lexical usa arquivos
-versionados e fornece fontes ao cliente. Embeddings não são necessários para os dois documentos
-iniciais. Fontes retornadas são documentos consultados, não uma garantia de entailment de cada frase.
+versionados e fornece fontes ao cliente. A curadoria registra a origem dos fatos e distingue dados
+históricos, declarados, previstos e ainda não confirmados. Embeddings serão avaliados conforme a
+necessidade medida. Fontes retornadas são documentos consultados, sem validação automática de cada frase.
 
 Concorrência: memória bloqueia o ID em processamento; PostgreSQL usa `FOR UPDATE NOWAIT` dentro de
 uma transação que grava os dois lados do turno. Uma falha no provedor desfaz o turno inteiro.

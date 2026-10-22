@@ -30,7 +30,73 @@ const stopWords = new Set([
   'seu',
   'que',
   'sao',
+  'por',
+  'dos',
+  'das',
+  'ele',
+  'ela',
+  'eles',
+  'elas',
+  'utiliza',
+  'usa',
+  'use',
+  'utilizam',
+  'gostaria',
+  'saber',
+  'explique',
+  'fale',
+  'responda',
+  'brevemente',
+  'pode',
+  'possui',
+  'se',
+  'de',
+  'do',
+  'da',
+  'no',
+  'na',
+  'em',
+  'um',
+  'ou',
+  'os',
+  'as',
+  'ao',
+  'is',
+  'are',
 ]);
+const aliases: Record<string, string> = {
+  projetos: 'projeto',
+  projects: 'projeto',
+  project: 'projeto',
+  tecnologias: 'tecnologia',
+  technologies: 'tecnologia',
+  technology: 'tecnologia',
+  competencias: 'competencia',
+  experiencias: 'experiencia',
+  certificados: 'certificado',
+  certificacoes: 'certificado',
+  certification: 'certificado',
+  certificacao: 'certificado',
+  reunioes: 'reuniao',
+  formacoes: 'formacao',
+  skills: 'competencia',
+  inteligencia: 'ia',
+  artificial: 'ia',
+  ai: 'ia',
+  linguagens: 'tecnologia',
+  linguagem: 'tecnologia',
+  languages: 'tecnologia',
+  language: 'tecnologia',
+};
+const broadTerms = new Set(['portfolio', 'projeto', 'tecnologia', 'competencia', 'profissional']);
+function terms(text: string): Set<string> {
+  return new Set(
+    normalize(text)
+      .split(/[^a-z0-9]+/)
+      .filter((term) => term.length > 1 && !stopWords.has(term))
+      .map((term) => aliases[term] ?? term),
+  );
+}
 
 export class JsonKnowledgeRepository implements KnowledgeRepository {
   constructor(private readonly documents: KnowledgeDocument[]) {}
@@ -41,23 +107,50 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     return new JsonKnowledgeRepository(documents);
   }
   search(query: string): KnowledgeDocument[] {
-    const terms = [
-      ...new Set(
-        normalize(query)
-          .split(/[^a-z0-9]+/)
-          .filter((term) => term.length > 2 && !stopWords.has(term)),
-      ),
-    ];
-    const ranked = this.documents.map((doc) => {
-      const text = normalize(`${doc.title} ${doc.content} ${doc.keywords.join(' ')}`);
+    const queryTerms = terms(query);
+    const phrase = (value: string) =>
+      normalize(value)
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    const queryPhrase = ` ${phrase(query)} `;
+    // A marca aparece em quase todos os registros; não deve mascarar uma pergunta sem fatos.
+    if (queryTerms.size > 1) queryTerms.delete('phasscode');
+    const indexed = this.documents.map((doc) => {
+      const title = terms(doc.title);
+      const keywords = terms(doc.keywords.join(' '));
+      const content = terms(doc.content);
+      return { doc, title, keywords, content };
+    });
+    const weights = new Map(
+      [...queryTerms].map((term) => {
+        const frequency = indexed.filter(
+          (doc) => doc.title.has(term) || doc.keywords.has(term) || doc.content.has(term),
+        ).length;
+        const specificity = broadTerms.has(term) ? 0.25 : 1;
+        return [term, specificity * (1 + Math.log((indexed.length + 1) / (frequency + 1)))];
+      }),
+    );
+    const ranked = indexed.map(({ doc, title, keywords, content }) => {
+      const exactPhrase = [doc.title, ...doc.keywords].some((value) => {
+        const candidate = phrase(value);
+        return candidate.includes(' ') && queryPhrase.includes(` ${candidate} `);
+      });
       return {
         doc,
-        score: terms.reduce((score, term) => score + (text.includes(term) ? 1 : 0), 0),
+        score: [...queryTerms].reduce(
+          (score, term) =>
+            score +
+            weights.get(term)! *
+              ((title.has(term) ? 3 : 0) +
+                (keywords.has(term) ? 2 : 0) +
+                (content.has(term) ? 1 : 0)),
+          exactPhrase ? 12 : 0,
+        ),
       };
     });
     return ranked
       .filter(({ score }) => score > 0)
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => b.score - a.score || a.doc.id.localeCompare(b.doc.id))
       .slice(0, 5)
       .map(({ doc }) => doc);
   }
