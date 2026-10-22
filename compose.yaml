@@ -1,9 +1,9 @@
-name: phasscode-platform
+name: ${COMPOSE_PROJECT_NAME:-phasscode-platform}
 x-app: &app
   build:
     context: .
     dockerfile: infrastructure/docker/Dockerfile
-  image: phasscode-platform:local
+  image: ${PHASSCODE_IMAGE:-${COMPOSE_PROJECT_NAME:-phasscode-platform}:local}
   init: true
   networks: [backend]
   security_opt: [no-new-privileges:true]
@@ -24,6 +24,9 @@ x-app: &app
     LLM_API_MODE: ${LLM_API_MODE:-responses}
     LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-15000}
     LLM_MAX_OUTPUT_TOKENS: ${LLM_MAX_OUTPUT_TOKENS:-800}
+    LLM_GLOBAL_MAX_CALLS: ${LLM_GLOBAL_MAX_CALLS:-}
+    LLM_GLOBAL_WINDOW_MS: ${LLM_GLOBAL_WINDOW_MS:-86400000}
+    LLM_GLOBAL_BUDGET_KEY: ${LLM_GLOBAL_BUDGET_KEY:-phasscode:llm:global}
     OPENROUTER_REASONING_ENABLED: ${OPENROUTER_REASONING_ENABLED:-}
     CHAT_RETENTION_DAYS: ${CHAT_RETENTION_DAYS:-7}
     CHAT_HISTORY_MESSAGES: ${CHAT_HISTORY_MESSAGES:-12}
@@ -64,7 +67,7 @@ services:
     restart: 'no'
   api:
     <<: *app
-    ports: ['127.0.0.1:3000:3000']
+    ports: ['127.0.0.1:${PHASSCODE_HTTP_PORT:-3000}:3000']
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }

@@ -33,12 +33,36 @@ O currículo de outubro de 2025 e o site antigo são declarações históricas. 
 
 No caso `education-history`, a UnP consta como graduação concluída declarada; as fontes divergem entre dezembro de 2014 e fevereiro de 2015. Os checks não exigem nenhum desses meses. Se a resposta citar datas, a revisão humana deve verificar a atribuição e a divergência. O proprietário confirmou que concluiu somente a pós em Segurança da Informação da FacPrisma, sem informar data: não se deve usar a antiga previsão para inventar uma data nem concluir as demais áreas listadas no currículo. Ciência da Computação na UNISUL está trancada nas últimas disciplinas, com nova previsão declarada para dezembro de 2027. Previsão não comprova matrícula ativa, retomada ou conclusão efetiva. Cursos e competências autodeclarados também não confirmam uma certificação profissional Kubernetes; o caso `missing-certification` permanece na matriz.
 
-`missing-employer` e `education-history` exigem nova execução real com os fatos atualizados. A pergunta `laravel-budget-project` agora pede explicitamente as tecnologias utilizadas; mantém Laravel, PDF e a fonte obrigatórios. Uma resposta anterior descreveu corretamente a função/PDF, mas omitiu a palavra Laravel porque a pergunta anterior já nomeava o framework sem pedir a stack; isso foi uma ambiguidade do critério, não evidência de erro factual naquela resposta. Os demais casos continuam disponíveis para regressão; relatórios das matrizes v1/v2 não comprovam resultados dos critérios alterados da v3.
+`missing-employer` e `education-history` foram reavaliados pontualmente com os fatos atualizados,
+conforme o [fechamento](reports/phase2-closeout.md). A pergunta `laravel-budget-project` pede
+explicitamente as tecnologias utilizadas; mantém Laravel, PDF e a fonte obrigatórios. A resposta
+anterior descreveu função/PDF, mas omitiu Laravel quando a pergunta já nomeava o framework sem
+pedir stack; o critério foi esclarecido e reavaliado. Relatórios v1/v2 não comprovam os critérios
+alterados da v3; a passagem real integral contra o catálogo final continua pendente.
+
+## Orçamento antes de autorizar execução real
+
+A revisão pós-Fase 2 executa somente testes determinísticos e o plano sem `--live`. O teste
+`tests/evaluation-context.test.ts` percorre os 22 turnos no ChatService real com provedor sintético,
+verificando fontes obrigatórias completas, continuidade e políticas. Isso não avalia geração de texto.
+
+São 22 mensagens HTTP, com 19 turnos elegíveis para LLM e três respostas determinísticas na matriz
+atual. Até três invocações por turno elegível dão **57 chamadas ao modelo**, das quais até 38 são
+adicionais após ferramentas. Cada turno permite duas rodadas de até três buscas locais (114 buscas
+no conjunto elegível); buscas locais não consomem o provedor. Para planejamento conservador de
+quaisquer 22 turnos, considere 66 invocações e 44 adicionais. Tokens variam com contexto e saída;
+limitar chamadas não limita diretamente tokens/custo nem comprova saldo da conta.
+
+`--max-calls=22` limita mensagens HTTP. O limite efetivo do provedor é o orçamento Redis configurado
+no backend. Antes de autorizar `--live`, conferir consumo/limites da conta, saldo do orçamento local
+e concorrência de outros clientes, inclusive o outro ambiente. Um 429 encerra o runner sem retry;
+uma janela insuficiente pode deixar a matriz incompleta. Não foi consultado saldo nem consumida
+cota do provedor nesta revisão. O comando abaixo é uma proposta para autorização separada.
 
 ## Execução opt-in
 
 ```powershell
-npm run eval:orbe -- --live
+npm run eval:orbe -- --live --max-calls=22
 npm run eval:orbe -- --live --case=followup-build
 npm run eval:orbe -- --live --category=missing-information
 ```

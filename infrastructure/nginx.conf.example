@@ -1,20 +1,42 @@
-# Proposta para /opt/projects/phasscode-platform/nginx.conf.
-# O Nginx compartilhado ja inclui /opt/projects/*/nginx.conf. Nao adicionar outro proxy.
-# Somente depois da validacao local: conectar api e proxy a uma rede Docker externa compartilhada,
-# usar alias unico phasscode-api, remover publicacao da porta e configurar certificado/dominio reais.
-# Este arquivo nao e instalado automaticamente; nomes .example sao deliberados.
+# MODELO apenas. Nunca copiado/instalado pelo deploy.
+# A arquitetura existente permanece: /opt/docker-stack/proxy/nginx/conf.d/projects.conf
+# contem include /opt/projects/*/nginx.conf;
+#
+# Antes de criar /opt/projects/phasscode-platform/nginx.conf (ou o checkout -dev), confirmar:
+# 1. DNS api.phasscode.com / devapi.phasscode.com e terminacao TLS realmente utilizados.
+# 2. Uma rede Docker externa ja conectada ao Nginx, se optar por compose.proxy.yaml.
+# 3. PHASSCODE_PROXY_ALIAS exclusivo de producao e outro de desenvolvimento.
+# 4. Alcance do upstream a partir do container Nginx e TRUST_PROXY adequado a essa topologia.
+#
+# Substituir REPLACE_CONFIRMED_ALIAS por esse alias. Nao usar genericamente "api" na rede comum.
+# O exemplo usa HTTP interno: apenas se o proxy existente realmente recebe HTTP apos terminacao TLS.
+# Se ele proprio termina TLS, adaptar listen/certificados aos caminhos realmente montados.
+#
+# Alternativa via host exige topologia verificada: 127.0.0.1 dentro do Nginx Docker e o proprio
+# container, nao o host. host.docker.internal/host-gateway nao tornam a porta do host ligada apenas
+# ao loopback acessivel por si sos. Nao presumir aliases, host networking ou abrir 0.0.0.0.
 server {
-    listen 443 ssl;
-    server_name api.phasscode.example;
-    ssl_certificate /etc/nginx/certs/REPLACE/fullchain.pem;
-    ssl_certificate_key /etc/nginx/certs/REPLACE/privkey.pem;
+    listen 80;
+    server_name api.phasscode.com; # No checkout dev: devapi.phasscode.com.
     client_max_body_size 8k;
+    # Para a topologia Docker com rede externa confirmada: resolver embutido do Docker.
+    # Variavel no proxy_pass permite renovar DNS quando o container da API muda de IP.
+    # Conferir /etc/resolv.conf do Nginx; outra topologia requer resolver apropriado.
+    resolver 127.0.0.11 valid=10s ipv6=off;
+    resolver_timeout 3s;
+    set $phasscode_upstream REPLACE_CONFIRMED_ALIAS:3000;
+    # Readiness consulta banco/Redis; manter acessivel somente pela operacao interna.
+    # Verificacao publica usa /health. A API publica no host continua apenas no loopback.
+    location = /ready {
+        return 404;
+    }
     location / {
-        proxy_pass http://phasscode-api:3000;
+        proxy_pass http://$phasscode_upstream;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
+        # Se TLS termina antes do Nginx, adaptar a origem a um proxy realmente confiavel.
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_connect_timeout 5s;
         proxy_read_timeout 65s;

@@ -1,0 +1,227 @@
+name: Backend release | CI > SAST > Image > DAST > Manual deploy > Verify
+# Nao existe trigger push/PR. Criar/publicar uma release exige executar este workflow manualmente.
+# Aplicacao no servidor exige ainda apply_remote=true e ENABLE_REMOTE_DEPLOY=true no environment.
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Ambiente (executar dev para development e main para production)
+        type: choice
+        options: [development, production]
+        default: development
+      apply_remote:
+        description: Aplicar a release no servidor apos os checks (padrao somente publica e testa imagem)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: backend-release-${{ inputs.target }}
+  cancel-in-progress: false
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - name: Validate branch/environment
+        env:
+          RELEASE_TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          if [[ "$RELEASE_TARGET" == production ]]; then
+            test "$GITHUB_REF" = refs/heads/main
+          else
+            test "$GITHUB_REF" = refs/heads/dev
+          fi
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm run test:infrastructure
+      - run: npm run smoke
+      - name: Disposable database integration
+        env:
+          COMPOSE_PROJECT_NAME: phasscode-release-tests-${{ github.run_id }}-${{ github.run_attempt }}
+        run: docker compose --env-file /dev/null -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from tests
+      - name: Remove only this disposable test environment
+        if: always()
+        env:
+          COMPOSE_PROJECT_NAME: phasscode-release-tests-${{ github.run_id }}-${{ github.run_attempt }}
+        run: docker compose --env-file /dev/null -f compose.test.yaml down --volumes
+  sast:
+    runs-on: ubuntu-latest
+    needs: tests
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm audit --audit-level=high
+      - uses: github/codeql-action/init@v4
+        with: { languages: javascript-typescript, build-mode: none, queries: security-extended }
+      - uses: github/codeql-action/analyze@v4
+        with: { category: backend-release }
+  image:
+    runs-on: ubuntu-latest
+    needs: sast
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      ref: ${{ steps.meta.outputs.name }}@${{ steps.publish.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - name: Lowercase immutable image reference
+        id: meta
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: publish
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infrastructure/docker/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.name }}:sha-${{ github.sha }}-${{ inputs.target }}
+          labels: org.opencontainers.image.revision=${{ github.sha }}
+          provenance: true
+          sbom: true
+  dast:
+    runs-on: ubuntu-latest
+    needs: image
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    env:
+      COMPOSE_PROJECT_NAME: phasscode-dast-${{ github.run_id }}-${{ github.run_attempt }}
+      PHASSCODE_IMAGE: ${{ needs.image.outputs.ref }}
+      PHASSCODE_HTTP_PORT: 18080
+      POSTGRES_PASSWORD: disposable-dast-only
+      LLM_PROVIDER: mock
+      LLM_API_KEY: ''
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Start tested digest with disposable PostgreSQL/Redis and mock only
+        run: |
+          docker compose --env-file /dev/null pull api migrate
+          docker compose --env-file /dev/null up -d --no-build --wait api
+          curl --fail --silent --show-error http://127.0.0.1:18080/ready
+      - name: OWASP ZAP API scan (never targets a live environment)
+        run: |
+          mkdir -p security-reports
+          chmod 777 security-reports
+          cp .ci/zap-rules.conf security-reports/zap-rules.conf
+          docker run --rm --network host \
+            -v "$PWD/security-reports:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-api-scan.py -t http://127.0.0.1:18080/api/v1/openapi.json -f openapi \
+            -O http://127.0.0.1:18080 \
+            -I -c zap-rules.conf -r zap-report.html -J zap-report.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: backend-zap-${{ github.run_id }}
+          path: security-reports/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Remove only disposable DAST data
+        if: always()
+        run: docker compose --env-file /dev/null down --volumes
+  deploy:
+    if: inputs.apply_remote
+    runs-on: ubuntu-latest
+    needs: [image, dast]
+    timeout-minutes: 25
+    environment: ${{ inputs.target }}
+    env:
+      DEPLOY_TARGET: ${{ inputs.target }}
+      DEPLOY_SHA: ${{ github.sha }}
+      IMAGE_REF: ${{ needs.image.outputs.ref }}
+      DEPLOY_BRANCH: ${{ inputs.target == 'production' && 'main' || 'dev' }}
+      PROJECT_DIR: ${{ inputs.target == 'production' && '/opt/projects/phasscode-platform' || '/opt/projects/phasscode-platform-dev' }}
+      GHCR_USER: ${{ github.repository_owner }}
+      GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+      PHASSCODE_USE_PROXY: ${{ vars.PHASSCODE_USE_PROXY }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - name: Require explicit environment enablement
+        env:
+          ENABLE_REMOTE_DEPLOY: ${{ vars.ENABLE_REMOTE_DEPLOY }}
+          EXPECTED_SSH_HOST_KEY: ${{ secrets.SSH_HOST_FINGERPRINT }}
+        run: |
+          test "$ENABLE_REMOTE_DEPLOY" = true
+          test -n "$EXPECTED_SSH_HOST_KEY"
+      - uses: ./.github/actions/tailscale-connect
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          tags: ${{ vars.TAILSCALE_TAGS || 'tag:ci' }}
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+      - name: Apply identical image digest on the prepared Mac Mini checkout
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          fingerprint: ${{ secrets.SSH_HOST_FINGERPRINT }}
+          envs: DEPLOY_TARGET,DEPLOY_SHA,IMAGE_REF,DEPLOY_BRANCH,PROJECT_DIR,GHCR_USER,GHCR_PULL_TOKEN,PHASSCODE_USE_PROXY
+          command_timeout: 20m
+          script: |
+            set -eu
+            test -d "$PROJECT_DIR/.git"
+            cd "$PROJECT_DIR"
+            test "$(git branch --show-current)" = "$DEPLOY_BRANCH"
+            test -z "$(git status --porcelain)"
+            git fetch origin "$DEPLOY_BRANCH"
+            test "$(git rev-parse FETCH_HEAD)" = "$DEPLOY_SHA"
+            git merge --ff-only "$DEPLOY_SHA"
+            test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
+            if [ -n "$GHCR_PULL_TOKEN" ]; then
+              # Credencial de pull somente neste processo; nao altera o login Docker persistido.
+              DOCKER_CONFIG=$(mktemp -d)
+              export DOCKER_CONFIG
+              trap 'rm -f "$DOCKER_CONFIG/config.json"; rmdir "$DOCKER_CONFIG" || true' EXIT
+              printf '%s' "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            fi
+            bash scripts/deploy.sh "$DEPLOY_TARGET" "$IMAGE_REF" "$DEPLOY_SHA" --apply
+  verify:
+    runs-on: ubuntu-latest
+    needs: deploy
+    timeout-minutes: 5
+    environment: ${{ inputs.target }}
+    steps:
+      - name: Verify explicitly configured public API URL (liveness only; no LLM)
+        env:
+          PUBLIC_URL: ${{ vars.API_PUBLIC_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$PUBLIC_URL" ]]; then
+            echo 'Public URL not configured; only the local server readiness/image checks were performed.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          [[ "$PUBLIC_URL" =~ ^https://[a-zA-Z0-9.-]+(:[0-9]+)?$ ]]
+          # Cobre a janela de renovacao DNS do upstream no Nginx, somente em GET /health.
+          curl --fail --silent --show-error --max-time 10 --retry 8 --retry-delay 2 --retry-max-time 90 \
+            "$PUBLIC_URL/health" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"ok"'
+          echo "Public liveness verified: $PUBLIC_URL (database readiness checked privately on the server)" >> "$GITHUB_STEP_SUMMARY"

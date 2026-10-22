@@ -1,12 +1,17 @@
 # PHASSCODE Platform
 
-Backend do portfólio PHASSCODE e do assistente Orbe Mágico. Este incremento entrega a fundação do
-monorepo e um chat executável em Node.js, com conhecimento público estruturado, fontes e provedores
+Backend do portfólio PHASSCODE e do assistente Orbe Mágico. O monorepo oferece
+chat executável em Node.js, com conhecimento público estruturado, fontes e provedores
 mock e real separados. O frontend React existente não foi alterado.
 
-**Fases 1 e 2 concluídas localmente.** A base tem 31 documentos e a validação soma 102 testes
-automatizados. A avaliação real e suas reexecuções estão no [fechamento da Fase 2](evaluation/reports/phase2-closeout.md).
-O chat já permite integração local do frontend. A próxima entrega é o login Google OIDC da Fase 3.
+**Fases 1 e 2 concluídas e publicadas pela PR #2.** A base tem 31 documentos. A avaliação real e
+suas reexecuções estão no [fechamento da Fase 2](evaluation/reports/phase2-closeout.md). A revisão
+pós-Fase 2 prepara ambientes isolados no `minimac-server`, orçamento global de LLM e deploy manual.
+Validação atual: **195 testes aprovados** (153 locais, 25 de infraestrutura e 17 de integração),
+além de build, smoke e auditoria sem vulnerabilidades reportadas.
+Arquivos, correções e limites estão na [entrega da revisão](docs/testing/post-phase2-validation.md).
+A [conferência final](docs/testing/post-phase2-audit.md) verifica cada requisito e as pendências antes da Fase 3.
+O chat já permite integração local do frontend. Google OIDC continua sendo a primeira entrega da Fase 3.
 
 Login Google OIDC, agendamento, aprovação administrativa, Google Calendar, notificações, BullMQ, Java, RabbitMQ e Kafka
 fazem parte das próximas fases. Os perfis opcionais dos brokers disponibilizam infraestrutura, não
@@ -56,7 +61,11 @@ curl --fail http://localhost:3000/ready
 
 O Compose força PostgreSQL e Redis para a API e aplica migrations em um serviço de inicialização
 antes de liberar o processo HTTP. Os dados usam volumes persistentes. A API publica apenas
-`127.0.0.1:3000`; os bancos e brokers não publicam portas por padrão.
+`127.0.0.1:${PHASSCODE_HTTP_PORT:-3000}`; os bancos e brokers não publicam portas por padrão.
+Cada checkout deve configurar `COMPOSE_PROJECT_NAME`, `PHASSCODE_IMAGE` e `PHASSCODE_HTTP_PORT`
+distintos. Produção e desenvolvimento no Mac Mini usam portas sugeridas 3000 e 3001, com a porta
+interna 3000. Volumes e redes privadas pertencem ao projeto Compose. Veja o
+[procedimento operacional](docs/deployment/README.md) antes de executar migrations ou retenção no servidor.
 
 Se a API Compose já estiver ativa, pare-a antes de executar outra API no host na mesma porta,
 ou altere `PORT` para o processo local.
@@ -94,6 +103,10 @@ LLM_PROVIDER=openai
 LLM_MODEL=MODELO_DISPONIVEL_NA_SUA_CONTA
 LLM_API_KEY=CHAVE_SOMENTE_NO_BACKEND
 LLM_API_MODE=responses
+REDIS_URL=redis://localhost:6379
+# Exemplo operacional: escolha o limite conforme sua conta, sem presumir uma cota gratuita.
+LLM_GLOBAL_MAX_CALLS=60
+LLM_GLOBAL_WINDOW_MS=86400000
 ```
 
 Para um provedor compatível: `LLM_PROVIDER=openai-compatible`, `LLM_BASE_URL` e
@@ -101,6 +114,11 @@ Para um provedor compatível: `LLM_PROVIDER=openai-compatible`, `LLM_BASE_URL` e
 compatível com o SDK. A API do provedor é configuração do operador; visitantes não podem alterá-la.
 O adaptador usa LangChain.js, timeout, cancelamento, zero retries automáticos, ferramentas de leitura
 com parâmetros validados e até três chamadas ao modelo. Não há fallback silencioso para mock.
+Provedor real exige Redis e `LLM_GLOBAL_MAX_CALLS` explícito, inclusive em desenvolvimento. O contador
+atômico é compartilhado pelas instâncias que usam o mesmo Redis e `LLM_GLOBAL_BUDGET_KEY`. Cada
+invocação conta, inclusive após ferramentas e tentativas que falham; mock e políticas determinísticas
+não contam. Esgotamento retorna `LLM_BUDGET_EXHAUSTED` (429) com `Retry-After`; falha no controle
+retorna 503, sem chamar o modelo. O orçamento limita chamadas, não tokens nem custo financeiro.
 
 Exemplo de configuração OpenRouter:
 
@@ -162,6 +180,8 @@ cliente. Sem token válido, a conversa retorna 404. Uma nova conversa sempre rec
 Erros têm formato `{ "error": { "code", "message", "correlationId" } }`. Toda resposta fornece
 `X-Correlation-Id`. Chat aceita até 2000 caracteres; o corpo HTTP tem limite de 8 KiB. Requisições
 concorrentes na mesma conversa retornam 409. Rate limit retorna 429 e orientações nos headers.
+O frontend deve tratar também o 429 global e os 503 transitórios, respeitar `Retry-After` e
+permitir nova tentativa por ação do visitante. Não usar retries automáticos do chat.
 
 Use [o cliente TypeScript](examples/frontend-client.ts) para adaptar o Orbe existente. Ele demonstra
 envio, token de conversa, loading e erros com tipos inferidos do contrato. Não inclui chave do LLM.
@@ -211,6 +231,7 @@ docs/                    arquitetura, decisões, segurança, validação e conti
 
 ```bash
 npm run check
+npm run test:infrastructure # Requer Compose CLI e Bash; não inicia containers.
 npm run smoke
 npm audit --audit-level=high
 # Depois de alterar schemas:
@@ -225,13 +246,19 @@ Avaliação do Orbe com a API real já configurada:
 
 ```bash
 npm run eval:orbe
-# Opt-in: 20 cenários / 22 mensagens HTTP sequenciais, consumindo a cota da LLM:
+# Somente após autorização separada e conferência do orçamento:
+# 22 mensagens HTTP; até 66 chamadas ao modelo no teto conservador.
 npm run eval:orbe -- --live --max-calls=22
 # Repetir somente um caso:
 npm run eval:orbe -- --live --case=followup-build
 ```
 
-Sem `--live`, o comando apenas lista o plano. Os relatórios preservam respostas, fontes, tempos e
+Sem `--live`, o comando apenas lista o plano e os tetos de consumo. A regressão offline da matriz
+verifica 19 turnos elegíveis para LLM e três determinísticos: até 57 invocações na v3 atual, incluindo
+até 38 adicionais após ferramentas. São até duas rodadas com três buscas locais cada por turno;
+as buscas não são chamadas ao provedor. `--max-calls` limita HTTP, não a cota da LLM. A revisão
+pós-Fase 2 não executa `--live` nem declara aprovação integral real da v3.
+Os relatórios preservam respostas, fontes, tempos e
 falhas, sem tokens de conversa. Aprovação automática não substitui revisão semântica. Consulte a
 [matriz e rubrica](evaluation/RUBRIC.md) e os [resultados registrados](docs/PROGRESS.md).
 
@@ -271,11 +298,17 @@ bot token/chat ID Telegram e SMTP.
 Nenhuma dessas credenciais é necessária para a execução do chat em mock ou com a LLM configurada.
 
 CI roda em PRs e branches `dev`/`main`, com análise estática, auditoria, integração, build e smoke
-Docker. A fundação foi publicada pelo proprietário na PR #1; [Backend CI](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39670852615)
-e [CodeQL](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39670852661) passaram em
-`main` no commit `e78ef0a`. O incremento local de fechamento da Fase 2 ainda precisa de commit e CI
-próprios. Artefatos ficam no workflow por sete dias. Não há deploy remoto nem publicação automática
-de imagens. Configure proteção de `main` e aprovação por ambiente antes de adicionar deploy.
+Docker. A [PR #2](https://github.com/SladeSouzaSantos/phasscode-platform/pull/2) foi incorporada em
+`main/7357329`: [Backend CI](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39697791259)
+e [CodeQL](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39697791304) aprovados.
+Em `dev/85ebca3`, também passaram [CI](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39697973470)
+e [CodeQL](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/39697973426). Esses resultados
+são da Fase 2 publicada; esta revisão precisa de seu próprio commit e CI.
+
+O workflow de deploy preparado segue o portfólio: testes, SAST, imagem GHCR por digest, DAST em
+ambiente descartável com mock, Tailscale/SSH e verificação. É acionado manualmente e depende da
+configuração dos ambientes, segredos e servidor descrita no [guia](docs/deployment/README.md).
+Nenhum deploy, push de imagem, alteração remota ou instalação de Nginx foi executado nesta revisão.
 
 O exemplo de proxy preserva o Nginx existente e seu include `/opt/projects/*/nginx.conf`.
 Não altera domínio, DNS, certificados, servidor ou infraestrutura compartilhada.

@@ -20,6 +20,7 @@ jobs:
         with: { node-version: 24, cache: npm }
       - run: npm ci --ignore-scripts
       - run: npm run check
+      - run: npm run test:infrastructure
       - run: npm run smoke
       - run: npm audit --audit-level=high
       - uses: actions/upload-artifact@v7

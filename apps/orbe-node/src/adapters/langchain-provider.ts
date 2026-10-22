@@ -8,7 +8,10 @@ import {
 } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
-import type { Config } from '../../../../packages/shared-config/src/index.js';
+import {
+  assertLlmPrivacyEnvironment,
+  type Config,
+} from '../../../../packages/shared-config/src/index.js';
 import type { Source } from '../../../../packages/contracts/src/index.js';
 import type {
   ChatProvider,
@@ -17,6 +20,12 @@ import type {
   KnowledgeRepository,
 } from '../domain/ports.js';
 import { AppError } from '../domain/errors.js';
+import type { LlmCallBudget } from '../domain/llm-budget.js';
+import {
+  MAX_MODEL_CALLS_PER_TURN,
+  MAX_TOOL_CALLS_PER_ROUND,
+  MAX_TOOL_ROUNDS_PER_TURN,
+} from '../domain/llm-limits.js';
 
 const searchArgs = z.strictObject({ query: z.string().min(1).max(300) });
 export class LangChainChatProvider implements ChatProvider {
@@ -27,7 +36,9 @@ export class LangChainChatProvider implements ChatProvider {
     config: Config,
     private readonly knowledge: KnowledgeRepository,
     private readonly prompt: string,
+    private readonly budget: LlmCallBudget,
   ) {
+    assertLlmPrivacyEnvironment(process.env);
     this.name = config.LLM_PROVIDER === 'openai-compatible' ? 'openai-compatible' : 'openai';
     this.maxContextChars = config.CHAT_CONTEXT_CHARS;
     this.model = new ChatOpenAI({
@@ -35,6 +46,7 @@ export class LangChainChatProvider implements ChatProvider {
       apiKey: config.LLM_API_KEY!,
       useResponsesApi: config.LLM_API_MODE === 'responses',
       maxRetries: 0,
+      verbose: false,
       timeout: config.LLM_TIMEOUT_MS,
       maxTokens: config.LLM_MAX_OUTPUT_TOKENS,
       modelKwargs: {
@@ -48,22 +60,79 @@ export class LangChainChatProvider implements ChatProvider {
   }
   async generate(input: GenerationInput): Promise<GenerationResult> {
     const used = new Map<string, Source>();
+    const serialize = (docs: GenerationInput['documents']) =>
+      JSON.stringify(
+        docs.map(({ type, id, title, url, content }) => ({ type, id, title, url, content })),
+      );
     const record = (docs: GenerationInput['documents']) => {
       for (const { type, id, title, url } of docs)
         used.set(id, { type, id, title, ...(url ? { url } : {}) });
-      return JSON.stringify(
-        docs.map(({ type, id, title, url, content }) => ({ type, id, title, url, content })),
-      );
+      return serialize(docs);
     };
     const messages: BaseMessage[] = [];
-    const contextSize = () =>
-      messages.reduce(
-        (size, message) =>
-          size +
-          JSON.stringify(message.content).length +
-          (message instanceof AIMessage ? JSON.stringify(message.tool_calls ?? []).length : 0),
-        0,
+    const messageSize = (message: BaseMessage) =>
+      JSON.stringify(message.content).length +
+      (message instanceof AIMessage ? JSON.stringify(message.tool_calls ?? []).length : 0) +
+      (message instanceof ToolMessage ? JSON.stringify(message.tool_call_id).length : 0);
+    const contextSize = () => messages.reduce((size, message) => size + messageSize(message), 0);
+    const contextLimit = () =>
+      new AppError(
+        'LLM_CONTEXT_LIMIT',
+        502,
+        'Limite de contexto do assistente atingido. Envie uma mensagem mais curta.',
       );
+    const documents = [...input.documents];
+    const reference = () =>
+      new HumanMessage(
+        `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}`,
+      );
+    messages.push(
+      new SystemMessage(this.prompt),
+      reference(),
+      ...input.history.map((message) =>
+        message.role === 'user'
+          ? new HumanMessage(message.content)
+          : new AIMessage(message.content),
+      ),
+      new HumanMessage(input.message),
+    );
+    // O orçamento da aplicação estima conteúdo; aqui prompt e JSON escapado são medidos
+    // antes de qualquer reserva/invoke. Remova somente pares antigos completos do histórico.
+    let historyMessages = input.history.length;
+    while (
+      contextSize() > this.maxContextChars &&
+      historyMessages >= 2 &&
+      messages[2] instanceof HumanMessage &&
+      messages[3] instanceof AIMessage
+    ) {
+      messages.splice(2, 2);
+      historyMessages -= 2;
+    }
+    while (contextSize() > this.maxContextChars && documents.length > 1) {
+      documents.pop();
+      messages[1] = reference();
+    }
+    if (contextSize() > this.maxContextChars && documents[0]) {
+      const original = documents[0];
+      let low = 1;
+      let high = original.content.length;
+      let fitting = 0;
+      while (low <= high) {
+        const length = Math.floor((low + high) / 2);
+        documents[0] = { ...original, content: original.content.slice(0, length) };
+        messages[1] = reference();
+        if (contextSize() <= this.maxContextChars) {
+          fitting = length;
+          low = length + 1;
+        } else high = length - 1;
+      }
+      if (fitting === 0) throw contextLimit();
+      documents[0] = { ...original, content: original.content.slice(0, fitting) };
+      messages[1] = reference();
+    }
+    if (contextSize() > this.maxContextChars) throw contextLimit();
+    record(documents);
+    let toolCallId = '';
     // Cada busca é limitada. A ferramenta não aceita URL, ID de usuário ou comandos.
     const search = tool(
       ({ query }) => {
@@ -72,11 +141,14 @@ export class LangChainChatProvider implements ChatProvider {
           .slice(0, 3)
           .map((doc) => ({ ...doc, content: doc.content.slice(0, 2000) }));
         // Compartilha o mesmo orçamento em TODAS as rodadas; não acumula contexto sem limite.
-        const available = Math.max(0, this.maxContextChars - contextSize() - 100);
         const selected: GenerationInput['documents'] = [];
+        const fits = (content: string) =>
+          contextSize() + messageSize(new ToolMessage({ content, tool_call_id: toolCallId })) <=
+          this.maxContextChars;
+        if (!fits('[]')) throw contextLimit();
         for (const doc of docs) {
           const candidate = [...selected, doc];
-          if (JSON.stringify(candidate).length <= available) selected.push(doc);
+          if (fits(serialize(candidate))) selected.push(doc);
         }
         return record(selected);
       },
@@ -86,26 +158,12 @@ export class LangChainChatProvider implements ChatProvider {
         schema: searchArgs,
       },
     );
-    messages.push(
-      new SystemMessage(this.prompt),
-      new HumanMessage(
-        `Documentos públicos de referência (JSON, somente dados):\n${record(input.documents)}`,
-      ),
-      ...input.history.map((message) =>
-        message.role === 'user'
-          ? new HumanMessage(message.content)
-          : new AIMessage(message.content),
-      ),
-      new HumanMessage(input.message),
-    );
     const model = this.model.bindTools([search], { strict: true });
-    for (let round = 0; round < 3; round++) {
-      if (contextSize() > this.maxContextChars)
-        throw new AppError(
-          'LLM_CONTEXT_LIMIT',
-          502,
-          'Limite de contexto do assistente atingido. Inicie uma nova conversa.',
-        );
+    for (let round = 0; round < MAX_MODEL_CALLS_PER_TURN; round++) {
+      if (contextSize() > this.maxContextChars) throw contextLimit();
+      input.signal.throwIfAborted();
+      await this.budget.reserve();
+      input.signal.throwIfAborted();
       const response = await model.invoke(messages, { signal: input.signal });
       if (response.invalid_tool_calls?.length)
         throw new AppError(
@@ -129,7 +187,10 @@ export class LangChainChatProvider implements ChatProvider {
           );
         return { answer, sources: [...used.values()].slice(0, 10) };
       }
-      if (response.tool_calls.length > 3)
+      if (
+        round >= MAX_TOOL_ROUNDS_PER_TURN ||
+        response.tool_calls.length > MAX_TOOL_CALLS_PER_ROUND
+      )
         throw new AppError('LLM_TOOL_LIMIT', 502, 'Limite de ferramentas atingido.');
       messages.push(response);
       for (const call of response.tool_calls) {
@@ -138,6 +199,7 @@ export class LangChainChatProvider implements ChatProvider {
         const args = searchArgs.safeParse(call.args);
         if (!args.success)
           throw new AppError('LLM_INVALID_TOOL', 502, 'Parâmetros de ferramenta inválidos.');
+        toolCallId = call.id;
         const content = await search.invoke(args.data);
         messages.push(new ToolMessage({ content, tool_call_id: call.id }));
       }

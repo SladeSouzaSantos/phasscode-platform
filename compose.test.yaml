@@ -1,4 +1,4 @@
-name: phasscode-platform-tests
+name: ${COMPOSE_PROJECT_NAME:-phasscode-platform-tests}
 services:
   postgres:
     image: postgres:17-alpine
@@ -21,6 +21,7 @@ services:
       timeout: 3s
       retries: 20
   tests:
+    image: ${COMPOSE_PROJECT_NAME:-phasscode-platform-tests}:test
     build:
       context: .
       dockerfile: infrastructure/docker/Dockerfile

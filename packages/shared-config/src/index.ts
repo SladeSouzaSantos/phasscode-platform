@@ -1,5 +1,20 @@
 import { z } from 'zod';
 
+const unsafeLlmDiagnostics = [
+  'LANGCHAIN_VERBOSE',
+  'LANGCHAIN_TRACING',
+  'LANGCHAIN_TRACING_V2',
+  'LANGSMITH_TRACING',
+  'LANGSMITH_TRACING_V2',
+] as const;
+
+export function assertLlmPrivacyEnvironment(env: NodeJS.ProcessEnv = process.env): void {
+  const enabled = unsafeLlmDiagnostics.filter((name) => env[name] === 'true');
+  if (enabled.length) {
+    throw new Error(`Diagnóstico de LLM incompatível com a privacidade: ${enabled.join(', ')}.`);
+  }
+}
+
 const optionalText = z.preprocess(
   (value) => (value === '' ? undefined : value),
   z.string().optional(),
@@ -10,6 +25,10 @@ const optionalBoolean = z.preprocess(
     .enum(['true', 'false'])
     .transform((value) => value === 'true')
     .optional(),
+);
+const optionalPositiveInteger = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z.coerce.number().int().min(1).max(1_000_000).optional(),
 );
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -35,6 +54,12 @@ const envSchema = z.object({
   OPENROUTER_REASONING_ENABLED: optionalBoolean,
   LLM_TIMEOUT_MS: z.coerce.number().int().min(100).max(60000).default(15000),
   LLM_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(64).max(2000).default(800),
+  LLM_GLOBAL_MAX_CALLS: optionalPositiveInteger,
+  LLM_GLOBAL_WINDOW_MS: z.coerce.number().int().min(1000).max(2_678_400_000).default(86_400_000),
+  LLM_GLOBAL_BUDGET_KEY: z
+    .string()
+    .regex(/^[A-Za-z0-9:_-]{1,120}$/)
+    .default('phasscode:llm:global'),
 });
 export type Config = z.infer<typeof envSchema> & {
   corsOrigins: string[];
@@ -42,6 +67,7 @@ export type Config = z.infer<typeof envSchema> & {
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
+  assertLlmPrivacyEnvironment(env);
   const parsed = envSchema.safeParse(env);
   if (!parsed.success) {
     throw new Error(
@@ -97,6 +123,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       throw new Error('LLM_BASE_URL inválida.');
     if (config.NODE_ENV === 'production' && url.protocol !== 'https:')
       throw new Error('LLM_BASE_URL requer HTTPS em produção.');
+  }
+  if (config.LLM_PROVIDER !== 'mock' && (!config.REDIS_URL || !config.LLM_GLOBAL_MAX_CALLS)) {
+    throw new Error(
+      'Provedor real requer REDIS_URL e LLM_GLOBAL_MAX_CALLS para controlar o consumo.',
+    );
   }
   return {
     ...config,

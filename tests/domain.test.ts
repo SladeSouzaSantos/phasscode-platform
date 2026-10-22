@@ -33,6 +33,8 @@ describe('configuração', () => {
         LLM_BASE_URL: 'https://example.com/v1',
         LLM_API_KEY: 'test-only',
         LLM_MODEL: 'test',
+        REDIS_URL: 'redis://127.0.0.1:6379',
+        LLM_GLOBAL_MAX_CALLS: '100',
         OPENROUTER_REASONING_ENABLED: enabled,
       });
       expect(config.OPENROUTER_REASONING_ENABLED).toBe(enabled === 'true');

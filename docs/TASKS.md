@@ -1,6 +1,6 @@
 # Tarefas da PHASSCODE Platform
 
-Atualizado em 21/10/2026. Base: commit local `984d0e9`, branch `dev`.
+Atualizado em 22/10/2026. Base publicada: `main/7357329` (PR #2), sincronizada em `dev/85ebca3`.
 
 Este backlog separa o que já funciona dos próximos incrementos. Não representa execução,
 publicação no GitHub ou autorização de deploy. Cada tarefa deve entregar código/documentação
@@ -8,20 +8,46 @@ verificável, com checks proporcionais à mudança e um commit proposto para rev
 
 ## Fase atual
 
-| Fase                               | Estado                          | Evidência ou próximo marco                                                          |
-| ---------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------- |
-| 1 — Fundação                       | Concluída e validada localmente | Monorepo, contratos, Docker, PostgreSQL/Redis, migrations, health e qualidade       |
-| 2 — Orbe Node                      | Concluída localmente            | Base de 31 documentos, avaliação real, regressões e integração do chat documentadas |
-| 3 — Login, reuniões e notificações | Próxima fase                    | Começar por Google OIDC/JWT, depois reuniões, Calendar, administração e BullMQ      |
-| 4 — Java                           | Pendente                        | Segunda implementação do chat e conformidade do contrato                            |
-| 5 — RabbitMQ                       | Pendente                        | Adaptadores, consumidores, retries e DLQ                                            |
-| 6 — Kafka                          | Pendente                        | Eventos, consumidores e reprocessamento                                             |
-| 7 — Observabilidade e deploy       | Pendente                        | Métricas, tracing, homologação e operação                                           |
+| Fase                               | Estado                          | Evidência ou próximo marco                                                     |
+| ---------------------------------- | ------------------------------- | ------------------------------------------------------------------------------ |
+| 1 — Fundação                       | Concluída e validada localmente | Monorepo, contratos, Docker, PostgreSQL/Redis, migrations, health e qualidade  |
+| 2 — Orbe Node                      | Concluída e publicada           | PR #2 incorporada; CI/CodeQL aprovados main/dev; revisão de homologação local  |
+| 3 — Login, reuniões e notificações | Próxima fase                    | Começar por Google OIDC/JWT, depois reuniões, Calendar, administração e BullMQ |
+| 4 — Java                           | Pendente                        | Segunda implementação do chat e conformidade do contrato                       |
+| 5 — RabbitMQ                       | Pendente                        | Adaptadores, consumidores, retries e DLQ                                       |
+| 6 — Kafka                          | Pendente                        | Eventos, consumidores e reprocessamento                                        |
+| 7 — Observabilidade e deploy       | Pendente                        | Métricas, tracing, homologação e operação                                      |
 
-Já entregues: 102 testes automatizados (98 testes locais e 4 de integração com PostgreSQL/Redis),
+Na Fase 2 publicada foram aprovados 102 testes (98 locais e quatro PostgreSQL/Redis), além de
 smoke Docker com persistência após reinício e smoke real OpenRouter com tool calling. Os perfis
 RabbitMQ/Kafka são infraestrutura preparada; não há adaptadores implementados. CI e CodeQL estão
-aprovados remotamente na fundação publicada; o incremento atual ainda aguarda commit e CI próprios.
+aprovados remotamente no fechamento da Fase 2 em `main` e `dev`. Esta revisão aguarda commit e CI próprios.
+
+A revisão soma **195 testes aprovados**: 153 locais, 25 de infraestrutura e 17 de integração
+PostgreSQL/Redis. Build, smoke, plano offline e auditoria também concluíram. A execução remota do
+workflow e a avaliação real integral da v3 permanecem separadas.
+
+## Revisão pós-Fase 2 — antes de P3-00
+
+- [ ] **R2-00 — Definir o orçamento no ambiente local:** a conferência final encontrou provedor real
+      configurado e `LLM_GLOBAL_MAX_CALLS` ausente. Escolher limite/janela conforme a conta antes de
+      recriar a API; não presumir cota nem consumir LLM para descobrir o limite.
+- [x] **R2-01 — Isolar ambientes:** parametrizar projeto/imagem/porta, preservar volumes existentes,
+      testar renderizações equivalentes a produção/desenvolvimento e explicitar ambiente em migrations/retenção.
+- [x] **R2-02 — Conter consumo real:** orçamento Redis atômico por invocação, falha fechada,
+      429 com Retry-After e testes entre instâncias, sem presumir cota OpenRouter.
+- [x] **R2-03 — Corrigir defeitos do chat:** conter ocupação do pool, bloquear geração sem documentos,
+      preservar 504 no cancelamento, recortar contexto com prompt/JSON reais e permitir perguntas
+      conceituais legítimas sobre tokens. Auditoria final também bloqueia diagnóstico SDK com conteúdo.
+- [x] **R2-04 — Preparar release manual:** seguir padrão do portfólio com GHCR/digest, DAST mock,
+      Tailscale/SSH e verificação; manter Nginx compartilhado e instalação de include manual.
+- [ ] **R2-05 — Validar no minimac-server:** confirmar arquitetura/rede/alias, configurar environments,
+      segredos, checkout e orçamento; executar release de desenvolvimento autorizada e verificar
+      DNS/TLS/CORS/proxy, retenção e backups. Preparação local não comprova deploy.
+- [ ] **R2-06 — Executar v3 real completa após autorização separada:** 22 mensagens HTTP, até 57
+      invocações na matriz atual (teto conservador 66), com cota conferida e revisão humana.
+- [ ] **R2-07 — Publicar esta revisão:** separar commits de infraestrutura, segurança e documentação
+      após autorização, conferir nova CI. Sem push/merge automático.
 
 ## Fase 2 — tarefas concluídas
 
@@ -179,8 +205,8 @@ métodos. Sua implementação será priorizada depois de validar o primeiro flux
 - [x] **E-01 — Publicar a fundação e conferir a primeira CI remota.** Confirmado por leitura do
       GitHub: `dev/984d0e9` publicado e PR #1 incorporada em `main/e78ef0a`; Backend CI e CodeQL
       concluíram com sucesso nas duas branches. Essa validação é do primeiro incremento.
-- [ ] **E-03 — Revisar, commitar e publicar o fechamento da Fase 2.** As alterações deste incremento
-      permanecem locais. Executar a CI no novo commit quando sua publicação for autorizada.
+- [x] **E-03 — Publicar o fechamento da Fase 2.** PR #2 em `main/7357329`, sincronizada em
+      `dev/85ebca3`, com CI/CodeQL aprovados nas duas branches. A revisão pós-fase é outro incremento.
 - [ ] **E-02 — Integrar o Orbe no frontend, pelo proprietário.** O chat já pode ser integrado localmente;
       [guia](api/frontend-integration.md) e cliente TypeScript estão disponíveis. Conectar ao componente
       React e testar loading, respostas, fontes e erros é uma tarefa do repositório frontend.
@@ -189,5 +215,5 @@ métodos. Sua implementação será priorizada depois de validar o primeiro flux
 Publicar o backend na internet não é requisito para encerrar a avaliação local da Fase 2. Não fazer
 deploy, alterações de DNS/Nginx compartilhado ou commits/pushes adicionais como efeito deste plano.
 
-Ordem imediata: **revisar o incremento concluído → P3-00 Google OIDC → domínio/contratos de reuniões**.
+Ordem imediata: **validar/publicar a revisão → homologação autorizada → P3-00 Google OIDC → reuniões**.
 O proprietário já pode desenvolver a integração do chat em paralelo no frontend.

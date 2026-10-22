@@ -57,7 +57,10 @@ export const publicErrorCodeSchema = z.enum([
   'LLM_INVALID_RESPONSE',
   'LLM_INVALID_TOOL',
   'LLM_TOOL_LIMIT',
+  'LLM_BUDGET_EXHAUSTED',
+  'LLM_BUDGET_UNAVAILABLE',
   'RATE_LIMITED',
+  'RATE_LIMIT_UNAVAILABLE',
   'INVALID_REQUEST',
   'PAYLOAD_TOO_LARGE',
   'UNSUPPORTED_MEDIA_TYPE',
@@ -67,6 +70,8 @@ export const publicErrorCodeSchema = z.enum([
   'CONVERSATION_NOT_FOUND',
   'CONVERSATION_BUSY',
   'CAPACITY_REACHED',
+  'CHAT_CAPACITY_REACHED',
+  'DB_UNAVAILABLE',
 ]);
 export type PublicErrorCode = z.infer<typeof publicErrorCodeSchema>;
 export interface Check {
