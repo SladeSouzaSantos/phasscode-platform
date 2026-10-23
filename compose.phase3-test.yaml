@@ -1,0 +1,125 @@
+# Disposable qualification only. Use scripts/phase3-docker-smoke.mjs; never overlay compose.yaml.
+x-runtime: &runtime
+  image: ${PHASSCODE_TEST_IMAGE:?Select the local candidate image through the smoke runner}
+  pull_policy: never
+  init: true
+  networks: [tests]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  environment: &runtime-env
+    NODE_ENV: test
+    HOST: 0.0.0.0
+    PORT: 3000
+    LOG_LEVEL: silent
+    PERSISTENCE: postgres
+    DATABASE_URL: postgresql://synthetic:synthetic@postgres:5432/phasscode_phase3_test
+    REDIS_URL: redis://redis:6379/1
+    LLM_PROVIDER: mock
+    LLM_API_KEY: ''
+    CORS_ORIGINS: http://localhost:5173
+    RATE_LIMIT_MAX: 100
+    AUTH_ENABLED: 'true'
+    AUTH_PUBLIC_URL: http://localhost:3000
+    AUTH_FRONTEND_URL: http://localhost:5173
+    AUTH_GOOGLE_CLIENT_ID: synthetic-offline-client
+    AUTH_GOOGLE_CLIENT_SECRET: synthetic-offline-secret
+    AUTH_COOKIE_SECURE: 'false'
+    AUTH_JWT_KEY_ID: phase3-image-qualification
+    AUTH_JWT_PRIVATE_KEY: ${PHASSCODE_TEST_PRIVATE_KEY:?The runner generates a fresh synthetic key}
+    MEETINGS_ENABLED: 'true'
+    MEETINGS_TIMEZONE: America/Fortaleza
+    MEETINGS_WORKDAYS: 1,2,3,4,5,6
+    MEETINGS_WORK_START: '09:00'
+    MEETINGS_WORK_END: '18:00'
+    MEETINGS_DURATION_MINUTES: 30
+    MEETINGS_MIN_NOTICE_MINUTES: 1440
+    MEETINGS_BUFFER_MINUTES: 15
+    MEETINGS_MAX_HORIZON_DAYS: 60
+    GOOGLE_CALENDAR_MODE: fake
+    WORKER_ENABLED: 'true'
+    NOTIFICATION_MODE: fake
+    OUTBOX_POLL_MS: 100
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: synthetic
+      POSTGRES_PASSWORD: synthetic
+      POSTGRES_DB: phasscode_phase3_test
+    networks: [tests]
+    tmpfs: [/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U synthetic -d phasscode_phase3_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --save, '', --appendonly, 'no']
+    networks: [tests]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  migrate:
+    <<: *runtime
+    command: [node, dist/packages/database/src/migrate.js]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: 'no'
+  api:
+    <<: *runtime
+    command: [node, dist/apps/orbe-node/src/main.js]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3000/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+  worker:
+    <<: *runtime
+    command: [node, dist/apps/worker-node/src/main.js]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "try{process.exit(Date.now()-Number(require('node:fs').readFileSync('/tmp/phasscode-worker-heartbeat','utf8'))<30000?0:1)}catch{process.exit(1)}",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    stop_grace_period: 45s
+  smoke:
+    <<: *runtime
+    command: [node, /app/phase3-runtime-smoke.mjs]
+    environment:
+      <<: *runtime-env
+      PHASSCODE_TEST_API_URL: http://api:3000
+      PHASSCODE_TEST_EXPECTED_MIGRATIONS: ${PHASSCODE_TEST_EXPECTED_MIGRATIONS:?The runner supplies expected migration checksums}
+    volumes:
+      - type: bind
+        source: ./scripts/phase3-runtime-smoke.mjs
+        target: /app/phase3-runtime-smoke.mjs
+        read_only: true
+    depends_on:
+      api: { condition: service_healthy }
+      worker: { condition: service_healthy }
+networks:
+  tests:
+    internal: true

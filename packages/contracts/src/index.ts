@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import { json, standardErrors as errors } from './common.js';
+import { meetingProposalResponseSchema } from './meetings.js';
+import { meetingOpenApiPaths } from './meetings.js';
+import { authOpenApiPaths, authSecuritySchemes } from './auth.js';
+export * from './auth.js';
+export * from './meetings.js';
+export { errorResponseSchema } from './common.js';
 
 export const chatRequestSchema = z.strictObject({
   conversationId: z.uuid().optional(),
@@ -15,17 +22,19 @@ export const chatResponseSchema = z.strictObject({
   conversationToken: z.string().min(43).max(128).optional(),
   answer: z.string().min(1).max(8000),
   sources: z.array(sourceSchema).max(10),
+  actions: z
+    .array(
+      z.strictObject({
+        type: z.literal('confirm_meeting_request'),
+        proposal: meetingProposalResponseSchema,
+      }),
+    )
+    .max(1)
+    .optional(),
   meta: z.strictObject({
     provider: z.enum(['mock', 'openai', 'openai-compatible']),
     simulated: z.boolean(),
     promptVersion: z.string(),
-  }),
-});
-export const errorResponseSchema = z.strictObject({
-  error: z.strictObject({
-    code: z.string(),
-    message: z.string(),
-    correlationId: z.string(),
   }),
 });
 export const healthResponseSchema = z.strictObject({ status: z.literal('ok') });
@@ -39,26 +48,19 @@ export type ChatResponse = z.infer<typeof chatResponseSchema>;
 export type Source = z.infer<typeof sourceSchema>;
 export type ProviderName = ChatResponse['meta']['provider'];
 
-const schema = (value: z.ZodType) => z.toJSONSchema(value, { target: 'draft-2020-12' });
-const json = (value: z.ZodType) => ({ 'application/json': { schema: schema(value) } });
-const errors = Object.fromEntries(
-  [400, 403, 404, 409, 413, 415, 429, 500, 502, 503, 504].map((status) => [
-    status,
-    {
-      description: 'Erro padronizado; nenhuma mensagem ou credencial interna.',
-      content: json(errorResponseSchema),
-    },
-  ]),
-);
 export const openApiDocument = {
   openapi: '3.1.0',
   info: {
     title: 'PHASSCODE Platform',
     version: '0.1.0',
-    description: 'Fundação e Orbe Node. Agendamento e Java são fases posteriores.',
+    description:
+      'Orbe público, login Google OIDC e reuniões com aprovação administrativa. Recursos opcionais dependem da configuração da implantação. Java é fase posterior.',
   },
   servers: [{ url: 'http://localhost:3000', description: 'Desenvolvimento local' }],
+  components: { securitySchemes: authSecuritySchemes },
   paths: {
+    ...authOpenApiPaths,
+    ...meetingOpenApiPaths(errors),
     '/health': {
       get: {
         summary: 'Liveness do processo',
@@ -81,6 +83,14 @@ export const openApiDocument = {
         description:
           'Sem conversationId cria conversa e retorna conversationToken UMA vez. Ao continuar, envie X-Conversation-Token. Token inválido, ausente ou conversa expirada retornam 404. Sem streaming. O campo meta.simulated identifica respostas mock. Máximo HTTP 8192 bytes.',
         parameters: [
+          {
+            in: 'header',
+            name: 'X-Orbe-Capabilities',
+            required: false,
+            description:
+              'meetings-v1 habilita ferramentas e actions de reunião quando configuradas. Sem este header, a resposta preserva o formato legado, sem actions.',
+            schema: { type: 'string', enum: ['meetings-v1'] },
+          },
           {
             in: 'header',
             name: 'X-Conversation-Token',

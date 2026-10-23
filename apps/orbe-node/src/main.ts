@@ -10,10 +10,15 @@ import { LangChainChatProvider } from './adapters/langchain-provider.js';
 import { RedisLlmCallBudget } from './adapters/redis-llm-budget.js';
 import type { ChatProvider } from './domain/ports.js';
 import { buildApp } from './http/app.js';
+import { AuthService } from './auth/service.js';
+import { MeetingService } from './meetings/service.js';
+import { PostgresMeetingStore } from './meetings/postgres-store.js';
+import { createCalendar } from '../../../packages/integrations/src/calendar.js';
 
 try {
   const config = loadConfig();
   const knowledge = await JsonKnowledgeRepository.load();
+  const pool = config.PERSISTENCE === 'postgres' ? createPool(config.DATABASE_URL!) : undefined;
   const store =
     config.PERSISTENCE === 'memory'
       ? new MemoryConversationStore(
@@ -22,7 +27,7 @@ try {
           config.CHAT_RETENTION_DAYS,
         )
       : new PostgresConversationStore(
-          createPool(config.DATABASE_URL!),
+          pool!,
           config.CHAT_HISTORY_MESSAGES,
           config.CHAT_RETENTION_DAYS,
         );
@@ -40,24 +45,50 @@ try {
     /* Readiness reporta falhas sem registrar credenciais do driver. */
   });
   let provider: ChatProvider;
+  let auth: AuthService;
+  const meetings = config.meetings.enabled
+    ? new MeetingService(
+        config.meetings,
+        new PostgresMeetingStore(pool!),
+        createCalendar(config.calendar),
+      )
+    : undefined;
+  const phase3Ready =
+    config.auth.enabled || config.meetings.enabled
+      ? async () => {
+          const applied = await pool!.query(
+            "SELECT name FROM schema_migrations WHERE name IN ('002_auth.sql','003_meetings.sql','004_notifications.sql','005_calendar_create_uncertainty.sql')",
+          );
+          if (applied.rowCount !== 4) throw new Error('Migrations da Fase 3 pendentes.');
+          await pool!.query(
+            'SELECT 1 FROM auth_users, meetings, meeting_outbox, notification_deliveries LIMIT 0',
+          );
+        }
+      : undefined;
   try {
     await store.ready();
     if (redis) {
       await redis.connect();
       await redis.ping();
     }
+    auth = await AuthService.create(config.auth, pool);
+    if (phase3Ready) await phase3Ready();
     provider =
       config.LLM_PROVIDER === 'mock'
         ? new MockChatProvider()
         : new LangChainChatProvider(
             config,
             knowledge,
-            await readFile('apps/orbe-node/prompts/v3.md', 'utf8'),
+            await readFile(
+              `apps/orbe-node/prompts/${meetings || config.auth.enabled ? 'v4' : 'v3'}.md`,
+              'utf8',
+            ),
             new RedisLlmCallBudget(redis!, {
               key: config.LLM_GLOBAL_BUDGET_KEY,
               maxCalls: config.LLM_GLOBAL_MAX_CALLS!,
               windowMs: config.LLM_GLOBAL_WINDOW_MS,
             }),
+            meetings,
           );
   } catch {
     await store.close();
@@ -70,6 +101,9 @@ try {
     provider,
     store,
     ...(redis ? { redis } : {}),
+    auth,
+    ...(meetings ? { meetings } : {}),
+    ...(phase3Ready ? { phase3Ready } : {}),
   }).catch(async (error: unknown) => {
     await store.close();
     redis?.disconnect();

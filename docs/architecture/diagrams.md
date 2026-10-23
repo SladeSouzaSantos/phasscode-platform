@@ -39,7 +39,7 @@ sequenceDiagram
   C-->>V: answer + sources + meta (+ token na criação)
 ```
 
-## Planejamento de reuniões: Fase 3, ainda não implementada
+## Reuniões: Fase 3 implementada
 
 ```mermaid
 stateDiagram-v2
@@ -52,10 +52,10 @@ stateDiagram-v2
   APPROVED --> CANCELLED: antes da confirmação
   FAILED --> APPROVED: retry administrativo idempotente
   FAILED --> CANCELLED: desistência
-  CONFIRMED --> CANCELLED: cancelamento externo verificado
+  CONFIRMED --> CANCELLED: decisão administrativa; cleanup externo pendente
 ```
 
-`APPROVED` é autorização interna; `CONFIRMED` exige evento externo criado. Falha ao cancelar um
-evento confirmado deve conservar o estado e registrar operação pendente, até reconciliação; não
-declarar cancelamento antes de verificá-lo. A Fase 3 deverá formalizar a política de retry, reservas
-pendentes e reconciliação antes de adicionar os endpoints.
+`APPROVED` é autorização interna; `CONFIRMED` exige evento externo verificado. `CANCELLED` é a
+decisão administrativa; a reserva permanece até o worker verificar a remoção externa. Falha
+ambígua também preserva a reserva. Detalhes, outbox e diagrama do fluxo estão em
+[meetings.md](meetings.md).

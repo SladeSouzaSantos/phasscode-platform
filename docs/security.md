@@ -34,11 +34,16 @@ curtas. Configurações com pool de tamanho um não oferecem reserva de conexão
 
 Produção exige PostgreSQL e Redis. Conversas usam tokens aleatórios de 256 bits, hash SHA-256 e
 comparação constante; UUID não concede acesso. Tokens não são registrados nem enviados ao modelo.
-Não há login/admin neste incremento porque não há endpoints administrativos. A Fase 3 deve usar
-OIDC/JWT verificável, emissor/audiência e papéis antes de liberar aprovações ou listagem de PII.
+Google OIDC e administração estão implementados na Fase 3, com PKCE/state/nonce, sessão opaca
+HttpOnly/Secure/SameSite, Origin/CSRF e verificação do papel atual no PostgreSQL. JWT de serviço
+é RS256, com issuer/audience/expiração, propósito e sid ativo; não é exposto ao navegador. Contas
+externas são vinculadas por issuer/subject, sem união por e-mail ou promoção automática de admin.
 
-O prompt e a ferramenta de busca separam instruções de dados. A ferramenta aceita somente texto de
-consulta e lê documentos públicos; não escreve nem faz fetch de URLs. Filtros de injection e
+O prompt e as ferramentas separam instruções de dados. A busca aceita somente texto de consulta
+e lê documentos públicos. Ferramentas opcionais de reuniões consultam a agenda e preparam propostas;
+confirmar o pedido exige ação HTTP do visitante, fora do modelo. Nenhuma ferramenta efetiva pedido,
+aprova, cancela ou envia notificações. Tokens das propostas ficam só na resposta privada da UI,
+fora do contexto e do histórico do modelo. Filtros de injection e
 escopo são heurísticos e não garantem imunidade. Avaliações adversariais e controles fora do LLM
 serão necessários antes de disponibilizar ações sensíveis. Renderizar respostas como texto seguro
 ou Markdown sanitizado no frontend, sem aceitar HTML arbitrário.
@@ -65,7 +70,7 @@ conversa expirada é negado; execute diariamente `db:retention` ou o serviço `r
 física em cascata. Backups precisam da própria política de expiração. O modo memória elimina
 conversas expiradas ao processar solicitações e perde todas ao reiniciar.
 
-Não peça informações pessoais no chat nesta fase. Para operação pública, documentar finalidade,
+Para operação pública, documentar finalidade,
 base legal adequada, aviso de privacidade, contato do controlador e processo de exclusão/solicitação
 do titular. Estas são tarefas de configuração e governança do projeto, não uma declaração de
 conformidade jurídica automática com LGPD.
@@ -75,13 +80,16 @@ que garanta sua remoção: conteúdo aceito pode ser persistido no histórico e 
 externo com o contexto da conversa. O frontend deve mostrar aviso antes do primeiro envio,
 desencorajar dados pessoais/sensíveis e disponibilizar contato e processo de exclusão. A exclusão
 local não comprova exclusão no fornecedor ou em backups. Não registrar corpos para diagnosticar
-abuso; usar código público, correlação e métricas sem conteúdo. Nesta revisão não foi acrescentada
-coleta de dados nem um fluxo de agendamento.
+abuso; usar código público, correlação e métricas sem conteúdo. Na Fase 3, nome/e-mail/assunto são
+coletados para a proposta e confirmação do pedido. Oferecer formulário direto para quem não quiser
+enviar esses dados ao provedor LLM. Propostas expiram; a retenção anonimiza PII elegível após 90 dias
+e preserva auditoria. Worker e manutenção executam a limpeza; backups têm política separada.
 
-Tokens OAuth Google e refresh tokens ainda não são armazenados. A implementação futura deve usar
-secret manager ou criptografia autenticada com biblioteca padrão e chave fora do banco, escopos
-mínimos, rotação/revogação e autorização explícita dos calendários. Não enviar tokens em e-mail ou
-Telegram. Notificações devem carregar o mínimo de dados necessário e ter trilha operacional.
+Tokens do login Google não são persistidos; cookies opacos são guardados por hash. A credencial
+offline do Calendar é configuração privada independente e fica fora do banco/Git. Usar escopos
+mínimos, rotação/revogação e calendário autorizado. Persistência futura exige secret manager ou
+criptografia autenticada padrão com chave separada. Não enviar tokens em e-mail/Telegram. Jobs
+Redis contêm só UUID de outbox, entregas SQL registram estado/códigos e canais minimizam PII.
 
 Compose não publica bancos/brokers por padrão; overrides locais limitam portas ao loopback. Redis
 e brokers locais não estão configurados para redes não confiáveis. Produção requer rede restrita,

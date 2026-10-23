@@ -1,9 +1,8 @@
 # Integração com o frontend do portfólio
 
-O chat da Fase 2 já tem contrato implementado para iniciar a integração local do Orbe. A avaliação
-de encerramento da fase e suas evidências ficam em [PROGRESS.md](../PROGRESS.md). Login real,
-agendamento e administração ainda não têm endpoints disponíveis. Este trabalho não altera o
-repositório do frontend nem publica o backend.
+O chat mantém o contrato da Fase 2, e login, agendamento e administração têm contratos na Fase 3.
+Veja o [guia específico](phase3-integration.md) e [PROGRESS.md](../PROGRESS.md). A integração visual
+continua no repositório do frontend; este trabalho não publica o backend.
 
 ## Chat disponível agora
 
@@ -101,52 +100,19 @@ O backend já permite `http://localhost:5173` por padrão. Para outra porta ou d
 `CORS_ORIGINS` no ambiente do backend com origens exatas separadas por vírgula, sem caminho ou
 wildcard. `http://127.0.0.1:5173` e `http://localhost:5173` são origens diferentes.
 
-O preflight permite `Content-Type` e `X-Conversation-Token`; expõe `X-Correlation-Id` e `Retry-After`.
-O chat atual usa `credentials: false`: o cliente não precisa de `credentials: 'include'`. Login
-por cookie precisará da configuração própria descrita na arquitetura; apenas acrescentar esse
-parâmetro no frontend não implementa autenticação.
+O preflight permite `Content-Type`, `X-Conversation-Token`, `X-CSRF-Token`, `X-Meeting-Token`,
+`Idempotency-Key`, `Authorization` e `X-Orbe-Capabilities`; expõe `X-Correlation-Id` e `Retry-After`. O chat público não
+exige cookies. Quando auth está habilitada, CORS admite credenciais para as origens explícitas;
+as chamadas de sessão/admin usam `credentials: 'include'` e CSRF, conforme o guia da Fase 3.
 
 No Docker, após mudar variáveis, recrie a API com `docker compose up -d --force-recreate api`.
 A publicação de uma URL HTTPS e a configuração do proxy são um marco posterior; este guia já
 permite desenvolvimento local com o frontend existente.
 
-## Login futuro: contrato proposto, não implementado
+## Login, reuniões e administração
 
-O login visual atual será substituído quando a autenticação da Fase 3 estiver implementada.
-Sua primeira tarefa será Google OIDC, usando OAuth 2.0 com access tokens JWT e uma sessão de
-navegador administrada pelo BFF. Esse primeiro incremento disponibilizará apenas login Google.
-Node e Java/Spring atenderão o mesmo contrato externo; o frontend não escolherá a linguagem e
-não terá que manter dois logins. Papéis retornados à interface servem para apresentação; toda
-permissão continua sendo verificada no backend.
-
-Os nomes abaixo são uma proposta a versionar no OpenAPI antes da implementação; inicialmente,
-`{provider}` aceitará somente `google`:
-
-| Método | Rota proposta                      | Comportamento esperado                                                                                   |
-| ------ | ---------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/api/v1/auth/login/{provider}`    | Iniciar redirecionamento ao provedor permitido; destino de retorno validado.                             |
-| `GET`  | `/api/v1/auth/callback/{provider}` | Receber retorno OIDC, validar fluxo e criar sessão por cookie; sem tokens na URL do frontend.            |
-| `GET`  | `/api/v1/auth/session`             | Informar `authenticated`, identidade resumida e papéis; sem access/refresh token na resposta.            |
-| `POST` | `/api/v1/auth/refresh`             | Renovar sessão/tokens no servidor, com proteção CSRF; pode ser dispensado se o BFF renovar internamente. |
-| `POST` | `/api/v1/auth/logout`              | Invalidar sessão/revogar renovação, remover cookie e retornar `204`; exigir proteção CSRF.               |
-| `GET`  | `/api/v1/me`                       | Consultar perfil autenticado; `401` sem sessão válida.                                                   |
-
-`session` pode retornar `200` com `{ "authenticated": false, "user": null }` para mostrar a tela
-anônima. Em sessão válida, `user` terá um ID interno estável, nome de exibição e papéis. Os DTOs,
-o mecanismo de obtenção do token CSRF e o esquema de erros ainda serão registrados no contrato.
-Nenhuma dessas rotas está no OpenAPI atual.
-
-O provedor inicial está definido: Google OIDC. O serviço emissor central de identidade será
-escolhido na implementação da primeira tarefa da Fase 3. `User`, identidades externas e credenciais
-serão entidades separadas, com uma única fonte de usuários/papéis/permissões para Node e Java.
-Futuras opções de e-mail/senha, GitHub, MFA e passkeys usarão o mesmo usuário interno, sem junção
-automática por e-mail. Não integrar formulários/botões dessas opções antes dos respectivos
-contratos e implementações; elas não serão simuladas como funcionalidades prontas.
-
-Login do visitante continuará opcional para o chat; administração de reuniões exigirá identidade e
-papel permitido. Google Calendar terá consentimento e tokens próprios no backend, separados do
-login social. O usuário será avisado novamente quando os contratos de autenticação e reuniões
-estiverem prontos para integrar.
-
-Decisões e referências: [arquitetura de autenticação](../architecture/authentication.md) e
-[ADR 0004](../adr/0004-authentication.md).
+Os contratos da Fase 3 estão implementados. Consulte o [guia da Fase 3](phase3-integration.md)
+para Google OIDC, cookies/CSRF, propostas e consentimento, ações do Orbe e administração.
+As integrações externas exigem configuração e homologação; portfólio e chat continuam públicos.
+O [handoff do frontend](phase3-frontend-handoff.md) entrega clientes de referência e a sequência
+de implementação, incluindo o opt-in do Orbe e a confirmação explícita do visitante.

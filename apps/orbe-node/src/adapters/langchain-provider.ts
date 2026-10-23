@@ -8,6 +8,8 @@ import {
 } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
+import { meetingProposalInputSchema } from '../../../../packages/contracts/src/meetings.js';
+import type { MeetingTools } from '../domain/meeting-tools.js';
 import {
   assertLlmPrivacyEnvironment,
   type Config,
@@ -37,6 +39,7 @@ export class LangChainChatProvider implements ChatProvider {
     private readonly knowledge: KnowledgeRepository,
     private readonly prompt: string,
     private readonly budget: LlmCallBudget,
+    private readonly meetings?: MeetingTools,
   ) {
     assertLlmPrivacyEnvironment(process.env);
     this.name = config.LLM_PROVIDER === 'openai-compatible' ? 'openai-compatible' : 'openai';
@@ -59,6 +62,7 @@ export class LangChainChatProvider implements ChatProvider {
     });
   }
   async generate(input: GenerationInput): Promise<GenerationResult> {
+    const actions: NonNullable<GenerationResult['actions']> = [];
     const used = new Map<string, Source>();
     const serialize = (docs: GenerationInput['documents']) =>
       JSON.stringify(
@@ -158,7 +162,52 @@ export class LangChainChatProvider implements ChatProvider {
         schema: searchArgs,
       },
     );
-    const model = this.model.bindTools([search], { strict: true });
+    const availabilityArgs = z.strictObject({
+      start: z.iso.datetime({ offset: true }),
+      end: z.iso.datetime({ offset: true }),
+    });
+    const availability = tool(
+      async ({ start, end }) => {
+        input.signal.throwIfAborted();
+        return JSON.stringify(await this.meetings!.availability(start, end));
+      },
+      {
+        name: 'get_meeting_availability',
+        description:
+          'Consulta intervalos de atendimento reais; nunca retorna detalhes de compromissos privados. Datas ISO com offset, janela de no máximo sete dias.',
+        schema: availabilityArgs,
+      },
+    );
+    const prepare = tool(
+      async (args) => {
+        input.signal.throwIfAborted();
+        if (actions.length)
+          throw new AppError('LLM_TOOL_LIMIT', 502, 'Prepare somente uma proposta por turno.');
+        const proposal = await this.meetings!.prepareProposal(args);
+        actions.push({ type: 'confirm_meeting_request', proposal });
+        // The one-use confirmation secret belongs to the UI, never to model messages/history.
+        return JSON.stringify({
+          summary: {
+            start: proposal.summary.start,
+            end: proposal.summary.end,
+            timeZone: proposal.summary.timeZone,
+          },
+          consentVersion: proposal.consentVersion,
+          expiresAt: proposal.expiresAt,
+          requiresVisitorConfirmation: true,
+          requestCreated: false,
+        });
+      },
+      {
+        name: 'prepare_meeting_request',
+        description:
+          'Prepara proposta com dados informados pelo visitante. NÃO cria solicitação nem reserva horário. O visitante precisa confirmar os dados no formulário do frontend.',
+        schema: meetingProposalInputSchema,
+      },
+    );
+    const tools =
+      this.meetings && input.meetingActions === true ? [search, availability, prepare] : [search];
+    const model = this.model.bindTools(tools, { strict: true });
     for (let round = 0; round < MAX_MODEL_CALLS_PER_TURN; round++) {
       if (contextSize() > this.maxContextChars) throw contextLimit();
       input.signal.throwIfAborted();
@@ -185,7 +234,13 @@ export class LangChainChatProvider implements ChatProvider {
             502,
             'O assistente retornou uma resposta inválida.',
           );
-        return { answer, sources: [...used.values()].slice(0, 10) };
+        return {
+          answer: actions.length
+            ? 'Confira os dados e confirme a proposta no formulário. A solicitação ainda não foi registrada e o horário não está reservado; depois da confirmação, ela ficará pendente de aprovação.'
+            : answer,
+          sources: [...used.values()].slice(0, 10),
+          ...(actions.length ? { actions } : {}),
+        };
       }
       if (
         round >= MAX_TOOL_ROUNDS_PER_TURN ||
@@ -194,13 +249,31 @@ export class LangChainChatProvider implements ChatProvider {
         throw new AppError('LLM_TOOL_LIMIT', 502, 'Limite de ferramentas atingido.');
       messages.push(response);
       for (const call of response.tool_calls) {
-        if (call.name !== 'search_portfolio' || !call.id)
+        const selectedTool = tools.find((candidate) => candidate.name === call.name);
+        if (!selectedTool || !call.id)
           throw new AppError('LLM_INVALID_TOOL', 502, 'Ferramenta não autorizada.');
-        const args = searchArgs.safeParse(call.args);
+        const args = (
+          call.name === 'search_portfolio'
+            ? searchArgs
+            : call.name === 'get_meeting_availability'
+              ? availabilityArgs
+              : meetingProposalInputSchema
+        ).safeParse(call.args);
         if (!args.success)
           throw new AppError('LLM_INVALID_TOOL', 502, 'Parâmetros de ferramenta inválidos.');
         toolCallId = call.id;
-        const content = await search.invoke(args.data);
+        // Invoking the selected tool validates its own schema again, before effects.
+        const content =
+          call.name === 'search_portfolio'
+            ? await search.invoke(searchArgs.parse(call.args))
+            : call.name === 'get_meeting_availability'
+              ? await availability.invoke(availabilityArgs.parse(call.args))
+              : await prepare.invoke(meetingProposalInputSchema.parse(call.args));
+        if (
+          contextSize() + messageSize(new ToolMessage({ content, tool_call_id: call.id })) >
+          this.maxContextChars
+        )
+          throw contextLimit();
         messages.push(new ToolMessage({ content, tool_call_id: call.id }));
       }
     }

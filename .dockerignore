@@ -7,3 +7,4 @@ coverage
 .npm-cache
 .docker-local
 *.log
+.secrets

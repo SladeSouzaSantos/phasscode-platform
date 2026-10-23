@@ -20,10 +20,12 @@ export interface GenerationInput {
   history: Message[];
   documents: KnowledgeDocument[];
   signal: AbortSignal;
+  meetingActions?: boolean;
 }
 export interface GenerationResult {
   answer: string;
   sources: Source[];
+  actions?: ChatResponse['actions'];
 }
 export interface ChatProvider {
   readonly name: ProviderName;

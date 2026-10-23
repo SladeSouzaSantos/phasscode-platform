@@ -42,8 +42,10 @@ também não altera a senha de um volume PostgreSQL já inicializado.
 ## Configuração da LLM e operação
 
 Provedor real exige chave/modelo, `REDIS_URL` e `LLM_GLOBAL_MAX_CALLS` positivo. No Compose,
-PostgreSQL e Redis usam os nomes internos e a API roda com `NODE_ENV=production`, inclusive no
-checkout de desenvolvimento. Configure origins específicas do frontend para cada ambiente.
+PostgreSQL e Redis usam os nomes internos. `PHASSCODE_NODE_ENV` preserva `production` por padrão,
+inclusive no checkout de desenvolvimento; `development`/`test` permitem fakes locais explícitos.
+Configure origins específicas do frontend para cada ambiente. A
+[operação da Fase 3](phase3.md) detalha login, credenciais Calendar independentes e worker.
 
 `LLM_GLOBAL_WINDOW_MS` tem padrão 86400000; a janela começa na primeira reserva, pelo relógio do
 Redis. Instâncias do mesmo ambiente compartilham Redis e `LLM_GLOBAL_BUDGET_KEY`, com limite/janela
@@ -166,4 +168,6 @@ somente com orçamento conferido e autorização para consumir LLM.
 
 Nunca usar `down --volumes` em ambientes com dados. Esse comando fica restrito às stacks
 descartáveis de testes/DAST. RabbitMQ/Kafka são perfis opcionais de infraestrutura; Google OIDC,
-Calendar, BullMQ e Java continuam nas próximas fases, sem integrações funcionais neste incremento.
+Calendar e BullMQ foram implementados na Fase 3, com configuração e homologação externa próprias.
+Java permanece na próxima fase. O worker opt-in é drenado antes da migration e recebe o mesmo
+digest da API quando `WORKER_ENABLED=true`; seu healthcheck também condiciona o sucesso do release.

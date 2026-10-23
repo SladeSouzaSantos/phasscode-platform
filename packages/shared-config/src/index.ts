@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import { loadAuthConfig, type AuthConfig } from './auth.js';
+import { loadMeetingConfig, type MeetingConfig } from './meetings.js';
+import { loadCalendarConfig, type CalendarConfig } from './calendar.js';
+import { loadWorkerConfig, type WorkerConfig } from './worker.js';
 
 const unsafeLlmDiagnostics = [
   'LANGCHAIN_VERBOSE',
@@ -64,6 +68,10 @@ const envSchema = z.object({
 export type Config = z.infer<typeof envSchema> & {
   corsOrigins: string[];
   trustedProxies: string[];
+  auth: AuthConfig;
+  meetings: MeetingConfig;
+  calendar: CalendarConfig;
+  worker: WorkerConfig;
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -129,9 +137,36 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       'Provedor real requer REDIS_URL e LLM_GLOBAL_MAX_CALLS para controlar o consumo.',
     );
   }
+  const auth = loadAuthConfig({ ...env, CORS_ORIGINS: corsOrigins.join(',') });
+  const meetings = loadMeetingConfig(env);
+  const calendar = loadCalendarConfig(env);
+  const worker = loadWorkerConfig(env);
+  if (
+    (auth.enabled || meetings.enabled || worker.WORKER_ENABLED) &&
+    (config.PERSISTENCE !== 'postgres' || !config.REDIS_URL)
+  ) {
+    throw new Error('Login, reuniões e worker requerem PostgreSQL e Redis configurados.');
+  }
+  if (meetings.enabled && (!auth.enabled || calendar.GOOGLE_CALENDAR_MODE === 'disabled')) {
+    throw new Error(
+      'Reuniões habilitadas requerem autenticação administrativa e calendário configurados.',
+    );
+  }
+  if (
+    meetings.enabled &&
+    meetings.calendarLeaseSeconds * 1000 < 6 * calendar.GOOGLE_CALENDAR_HTTP_TIMEOUT_MS
+  ) {
+    throw new Error('A lease de calendário deve cobrir pelo menos seis timeouts HTTP do Calendar.');
+  }
+  if (worker.WORKER_ENABLED && !meetings.enabled)
+    throw new Error('Worker requer reuniões habilitadas.');
   return {
     ...config,
     corsOrigins,
+    auth,
+    meetings,
+    calendar,
+    worker,
     trustedProxies: config.TRUST_PROXY.split(',')
       .map((item) => item.trim())
       .filter(Boolean),

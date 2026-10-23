@@ -35,9 +35,15 @@ export class ChatService {
     private readonly provider: ChatProvider,
     private readonly knowledge: KnowledgeRepository,
     private readonly config: Config,
+    private readonly meetingsEnabled = false,
   ) {}
 
-  async execute(request: ChatRequest, token?: string): Promise<ChatResponse> {
+  async execute(
+    request: ChatRequest,
+    token?: string,
+    options: { meetingActions?: boolean } = {},
+  ): Promise<ChatResponse> {
+    const meetingActions = this.meetingsEnabled && options.meetingActions === true;
     const isNew = request.conversationId === undefined;
     if (!isNew && (!token || !/^[A-Za-z0-9_-]{43}$/.test(token))) throw conversationNotFound();
     const conversationId = request.conversationId ?? randomUUID();
@@ -51,12 +57,26 @@ export class ChatService {
           .find((message) => message.role === 'user' && !isContextualFollowUp(message.content));
         const followUp = Boolean(previous && isContextualFollowUp(request.message));
         const query = followUp ? `${previous!.content}\n${request.message}` : request.message;
+        const meetingTurn =
+          meetingActions &&
+          (isMeetingRequest(request.message) ||
+            (/\b(?:\d{4}-\d{2}-\d{2}|[\w.+-]+@[\w.-]+\.[a-z]{2,})\b/i.test(request.message) &&
+              Boolean(previous && isMeetingRequest(previous.content))));
         const retrieved = this.knowledge.search(query);
+        if (meetingTurn)
+          retrieved.unshift({
+            type: 'platform',
+            id: 'meeting-policy',
+            title: 'Regras de agendamento em execução',
+            keywords: ['reunião', 'agendamento'],
+            content:
+              'Consulte horários somente com get_meeting_availability. prepare_meeting_request prepara dados para o formulário de confirmação do visitante. Não cria solicitação nem reserva horário. Somente após confirmação HTTP há pedido PENDING; administração aprova e Calendar confirma. Nunca diga que uma proposta já foi registrada ou aprovada.',
+          });
         let result;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
         else if (isOffTopicTask(request.message)) result = { answer: scopeRefusal, sources: [] };
-        else if (isMeetingRequest(request.message))
+        else if (isMeetingRequest(request.message) && !meetingActions)
           result = {
             answer: meetingUnavailable,
             sources: this.knowledge
@@ -69,6 +89,7 @@ export class ChatService {
             request.message,
             retrieved.flatMap((doc) => doc.keywords),
           ) &&
+          !meetingTurn &&
           !followUp
         )
           result = { answer: scopeRefusal, sources: [] };
@@ -116,6 +137,7 @@ export class ChatService {
                 history: bounded,
                 documents,
                 signal: controller.signal,
+                meetingActions,
               }),
               new Promise<never>((_, reject) => {
                 timer = setTimeout(() => {
@@ -146,11 +168,14 @@ export class ChatService {
         const response = chatResponseSchema.parse({
           conversationId,
           ...(isNew ? { conversationToken } : {}),
-          ...result,
+          answer: result.answer,
+          sources: result.sources,
+          ...(meetingActions && result.actions?.length ? { actions: result.actions } : {}),
           meta: {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
-            promptVersion: PROMPT_VERSION,
+            promptVersion:
+              this.meetingsEnabled || this.config.auth.enabled ? 'orbe-v4' : PROMPT_VERSION,
           },
         });
         return {

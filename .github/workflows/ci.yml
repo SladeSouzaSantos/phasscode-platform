@@ -56,22 +56,41 @@ jobs:
         with: { node-version: 24, cache: npm }
       - run: npm ci --ignore-scripts
       - run: npm run test:integration
-  docker:
+  browser:
     runs-on: ubuntu-latest
-    needs: [quality, integration]
     steps:
       - uses: actions/checkout@v7
         with: { persist-credentials: false }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npx playwright-core install --with-deps chromium
+      - run: npm run test:browser
+  docker:
+    runs-on: ubuntu-latest
+    needs: [quality, integration, browser]
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24 }
       - run: docker build -f infrastructure/docker/Dockerfile -t phasscode-platform:ci .
+      - name: Qualify the selected image with separate enabled Phase 3 API and worker
+        run: node scripts/phase3-docker-smoke.mjs --image phasscode-platform:ci
       - name: Validate Compose
         env: { POSTGRES_PASSWORD: ci-only }
-        run: docker compose config --quiet
+        run: docker compose --env-file /dev/null config --quiet
       - name: Smoke test complete environment
-        env: { POSTGRES_PASSWORD: ci-only, LLM_PROVIDER: mock }
+        env:
+          {
+            POSTGRES_PASSWORD: ci-only,
+            LLM_PROVIDER: mock,
+            PHASSCODE_IMAGE: 'phasscode-platform:ci',
+          }
         run: |
-          docker compose up -d --build --wait api
+          docker compose --env-file /dev/null up -d --no-build --wait api
           curl --fail http://localhost:3000/ready
           curl --fail -H 'Content-Type: application/json' -d '{"message":"Quais projetos usam React?"}' http://localhost:3000/api/v1/chat
       - if: always()
-        run: docker compose down --volumes
+        run: docker compose --env-file /dev/null down --volumes
         env: { POSTGRES_PASSWORD: ci-only }

@@ -2,9 +2,11 @@ FROM node:24-alpine AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 COPY apps/orbe-node/package.json apps/orbe-node/package.json
+COPY apps/worker-node/package.json apps/worker-node/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 COPY packages/shared-config/package.json packages/shared-config/package.json
 COPY packages/database/package.json packages/database/package.json
+COPY packages/integrations/package.json packages/integrations/package.json
 RUN npm ci --ignore-scripts
 
 FROM dependencies AS test
@@ -29,6 +31,7 @@ WORKDIR /app
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --from=build --chown=node:node /app/apps/orbe-node/package.json ./apps/orbe-node/package.json
+COPY --from=build --chown=node:node /app/apps/worker-node/package.json ./apps/worker-node/package.json
 COPY --from=build --chown=node:node /app/packages ./packages
 COPY --chown=node:node package.json package-lock.json ./
 COPY --chown=node:node knowledge ./knowledge

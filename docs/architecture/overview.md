@@ -8,8 +8,9 @@ HTTP valida DTOs e traduz erros. `ChatService` coordena autorização da convers
 histórico, limites e geração. As portas `ConversationStore`, `KnowledgeRepository` e `ChatProvider`
 permitem testar o caso de uso e trocar os adaptadores sem alterar suas regras.
 
-O mesmo processo hospeda healthchecks e OpenAPI. Não existe gateway separado ainda. Java e worker
-serão aplicações independentes quando surgirem na evolução. A seleção Node/Java será configuração
+O mesmo processo hospeda healthchecks, OpenAPI, autenticação e os endpoints de reuniões.
+`worker-node` é um processo independente, com BullMQ/outbox e os adaptadores Calendar/notificações.
+Não existe gateway separado ainda. A seleção Node/Java será configuração
 interna do gateway; nunca um campo aceito do visitante.
 
 PostgreSQL é a persistência durável. Redis implementa rate limiting compartilhado, com falha fechada
@@ -31,13 +32,17 @@ Manter a transação durante a geração é um compromisso explícito de simplic
 timeout e pelo pool de dez conexões. Antes de escalar, medir latência e considerar reserva de turno
 com lease e versionamento otimista, sem misturar respostas concorrentes.
 
-Agendamento será um único domínio e banco para os dois serviços de IA. O plano da Fase 3 usa
+Agendamento usa um único domínio e banco para os dois serviços de IA. A Fase 3 implementa
 exclusão de intervalos no PostgreSQL, idempotência por operação e transactional outbox. O Calendar
-será consultado novamente antes de criar evento com ID externo determinístico; confirmação interna
+é consultado novamente antes de criar evento com ID externo determinístico; confirmação interna
 ocorre somente após sucesso verificável no calendário.
 
 Infraestrutura futura não equivale a uma integração pronta: os perfis RabbitMQ e Kafka são apenas
-serviços locais opcionais. BullMQ primeiro executará notificações/lembretes; RabbitMQ tratará
+serviços locais opcionais. BullMQ executa Calendar/notificações/lembretes; RabbitMQ tratará
 comandos/mensagens com acknowledgments e DLQ; Kafka guardará eventos com offsets e retenção.
+
+Os contratos e limites do incremento estão na [arquitetura de reuniões](meetings.md) e na
+[autenticação central](authentication.md). O Orbe só recebe ferramentas de consulta e proposta;
+criar pedido exige confirmação HTTP do visitante, e aprovação depende de papel/CSRF fora da IA.
 
 Detalhes e consequências estão nos [ADRs](../adr/0001-foundation.md).

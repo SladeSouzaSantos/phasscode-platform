@@ -176,6 +176,15 @@ outro repositório não prova que sua execução foi validada nesta sessão.
 9. **Serviços, preços e agenda:** projetos entregues/declarados não provam oferta comercial, preços
    atuais, disponibilidade de contratação ou horários de reunião.
 
+## Atualização técnica da Fase 3 — 22/10/2026
+
+O registro `phasscode-platform` reflete o código local de autenticação, reuniões e worker,
+autorizado pelo proprietário. Não altera seus dados profissionais. Configuração e homologação
+nas contas externas continuam pendentes. Regras de horário vêm da resposta direta do proprietário:
+America/Fortaleza, segunda a sábado 09h–18h, 30 minutos, antecedência de 24 horas, intervalo de 15 minutos
+e reserva somente na aprovação. Disponibilidade concreta sempre exige consulta à API/Calendar;
+esta fonte não afirma que um horário está livre. Ver [progresso](../docs/PROGRESS.md).
+
 Atualizações futuras devem preservar a fonte da declaração, a distinção entre histórico e estado
 atual e os conflitos ainda não resolvidos. Não remova informação profissional conhecida apenas
 porque falta validação documental independente; qualifique a declaração e seu limite temporal.
