@@ -197,10 +197,10 @@ Flags `LANGCHAIN_VERBOSE`, `LANGCHAIN_TRACING`, `LANGCHAIN_TRACING_V2`, `LANGSMI
 `LANGSMITH_TRACING_V2` não precisam ser configuradas: o padrão é desativado e `true` é recusado
 para impedir diagnóstico automático com mensagens completas.
 
-O prompt sem módulos da Fase 3 permanece em [`apps/orbe-node/prompts/v3.md`](apps/orbe-node/prompts/v3.md),
-identificado como `orbe-v3`. Habilitar auth ou reuniões seleciona [`v4.md`](apps/orbe-node/prompts/v4.md);
-ferramentas de reunião ainda exigem o opt-in HTTP descrito abaixo. As versões anteriores foram
-preservadas. A [base profissional](knowledge/portfolio.json) tem 31
+O prompt atual é [`v4.md`](apps/orbe-node/prompts/v4.md), identificado como `orbe-v4`, inclusive
+quando login e reuniões estão desativados. Ferramentas de reunião continuam exigindo configuração
+e o opt-in HTTP descrito abaixo; a escolha do prompt não habilita funcionalidades. As versões
+anteriores, incluindo `v3.md`, foram preservadas como histórico. A [base profissional](knowledge/portfolio.json) tem 31
 documentos sobre perfil, quatro experiências, sete formações, cursos, idiomas, projetos, contato e lacunas. Sua
 [proveniência](knowledge/SOURCES.md) registra fontes e revisões consultadas. Formação e experiência
 preservam o status declarado nas fontes; previsões de conclusão e vínculos atuais não são presumidos
@@ -210,6 +210,24 @@ dados pessoais desnecessários não foram incorporados. O LinkedIn bloqueou a le
 foi tratado como verificado. Edite a base e reinicie para
 atualizar. A recuperação lexical pondera termos e mantém o contexto de continuações; embeddings/
 pgvector serão avaliados quando houver volume que os justifique.
+
+O Orbe apresenta os fatos profissionais diretamente, distinguindo experiência em empresas,
+projetos pessoais, estudos e contribuições. Tecnologias têm vínculos explícitos com seus registros:
+Java no SIGAA é experiência profissional; Spring Boot/JPA aparece em um projeto público de estudo.
+Sistemas de terceiros podem ser apresentados sem repositório pessoal ou autoria exclusiva.
+Ressalvas ficam restritas à lacuna ou divergência que afeta a pergunta.
+
+As `sources` são selecionadas entre os documentos efetivamente enviados ao modelo, conforme a
+pergunta e os fatos da resposta. Buscar um documento não o transforma automaticamente em fonte.
+O servidor remove fontes irrelevantes/redundantes e prefere links existentes de repositório ou
+demonstração, mantendo o mesmo DTO. Normalmente retorna poucas fontes, sem exigir exatamente três.
+
+Perguntas de duração usam união de intervalos mensais estruturados, com referência temporal e
+sem contar sobreposições duas vezes. Vínculos mistos de engenharia/desenvolvimento não viram anos
+integrais de experiência com uma tecnologia. Se faltar contexto para uma soma completa, a aplicação
+não fornece um total como se toda a trajetória estivesse presente. Mensagens como “Testando!” e
+perguntas sobre vida afetiva recebem respostas breves, determinísticas, sem chamada à LLM.
+Veja [a correção de comportamento e sua validação](docs/testing/orbe-v4-professional.md).
 
 ## Contrato e integração com o frontend
 

@@ -29,7 +29,7 @@ emitido pelo servidor, que só é devolvido na criação:
   "meta": {
     "provider": "openai-compatible",
     "simulated": false,
-    "promptVersion": "orbe-v3"
+    "promptVersion": "orbe-v4"
   }
 }
 ```

@@ -53,9 +53,25 @@ export const meetingUnavailable =
   'O agendamento de reuniões ainda não está disponível nesta versão. Não consigo consultar horários, registrar solicitações ou confirmar reuniões. Posso explicar os projetos do PHASSCODE.';
 export const greetingAnswer =
   'Olá! Sou o Orbe Mágico do PHASSCODE. Posso apresentar o perfil profissional, os projetos e as tecnologias documentados no portfólio. O que você gostaria de conhecer?';
+export const simpleTestAnswer =
+  'Estou por aqui! Posso apresentar as experiências, os projetos e as tecnologias de Pedro. O que você gostaria de conhecer?';
+export const personalLifeAnswer =
+  'Não tenho informações públicas sobre a vida afetiva de Pedro. Posso apresentar sua trajetória profissional, projetos ou formas de contato.';
 
 export function isGreeting(text: string): boolean {
   return /^(?:oi|ola|hello|hi|bom dia|boa tarde|boa noite)[!.,\s]*$/.test(normalize(text).trim());
+}
+export function isSimpleTest(text: string): boolean {
+  // A mensagem inteira precisa ser um teste simples; não absorva instruções adicionais.
+  return /^(?:(?:so |apenas )?(?:um )?(?:teste|testando)|testing|test)[!.,?\s]*$/.test(
+    normalize(text).trim(),
+  );
+}
+export function isPersonalLifeQuestion(text: string): boolean {
+  // Relacionamentos profissionais e projetos de aplicativos de namoro continuam no escopo.
+  return /\b(?:namorad[ao]s?|espos[ao]s?|marido|mulher dele|casad[ao]|solteir[ao]|estado civil|vida (?:afetiva|amorosa|conjugal))\b/.test(
+    normalize(text),
+  );
 }
 export function isMeetingRequest(text: string): boolean {
   return /\b(?:agendar|agende|marcar|marque|reservar|reserve|confirmar|confirme|cancele|cancelar|aprovar|recusar|schedule|book|cancel|confirm)\b[\s\S]{0,100}\b(?:reuniao|reunioes|horario|meetings?|agenda)\b|\b(?:reuniao|reunioes|meetings?)\b[\s\S]{0,80}\b(?:horarios?|disponibilidade|amanha|hoje|semana|marcar|confirmar|availability|available)\b|\b(?:horarios?|slots?)\b[\s\S]{0,60}\b(?:livres?|disponiveis|reuniao|available|free)\b/.test(
@@ -72,7 +88,7 @@ export function isContextualFollowUp(text: string): boolean {
     .trim()
     .replace(/[?!.,:;]+$/g, '')
     .replace(/\s+/g, ' ');
-  return /^(?:e )?(?:qual e |quais sao |como faco (?:para )?|como fazer |onde esta |onde estao )?(?:(?:o|a|os|as) )?(?:build|stack|tecnologias|repositorio|repositorios|fontes|links|contato)$|^(?:(?:voce )?pode |poderia )?(?:explicar|detalhar|resumir)(?: (?:isso|melhor|mais|um pouco mais|esse projeto|o projeto)){0,3}$|^(?:e )?(?:por que|porque|como assim|qual deles|quais deles|qual a diferenca|como funciona|onde encontro|onde posso ver|tem o link|continue|fale mais|conte mais)$/.test(
+  return /^(?:e )?(?:qual e |quais sao |como faco (?:para )?|como fazer |onde esta |onde estao )?(?:(?:o|a|os|as) )?(?:build|stack|tecnologias|repositorio|repositorios|fontes|links?|contato)$|^(?:(?:voce )?pode |poderia )?(?:explicar|detalhar|resumir)(?: (?:isso|melhor|mais|um pouco mais|esse projeto|o projeto)){0,3}$|^(?:(?:voce )?pode |poderia )?(?:mostrar|apresentar)(?: (?:o|a|esse|essa|este|esta))? (?:projeto|repositorio|link|demo|demonstracao)$|^(?:e )?(?:por que|porque|como assim|qual deles|quais deles|qual a diferenca|como funciona|onde encontro|onde posso ver|tem (?:o|esse) link|continue|fale mais|conte mais)$/.test(
     query,
   );
 }

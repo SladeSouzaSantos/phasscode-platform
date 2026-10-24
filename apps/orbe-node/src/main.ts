@@ -11,6 +11,7 @@ import { RedisLlmCallBudget } from './adapters/redis-llm-budget.js';
 import { createRedisFallbackInvocationFactory } from './adapters/fallback-llm.js';
 import type { ChatProvider } from './domain/ports.js';
 import { buildApp } from './http/app.js';
+import { PROMPT_VERSION } from './application/chat.js';
 import { AuthService } from './auth/service.js';
 import { MeetingService } from './meetings/service.js';
 import { PostgresMeetingStore } from './meetings/postgres-store.js';
@@ -90,10 +91,7 @@ try {
       provider = new LangChainChatProvider(
         config,
         knowledge,
-        await readFile(
-          `apps/orbe-node/prompts/${meetings || config.auth.enabled ? 'v4' : 'v3'}.md`,
-          'utf8',
-        ),
+        await readFile(`apps/orbe-node/prompts/${PROMPT_VERSION.replace('orbe-', '')}.md`, 'utf8'),
         budget,
         meetings,
         invocationFactory,

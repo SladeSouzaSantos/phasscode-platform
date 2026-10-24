@@ -103,7 +103,8 @@ const responseObject = (output: object[]) => ({
 
 describe('adaptador real LangChain com transporte HTTP simulado', () => {
   it('recorta pares antigos pelo contexto serializado na terceira mensagem de uma conversa real', async () => {
-    const answer = (round: number) => `Rodada ${round}: ${'Resposta fundamentada. '.repeat(75)}`;
+    const answer = (round: number) =>
+      `Rodada ${round}: ${'React, TypeScript e Vite. '.repeat(100)}`;
     const stub = await llmServer((_body, round) =>
       completion({ role: 'assistant', content: answer(round) }),
     );
@@ -119,11 +120,11 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     const provider = new LangChainChatProvider(
       config,
       knowledge,
-      await readFile('apps/orbe-node/prompts/v3.md', 'utf8'),
+      await readFile('apps/orbe-node/prompts/v4.md', 'utf8'),
       allowTestBudget,
     );
     const service = new ChatService(new MemoryConversationStore(), provider, knowledge, config);
-    const message = 'Quais projetos usam IA no portfolio PHASSCODE?';
+    const message = 'Quais tecnologias usa o frontend do portfolio PHASSCODE?';
     const first = await service.execute({ message });
     for (let turn = 0; turn < 2; turn++) {
       const result = await service.execute(
@@ -150,7 +151,10 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
 
   it('remove documentos menos prioritários antes do invoke e não os atribui como fontes', async () => {
     const stub = await llmServer(() =>
-      completion({ role: 'assistant', content: 'Fato documentado.' }),
+      completion({
+        role: 'assistant',
+        content: 'O projeto prioritario apresenta um fato público.',
+      }),
     );
     const config = loadConfig({
       LLM_PROVIDER: 'openai-compatible',
@@ -186,7 +190,7 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
 
   it('reduz o primeiro documento usando JSON escapado, sem esvaziar ou modificar o original', async () => {
     const stub = await llmServer(() =>
-      completion({ role: 'assistant', content: 'Fato documentado.' }),
+      completion({ role: 'assistant', content: 'O projeto aspas apresenta um fato público.' }),
     );
     const config = loadConfig({
       LLM_PROVIDER: 'openai-compatible',
@@ -270,7 +274,7 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
             },
             'tool_calls',
           )
-        : completion({ role: 'assistant', content: 'Fato documentado.' }),
+        : completion({ role: 'assistant', content: 'O projeto pequeno usa React.' }),
     );
     const config = loadConfig({
       LLM_PROVIDER: 'openai-compatible',
@@ -658,6 +662,118 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     expect(stub.requests.every((request) => !Object.hasOwn(request, 'reasoning'))).toBe(true);
     expect(JSON.stringify(stub.requests[1]!.input)).toContain('function_call_output');
   });
+  it('seleciona apenas fontes usadas na resposta mesmo depois de uma busca de ferramenta irrelevante', async () => {
+    const answer =
+      'Pedro trabalhou com Java no desenvolvimento e manutenção do SIGAA, usando Hibernate, JBoss e PostgreSQL. O Webservice Spring Boot e JPA é um projeto de estudo em Java 17 com Spring Data JPA e H2.';
+    const stub = await llmServer((_body, round) =>
+      round === 1
+        ? completion(
+            {
+              role: 'assistant',
+              content: null,
+              tool_calls: [
+                {
+                  id: 'search-extra',
+                  type: 'function',
+                  function: {
+                    name: 'search_portfolio',
+                    arguments: '{"query":"Python engenharia solar"}',
+                  },
+                },
+              ],
+            },
+            'tool_calls',
+          )
+        : completion({ role: 'assistant', content: answer }),
+    );
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = new LangChainChatProvider(
+      loadConfig({
+        LLM_PROVIDER: 'openai-compatible',
+        LLM_API_KEY: 'synthetic-only',
+        LLM_MODEL: 'test',
+        LLM_BASE_URL: stub.baseUrl,
+        LLM_API_MODE: 'chat-completions',
+        CHAT_CONTEXT_CHARS: '32000',
+      }),
+      knowledge,
+      await readFile('apps/orbe-node/prompts/v4.md', 'utf8'),
+      allowTestBudget,
+    );
+    const query = 'Quais as qualificações de Pedro para uma vaga Java?';
+    const result = await provider.generate({
+      message: query,
+      history: [],
+      documents: knowledge.search(query),
+      signal: new AbortController().signal,
+    });
+    expect(stub.requests).toHaveLength(2);
+    expect(JSON.stringify(stub.requests[1])).toContain('hsp-simulator');
+    expect(result.sources.map((source) => source.id).sort()).toEqual([
+      'experiencia-sig',
+      'webservice-springboot-jpa',
+    ]);
+    expect(
+      result.sources.find((source) => source.id === 'webservice-springboot-jpa')?.url,
+    ).toContain('github.com/');
+    expect(
+      result.sources.every(
+        (source) => !('technologies' in source) && !('experiencePeriod' in source),
+      ),
+    ).toBe(true);
+  });
+
+  it('envia cálculos mensais derivados dos registros sem misturar vínculo atual com tempo Java', async () => {
+    const stub = await llmServer(() =>
+      completion({
+        role: 'assistant',
+        content: 'Pedro trabalhou com Java no SIGAA e no estágio da ACRUX, em períodos diferentes.',
+      }),
+    );
+    const knowledge = await JsonKnowledgeRepository.load();
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'synthetic-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      CHAT_CONTEXT_CHARS: '32000',
+    });
+    const provider = new LangChainChatProvider(
+      config,
+      knowledge,
+      await readFile('apps/orbe-node/prompts/v4.md', 'utf8'),
+      allowTestBudget,
+    );
+    const service = new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      config,
+      false,
+      () => new Date('2026-10-24T12:00:00Z'),
+    );
+    const result = await service.execute({
+      message: 'Quanto tempo de experiência total e com Java Pedro possui?',
+    });
+    expect(result.meta.promptVersion).toBe('orbe-v4');
+    const reference = (stub.requests[0]!.messages as { content: string }[])[1]!.content;
+    const marker =
+      'Cálculos dos períodos profissionais (dados derivados dos registros fornecidos):\n';
+    expect(reference).toContain(marker);
+    const facts = JSON.parse(reference.slice(reference.indexOf(marker) + marker.length));
+    expect(facts.softwarePeriods.approximateMonths).toBe(19);
+    expect(
+      facts.technologyPeriods.find(
+        (summary: { technology: string }) => summary.technology === 'java',
+      ).approximateMonths,
+    ).toBe(19);
+    expect(
+      facts.companyPeriods.find((summary: { id: string }) => summary.id === 'experiencia-greencity')
+        .approximateMonths,
+    ).toBe(92);
+  });
+
   it('recusa ferramenta não autorizada antes de qualquer efeito externo', async () => {
     const stub = await llmServer(() =>
       completion(

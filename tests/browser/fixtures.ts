@@ -1,5 +1,5 @@
 import { access } from 'node:fs/promises';
-import { createServer, request as forwardLocalRequest, type Server } from 'node:http';
+import { createServer, type Server } from 'node:http';
 import { createServer as createPortReservation } from 'node:net';
 import { chromium, type Browser } from 'playwright-core';
 import { AuthService } from '../../apps/orbe-node/src/auth/service.js';
@@ -8,6 +8,7 @@ import { AuthTokens } from '../../apps/orbe-node/src/auth/jwt.js';
 import { loadConfig } from '../../packages/shared-config/src/index.js';
 import { fakeGoogle, MemoryAuthStore } from '../auth-fixtures.js';
 import { testApp } from '../helpers.js';
+import { createLocalProxy } from './local-proxy.js';
 
 async function listen(server: Server): Promise<string> {
   await new Promise<void>((resolve, reject) => {
@@ -111,48 +112,14 @@ export async function browserFixture() {
     });
     const attacker = await listen(attackerServer);
     cleanups.push(() => close(attackerServer));
-    const origins = new Set([frontend, attacker, browserIssuer]);
+    const port = await freePort();
+    api = `http://127.0.0.1:${port}`;
     // Route all browser HTTP(S), including redirects and background requests,
     // through a loopback proxy. Never enable Playwright route interception:
     // it synthesizes OPTIONS responses and would bypass the real CORS check.
-    const blockedProxy = createServer((request, response) => {
-      let target: URL;
-      try {
-        target = new URL(request.url ?? '');
-      } catch {
-        response.writeHead(400).end();
-        return;
-      }
-      if (!origins.has(target.origin)) {
-        response.writeHead(403).end();
-        return;
-      }
-      const headers = { ...request.headers };
-      delete headers['proxy-authorization'];
-      delete headers['proxy-connection'];
-      const upstream = forwardLocalRequest(
-        target,
-        { method: request.method ?? 'GET', headers },
-        (received) => {
-          response.writeHead(received.statusCode ?? 502, received.headers);
-          received.pipe(response);
-        },
-      );
-      upstream.setTimeout(10000, () => upstream.destroy());
-      upstream.on('error', () => {
-        if (!response.headersSent) response.writeHead(502);
-        response.end();
-      });
-      request.pipe(upstream);
-    });
-    blockedProxy.on('connect', (_request, socket) => {
-      socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
-    });
+    const blockedProxy = createLocalProxy([frontend, attacker, browserIssuer, api]);
     const proxy = await listen(blockedProxy);
     cleanups.push(() => close(blockedProxy));
-    const port = await freePort();
-    api = `http://127.0.0.1:${port}`;
-    origins.add(api);
     const config = loadConfig({
       NODE_ENV: 'test',
       LOG_LEVEL: 'silent',

@@ -118,8 +118,8 @@ mesmo com reuniões habilitadas no servidor, preservando o formato dos clientes 
 Não devolver `confirmationToken` ao chat. O servidor exclui esse segredo de resultados
 de ferramentas, contexto do modelo e histórico. As únicas ferramentas de agenda do modelo são
 consulta e preparação de proposta. Não existem ferramentas para efetivar pedido, aprovar,
-cancelar ou enviar notificações. O prompt é `orbe-v4` com os módulos habilitados; a implantação
-sem esses módulos preserva a política v3. Mensagens ao Orbe são enviadas ao provedor de LLM;
+cancelar ou enviar notificações. O prompt atual é `orbe-v4` também sem os módulos habilitados;
+as ferramentas continuam dependendo da configuração e do header de capacidade. Mensagens ao Orbe são enviadas ao provedor de LLM;
 oferecer também formulário direto para quem não desejar compartilhar dados pessoais pelo chat.
 
 ## Administração

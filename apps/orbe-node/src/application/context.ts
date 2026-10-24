@@ -3,13 +3,19 @@ import {
   greetingAnswer,
   injectionRefusal,
   isInjection,
+  isPersonalLifeQuestion,
+  isSimpleTest,
   meetingUnavailable,
+  personalLifeAnswer,
   scopeRefusal,
+  simpleTestAnswer,
   unknownAnswer,
 } from '../domain/security.js';
 
 const policyAnswers = new Set([
   greetingAnswer,
+  simpleTestAnswer,
+  personalLifeAnswer,
   injectionRefusal,
   meetingUnavailable,
   scopeRefusal,
@@ -21,7 +27,12 @@ export function eligibleHistory(history: Message[]): Message[] {
     const user = history[index]!;
     const assistant = history[index + 1]!;
     if (user.role !== 'user' || assistant.role !== 'assistant') continue;
-    if (!isInjection(user.content) && !policyAnswers.has(assistant.content))
+    if (
+      !isInjection(user.content) &&
+      !isSimpleTest(user.content) &&
+      !isPersonalLifeQuestion(user.content) &&
+      !policyAnswers.has(assistant.content)
+    )
       result.push(user, assistant);
     index++;
   }

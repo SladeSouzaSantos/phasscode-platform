@@ -56,6 +56,7 @@ try {
   assert.equal(first.status, 200);
   const body = await first.json();
   assert.equal(body.meta.simulated, true);
+  assert.equal(body.meta.promptVersion, 'orbe-v4');
   assert.ok(body.answer.includes('React'));
   const next = await fetch(`${base}/api/v1/chat`, {
     method: 'POST',

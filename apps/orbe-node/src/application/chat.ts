@@ -25,10 +25,15 @@ import {
   isMeetingRequest,
   isOffTopicTask,
   isContextualFollowUp,
+  isSimpleTest,
+  simpleTestAnswer,
+  isPersonalLifeQuestion,
+  personalLifeAnswer,
 } from '../domain/security.js';
 import { eligibleHistory } from './context.js';
+import { isExperienceDurationQuestion } from './experience-context.js';
 
-export const PROMPT_VERSION = 'orbe-v3';
+export const PROMPT_VERSION = 'orbe-v4';
 export class ChatService {
   constructor(
     private readonly store: ConversationStore,
@@ -36,6 +41,7 @@ export class ChatService {
     private readonly knowledge: KnowledgeRepository,
     private readonly config: Config,
     private readonly meetingsEnabled = false,
+    private readonly now: () => Date = () => new Date(),
   ) {}
 
   async execute(
@@ -62,7 +68,18 @@ export class ChatService {
           (isMeetingRequest(request.message) ||
             (/\b(?:\d{4}-\d{2}-\d{2}|[\w.+-]+@[\w.-]+\.[a-z]{2,})\b/i.test(request.message) &&
               Boolean(previous && isMeetingRequest(previous.content))));
-        const retrieved = this.knowledge.search(query);
+        let retrieved = this.knowledge.search(query);
+        const experienceDocuments = isExperienceDurationQuestion(query)
+          ? (this.knowledge.experienceDocuments?.() ?? [])
+          : [];
+        if (experienceDocuments.length) {
+          const ordered = [
+            ...retrieved.filter((doc) => doc.experiencePeriod),
+            ...experienceDocuments,
+            ...retrieved,
+          ];
+          retrieved = [...new Map(ordered.map((doc) => [doc.id, doc])).values()];
+        }
         if (meetingTurn)
           retrieved.unshift({
             type: 'platform',
@@ -75,7 +92,10 @@ export class ChatService {
         let result;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
+        else if (isSimpleTest(request.message)) result = { answer: simpleTestAnswer, sources: [] };
         else if (isOffTopicTask(request.message)) result = { answer: scopeRefusal, sources: [] };
+        else if (isPersonalLifeQuestion(request.message))
+          result = { answer: personalLifeAnswer, sources: [] };
         else if (isMeetingRequest(request.message) && !meetingActions)
           result = {
             answer: meetingUnavailable,
@@ -138,6 +158,10 @@ export class ChatService {
                 documents,
                 signal: controller.signal,
                 meetingActions,
+                asOf: this.now(),
+                ...(experienceDocuments.length
+                  ? { experienceIds: experienceDocuments.map((doc) => doc.id) }
+                  : {}),
               }),
               new Promise<never>((_, reject) => {
                 timer = setTimeout(() => {
@@ -174,8 +198,7 @@ export class ChatService {
           meta: {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
-            promptVersion:
-              this.meetingsEnabled || this.config.auth.enabled ? 'orbe-v4' : PROMPT_VERSION,
+            promptVersion: PROMPT_VERSION,
           },
         });
         return {

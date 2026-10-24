@@ -14,12 +14,14 @@ import {
   assertLlmPrivacyEnvironment,
   type Config,
 } from '../../../../packages/shared-config/src/index.js';
-import type { Source } from '../../../../packages/contracts/src/index.js';
+import { selectSources } from '../application/sources.js';
+import { experienceContext } from '../application/experience-context.js';
 import type {
   ChatProvider,
   GenerationInput,
   GenerationResult,
   KnowledgeRepository,
+  KnowledgeDocument,
 } from '../domain/ports.js';
 import { AppError } from '../domain/errors.js';
 import type { LlmCallBudget } from '../domain/llm-budget.js';
@@ -69,14 +71,15 @@ export class LangChainChatProvider implements ChatProvider {
   }
   async generate(input: GenerationInput): Promise<GenerationResult> {
     const actions: NonNullable<GenerationResult['actions']> = [];
-    const used = new Map<string, Source>();
+    const used = new Map<string, KnowledgeDocument>();
     const serialize = (docs: GenerationInput['documents']) =>
-      JSON.stringify(
-        docs.map(({ type, id, title, url, content }) => ({ type, id, title, url, content })),
-      );
+      JSON.stringify(docs.map((document) => ({ ...document, keywords: undefined })));
     const record = (docs: GenerationInput['documents']) => {
-      for (const { type, id, title, url } of docs)
-        used.set(id, { type, id, title, ...(url ? { url } : {}) });
+      for (const document of docs) {
+        const previous = used.get(document.id);
+        if (!previous || document.content.length > previous.content.length)
+          used.set(document.id, document);
+      }
       return serialize(docs);
     };
     const messages: BaseMessage[] = [];
@@ -99,7 +102,7 @@ export class LangChainChatProvider implements ChatProvider {
     const documents = [...input.documents];
     const reference = () =>
       new HumanMessage(
-        `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}`,
+        `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
       );
     messages.push(
       new SystemMessage(this.prompt),
@@ -250,11 +253,16 @@ export class LangChainChatProvider implements ChatProvider {
             502,
             'O assistente retornou uma resposta inválida.',
           );
+        const safeAnswer = actions.length
+          ? 'Confira os dados e confirme a proposta no formulário. A solicitação ainda não foi registrada e o horário não está reservado; depois da confirmação, ela ficará pendente de aprovação.'
+          : answer;
         return {
-          answer: actions.length
-            ? 'Confira os dados e confirme a proposta no formulário. A solicitação ainda não foi registrada e o horário não está reservado; depois da confirmação, ela ficará pendente de aprovação.'
-            : answer,
-          sources: [...used.values()].slice(0, 10),
+          answer: safeAnswer,
+          sources: selectSources({
+            query: input.message,
+            answer: safeAnswer,
+            documents: [...used.values()],
+          }),
           ...(actions.length ? { actions } : {}),
         };
       }

@@ -6,9 +6,68 @@ Os oito IDs originais foram preservados. O conteúdo é um retrato das fontes co
 atualiza a base automaticamente nem faz scraping durante o chat.
 
 O proprietário autorizou o uso do site antigo, perfil/repositórios GitHub, LinkedIn e currículo para
-esta ampliação. Dados profissionais autodeclarados podem ser apresentados com sua origem e status;
-isso não equivale a auditoria de diploma, emprego ou proficiência. Telefone, endereço residencial,
-documentos pessoais e outros dados privados do currículo não foram incorporados.
+esta ampliação. Os registros profissionais podem ser apresentados diretamente, respeitando sua
+origem, período e escopo. Telefone, endereço residencial, documentos pessoais e outros dados privados
+do currículo não foram incorporados.
+
+## Revisão de conteúdo e comportamento do Orbe v4
+
+Esta revisão reorganiza a base já consultada, preserva os 31 IDs e separa conteúdo para respostas
+de notas de curadoria. Fontes, commits e divergências continuam registrados neste arquivo;
+as respostas deixam de repetir comentários genéricos sobre ausência de auditoria. Isso não altera
+os fatos nem autoriza inferir certificações, senioridade, autoria exclusiva ou resultados.
+
+O proprietário informou, no pedido desta revisão, que testou a integração do chat no frontend
+com sucesso. Essa informação substitui apenas a descrição antiga de Orbe com respostas predefinidas
+no registro `web-portfolio-v2`; não demonstra integração de login, reuniões ou administração no
+frontend. O registro `phasscode-platform` também passa a refletir o código local de fallback de LLMs,
+preservando a diferença entre implementação e habilitação/homologação de cada serviço externo.
+
+Nenhuma nova consulta a LinkedIn, execução de projeto de terceiros, chamada a LLM ou verificação de
+disponibilidade dos links ocorreu nesta revisão editorial. Repositórios e demos são URLs já
+registradas nas fontes abaixo; apresentar o endereço não significa afirmar que está online agora.
+
+### Metadados e associações de tecnologias
+
+- `technologies` identifica tecnologias registradas naquele projeto ou experiência. O perfil geral
+  de competências não recebe essa lista: conhecer Spring Security, Quarkus ou Kubernetes não
+  demonstra uso em todos os projetos, nem experiência profissional ou certificação nessas áreas.
+- `category` distingue experiência profissional, projeto pessoal ou estudo quando a origem permite
+  essa classificação. A categoria não é preenchida onde o contexto profissional/pessoal é incerto.
+  O laboratório RAG mantém o crédito a erickwendel; não se afirma contribuição original de Pedro.
+- `role` explicita a participação registrada. No SIGAA, desenvolvimento e manutenção de funcionalidades
+  de um sistema de terceiros não representam propriedade ou criação exclusiva do produto.
+- `visibility` descreve a disponibilidade do artefato/código ou sua natureza de terceiro, e não
+  restringe a leitura do registro profissional: toda esta base é pública. `private` significa que
+  o trabalho registrado não tem repositório ou demo pública identificados nesta curadoria.
+- `repositoryUrl` e `demoUrl` distinguem código e demonstração. Em projetos públicos, `url` aponta
+  diretamente a um desses destinos. Fontes documentais de experiências e formações continuam
+  separadas; SDGP, Lithology e o panorama atualizado não recebem links genéricos como se fossem
+  repositórios ou provas públicas das atualizações feitas pelo proprietário.
+  Os agregados `laboratorios-frontend` e `websites-institucionais` não recebem uma URL primária:
+  uma demo Monibank não sustentaria uma resposta sobre Mochila JS, assim como o site Siberian
+  não é o website Greencity. Os links específicos já publicados permanecem no conteúdo.
+- `relatedProjectIds` vincula Greencity ao SDGP conforme o currículo. Não vincula automaticamente
+  Lithology à ACRUX/Geowellex nem o projeto de estudo Spring Boot a uma entrega profissional no SIGAA.
+- `experiencePeriod` registra apenas os meses e áreas já presentes no histórico: ACRUX
+  `2014-02`–`2015-01`, SIG `2016-06`–`2017-02`, Geowellex `2017-03`–`2018-10` e Greencity desde
+  `2019-02`, com atuação atual confirmada em `2026-10-21`. Geowellex e Greencity combinam software
+  e atividades de engenharia/dados geológicos; seus períodos não demonstram dedicação integral
+  ao desenvolvimento. Datas de mês não informam dias exatos nem duração contratual exata.
+
+| Associação para respostas       | Evidência específica e distinção                                                                                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Java profissional               | ACRUX: Java/H2/NetBeans; SIGAA: Java/Hibernate/JBoss/PostgreSQL. Currículo p. 2 e `experiencia.json`.                                                                     |
+| Java / Spring Boot em estudo    | `webservice-springboot3-jpa`: `pom.xml` e `UserResource.java`; exemplo de consultas com Spring Data JPA/H2, sem CRUD completo ou autenticação.                            |
+| Python / APIs / simulação solar | `hsp_simulator`: dependências, `api.py` e `SolarRepository`; FastAPI/Pydantic/Streamlit e Docker. Django/JWT aparecem em outro projeto, `sistema_gestao_empresarial_api`. |
+| Flutter / engenharia            | ReserGas tem repositório Flutter/Dart; SDGP é experiência profissional com tecnologias descritas no CV e sem código público identificado.                                 |
+| React / TypeScript              | `web-portfolio-v2`: `package.json` e frontend; não atribuir React ao backend Django por haver um frontend separado.                                                       |
+| IA / LangChain                  | PHASSCODE Platform usa LangChain; LangChain Intro é estudo LangChain/LangGraph; o laboratório RAG credita material de terceiros.                                          |
+| Docker / infraestrutura         | Código local da PHASSCODE Platform e configurações presentes em HSP Simulator e Greencity API Orçamento; isso não confirma operação em produção ou uso de Kubernetes.     |
+
+As lacunas remanescentes são específicas: data de conclusão FacPrisma, mês de conclusão UnP,
+atribuição/stack de Lithology, equivalência SDGP/Greencity Solutions e ERP/repositório público.
+Essas lacunas só precisam aparecer na resposta quando forem relevantes à pergunta.
 
 ## Fontes e acesso
 
@@ -51,8 +110,7 @@ Em **21/10/2026**, o proprietário esclareceu diretamente nesta sessão:
 Essas declarações atuais são a fonte prioritária para os três estados corrigidos e substituem as
 informações desatualizadas do currículo/site. O início histórico na Greencity (fev/2019), instituição
 UNISUL e início de curso (jul/2023) continuam atribuídos às fontes históricas. A confirmação atual
-não converte o currículo em documento atualizado nem constitui auditoria independente de vínculo,
-diploma ou credencial.
+não atualiza automaticamente os demais campos históricos do currículo.
 
 Regras de precedência: aplicar a confirmação direta mais recente aos campos corrigidos; preservar
 as demais informações históricas com atribuição; registrar divergências não resolvidas; nunca
@@ -78,23 +136,25 @@ ficam registradas apenas como **histórico substituído**, sem representar o sta
 A PHASSCODE Platform é descrita pela implementação local e pelo briefing autorizado. A fundação
 foi publicada em `dev` no commit `984d0e9f0a7fb0f9503dbb8631176e1926b21e59` e integrada à
 [main no commit e78ef0a](https://github.com/SladeSouzaSantos/phasscode-platform/commit/e78ef0ac10c9c9e8b213c3dda864d3cba2de230a).
-O incremento de fechamento/ampliação da Fase 2 ainda estava local durante esta curadoria.
-Publicação de código não demonstra deploy do backend ou integração já realizada no frontend.
+Na curadoria original, o incremento de fechamento/ampliação da Fase 2 ainda estava local.
+Os estados posteriores de código são acompanhados em [progresso](../docs/PROGRESS.md); o teste de
+integração do chat relatado pelo proprietário nesta revisão é registrado separadamente acima.
+Publicação de código, por si só, não demonstra deploy de todos os módulos.
 
 ## Perfil e registros originais
 
-| ID estável               | Origem e conteúdo                                                                                                                                                                                                                                                          |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `web-portfolio-v2`       | README.md, package.json, src/App.tsx, src/components/OrbAssistant.tsx e ChestAccess.tsx na revisão acima. Stack/identidade visual, Orbe predefinido e login simulado. Os domínios foram informados no briefing e documentados no README; disponibilidade não foi inferida. |
-| `phasscode-platform`     | [README](../README.md), [progresso](../docs/PROGRESS.md), implementação local e briefing. Distingue chat disponível dos módulos planejados e da integração separada do frontend.                                                                                           |
-| `pedro-santos`           | README do perfil GitHub, perfil.ts do frontend v2, site antigo, CV p. 1 e confirmação atual do proprietário em 21/10/2026. Nome e apresentação autodeclarados; atuação atual na Greencity confirmada nesta sessão.                                                         |
-| `competencias-publicas`  | perfil.ts, README do perfil e catálogos skills_* do site antigo. Tecnologias autodeclaradas; sem percentuais, certificações ou tempo de experiência inferidos.                                                                                                             |
-| `contato-publico`        | perfil.ts e README do perfil GitHub. GitHub, LinkedIn, site e e-mail já publicados pelo autor; nenhum telefone/endereço do CV. Nenhum contato foi enviado.                                                                                                                 |
-| `trajetoria-a-confirmar` | CV pp. 1–4, catálogos históricos e confirmação direta do proprietário de 21/10/2026. Reconhece vínculo atual Greencity, conclusão de Segurança da Informação/FacPrisma e CC trancada com previsão dez/2027; mantém apenas pendências específicas restantes.                |
-| `smart-model-router`     | integracao_apis_llms/smart-model-router-gateway: package.json, src/server.ts e src/openrouterService.ts. O código implementa POST /chat; o exemplo /v1/chat/completions no README geral diverge e não foi usado como contrato real.                                        |
-| `langchain-intro`        | integracao_apis_llms/langchain-intro: package.json, src/graph/graph.ts e árvore tests/. Laboratório StateGraph com uppercase/lowercase/fallback. Testes presentes não significam executados nesta curadoria.                                                               |
+| ID estável               | Origem e conteúdo                                                                                                                                                                                                                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `web-portfolio-v2`       | README.md, package.json, src/App.tsx, src/components/OrbAssistant.tsx e ChestAccess.tsx na revisão acima, para stack e identidade visual. Integração posterior do chat testada pelo proprietário no pedido desta revisão; não estender essa confirmação ao login. Domínios informados no briefing. |
+| `phasscode-platform`     | [README](../README.md), [progresso](../docs/PROGRESS.md), implementação local e briefing. Distingue chat disponível dos módulos planejados e da integração separada do frontend.                                                                                                                   |
+| `pedro-santos`           | README do perfil GitHub, perfil.ts do frontend v2, site antigo, CV p. 1 e confirmação atual do proprietário em 21/10/2026. Nome e apresentação autodeclarados; atuação atual na Greencity confirmada nesta sessão.                                                                                 |
+| `competencias-publicas`  | perfil.ts, README do perfil e catálogos skills_* do site antigo. Tecnologias autodeclaradas; sem percentuais, certificações ou tempo de experiência inferidos.                                                                                                                                     |
+| `contato-publico`        | perfil.ts e README do perfil GitHub. GitHub, LinkedIn, site e e-mail já publicados pelo autor; nenhum telefone/endereço do CV. Nenhum contato foi enviado.                                                                                                                                         |
+| `trajetoria-a-confirmar` | CV pp. 1–4, catálogos históricos e confirmação direta do proprietário de 21/10/2026. Reconhece vínculo atual Greencity, conclusão de Segurança da Informação/FacPrisma e CC trancada com previsão dez/2027; mantém apenas pendências específicas restantes.                                        |
+| `smart-model-router`     | integracao_apis_llms/smart-model-router-gateway: package.json, src/server.ts e src/openrouterService.ts. O código implementa POST /chat; o exemplo /v1/chat/completions no README geral diverge e não foi usado como contrato real.                                                                |
+| `langchain-intro`        | integracao_apis_llms/langchain-intro: package.json, src/graph/graph.ts e árvore tests/. Laboratório StateGraph com uppercase/lowercase/fallback. Testes presentes não significam executados nesta curadoria.                                                                                       |
 
-## Experiência profissional autodeclarada
+## Experiência profissional registrada
 
 Fonte comum: [experiencia.json do site](https://phasscode.com/assets/json/experiencia.json),
 [arquivo preservado no GitHub](https://github.com/SladeSouzaSantos/website-portfolio/blob/12e65582882c3c6bed9981fd2fd2447423f808ca/build-website/assets/json/experiencia.json)
@@ -104,12 +164,12 @@ na p. 3 do CV. Para o vínculo atual Greencity, prevalece a confirmação direta
 
 | ID                      | Cargo, período e escopo declarado                                                                                                                                | Status de interpretação                                                                                                           |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `experiencia-acrux`     | Estagiário Programador de Sistemas, fev/2014–jan/2015; software de calhas, Java/H2/NetBeans, Scrum.                                                              | Histórico declarado, sem comprovação externa do vínculo.                                                                          |
+| `experiencia-acrux`     | Estagiário Programador de Sistemas, fev/2014–jan/2015; software de calhas, Java/H2/NetBeans, Scrum.                                                              | Histórico profissional; não associar o nome Lithology ao estágio sem esclarecer a divergência.                                    |
 | `experiencia-sig`       | Desenvolvedor de Sistemas na SIG Software e Consultoria em TI, jun/2016–fev/2017; SIGAA, Java/Hibernate/JBoss/PostgreSQL, Scrum, revisão/testes/documentação.    | Participação declarada; não atribuir autoria exclusiva do SIGAA.                                                                  |
 | `experiencia-geowellex` | Mud Logging/Desenvolvedor de Sistemas, mar/2017–out/2018; estoque web HTML/CSS/JavaScript/PHP/MySQL e dados geológicos.                                          | Histórico declarado; associação de Lithology tem divergência entre fontes.                                                        |
 | `experiencia-greencity` | Engenheiro de Projetos Fotovoltaicos/Desenvolvedor Web e Mobile, início histórico fev/2019; aplicativo Flutter e backends Python/PHP, PDF e projetos de energia. | Atuação atual confirmada diretamente pelo proprietário em 21/10/2026; cargo/início/atividades permanecem atribuídos ao histórico. |
 
-## Formação e estudos autodeclarados
+## Formação e estudos registrados
 
 Fonte comum dos seis primeiros cursos:
 [formacao.json](https://phasscode.com/assets/json/formacao.json),
@@ -156,8 +216,8 @@ outro repositório não prova que sua execução foi validada nesta sessão.
    mera leitura do termo “Atualmente” em material antigo.
 2. **UNISUL e FacPrisma atualizadas:** CC está trancada nas últimas disciplinas, previsão dez/2027;
    Segurança da Informação/FacPrisma foi concluída segundo o proprietário, sem data informada.
-   Não estender essa conclusão a Arquitetura de Software, Big Data, Mobile ou IA. Falta somente
-   documentação independente/data exata, não a declaração atual de status.
+   Não estender essa conclusão a Arquitetura de Software, Big Data, Mobile ou IA. A data exata
+   de conclusão de Segurança da Informação permanece não informada; seu status está atualizado.
 3. **UnP:** preservar conclusão declarada e registrar CV dez/2014 versus site fev/2015. A fonte
    não esclarece se se trata de colação, término acadêmico ou atualização editorial; não inferir.
 4. **Lithology:** associação Geowellex no CV versus ACRUX no texto H2 do site. Pode haver fases
@@ -187,4 +247,4 @@ esta fonte não afirma que um horário está livre. Ver [progresso](../docs/PROG
 
 Atualizações futuras devem preservar a fonte da declaração, a distinção entre histórico e estado
 atual e os conflitos ainda não resolvidos. Não remova informação profissional conhecida apenas
-porque falta validação documental independente; qualifique a declaração e seu limite temporal.
+porque não há código público ou certificado anexado; preserve seu escopo e limite temporal.

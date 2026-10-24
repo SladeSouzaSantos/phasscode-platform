@@ -3,6 +3,13 @@
 Execute `npm ci --ignore-scripts`, `npm run check` e `npm audit --audit-level=high` na raiz.
 `npm test` usa somente mock e servidores HTTP locais simulando o provedor. Não exige chave paga.
 
+A [revisão dos alertas CodeQL do PR #4](pr4-codeql-review.md) explica a finalidade dos fingerprints
+Redis, a restrição de destinos do proxy de navegador e as regressões de cotas, CORS, CSRF e OIDC.
+
+A [correção profissional do Orbe v4](orbe-v4-professional.md) documenta o tom das respostas,
+associações de experiências/projetos, seleção de fontes e cálculos mensais, com as regressões
+locais e os limites da validação sem LLM real.
+
 O [incremento de fallback de LLM de 24/10](llm-fallback-2026-10-24.md) registra 452 testes únicos
 aprovados, cadeia HTTP simulada, cooldown/cotas Redis entre instâncias e qualificação da imagem.
 Os quatro candidatos reais não foram chamados; o [guia](../deployment/llm-fallback.md) descreve

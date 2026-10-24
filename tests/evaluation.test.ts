@@ -55,6 +55,39 @@ async function publicInputs() {
 }
 
 describe('avaliador determinístico', () => {
+  it('aceita repositório/demo documentados do projeto e continua recusando URLs inventadas ou privadas', () => {
+    const project = {
+      ...source,
+      repositoryUrl: 'https://github.com/example/project',
+      demoUrl: 'https://example.com/demo',
+      visibility: 'public',
+    };
+    for (const url of [project.repositoryUrl, project.demoUrl]) {
+      expect(
+        evaluateTurn(response({ sources: [{ ...source, url }] }), expected, [project], {
+          live: true,
+          isNew: true,
+        }).status,
+      ).toBe('pass');
+    }
+    expect(
+      evaluateTurn(
+        response({ sources: [{ ...source, url: 'https://example.com/invented' }] }),
+        expected,
+        [project],
+        { live: true, isNew: true },
+      ).status,
+    ).toBe('fail');
+    expect(
+      evaluateTurn(
+        response({ sources: [{ ...source, url: project.repositoryUrl }] }),
+        expected,
+        [{ ...project, visibility: 'private' }],
+        { live: true, isNew: true },
+      ).status,
+    ).toBe('fail');
+  });
+
   it('valida a matriz pública e suas referências contra o catálogo vigente', async () => {
     const { cases, catalog } = await publicInputs();
     expect(cases.version).toBe('orbe-phase2-v3');

@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import type { Redis } from 'ioredis';
 import type { AIMessage } from '@langchain/core/messages';
 import type { StructuredToolInterface } from '@langchain/core/tools';
@@ -14,6 +13,7 @@ import { createFallbackModelFactory, type BoundModelPort } from './llm-model-fac
 import { LlmInvocationController, type LlmCooldownStore } from './llm-invocation-controller.js';
 import { RedisLlmCallBudget } from './redis-llm-budget.js';
 import { RedisLlmCooldownStore } from './redis-llm-cooldown.js';
+import { createFallbackRedisIdentities } from './fallback-redis-identities.js';
 
 type EnabledFallback = Extract<LlmFallbackConfig, { enabled: true }>;
 export interface LlmInvocationEvent {
@@ -107,26 +107,22 @@ export function createRedisFallbackInvocationFactory(
 ): LlmInvocationFactory {
   if (!config.llmFallback.enabled) throw new Error('Fallback LLM não está habilitado.');
   const fallback = config.llmFallback;
-  const digest = (value: string) => createHash('sha256').update(value).digest('hex').slice(0, 32);
-  const namespace = `phasscode:llm:fb:${digest(config.LLM_GLOBAL_BUDGET_KEY)}`;
+  const identities = createFallbackRedisIdentities(
+    config.LLM_GLOBAL_BUDGET_KEY,
+    fallback.providers,
+  );
   const providerBudgets = new Map(
     fallback.providers.map((provider) => [
       provider.id,
       new RedisLlmCallBudget(redis, {
-        key: `${namespace}:quota:${provider.id}:${digest(provider.apiKey)}`,
+        key: identities.providers.get(provider.id)!.quotaKey,
         maxCalls: provider.maxCalls,
         windowMs: provider.windowMs,
       }),
     ]),
   );
-  const routes = new Map(
-    fallback.providers.map(({ id, apiKey, model }) => [
-      id,
-      `${id}-${digest(JSON.stringify([id, apiKey, model]))}`,
-    ]),
-  );
   const cooldowns = new RedisLlmCooldownStore(redis, {
-    keyPrefix: `${namespace}:cool`,
+    keyPrefix: identities.cooldownKeyPrefix,
     maxCooldownMs: fallback.maxCooldownMs,
   });
   return createFallbackInvocationFactory({
@@ -142,9 +138,13 @@ export function createRedisFallbackInvocationFactory(
     providerBudgets,
     maxContextChars: config.CHAT_CONTEXT_CHARS,
     cooldownStore: {
-      remainingMs: (id) => cooldowns.remainingMs(routes.get(id as LlmFallbackProviderId)!),
+      remainingMs: (id) =>
+        cooldowns.remainingMs(identities.providers.get(id as LlmFallbackProviderId)!.cooldownId),
       block: (id, durationMs) =>
-        cooldowns.block(routes.get(id as LlmFallbackProviderId)!, durationMs),
+        cooldowns.block(
+          identities.providers.get(id as LlmFallbackProviderId)!.cooldownId,
+          durationMs,
+        ),
     },
     ...(onInvocation ? { onInvocation } : {}),
   });

@@ -1,3 +1,4 @@
+import { createServer } from 'node:http';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import { browserFixture, launchLocalBrowser, type BrowserFixture } from './browser/fixtures.js';
@@ -52,6 +53,46 @@ async function browserFetch(
     { url: `${api}${path}`, options },
   );
 }
+
+it('bloqueia no proxy um destino loopback fora da allowlist sem atingir o servidor', async () => {
+  if (!context) throw new Error('Fixture de navegador indisponível.');
+  let hits = 0;
+  const unauthorized = createServer((_request, response) => {
+    hits++;
+    response.end('Este servidor local nunca deve ser acessado pelo navegador.');
+  });
+  let page: Page | undefined;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      unauthorized.once('error', reject);
+      unauthorized.listen(0, '127.0.0.1', resolve);
+    });
+    const address = unauthorized.address();
+    if (!address || typeof address === 'string')
+      throw new Error('Servidor local fora da allowlist indisponível.');
+    page = await context.newPage();
+    const outcome = await page.goto(`http://127.0.0.1:${address.port}/forbidden`).then(
+      (response) => response?.status(),
+      (error: unknown) => {
+        // Chromium may expose a proxy's HTTP 403 as a failed navigation rather
+        // than a page response. Accept only that specific refusal, not a timeout
+        // or arbitrary network error that could conceal a broken test setup.
+        if (error instanceof Error && error.message.includes('net::ERR_HTTP_RESPONSE_CODE_FAILURE'))
+          return 'proxy-rejected';
+        throw error;
+      },
+    );
+    expect([403, 'proxy-rejected']).toContain(outcome);
+    expect(hits).toBe(0);
+  } finally {
+    await page?.close();
+    unauthorized.closeAllConnections();
+    if (unauthorized.listening)
+      await new Promise<void>((resolve, reject) =>
+        unauthorized.close((error) => (error ? reject(error) : resolve())),
+      );
+  }
+});
 
 it('valida login, cookie HttpOnly, CORS/CSRF, refresh e logout em navegador real local', async () => {
   if (!fixture || !context) throw new Error('Fixture de navegador indisponível.');
