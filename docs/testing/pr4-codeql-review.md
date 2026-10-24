@@ -1,15 +1,31 @@
 # Revisão de segurança do PR #4
 
-Revisão sobre `dev`, partindo de `d63cc8d`, com as alterações locais anteriores preservadas.
+Revisão sobre `dev`: a primeira execução partiu de `d63cc8d`; a reanálise dos três novos alertas
+parte de `ccce8ff`, com as alterações locais preservadas. Na consulta atual ao PR, os alertas
+originais de SSRF (#1) e hash (#2) constam como resolvidos, com comentários desatualizados.
+O alerta de hash reapareceu no helper extraído; mover a operação não altera sua finalidade.
 Os [comentários do PR](https://github.com/SladeSouzaSantos/phasscode-platform/pull/4)
-foram consultados diretamente: publicam os dois alertas e os respectivos fluxos, sem patch de
+foram consultados diretamente: publicam os alertas e os respectivos fluxos, sem patch de
 Autofix nos comentários. Portanto, a avaliação abaixo trata os alertas e as recomendações das
 regras; não atribui ao GitHub um patch que não foi disponibilizado.
 
+Tratamento dos alertas da segunda análise:
+
+- [#4 — hash](https://github.com/SladeSouzaSantos/phasscode-platform/security/code-scanning/4):
+  falso positivo contextual; encerrar individualmente com a justificativa abaixo, mantendo o código.
+- [#5 — CORS](https://github.com/SladeSouzaSantos/phasscode-platform/security/code-scanning/5):
+  corrigido no servidor sintético, com origem autorizada constante e comparação exata.
+- [#3 — XSS](https://github.com/SladeSouzaSantos/phasscode-platform/security/code-scanning/3):
+  removida a reflexão desnecessária; resposta JSON constante, com tipo explícito e `nosniff`.
+
+"Corrigido" descreve a alteração local. O fechamento remoto de #3/#5 depende da próxima análise
+CodeQL; nenhum alerta foi encerrado nem dispensado por ferramentas nesta sessão.
+
 ## Identificadores de cotas: falso positivo de hash de senha
 
-O alerta [#2](https://github.com/SladeSouzaSantos/phasscode-platform/security/code-scanning/2)
-corresponde a `js/insufficient-password-hash`. O caminho completo é:
+O alerta atual [#4](https://github.com/SladeSouzaSantos/phasscode-platform/security/code-scanning/4),
+em `fallback-redis-identities.ts:15`, corresponde a `js/insufficient-password-hash`. A ocorrência
+anterior era #2, em `fallback-llm.ts`. O caminho completo é:
 
 1. A configuração de fallback recebe as chaves dos provedores no backend.
 2. A fábrica deriva identificadores determinísticos para as chaves Redis de orçamento e cooldown.
@@ -51,7 +67,7 @@ em 128 bits são teoricamente possíveis, embora não tenham probabilidade prát
 o pequeno conjunto de credenciais deste serviço. Não há promessa de anonimização ou de proteção
 contra quem já pode alterar contadores no Redis.
 
-Tratamento recomendado: após revisar as evidências, marcar **somente o alerta #2** como
+Tratamento recomendado: após revisar as evidências, marcar **somente o alerta atual #4** como
 `false positive`, com a justificativa abaixo. A
 [triagem documentada pelo GitHub](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/resolve-alerts)
 permite registrar o motivo para auditoria. A dispensa de um alerta afeta suas ocorrências nas
@@ -63,7 +79,14 @@ nenhuma consulta foi desabilitada e a extração do helper não garante eliminar
 > the upstream API credential. Existing identifiers are preserved for cross-replica limits.
 > See docs/testing/pr4-codeql-review.md and the identifier regression tests.
 
+Na segunda revisão, o helper foi comparado também à implementação em `d63cc8d`: SHA-256,
+truncamento, formatos e `JSON.stringify([id, apiKey, model])` são idênticos. Nenhum código de
+derivação, configuração de orçamento ou adaptador Redis foi alterado nesta reanálise. As oito
+regressões existentes continuam verificando os valores históricos, o isolamento e o compartilhamento.
+
 ## Proxy de navegador: restrição efetiva de destino
+
+Registro da correção anterior, mantida nesta reanálise:
 
 O alerta [#1](https://github.com/SladeSouzaSantos/phasscode-platform/security/code-scanning/1)
 corresponde a `js/request-forgery`. Trata-se de infraestrutura de teste, sem exposição pela API
@@ -100,7 +123,46 @@ selecionar o destino de rede a partir de valores confiáveis. Não se trata de u
 para produção. Servidores locais autorizados e o processo de teste continuam sendo componentes
 confiáveis; as portas são efêmeras e os serviços são encerrados ao terminar o teste.
 
-## Verificação e limites
+## CORS e XSS no servidor sintético de testes
+
+Os novos alertas apontam para o servidor do teste de transporte em `tests/browser-proxy.test.ts`.
+Ele escuta somente em loopback e usa dados sintéticos, sem sessão ou credenciais reais. Esses
+alertas não demonstram vulnerabilidade no CORS ou na renderização da API publicada.
+
+Mesmo nesse contexto restrito, refletir qualquer `request.headers.origin` em
+`Access-Control-Allow-Origin` junto de `Access-Control-Allow-Credentials: true` é um padrão
+inseguro desnecessário. A correção usa a origem constante `http://127.0.0.1:3000` e só emite os dois
+headers CORS quando a origem recebida corresponde exatamente. Origens diferentes não recebem
+permissão CORS. A resposta não usa o valor recebido como origem autorizada. Isso atende à
+[recomendação da regra de CORS](https://codeql.github.com/codeql-query-help/javascript/js-cors-misconfiguration-for-credentials/).
+
+O servidor também serializava método, caminho, todos os headers e corpo da requisição na resposta,
+sem `Content-Type`. Não foi demonstrada execução de script nesse fixture nem exploração na API;
+a serialização JSON isolada não estabelece o contexto seguro de uma resposta HTTP. Em vez de
+adicionar escapes a uma reflexão dispensável, a resposta agora é sempre o JSON literal
+`{"ok":true}`, com `Content-Type: application/json; charset=utf-8` e
+`X-Content-Type-Options: nosniff`. As entradas recebidas não entram no corpo da resposta. A
+[regra de XSS](https://codeql.github.com/codeql-query-help/javascript/js-reflected-xss/)
+identifica justamente fluxos de entrada para respostas sem contexto de saída seguro.
+
+Os dados necessários às verificações ficam em memória no processo de teste. Método, caminho,
+Origin, cookie, CSRF, corpo e headers de preflight continuam sendo conferidos **depois de
+atravessarem HTTP real e o proxy**. Host reescrito, remoção de headers de proxy/hop-by-hop,
+`Set-Cookie`, resposta JSON e headers CORS também são verificados. Não há substituição por mocks
+de transporte nem interceptação Playwright.
+
+Uma nova regressão envia HTML em query, header e corpo, tanto com origem autorizada quanto com
+origem atacante. Ela confirma que o proxy entrega as entradas ao servidor, que a resposta fica
+constante e tipada e que a origem atacante não recebe os headers CORS de credenciais. A suíte de
+navegador da API permanece separada e preserva o preflight CORS real, CSRF, cookies, OIDC,
+refresh/logout e a recusa de um destino loopback fora da allowlist.
+
+Nesta segunda revisão, os únicos arquivos alterados são o teste sintético, este relatório e
+o índice de validação. Não foram alterados o hash, o proxy, os contratos públicos ou o código de
+autenticação/autorização, reuniões, integrações e worker da Fase 3. A verificação local complementa
+as evidências anteriores; contas externas e concorrência SQL continuam tendo sua própria homologação.
+
+## Verificação da primeira revisão
 
 Verificação local em 24/10/2026, Node.js 24.11.1:
 
@@ -138,3 +200,32 @@ Arquivos desta revisão, além do trabalho anterior já existente:
 O workflow `.github/workflows/security.yml` permanece intacto. O CodeQL não está instalado neste
 ambiente; o status remoto dos alertas depende de uma nova análise depois de uma publicação
 autorizada das alterações. Nenhum commit, push, merge ou deploy foi executado.
+
+## Revalidação dos três novos alertas
+
+Executada sobre `ccce8ff` e as correções locais desta segunda revisão:
+
+- `npm run check`: ESLint sem warnings, Prettier, typecheck, contratos OpenAPI, **443 testes em
+  31 arquivos** e build aprovados.
+- `npm run test:browser`: **2 testes aprovados** em Chromium real local, incluindo login OIDC,
+  cookies HttpOnly/SameSite, sessão, CSRF, preflights CORS positivos e negativos, refresh/logout,
+  chat público e bloqueio de destino loopback não autorizado.
+- `npm run smoke`: processo compilado, `/health`, `/ready` e dois turnos reais de
+  `POST /api/v1/chat` com modelo mock aprovados.
+- `git diff --check`: sem erros de whitespace.
+
+São **445 testes únicos nesta revalidação**. Os seis testes de proxy e os oito de identidade
+Redis já fazem parte dos 443 de `npm test`; não são somados novamente. Os 29 testes de
+infraestrutura registrados na seção anterior pertencem à primeira revisão e não foram
+reexecutados agora. Não foram executadas integrações com PostgreSQL/Redis, migrations,
+chamadas a provedores externos ou alterações em `.env`.
+
+As proteções da Fase 3 permanecem aprovadas no escopo dessas suítes, inclusive validação de
+OIDC/JWT, papel administrativo, Origin/CSRF e atributos de cookies nos testes de autenticação.
+Não se trata de uma nova homologação das contas Google/Calendar/SMTP/Telegram ou do servidor.
+Os únicos arquivos modificados nesta segunda revisão são `tests/browser-proxy.test.ts`,
+`docs/testing/pr4-codeql-review.md` e `docs/testing/README.md`; a branch continua `dev`.
+
+Próximos passos no GitHub, após revisão e publicação autorizada: confirmar o fechamento de #3
+e #5 na reanálise e dispensar **somente #4** como `False positive`, usando a justificativa da
+seção de hash. Não foram aplicadas exclusões de regras ou supressões de consultas CodeQL.

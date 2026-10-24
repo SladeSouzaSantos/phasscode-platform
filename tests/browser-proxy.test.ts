@@ -4,6 +4,41 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createLocalProxy } from './browser/local-proxy.js';
 
 const servers: Server[] = [];
+const syntheticBrowserOrigin = 'http://127.0.0.1:3000';
+
+function syntheticCorsServer(): {
+  server: Server;
+  requests: {
+    method: string | undefined;
+    path: string | undefined;
+    headers: IncomingHttpHeaders;
+    body: string;
+  }[];
+} {
+  const requests: ReturnType<typeof syntheticCorsServer>['requests'] = [];
+  const server = createServer((request, response) => {
+    let body = '';
+    request.setEncoding('utf8');
+    request.on('data', (chunk: string) => (body += chunk));
+    request.on('end', () => {
+      requests.push({
+        method: request.method,
+        path: request.url,
+        headers: { ...request.headers },
+        body,
+      });
+      if (request.headers.origin === syntheticBrowserOrigin) {
+        response.setHeader('access-control-allow-origin', syntheticBrowserOrigin);
+        response.setHeader('access-control-allow-credentials', 'true');
+      }
+      response.setHeader('content-type', 'application/json; charset=utf-8');
+      response.setHeader('x-content-type-options', 'nosniff');
+      response.setHeader('set-cookie', ['session=synthetic; HttpOnly; SameSite=Lax']);
+      response.end('{"ok":true}');
+    });
+  });
+  return { server, requests };
+}
 
 async function listen(server: Server): Promise<string> {
   await new Promise<void>((resolve, reject) => {
@@ -88,33 +123,15 @@ describe('proxy HTTP restrito do navegador', () => {
   });
 
   it('preserva POST/OPTIONS, Origin, CSRF, cookies e corpo com Host confiável', async () => {
-    const allowed = await listen(
-      createServer((request, response) => {
-        let body = '';
-        request.setEncoding('utf8');
-        request.on('data', (chunk: string) => (body += chunk));
-        request.on('end', () => {
-          response.setHeader('access-control-allow-origin', request.headers.origin ?? '');
-          response.setHeader('access-control-allow-credentials', 'true');
-          response.setHeader('set-cookie', ['session=synthetic; HttpOnly; SameSite=Lax']);
-          response.end(
-            JSON.stringify({
-              method: request.method,
-              path: request.url,
-              headers: request.headers,
-              body,
-            }),
-          );
-        });
-      }),
-    );
+    const fixture = syntheticCorsServer();
+    const allowed = await listen(fixture.server);
     const proxy = await listen(createLocalProxy([allowed]));
     for (const method of ['POST', 'OPTIONS']) {
       const result = await viaProxy(proxy, `${allowed}/api/v1/auth/refresh?synthetic=1`, {
         method,
         headers: {
           host: 'attacker.invalid',
-          origin: 'http://127.0.0.1:3000',
+          origin: syntheticBrowserOrigin,
           cookie: 'session=synthetic',
           'x-csrf-token': 'synthetic-csrf',
           'content-type': 'application/json',
@@ -128,23 +145,66 @@ describe('proxy HTTP restrito do navegador', () => {
         ...(method === 'POST' ? { body: '{"synthetic":true}' } : {}),
       });
       expect(result.status).toBe(200);
-      const echoed = JSON.parse(result.body);
-      expect(echoed.method).toBe(method);
-      expect(echoed.path).toBe('/api/v1/auth/refresh?synthetic=1');
-      expect(echoed.headers.host).toBe(new URL(allowed).host);
-      expect(echoed.headers.origin).toBe('http://127.0.0.1:3000');
-      expect(echoed.headers.cookie).toBe('session=synthetic');
-      expect(echoed.headers['x-csrf-token']).toBe('synthetic-csrf');
-      expect(echoed.headers['access-control-request-method']).toBe('POST');
-      expect(echoed.headers['access-control-request-headers']).toBe('x-csrf-token');
-      expect(echoed.headers['proxy-authorization']).toBeUndefined();
-      expect(echoed.headers['proxy-connection']).toBeUndefined();
-      expect(echoed.headers['x-hop-secret']).toBeUndefined();
-      expect(echoed.body).toBe(method === 'POST' ? '{"synthetic":true}' : '');
-      expect(result.headers['access-control-allow-origin']).toBe('http://127.0.0.1:3000');
+      const received = fixture.requests.at(-1)!;
+      expect(received.method).toBe(method);
+      expect(received.path).toBe('/api/v1/auth/refresh?synthetic=1');
+      expect(received.headers.host).toBe(new URL(allowed).host);
+      expect(received.headers.origin).toBe(syntheticBrowserOrigin);
+      expect(received.headers.cookie).toBe('session=synthetic');
+      expect(received.headers['x-csrf-token']).toBe('synthetic-csrf');
+      expect(received.headers['access-control-request-method']).toBe('POST');
+      expect(received.headers['access-control-request-headers']).toBe('x-csrf-token');
+      expect(received.headers['proxy-authorization']).toBeUndefined();
+      expect(received.headers['proxy-connection']).toBeUndefined();
+      expect(received.headers['x-hop-secret']).toBeUndefined();
+      expect(received.body).toBe(method === 'POST' ? '{"synthetic":true}' : '');
+      expect(result.body).toBe('{"ok":true}');
+      expect(result.headers['content-type']).toBe('application/json; charset=utf-8');
+      expect(result.headers['x-content-type-options']).toBe('nosniff');
+      expect(result.headers['access-control-allow-origin']).toBe(syntheticBrowserOrigin);
       expect(result.headers['access-control-allow-credentials']).toBe('true');
       expect(result.headers['set-cookie']).toEqual(['session=synthetic; HttpOnly; SameSite=Lax']);
     }
+    expect(fixture.requests).toHaveLength(2);
+  });
+
+  it('não autoriza origens arbitrárias nem reflete HTML de entradas na resposta JSON', async () => {
+    const fixture = syntheticCorsServer();
+    const allowed = await listen(fixture.server);
+    const proxy = await listen(createLocalProxy([allowed]));
+    const payload = '<script>alert("synthetic")</script>';
+    const body = JSON.stringify({ input: payload });
+    const path = `/echo?input=${encodeURIComponent(payload)}`;
+    for (const origin of [syntheticBrowserOrigin, 'https://attacker.invalid']) {
+      const result = await viaProxy(proxy, `${allowed}${path}`, {
+        method: 'POST',
+        headers: {
+          origin,
+          'content-type': 'application/json',
+          'x-synthetic-input': payload,
+        },
+        body,
+      });
+      const received = fixture.requests.at(-1)!;
+      expect(received.path).toBe(path);
+      expect(received.headers.origin).toBe(origin);
+      expect(received.headers['x-synthetic-input']).toBe(payload);
+      expect(received.body).toBe(body);
+      expect(result.status).toBe(200);
+      expect(result.headers['content-type']).toBe('application/json; charset=utf-8');
+      expect(result.headers['x-content-type-options']).toBe('nosniff');
+      expect(result.body).toBe('{"ok":true}');
+      expect(JSON.parse(result.body)).toEqual({ ok: true });
+      expect(result.body).not.toContain(payload);
+      if (origin === syntheticBrowserOrigin) {
+        expect(result.headers['access-control-allow-origin']).toBe(syntheticBrowserOrigin);
+        expect(result.headers['access-control-allow-credentials']).toBe('true');
+      } else {
+        expect(result.headers['access-control-allow-origin']).toBeUndefined();
+        expect(result.headers['access-control-allow-credentials']).toBeUndefined();
+      }
+    }
+    expect(fixture.requests).toHaveLength(2);
   });
 
   it('bloqueia URLs arbitrárias, credenciais, protocolos e portas não autorizadas sem conexão', async () => {
