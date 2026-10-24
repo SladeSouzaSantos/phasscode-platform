@@ -6,6 +6,12 @@ import { loadAuthConfig } from '../packages/shared-config/src/auth.js';
 import { loadCalendarConfig } from '../packages/shared-config/src/calendar.js';
 import { loadMeetingConfig } from '../packages/shared-config/src/meetings.js';
 import { loadWorkerConfig } from '../packages/shared-config/src/worker.js';
+import {
+  LLM_FALLBACK_ENV_NAMES,
+  LLM_FALLBACK_PROVIDER_IDS,
+  LLM_FALLBACK_REQUIRED_FIELDS,
+  LLM_FALLBACK_PROVIDER_FIELDS,
+} from '../packages/shared-config/src/llm-fallback.js';
 
 type Module = 'runtime' | 'auth' | 'meetings' | 'calendar' | 'notifications' | 'worker';
 type Target = 'host' | 'compose';
@@ -87,6 +93,7 @@ const knownVariables = [
   'LLM_GLOBAL_MAX_CALLS',
   'LLM_GLOBAL_WINDOW_MS',
   'LLM_GLOBAL_BUDGET_KEY',
+  ...LLM_FALLBACK_ENV_NAMES,
   'LANGCHAIN_VERBOSE',
   'LANGCHAIN_TRACING',
   'LANGCHAIN_TRACING_V2',
@@ -256,7 +263,25 @@ export function inspectPhase3Environment(
     );
   }
   requireValues('runtime', ['DATABASE_URL', 'REDIS_URL']);
-  if (['openai', 'openai-compatible'].includes(env.LLM_PROVIDER ?? '')) {
+  if (env.LLM_FALLBACK_ENABLED === 'true') {
+    requireValues('runtime', ['LLM_GLOBAL_MAX_CALLS']);
+    let providers = 0;
+    for (const id of LLM_FALLBACK_PROVIDER_IDS) {
+      const prefix = `LLM_${id.toUpperCase()}_`;
+      const required = LLM_FALLBACK_REQUIRED_FIELDS.map((suffix) => prefix + suffix);
+      if (LLM_FALLBACK_PROVIDER_FIELDS.some((suffix) => present(env, prefix + suffix))) {
+        providers++;
+        requireValues('runtime', required);
+      }
+    }
+    if (!providers) {
+      const candidates = LLM_FALLBACK_PROVIDER_IDS.flatMap((id) =>
+        LLM_FALLBACK_REQUIRED_FIELDS.map((suffix) => `LLM_${id.toUpperCase()}_${suffix}`),
+      );
+      candidates.forEach((name) => missing.add(name));
+      add('runtime', 'pending', 'FALLBACK_PROVIDER_REQUIRED', candidates);
+    }
+  } else if (['openai', 'openai-compatible'].includes(env.LLM_PROVIDER ?? '')) {
     requireValues('runtime', ['LLM_API_KEY', 'LLM_MODEL', 'LLM_GLOBAL_MAX_CALLS']);
     if (env.LLM_PROVIDER === 'openai-compatible') requireValues('runtime', ['LLM_BASE_URL']);
   }

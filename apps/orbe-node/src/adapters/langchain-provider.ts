@@ -23,6 +23,7 @@ import type {
 } from '../domain/ports.js';
 import { AppError } from '../domain/errors.js';
 import type { LlmCallBudget } from '../domain/llm-budget.js';
+import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
 import {
   MAX_MODEL_CALLS_PER_TURN,
   MAX_TOOL_CALLS_PER_ROUND,
@@ -32,7 +33,7 @@ import {
 const searchArgs = z.strictObject({ query: z.string().min(1).max(300) });
 export class LangChainChatProvider implements ChatProvider {
   readonly name: 'openai' | 'openai-compatible';
-  private readonly model: ChatOpenAI;
+  private readonly model: ChatOpenAI | undefined;
   private readonly maxContextChars: number;
   constructor(
     config: Config,
@@ -40,10 +41,15 @@ export class LangChainChatProvider implements ChatProvider {
     private readonly prompt: string,
     private readonly budget: LlmCallBudget,
     private readonly meetings?: MeetingTools,
+    private readonly invocationFactory?: LlmInvocationFactory,
   ) {
     assertLlmPrivacyEnvironment(process.env);
-    this.name = config.LLM_PROVIDER === 'openai-compatible' ? 'openai-compatible' : 'openai';
+    this.name =
+      invocationFactory || config.LLM_PROVIDER === 'openai-compatible'
+        ? 'openai-compatible'
+        : 'openai';
     this.maxContextChars = config.CHAT_CONTEXT_CHARS;
+    if (invocationFactory) return;
     this.model = new ChatOpenAI({
       model: config.LLM_MODEL!,
       apiKey: config.LLM_API_KEY!,
@@ -77,6 +83,11 @@ export class LangChainChatProvider implements ChatProvider {
     const messageSize = (message: BaseMessage) =>
       JSON.stringify(message.content).length +
       (message instanceof AIMessage ? JSON.stringify(message.tool_calls ?? []).length : 0) +
+      // Raw tool calls may include Gemini thought signatures absent from the
+      // normalized calls. They are replayed on the wire and share the context cap.
+      (message instanceof AIMessage
+        ? JSON.stringify(message.additional_kwargs.tool_calls ?? []).length
+        : 0) +
       (message instanceof ToolMessage ? JSON.stringify(message.tool_call_id).length : 0);
     const contextSize = () => messages.reduce((size, message) => size + messageSize(message), 0);
     const contextLimit = () =>
@@ -207,13 +218,18 @@ export class LangChainChatProvider implements ChatProvider {
     );
     const tools =
       this.meetings && input.meetingActions === true ? [search, availability, prepare] : [search];
-    const model = this.model.bindTools(tools, { strict: true });
+    const model = this.model?.bindTools(tools, { strict: true });
+    const invoke = this.invocationFactory
+      ? this.invocationFactory(tools, input.signal)
+      : async (transcript: BaseMessage[]) => {
+          await this.budget.reserve();
+          input.signal.throwIfAborted();
+          return model!.invoke(transcript, { signal: input.signal });
+        };
     for (let round = 0; round < MAX_MODEL_CALLS_PER_TURN; round++) {
       if (contextSize() > this.maxContextChars) throw contextLimit();
       input.signal.throwIfAborted();
-      await this.budget.reserve();
-      input.signal.throwIfAborted();
-      const response = await model.invoke(messages, { signal: input.signal });
+      const response = await invoke(messages);
       if (response.invalid_tool_calls?.length)
         throw new AppError(
           'LLM_INVALID_TOOL',
@@ -248,6 +264,7 @@ export class LangChainChatProvider implements ChatProvider {
       )
         throw new AppError('LLM_TOOL_LIMIT', 502, 'Limite de ferramentas atingido.');
       messages.push(response);
+      if (contextSize() > this.maxContextChars) throw contextLimit();
       for (const call of response.tool_calls) {
         const selectedTool = tools.find((candidate) => candidate.name === call.name);
         if (!selectedTool || !call.id)

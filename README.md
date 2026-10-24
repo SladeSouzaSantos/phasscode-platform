@@ -10,7 +10,8 @@ administração e ações do Orbe têm contratos para integração do frontend. 
 e a [validação de 23/10](docs/testing/phase3-local-validation-2026-10-23.md). As funções novas começam desativadas;
 habilitá-las exige PostgreSQL/Redis e as configurações próprias dos provedores.
 As Fases 1 e 2 e sua avaliação real estão no [fechamento anterior](evaluation/reports/phase2-closeout.md).
-A retomada parte de `dev/64c8414`. A validação inclui suites locais e PostgreSQL/Redis descartáveis,
+A retomada anterior partiu de `dev/64c8414`; a implementação da Fase 3 está em `dev/5770836`.
+A validação inclui suites locais e PostgreSQL/Redis descartáveis,
 navegador real com OIDC local, qualificação da imagem com API/worker separados e avaliação v4
 autorizada na OpenRouter. Evidências e limites estão no relatório; não comprovam funcionamento
 nas contas externas ou no servidor publicado. O proprietário confirmou que configurará os provedores
@@ -81,10 +82,17 @@ Para Node no host com dependências em containers:
 
 ```bash
 docker compose -f compose.yaml -f compose.dev.yaml up -d postgres redis
-# Em .env: PERSISTENCE=postgres, DATABASE_URL conforme exemplo, REDIS_URL=redis://localhost:6379
+# Em .env: PERSISTENCE=postgres, DATABASE_URL=postgresql://USUARIO:SENHA_CODIFICADA@localhost:5432/BASE
+# e REDIS_URL=redis://localhost:6379; use as credenciais/portas escolhidas para o banco local.
 npm run migrate
 npm run dev
 ```
+
+No `.env.example`, `NODE_ENV`, `HOST`, `PORT`, `DATABASE_URL` e `REDIS_URL` são opções do processo
+Node no host. No Compose, `PHASSCODE_NODE_ENV` escolhe o ambiente do container e
+`PHASSCODE_HTTP_PORT` escolhe a porta publicada; as URLs dos bancos são derivadas internamente
+dos campos `POSTGRES_*` e dos serviços. As opções são independentes. O env-file do Node não
+expande `${POSTGRES_*}` em `DATABASE_URL`: informe uma URI completa somente quando rodar no host.
 
 Migrations são transacionais, usam advisory lock e verificam checksums. Não edite uma migration
 aplicada; crie a próxima. Para parar sem remover dados: `docker compose down`.
@@ -103,10 +111,27 @@ produção. O worker BullMQ da Fase 3 é opt-in pelo perfil `worker`.
 
 ## Chat com LLM real
 
-No `.env`, configure:
+Escolha um modo de execução; os blocos de credenciais de provedor único e fallback são
+alternativos. A seleção é:
+
+| `LLM_FALLBACK_ENABLED` | `LLM_PROVIDER`                  | Credenciais utilizadas                                                                                 |
+| ---------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `false`                | `mock`                          | Nenhuma; respostas simuladas.                                                                          |
+| `false`                | `openai` ou `openai-compatible` | `LLM_API_KEY`, `LLM_MODEL` e opções genéricas.                                                         |
+| `true`                 | Qualquer um dos valores acima   | Somente `LLM_OPENROUTER_*`, `LLM_GEMINI_*`, `LLM_GROQ_*` e `LLM_COHERE_*` dos candidatos configurados. |
+
+O Orbe também oferece fallback opt-in **OpenRouter → Gemini → Groq → Cohere**, com chaves,
+modelos e cotas separados, cooldown no Redis e prazo total por resposta. Veja o
+[guia de configuração](docs/deployment/llm-fallback.md). A configuração começa desativada e
+preserva o chat existente. OpenRouter aceita somente variantes gratuitas nesse modo;
+Gemini/Groq exigem conta/modelo no plano gratuito. Cohere trial fica restrita a experimentação
+não comercial e é recusada em produção. O recurso não garante gratuidade de uma conta faturada.
+
+Para usar um provedor único, configure no `.env`:
 
 ```dotenv
 LLM_PROVIDER=openai
+LLM_FALLBACK_ENABLED=false
 LLM_MODEL=MODELO_DISPONIVEL_NA_SUA_CONTA
 LLM_API_KEY=CHAVE_SOMENTE_NO_BACKEND
 LLM_API_MODE=responses
@@ -116,21 +141,30 @@ LLM_GLOBAL_MAX_CALLS=60
 LLM_GLOBAL_WINDOW_MS=86400000
 ```
 
+Para usar a cadeia, defina `LLM_FALLBACK_ENABLED=true` e preencha chave, modelo e cota de cada
+candidato conforme o guia. Nesse modo, você pode remover `LLM_API_KEY`, `LLM_MODEL`,
+`LLM_BASE_URL` e `LLM_API_MODE` do seu `.env`: esses campos genéricos ficam inativos. Não repita
+a mesma chave nos dois blocos. As janelas por provedor herdam `LLM_GLOBAL_WINDOW_MS`; os quatro
+`LLM_<PROVEDOR>_WINDOW_MS` aparecem comentados no exemplo para overrides opcionais. A cota global
+e as cotas de cada fornecedor têm funções diferentes e continuam independentes.
+
 Para um provedor compatível: `LLM_PROVIDER=openai-compatible`, `LLM_BASE_URL` e
 `LLM_API_MODE=chat-completions`, além de modelo e chave. O servidor deve implementar tool calling
 compatível com o SDK. A API do provedor é configuração do operador; visitantes não podem alterá-la.
-O adaptador usa LangChain.js, timeout, cancelamento, zero retries automáticos, ferramentas limitadas
-com parâmetros validados e até três chamadas ao modelo. Não há fallback silencioso para mock.
+O adaptador usa LangChain.js, timeout, cancelamento, zero retries automáticos e ferramentas limitadas
+com parâmetros validados. São até três rodadas do modelo; a cadeia permite até seis tentativas
+HTTP no total, incluindo falhas e continuação após ferramentas. Não há fallback silencioso para mock.
 Provedor real exige Redis e `LLM_GLOBAL_MAX_CALLS` explícito, inclusive em desenvolvimento. O contador
 atômico é compartilhado pelas instâncias que usam o mesmo Redis e `LLM_GLOBAL_BUDGET_KEY`. Cada
 invocação conta, inclusive após ferramentas e tentativas que falham; mock e políticas determinísticas
 não contam. Esgotamento retorna `LLM_BUDGET_EXHAUSTED` (429) com `Retry-After`; falha no controle
 retorna 503, sem chamar o modelo. O orçamento limita chamadas, não tokens nem custo financeiro.
 
-Exemplo de configuração OpenRouter:
+Alternativa de provedor único usando OpenRouter, com os mesmos controles globais acima:
 
 ```dotenv
 LLM_PROVIDER=openai-compatible
+LLM_FALLBACK_ENABLED=false
 LLM_BASE_URL=https://openrouter.ai/api/v1
 LLM_API_MODE=chat-completions
 LLM_API_KEY=CHAVE_COMUM_OPENROUTER_SOMENTE_NO_BACKEND
@@ -141,21 +175,27 @@ OPENROUTER_REASONING_ENABLED=false
 
 Use uma chave comum criada em <https://openrouter.ai/settings/keys>. Chaves management/provisioning
 permitem administrar credenciais, mas não gerar respostas de IA. Substitua o ID do exemplo por um
-modelo com suporte a ferramentas. O adaptador atual envia `strict: true` nos argumentos das
-ferramentas; não exige `response_format` para a resposta final. Após editar `.env`, execute
+modelo com suporte a ferramentas. O modo de provedor único envia `strict: true` nas ferramentas;
+na cadeia, os parâmetros variam por transporte e a validação local permanece obrigatória.
+Nenhum modo exige `response_format` para a resposta final. Após editar `.env`, execute
 `docker compose up -d --force-recreate api` para aplicar as variáveis ao container. O smoke real
 com OpenRouter, continuidade de conversa e ferramenta executada está registrado no progresso.
 
 `OPENROUTER_REASONING_ENABLED` é uma extensão explícita para `openai-compatible` com
-`chat-completions`; vazio preserva o padrão do provedor. No modelo Nemotron usado nesta avaliação,
+`chat-completions`, ou para o candidato OpenRouter da cadeia; vazio preserva o padrão do provedor.
+No modelo Nemotron usado nesta avaliação,
 foi configurado `false` para reservar a saída ao texto final. Reasoning e texto podem compartilhar o
 mesmo limite de tokens, causando resposta vazia quando o orçamento é consumido antes da resposta.
 Esse comportamento e as opções por modelo estão na
 [documentação OpenRouter](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
 
-`store: false` é enviado ao provedor. Isso não configura a política de retenção da conta nem substitui
-as políticas do fornecedor. Mensagens e contexto são enviados ao LLM configurado; informe esse
-tratamento ao visitante antes de disponibilizar a integração publicamente.
+O modo de provedor único envia `store: false`; na cadeia, esse campo é enviado à OpenRouter e
+omitido nos outros transportes. Isso não configura a política de retenção da conta nem substitui
+as políticas do fornecedor. Mensagens e contexto podem ser enviados aos candidatos habilitados;
+informe esse tratamento ao visitante antes de disponibilizar a integração publicamente.
+Flags `LANGCHAIN_VERBOSE`, `LANGCHAIN_TRACING`, `LANGCHAIN_TRACING_V2`, `LANGSMITH_TRACING` e
+`LANGSMITH_TRACING_V2` não precisam ser configuradas: o padrão é desativado e `true` é recusado
+para impedir diagnóstico automático com mensagens completas.
 
 O prompt sem módulos da Fase 3 permanece em [`apps/orbe-node/prompts/v3.md`](apps/orbe-node/prompts/v3.md),
 identificado como `orbe-v3`. Habilitar auth ou reuniões seleciona [`v4.md`](apps/orbe-node/prompts/v4.md);

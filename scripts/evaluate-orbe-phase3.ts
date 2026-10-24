@@ -6,9 +6,11 @@ import { LangChainChatProvider } from '../apps/orbe-node/src/adapters/langchain-
 import { JsonKnowledgeRepository } from '../apps/orbe-node/src/adapters/knowledge.js';
 import { MemoryConversationStore } from '../apps/orbe-node/src/adapters/memory-store.js';
 import { RedisLlmCallBudget } from '../apps/orbe-node/src/adapters/redis-llm-budget.js';
+import { createRedisFallbackInvocationFactory } from '../apps/orbe-node/src/adapters/fallback-llm.js';
 import { ChatService } from '../apps/orbe-node/src/application/chat.js';
 import { AppError } from '../apps/orbe-node/src/domain/errors.js';
 import { loadConfig } from '../packages/shared-config/src/index.js';
+import { LLM_FALLBACK_ENV_NAMES } from '../packages/shared-config/src/llm-fallback.js';
 import { evaluatePhase3 } from '../evaluation/phase3.js';
 
 async function main() {
@@ -32,10 +34,11 @@ async function main() {
   const maxCalls = 8;
   // Only LLM settings are inherited. Never start the configured database, auth or real integrations.
   const config = loadConfig({
+    ...Object.fromEntries(LLM_FALLBACK_ENV_NAMES.map((name) => [name, process.env[name]])),
     NODE_ENV: 'test',
     LOG_LEVEL: 'silent',
     PERSISTENCE: 'memory',
-    LLM_PROVIDER: process.env.LLM_PROVIDER ?? '',
+    LLM_PROVIDER: process.env.LLM_PROVIDER ?? 'mock',
     LLM_MODEL: process.env.LLM_MODEL ?? '',
     LLM_API_KEY: process.env.LLM_API_KEY ?? '',
     LLM_BASE_URL: process.env.LLM_BASE_URL ?? '',
@@ -46,7 +49,8 @@ async function main() {
     REDIS_URL: redisUrl.toString(),
     LLM_GLOBAL_MAX_CALLS: String(maxCalls),
   });
-  if (config.LLM_PROVIDER === 'mock') throw new Error('Live evaluation needs a real provider.');
+  if (!config.llmFallback.enabled && config.LLM_PROVIDER === 'mock')
+    throw new Error('Live evaluation needs a real provider.');
   const redis = new Redis(redisUrl.toString(), {
     lazyConnect: true,
     enableOfflineQueue: false,
@@ -80,12 +84,22 @@ async function main() {
     const prompt = await readFile('apps/orbe-node/prompts/v4.md', 'utf8');
     const catalog = await readFile('knowledge/portfolio.json', 'utf8');
     const knowledge = await JsonKnowledgeRepository.load();
+    const invocationFactory = config.llmFallback.enabled
+      ? createRedisFallbackInvocationFactory(config, redis, countedBudget)
+      : undefined;
     console.info('Executando até 8 chamadas reais à LLM; agenda simulada e sem envios.');
     const report = await evaluatePhase3(
       (tools) =>
         new ChatService(
           new MemoryConversationStore(),
-          new LangChainChatProvider(config, knowledge, prompt, countedBudget, tools),
+          new LangChainChatProvider(
+            config,
+            knowledge,
+            prompt,
+            countedBudget,
+            tools,
+            invocationFactory,
+          ),
           knowledge,
           config,
           true,
@@ -103,8 +117,10 @@ async function main() {
           startedAt,
           finishedAt: new Date().toISOString(),
           configuration: {
-            model: config.LLM_MODEL,
-            provider: config.LLM_PROVIDER,
+            model: config.llmFallback.enabled
+              ? config.llmFallback.providers.map(({ id, model }) => ({ provider: id, model }))
+              : config.LLM_MODEL,
+            provider: config.llmFallback.enabled ? 'fallback' : config.LLM_PROVIDER,
             mode: 'live-model-simulated-meetings',
             maxModelCalls: maxCalls,
             modelCalls: calls,

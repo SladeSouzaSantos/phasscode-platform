@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
+import { LLM_FALLBACK_ENV_NAMES } from '../packages/shared-config/src/llm-fallback.js';
 
 const root = resolve('.');
 const processTimeoutMs = 30_000;
@@ -173,6 +174,28 @@ describe('Docker environment isolation (real Compose interpolation, no daemon)',
       host_ip: '127.0.0.1',
       published: '16379',
     });
+  });
+
+  it('forwards every opt-in fallback setting to the selected image without legacy credentials', () => {
+    const values = Object.fromEntries(
+      LLM_FALLBACK_ENV_NAMES.map((name) => [
+        name,
+        name === 'LLM_FALLBACK_ENABLED'
+          ? 'true'
+          : name.endsWith('_API_KEY')
+            ? 'synthetic-only'
+            : name.endsWith('_MODEL')
+              ? 'synthetic-model:free'
+              : name.endsWith('_PER_TURN')
+                ? '6'
+                : '1000',
+      ]),
+    );
+    const result = render('fallback-config-test', '3102', ['compose.yaml'], values);
+    expect(result.status, result.stderr).toBe(0);
+    const environment = result.config!.services.api!.environment;
+    for (const name of LLM_FALLBACK_ENV_NAMES) expect(environment[name], name).toBe(values[name]);
+    expect(environment.LLM_API_KEY).toBe('');
   });
 
   it('forwards phase 3 session and integration timing overrides to API and worker', () => {

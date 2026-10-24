@@ -3,6 +3,11 @@
 Execute `npm ci --ignore-scripts`, `npm run check` e `npm audit --audit-level=high` na raiz.
 `npm test` usa somente mock e servidores HTTP locais simulando o provedor. Não exige chave paga.
 
+O [incremento de fallback de LLM de 24/10](llm-fallback-2026-10-24.md) registra 452 testes únicos
+aprovados, cadeia HTTP simulada, cooldown/cotas Redis entre instâncias e qualificação da imagem.
+Os quatro candidatos reais não foram chamados; o [guia](../deployment/llm-fallback.md) descreve
+ativação, modelos gratuitos e as restrições de produção da Cohere trial.
+
 A Fase 3 permanece em homologação. A [validação de 23/10](phase3-local-validation-2026-10-23.md)
 registra os resultados atuais: preflight, navegador, qualificação da imagem e avaliação v4 autorizada.
 A [auditoria da retomada](phase3-resume-audit.md) registra os defeitos corrigidos e os 323 testes

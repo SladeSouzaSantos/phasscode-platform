@@ -1,6 +1,7 @@
 # Tarefas da PHASSCODE Platform
 
-Base da retomada: `dev/64c8414`. Todo o incremento não commitado da Fase 3 permanece em validação.
+Base atual: `dev/5770836`, com a implementação da Fase 3 commitada pelo proprietário.
+O incremento de fallback de LLM permanece sem commit; a homologação externa segue pendente.
 
 Este backlog separa o que já funciona dos próximos incrementos. Não representa execução,
 publicação no GitHub ou autorização de deploy. Cada tarefa deve entregar código/documentação
@@ -202,6 +203,18 @@ O proprietário confirmou que ainda não configurou as credenciais. Os itens ext
 
 Segredos ficam fora do Git e do chat. Esses itens não são implementações incompletas: faltam
 configuração, credenciais, aprovação das ações externas e validação com as contas reais.
+
+## Incremento antes da Fase 4 — fallback de LLM
+
+- [x] **LLM-F01:** OpenRouter → Gemini → Groq → Cohere opt-in, chaves/modelos/cotas por candidato,
+      Redis compartilhado para cooldown e limites, deadline único e preservação das ferramentas.
+- [x] **LLM-F02:** contrato de chat legado preservado, parâmetros por transporte e assinaturas
+      Gemini validados; configuração, preflight, Compose, README e [guia](deployment/llm-fallback.md).
+- [x] **LLM-F03:** 452 testes únicos aprovados, smoke compilado, build/qualificação Docker e
+      bootstrap isolado dos quatro candidatos. [Evidências](testing/llm-fallback-2026-10-24.md).
+- [ ] **LLM-F04:** proprietário configura os modelos gratuitos/chaves/cotas e homologa os candidatos
+      reais autorizados. Cohere trial não entra em produção; Gemini/Groq dependem do plano da conta.
+      Sem alteração de `.env`, chamadas reais, commit ou deploy neste incremento.
 
 ## Evolução de autenticação após Google OIDC
 

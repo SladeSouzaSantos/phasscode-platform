@@ -1,12 +1,19 @@
 # Progresso e continuidade
 
-Atualizado em 23/10/2026, America/Sao_Paulo.
+Atualizado em 24/10/2026, America/Sao_Paulo.
 
 ## Estado atual
 
-**Fase 3 em homologação, com implementação local e contratos disponíveis.** A retomada parte de `dev/64c8414`, que
-inclui a revisão de segurança e deploy pós-Fase 2. Este incremento ainda não foi commitado,
-publicado ou implantado; não há comprovação das contas externas ou do minimac-server.
+**Fase 3 em homologação, com implementação local e contratos disponíveis.** O código da Fase 3
+está no commit `dev/5770836`. O incremento de fallback de LLM solicitado antes da Fase 4 permanece
+sem commit, publicação ou deploy; não há comprovação das contas externas ou do minimac-server.
+
+Fallback opt-in OpenRouter → Gemini → Groq → Cohere implementado, com cotas separadas, cooldown
+Redis e deadline total, preservando o contrato do chat. Foram aprovados **452 testes únicos**
+(360 locais, 63 de integração e 29 de infraestrutura), build/checks, smoke HTTP e qualificação
+Docker. Sem chamadas reais aos candidatos nesta validação. Cohere trial é recusada em produção;
+gratuidade Gemini/Groq depende da conta/modelo. Veja o [guia](deployment/llm-fallback.md) e as
+[evidências de 24/10](testing/llm-fallback-2026-10-24.md).
 
 Há contratos implementados para **Google OIDC, sessão, reuniões e administração**.
 O [guia da Fase 3](api/phase3-integration.md) e o [OpenAPI](../packages/contracts/openapi.json)

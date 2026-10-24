@@ -19,6 +19,7 @@ const child = spawn(process.execPath, ['dist/apps/orbe-node/src/main.js'], {
     PERSISTENCE: 'memory',
     REDIS_URL: '',
     LLM_PROVIDER: 'mock',
+    LLM_FALLBACK_ENABLED: 'false',
     LOG_LEVEL: 'silent',
   },
   stdio: ['ignore', 'pipe', 'pipe'],

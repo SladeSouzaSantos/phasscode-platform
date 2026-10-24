@@ -33,6 +33,10 @@ selecionada, também confere seus pré-requisitos e orçamento. Ela não comprov
 conteúdo criptográfico da chave, validade de credenciais, escopos Google, entrega de mensagens,
 migrations aplicadas, saúde dos serviços ou integração do navegador.
 
+Com `LLM_FALLBACK_ENABLED=true`, a pré-checagem reconhece as credenciais, modelos e cotas por
+candidato, além do orçamento global. Recusa modelo OpenRouter sem variante gratuita e Cohere
+trial no ambiente efetivo de produção. Veja [llm-fallback.md](llm-fallback.md).
+
 ## Host e Compose são ambientes diferentes
 
 `--target=host` analisa exatamente as variáveis do processo. Executar Node no host exige URLs

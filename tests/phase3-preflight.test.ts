@@ -183,6 +183,83 @@ describe('preflight offline da Fase 3', () => {
       expect(result.output).not.toContain('https://');
     }
   });
+  it('reconhece fallback real com configuração legada mock sem exigir credenciais legadas', () => {
+    const env = {
+      ...environment(),
+      LLM_PROVIDER: 'mock',
+      LLM_FALLBACK_ENABLED: 'true',
+      LLM_GLOBAL_MAX_CALLS: '40',
+      LLM_OPENROUTER_API_KEY: 'private-fallback-key-canary',
+      LLM_OPENROUTER_MODEL: 'synthetic/model:free',
+      LLM_OPENROUTER_MAX_CALLS: '10',
+    };
+    const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('NETWORK_FORBIDDEN'));
+    expect(inspectPhase3Environment(env).exitCode).toBe(0);
+    expect(fetch).not.toHaveBeenCalled();
+    const missing = { ...env, LLM_OPENROUTER_MODEL: '' };
+    const result = runPhase3Preflight(['--json'], missing);
+    expect(result.exitCode).toBe(2);
+    expect(result.output).toContain('LLM_OPENROUTER_MODEL');
+    expect(result.output).not.toContain('private-fallback-key-canary');
+    expect(result.output).not.toContain('LLM_API_KEY');
+    expect(inspectPhase3Environment({ ...env, LLM_GLOBAL_MAX_CALLS: '' }).exitCode).toBe(2);
+  });
+  it('identifica ausência de candidatos e falhas de política gratuita sem valores privados', () => {
+    const absent = inspectPhase3Environment({
+      ...environment(),
+      LLM_FALLBACK_ENABLED: 'true',
+      LLM_GLOBAL_MAX_CALLS: '40',
+    });
+    expect(absent.exitCode).toBe(2);
+    expect(absent.issues.some((issue) => issue.code === 'FALLBACK_PROVIDER_REQUIRED')).toBe(true);
+    const paid = runPhase3Preflight(['--json'], {
+      ...environment(),
+      LLM_FALLBACK_ENABLED: 'true',
+      LLM_GLOBAL_MAX_CALLS: '40',
+      LLM_OPENROUTER_API_KEY: 'private-fallback-key-canary',
+      LLM_OPENROUTER_MODEL: 'private-paid-model-canary',
+      LLM_OPENROUTER_MAX_CALLS: '10',
+    });
+    expect(paid.exitCode).toBe(1);
+    expect(paid.output).toContain('LLM_OPENROUTER_MODEL');
+    expect(paid.output).not.toContain('private-paid-model-canary');
+    const cohere = inspectPhase3Environment({
+      ...environment(),
+      NODE_ENV: 'production',
+      LLM_FALLBACK_ENABLED: 'true',
+      LLM_GLOBAL_MAX_CALLS: '40',
+      LLM_COHERE_API_KEY: 'private-fallback-key-canary',
+      LLM_COHERE_MODEL: 'synthetic-cohere-model',
+      LLM_COHERE_MAX_CALLS: '10',
+    });
+    expect(cohere.exitCode).toBe(1);
+    expect(cohere.issues.some((issue) => issue.variables.includes('LLM_COHERE_API_KEY'))).toBe(
+      true,
+    );
+  });
+  it('avalia a restrição Cohere pelo ambiente efetivo do Compose e não pelo host', () => {
+    const env = {
+      ...environment(),
+      NODE_ENV: 'development',
+      PHASSCODE_NODE_ENV: 'production',
+      POSTGRES_PASSWORD: 'private-postgres-canary',
+      LLM_FALLBACK_ENABLED: 'true',
+      LLM_GLOBAL_MAX_CALLS: '40',
+      LLM_COHERE_API_KEY: 'private-fallback-key-canary',
+      LLM_COHERE_MODEL: 'synthetic-cohere-model',
+      LLM_COHERE_MAX_CALLS: '10',
+    };
+    expect(inspectPhase3Environment(env).exitCode).toBe(0);
+    const result = inspectPhase3Environment(env, {
+      target: 'compose',
+      composeEnvironment: readRepositoryComposeEnvironment(),
+    });
+    expect(result.exitCode).toBe(1);
+    expect(result.issues.some((issue) => issue.variables.includes('LLM_COHERE_API_KEY'))).toBe(
+      true,
+    );
+    expect(JSON.stringify(result)).not.toContain('private-fallback-key-canary');
+  });
   it('modela URLs injetadas pelo Compose sem exigir URLs do host e preserva o input', () => {
     const env: NodeJS.ProcessEnv = {
       ...environment(),
