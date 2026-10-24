@@ -11,19 +11,39 @@ export interface Message {
 export interface KnowledgeDocument extends Source {
   content: string;
   keywords: string[];
+  technologies?: string[] | undefined;
+  category?: 'professional' | 'personal' | 'study' | 'contribution' | undefined;
+  role?: string | undefined;
+  visibility?: 'public' | 'private' | 'third-party' | undefined;
+  relatedProjectIds?: string[] | undefined;
+  repositoryUrl?: string | undefined;
+  demoUrl?: string | undefined;
+  experiencePeriod?:
+    | {
+        start: string;
+        end?: string | undefined;
+        currentAsOf?: string | undefined;
+        areas: ('software-development' | 'engineering')[];
+      }
+    | undefined;
 }
 export interface KnowledgeRepository {
   search(query: string): KnowledgeDocument[];
+  experienceDocuments?(): KnowledgeDocument[];
 }
 export interface GenerationInput {
   message: string;
   history: Message[];
   documents: KnowledgeDocument[];
   signal: AbortSignal;
+  meetingActions?: boolean;
+  asOf?: Date;
+  experienceIds?: string[];
 }
 export interface GenerationResult {
   answer: string;
   sources: Source[];
+  actions?: ChatResponse['actions'];
 }
 export interface ChatProvider {
   readonly name: ProviderName;

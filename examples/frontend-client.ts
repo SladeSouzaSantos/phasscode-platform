@@ -4,7 +4,10 @@ import type { ChatRequest, ChatResponse } from '../packages/contracts/src/index.
 export class OrbeClient {
   private conversationId?: string;
   private token?: string;
-  constructor(private readonly baseUrl: string) {}
+  constructor(
+    private readonly baseUrl: string,
+    private readonly options: { meetingActions?: boolean } = {},
+  ) {}
   async send(message: string, signal?: AbortSignal): Promise<ChatResponse> {
     const body: ChatRequest = {
       message,
@@ -15,6 +18,7 @@ export class OrbeClient {
       headers: {
         'Content-Type': 'application/json',
         ...(this.token ? { 'X-Conversation-Token': this.token } : {}),
+        ...(this.options.meetingActions ? { 'X-Orbe-Capabilities': 'meetings-v1' } : {}),
       },
       body: JSON.stringify(body),
       ...(signal ? { signal } : {}),
@@ -54,4 +58,4 @@ export async function sendFromView(
     view.setLoading(false);
   }
 }
-// Availability/meeting requests serão adicionados na Fase 3, junto com contratos reais.
+// Login, consentimento e reuniões: veja phase3-client.ts. O chat legado não precisa de login.

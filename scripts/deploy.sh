@@ -52,7 +52,11 @@ case "$proxy_mode" in
   *) fail 'PHASSCODE_USE_PROXY or saved proxy mode must be true or false.' ;;
 esac
 "${compose[@]}" config --quiet
-"${compose[@]}" --profile maintenance pull api migrate retention
+# Read only the non-secret flag; never source .env or print interpolated configuration.
+worker_enabled=$("${compose[@]}" --profile worker config --format json | awk '/^[[:space:]]*"WORKER_ENABLED":[[:space:]]*"true"/ { enabled=1 } END { print enabled ? "true" : "false" }')
+services=(api migrate retention)
+if [[ "$worker_enabled" == true ]]; then services+=(worker); fi
+"${compose[@]}" --profile maintenance --profile worker pull "${services[@]}"
 image_revision=$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$image_ref")
 [[ "$image_revision" == "$revision" ]] || fail 'Pulled image revision differs from the tested release; database and running services were not changed.'
 
@@ -62,6 +66,8 @@ if [[ -f .deployment/image-ref ]]; then
   cp -- .deployment/image-ref .deployment/previous-image-ref
 fi
 printf '%s\n' "$image_ref" > .deployment/attempted-image-ref
+# Drain the previous worker before schema changes; no database rollback is implied on failure.
+"${compose[@]}" --profile worker stop worker
 "${compose[@]}" up -d --no-build --wait postgres redis
 "${compose[@]}" run --rm --no-deps migrate
 if ! "${compose[@]}" up -d --no-build --no-deps --wait api; then
@@ -73,6 +79,13 @@ actual_image=$(docker inspect --format '{{.Config.Image}}' "$container_id")
 [[ "$actual_image" == "$image_ref" ]] || fail 'Running API does not use the tested immutable image.'
 actual_revision=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$container_id")
 [[ "$actual_revision" == "$revision" ]] || fail 'Running image revision differs from the tested release.'
+if [[ "$worker_enabled" == true ]]; then
+  "${compose[@]}" --profile worker up -d --no-build --no-deps --wait worker || fail 'Worker failed after migration. Investigate outbox and configuration; no automatic rollback was attempted.'
+  worker_id=$("${compose[@]}" --profile worker ps -q worker)
+  [[ -n "$worker_id" ]] || fail 'Worker container is missing.'
+  [[ $(docker inspect --format '{{.Config.Image}}' "$worker_id") == "$image_ref" ]] || fail 'Worker does not use the tested immutable image.'
+  [[ $(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$worker_id") == "$revision" ]] || fail 'Worker revision differs from the tested release.'
+fi
 curl --fail --silent --show-error --max-time 20 "http://127.0.0.1:$port/ready" |
   grep -Eq '"status"[[:space:]]*:[[:space:]]*"ready"' || fail 'Readiness verification failed; migration is not reverted automatically.'
 printf '%s\n' "$project" > .deployment/project-name

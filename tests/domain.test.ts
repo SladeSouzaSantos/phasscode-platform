@@ -77,8 +77,9 @@ describe('conhecimento e conversas', () => {
     );
     const response = await service.execute({ message: 'Quais certificados você tem?' });
     expect(response.sources.map((source) => source.id)).toContain('cursos-declarados');
-    expect(response.answer).toContain('autodeclarados');
-    expect(response.answer).toContain('Não há confirmação de certificação Kubernetes');
+    expect(response.answer).toContain('cursos e estudos');
+    expect(response.answer).toContain('credenciais profissionais de fornecedor registradas');
+    expect(response.answer).not.toMatch(/(?:possui|tem) certifica[çc][aã]o Kubernetes/i);
   });
   it('limita histórico por quantidade e orçamento de contexto', async () => {
     const seen: GenerationInput[] = [];

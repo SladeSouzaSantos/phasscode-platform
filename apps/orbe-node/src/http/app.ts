@@ -12,6 +12,10 @@ import type { Config } from '../../../../packages/shared-config/src/index.js';
 import type { ChatProvider, ConversationStore, KnowledgeRepository } from '../domain/ports.js';
 import { ChatService } from '../application/chat.js';
 import { AppError } from '../domain/errors.js';
+import { AuthService } from '../auth/service.js';
+import { registerAuthRoutes } from '../auth/routes.js';
+import type { MeetingService } from '../meetings/service.js';
+import { registerMeetingRoutes } from '../meetings/routes.js';
 
 export interface AppOptions {
   config: Config;
@@ -19,13 +23,32 @@ export interface AppOptions {
   knowledge: KnowledgeRepository;
   provider: ChatProvider;
   redis?: Redis;
+  auth?: AuthService;
+  meetings?: MeetingService;
+  phase3Ready?: () => Promise<void>;
 }
-export async function buildApp({ config, store, knowledge, provider, redis }: AppOptions) {
+export async function buildApp({
+  config,
+  store,
+  knowledge,
+  provider,
+  redis,
+  auth,
+  meetings,
+  phase3Ready,
+}: AppOptions) {
+  if (config.auth.enabled && !auth) throw new Error('Autenticação habilitada sem serviço.');
+  if (config.meetings.enabled && !meetings) throw new Error('Reuniões habilitadas sem serviço.');
   const app = Fastify({
     bodyLimit: 8192,
-    requestTimeout: 65000,
+    requestTimeout: 120000,
     // O socket precisa aguardar a geração para receber a resposta ou o erro 504 da aplicação.
-    connectionTimeout: config.LLM_TIMEOUT_MS + 5000,
+    connectionTimeout:
+      Math.max(
+        config.LLM_TIMEOUT_MS,
+        config.auth.enabled ? 3 * config.auth.AUTH_HTTP_TIMEOUT_SECONDS * 1000 : 0,
+        config.meetings.enabled ? 2 * config.calendar.GOOGLE_CALENDAR_HTTP_TIMEOUT_MS : 0,
+      ) + 5000,
     trustProxy: config.trustedProxies.length ? config.trustedProxies : false,
     logController: new LogController({ disableRequestLogging: true }),
     genReqId: () => randomUUID(),
@@ -39,6 +62,9 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
                 'req.headers.authorization',
                 'req.headers.cookie',
                 'req.headers["x-conversation-token"]',
+                'req.headers["x-meeting-token"]',
+                'req.headers["x-csrf-token"]',
+                'res.headers["set-cookie"]',
                 'body',
                 'token',
                 'apiKey',
@@ -48,7 +74,7 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
             serializers: { req: (req: { method: string }) => ({ method: req.method }) },
           },
   });
-  const service = new ChatService(store, provider, knowledge, config);
+  const service = new ChatService(store, provider, knowledge, config, Boolean(meetings));
   await app.register(helmet);
   app.addHook('onRequest', async (request, reply) => {
     reply.header('X-Correlation-Id', request.id);
@@ -60,9 +86,17 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
   await app.register(cors, {
     origin: config.corsOrigins,
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-Conversation-Token'],
+    allowedHeaders: [
+      'Content-Type',
+      'X-Conversation-Token',
+      'X-CSRF-Token',
+      'X-Meeting-Token',
+      'Idempotency-Key',
+      'Authorization',
+      'X-Orbe-Capabilities',
+    ],
     exposedHeaders: ['X-Correlation-Id', 'Retry-After'],
-    credentials: false,
+    credentials: config.auth.enabled,
   });
   await app.register(rateLimit, {
     global: false,
@@ -76,6 +110,30 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
       new AppError('RATE_LIMITED', 429, 'Muitas requisições. Aguarde antes de tentar novamente.'),
   });
   const limitChat = app.rateLimit();
+  const limitPhase3 = app.rateLimit({
+    keyGenerator: (request) => `phase3:${request.ip}`,
+    max: 20,
+    timeWindow: 60000,
+  });
+  app.addHook('onRequest', async (request, reply) => {
+    const path = request.url.split('?')[0]!;
+    if (
+      !/^\/api\/v1\/(?:auth\/|meetings\/|admin\/|me$)/.test(path) &&
+      path !== '/.well-known/jwks.json'
+    )
+      return;
+    try {
+      await limitPhase3.call(app, request, reply);
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(
+        'RATE_LIMIT_UNAVAILABLE',
+        503,
+        'O controle de requisições está indisponível. Tente novamente.',
+        1,
+      );
+    }
+  });
   await app.register(swagger, {
     mode: 'static',
     specification: {
@@ -144,6 +202,7 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
     const checks = await Promise.allSettled([
       store.ready(),
       redis ? redis.ping() : Promise.resolve(),
+      phase3Ready ? phase3Ready() : Promise.resolve(),
     ]);
     const ready = checks.every((check) => check.status === 'fulfilled');
     return reply.status(ready ? 200 : 503).send({
@@ -157,10 +216,14 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
               : 'down'
             : 'disabled',
         redis: redis ? (checks[1]?.status === 'fulfilled' ? 'up' : 'down') : 'disabled',
+        ...(phase3Ready ? { phase3: checks[2]?.status === 'fulfilled' ? 'up' : 'down' } : {}),
       },
     });
   });
   app.get('/api/v1/openapi.json', async () => openApiDocument);
+  const authentication = auth ?? new AuthService({ enabled: false });
+  await registerAuthRoutes(app, authentication);
+  if (meetings) registerMeetingRoutes(app, { service: meetings, auth: authentication });
   app.post(
     '/api/v1/chat',
     {
@@ -189,7 +252,10 @@ export async function buildApp({ config, store, knowledge, provider, redis }: Ap
       const token = request.headers['x-conversation-token'];
       if (token !== undefined && (typeof token !== 'string' || token.length > 128))
         throw new AppError('INVALID_REQUEST', 400, 'Token de conversa inválido.');
-      return service.execute(body.data, token);
+      const capabilities = request.headers['x-orbe-capabilities'];
+      if (capabilities !== undefined && capabilities !== 'meetings-v1')
+        throw new AppError('INVALID_REQUEST', 400, 'Capacidade do cliente não suportada.');
+      return service.execute(body.data, token, { meetingActions: capabilities === 'meetings-v1' });
     },
   );
   app.addHook('onClose', async () => {

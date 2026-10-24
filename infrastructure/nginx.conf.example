@@ -25,6 +25,22 @@ server {
     resolver 127.0.0.11 valid=10s ipv6=off;
     resolver_timeout 3s;
     set $phasscode_upstream REPLACE_CONFIRMED_ALIAS:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    # Adaptar se TLS termina em outro proxy confiavel.
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 100s;
+    # OAuth code/state pertencem somente ao callback. Nao gravar query em access logs.
+    # Aplicar a mesma exclusao no CDN/proxy anterior, se houver.
+    location = /api/v1/auth/callback/google {
+        access_log off;
+        # Falhas de upstream tambem podem incluir code/state no error log padrao.
+        error_log /dev/null crit;
+        proxy_pass http://$phasscode_upstream;
+    }
     # Readiness consulta banco/Redis; manter acessivel somente pela operacao interna.
     # Verificacao publica usa /health. A API publica no host continua apenas no loopback.
     location = /ready {
@@ -32,13 +48,5 @@ server {
     }
     location / {
         proxy_pass http://$phasscode_upstream;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $remote_addr;
-        # Se TLS termina antes do Nginx, adaptar a origem a um proxy realmente confiavel.
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_connect_timeout 5s;
-        proxy_read_timeout 65s;
     }
 }

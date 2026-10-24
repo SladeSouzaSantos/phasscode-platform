@@ -1,4 +1,14 @@
 import { z } from 'zod';
+import { loadAuthConfig, type AuthConfig } from './auth.js';
+import { loadMeetingConfig, type MeetingConfig } from './meetings.js';
+import { loadCalendarConfig, type CalendarConfig } from './calendar.js';
+import { loadWorkerConfig, type WorkerConfig } from './worker.js';
+import { loadLlmFallbackConfig, type LlmFallbackConfig } from './llm-fallback.js';
+export type {
+  LlmFallbackConfig,
+  LlmFallbackProviderConfig,
+  LlmFallbackProviderId,
+} from './llm-fallback.js';
 
 const unsafeLlmDiagnostics = [
   'LANGCHAIN_VERBOSE',
@@ -64,6 +74,11 @@ const envSchema = z.object({
 export type Config = z.infer<typeof envSchema> & {
   corsOrigins: string[];
   trustedProxies: string[];
+  auth: AuthConfig;
+  meetings: MeetingConfig;
+  calendar: CalendarConfig;
+  worker: WorkerConfig;
+  llmFallback: LlmFallbackConfig;
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -98,20 +113,33 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   ) {
     throw new Error('Produção requer PostgreSQL e Redis configurados.');
   }
+  const llmFallback = loadLlmFallbackConfig(env, {
+    nodeEnv: config.NODE_ENV,
+    timeoutMs: config.LLM_TIMEOUT_MS,
+    globalWindowMs: config.LLM_GLOBAL_WINDOW_MS,
+  });
   if (
     config.OPENROUTER_REASONING_ENABLED !== undefined &&
-    (config.LLM_PROVIDER !== 'openai-compatible' || config.LLM_API_MODE !== 'chat-completions')
+    (llmFallback.enabled
+      ? !llmFallback.providers.some((provider) => provider.id === 'openrouter')
+      : config.LLM_PROVIDER !== 'openai-compatible' || config.LLM_API_MODE !== 'chat-completions')
   ) {
     throw new Error(
-      'OPENROUTER_REASONING_ENABLED requer LLM_PROVIDER=openai-compatible e LLM_API_MODE=chat-completions.',
+      llmFallback.enabled
+        ? 'OPENROUTER_REASONING_ENABLED requer um candidato OpenRouter no fallback.'
+        : 'OPENROUTER_REASONING_ENABLED requer LLM_PROVIDER=openai-compatible e LLM_API_MODE=chat-completions.',
     );
   }
-  if (config.LLM_PROVIDER !== 'mock' && (!config.LLM_API_KEY || !config.LLM_MODEL)) {
+  if (
+    !llmFallback.enabled &&
+    config.LLM_PROVIDER !== 'mock' &&
+    (!config.LLM_API_KEY || !config.LLM_MODEL)
+  ) {
     throw new Error('LLM_API_KEY e LLM_MODEL são obrigatórios para o provedor real.');
   }
-  if (config.LLM_PROVIDER === 'openai-compatible' && !config.LLM_BASE_URL)
+  if (!llmFallback.enabled && config.LLM_PROVIDER === 'openai-compatible' && !config.LLM_BASE_URL)
     throw new Error('LLM_BASE_URL é obrigatória para openai-compatible.');
-  if (config.LLM_BASE_URL) {
+  if (!llmFallback.enabled && config.LLM_BASE_URL) {
     const url = new URL(config.LLM_BASE_URL);
     if (
       !['https:', 'http:'].includes(url.protocol) ||
@@ -124,14 +152,45 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     if (config.NODE_ENV === 'production' && url.protocol !== 'https:')
       throw new Error('LLM_BASE_URL requer HTTPS em produção.');
   }
-  if (config.LLM_PROVIDER !== 'mock' && (!config.REDIS_URL || !config.LLM_GLOBAL_MAX_CALLS)) {
+  if (
+    (llmFallback.enabled || config.LLM_PROVIDER !== 'mock') &&
+    (!config.REDIS_URL || !config.LLM_GLOBAL_MAX_CALLS)
+  ) {
     throw new Error(
       'Provedor real requer REDIS_URL e LLM_GLOBAL_MAX_CALLS para controlar o consumo.',
     );
   }
+  const auth = loadAuthConfig({ ...env, CORS_ORIGINS: corsOrigins.join(',') });
+  const meetings = loadMeetingConfig(env);
+  const calendar = loadCalendarConfig(env);
+  const worker = loadWorkerConfig(env);
+  if (
+    (auth.enabled || meetings.enabled || worker.WORKER_ENABLED) &&
+    (config.PERSISTENCE !== 'postgres' || !config.REDIS_URL)
+  ) {
+    throw new Error('Login, reuniões e worker requerem PostgreSQL e Redis configurados.');
+  }
+  if (meetings.enabled && (!auth.enabled || calendar.GOOGLE_CALENDAR_MODE === 'disabled')) {
+    throw new Error(
+      'Reuniões habilitadas requerem autenticação administrativa e calendário configurados.',
+    );
+  }
+  if (
+    meetings.enabled &&
+    meetings.calendarLeaseSeconds * 1000 < 6 * calendar.GOOGLE_CALENDAR_HTTP_TIMEOUT_MS
+  ) {
+    throw new Error('A lease de calendário deve cobrir pelo menos seis timeouts HTTP do Calendar.');
+  }
+  if (worker.WORKER_ENABLED && !meetings.enabled)
+    throw new Error('Worker requer reuniões habilitadas.');
   return {
     ...config,
     corsOrigins,
+    auth,
+    meetings,
+    calendar,
+    worker,
+    llmFallback,
     trustedProxies: config.TRUST_PROXY.split(',')
       .map((item) => item.trim())
       .filter(Boolean),

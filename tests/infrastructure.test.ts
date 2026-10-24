@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
+import { LLM_FALLBACK_ENV_NAMES } from '../packages/shared-config/src/llm-fallback.js';
 
 const root = resolve('.');
 const processTimeoutMs = 30_000;
@@ -147,7 +148,7 @@ describe('Docker environment isolation (real Compose interpolation, no daemon)',
       LLM_GLOBAL_BUDGET_KEY: 'custom-budget',
     });
     expect(result.status, result.stderr).toBe(0);
-    for (const name of ['api', 'migrate', 'retention']) {
+    for (const name of ['api', 'migrate', 'retention', 'worker']) {
       const service = result.config!.services[name]!;
       expect(service.image).toBe(image);
       expect(service.environment.DATABASE_URL).toContain('@postgres:5432/development_database');
@@ -173,6 +174,44 @@ describe('Docker environment isolation (real Compose interpolation, no daemon)',
       host_ip: '127.0.0.1',
       published: '16379',
     });
+  });
+
+  it('forwards every opt-in fallback setting to the selected image without legacy credentials', () => {
+    const values = Object.fromEntries(
+      LLM_FALLBACK_ENV_NAMES.map((name) => [
+        name,
+        name === 'LLM_FALLBACK_ENABLED'
+          ? 'true'
+          : name.endsWith('_API_KEY')
+            ? 'synthetic-only'
+            : name.endsWith('_MODEL')
+              ? 'synthetic-model:free'
+              : name.endsWith('_PER_TURN')
+                ? '6'
+                : '1000',
+      ]),
+    );
+    const result = render('fallback-config-test', '3102', ['compose.yaml'], values);
+    expect(result.status, result.stderr).toBe(0);
+    const environment = result.config!.services.api!.environment;
+    for (const name of LLM_FALLBACK_ENV_NAMES) expect(environment[name], name).toBe(values[name]);
+    expect(environment.LLM_API_KEY).toBe('');
+  });
+
+  it('forwards phase 3 session and integration timing overrides to API and worker', () => {
+    const overrides = {
+      AUTH_ACCESS_TTL_SECONDS: '240',
+      AUTH_SESSION_TTL_SECONDS: '1200',
+      AUTH_SESSION_MAX_SECONDS: '14400',
+      AUTH_HTTP_TIMEOUT_SECONDS: '8',
+      MEETINGS_MAX_AVAILABILITY_DAYS: '3',
+      MEETINGS_PROPOSAL_TTL_MINUTES: '20',
+      NOTIFICATION_HTTP_TIMEOUT_MS: '7000',
+    };
+    const result = render('phase3-timing-overrides', '3102', ['compose.yaml'], overrides);
+    expect(result.status, result.stderr).toBe(0);
+    for (const name of ['api', 'worker'])
+      expect(result.config!.services[name]!.environment).toMatchObject(overrides);
   });
 
   it('requires confirmation of a proxy network and uses distinct explicitly selected aliases', () => {
@@ -217,9 +256,12 @@ writeFileSync(
 docker() {
   printf 'docker[%s|%s|%s] %s\\n' "$COMPOSE_PROJECT_NAME" "$PHASSCODE_HTTP_PORT" "$PHASSCODE_IMAGE" "$*" >> "$TEST_LOG"
   case "$*" in
+    *'config --format json'*) printf '{\\n  "WORKER_ENABLED": "%s"\\n}\\n' "\${FAKE_WORKER_ENABLED:-false}" ;;
     *'run --rm --no-deps migrate'*) [[ \${FAKE_MIGRATION_FAIL:-0} != 1 ]] || return 9 ;;
     *'up -d --no-build --no-deps --wait api'*) [[ \${FAKE_API_FAIL:-0} != 1 ]] || return 9 ;;
+    *'up -d --no-build --no-deps --wait worker'*) [[ \${FAKE_WORKER_FAIL:-0} != 1 ]] || return 9 ;;
     *'ps -q api'*) echo api-container ;;
+    *'ps -q worker'*) echo worker-container ;;
     *'inspect --format {{.Config.Image}}'*) echo "\${FAKE_ACTUAL_IMAGE:-$PHASSCODE_IMAGE}" ;;
     *'inspect --format'*'org.opencontainers.image.revision'*) echo "\${FAKE_IMAGE_REVISION:-${sha}}" ;;
   esac
@@ -275,6 +317,44 @@ function deployment(
   return { ...result, checkout, log: existsSync(log) ? readFileSync(log, 'utf8') : '' };
 }
 
+const releasedSnapshots = new Map<string, ReturnType<typeof deployment>>();
+function rememberReleasedSnapshot(
+  target: string,
+  proxy: boolean,
+  release: ReturnType<typeof deployment>,
+) {
+  // Baselines come only from a completed execution of the actual deploy script with fake tools.
+  // Keep an immutable copy: operations tests must never share mutable metadata with each other.
+  expect(release.status, release.stderr).toBe(0);
+  const project = target === 'production' ? 'phasscode-platform' : 'phasscode-platform-dev';
+  for (const [file, value] of Object.entries({
+    'image-ref': digest,
+    'project-name': project,
+    'http-port': target === 'production' ? '3000' : '3001',
+    'use-proxy': String(proxy),
+  }))
+    expect(readFileSync(join(release.checkout, '.deployment', file), 'utf8').trim()).toBe(value);
+  expect(existsSync(join(release.checkout, '.deploy-lock'))).toBe(false);
+  const baseline = join(mkdtempSync(join(temp, 'released-baseline-')), project);
+  cpSync(release.checkout, baseline, { recursive: true });
+  releasedSnapshots.set(`${target}:${proxy}`, { ...release, checkout: baseline });
+}
+
+function releasedFixture(target = 'development', proxy = false) {
+  const key = `${target}:${proxy}`;
+  if (!releasedSnapshots.has(key))
+    rememberReleasedSnapshot(
+      target,
+      proxy,
+      deployment(target, { PHASSCODE_USE_PROXY: String(proxy) }),
+    );
+  const baseline = releasedSnapshots.get(key)!;
+  const project = target === 'production' ? 'phasscode-platform' : 'phasscode-platform-dev';
+  const checkout = join(mkdtempSync(join(temp, 'operation-fixture-')), project);
+  cpSync(baseline.checkout, checkout, { recursive: true });
+  return { ...baseline, checkout };
+}
+
 function operationalCompose(
   checkout: string,
   project: string,
@@ -308,6 +388,30 @@ function operationalCompose(
 }
 
 describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
+  it('drains and upgrades the opted-in worker using the verified API image', () => {
+    const result = deployment('development', { FAKE_WORKER_ENABLED: 'true' });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.log).toContain('pull api migrate retention worker');
+    expect(result.log.indexOf('stop worker')).toBeLessThan(
+      result.log.indexOf('run --rm --no-deps migrate'),
+    );
+    expect(result.log.indexOf('run --rm --no-deps migrate')).toBeLessThan(
+      result.log.indexOf('up -d --no-build --no-deps --wait worker'),
+    );
+    expect(result.log).toContain('ps -q worker');
+    expect(result.log).toContain('worker-container');
+  });
+  it('keeps a failed worker release marked incomplete without rolling back data', () => {
+    const result = deployment('development', {
+      FAKE_WORKER_ENABLED: 'true',
+      FAKE_WORKER_FAIL: '1',
+    });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('Worker failed after migration');
+    expect(existsSync(join(result.checkout, '.deployment/attempted-image-ref'))).toBe(true);
+    expect(existsSync(join(result.checkout, '.deployment/image-ref'))).toBe(false);
+    expect(result.log).not.toMatch(/down|--volumes/);
+  });
   it('does nothing by default and rejects mutable image tags', () => {
     const plan = deployment('development', {}, false);
     expect(plan.status, plan.stderr).toBe(0);
@@ -335,6 +439,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     );
     expect(existsSync(join(result.checkout, '.deploy-lock'))).toBe(false);
     expect(result.log).not.toMatch(/down|--volumes|nginx/);
+    rememberReleasedSnapshot(target!, false, result);
   });
 
   it.each([{ FAKE_BRANCH: 'wrong' }, { FAKE_REVISION: 'd'.repeat(40) }, { FAKE_DIRTY: '1' }])(
@@ -386,7 +491,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   ])(
     'retention after %s deploy reuses its saved immutable image, project and port',
     (target, project, port) => {
-      const release = deployment(target);
+      const release = releasedFixture(target);
       expect(release.status, release.stderr).toBe(0);
       writeFileSync(
         join(release.checkout, '.env'),
@@ -400,7 +505,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   );
 
   it('requires project metadata to match and refuses corrupt saved image references', () => {
-    const release = deployment();
+    const release = releasedFixture();
     expect(release.status, release.stderr).toBe(0);
     const wrongProject = operationalCompose(release.checkout, 'phasscode-platform');
     expect(wrongProject.status).not.toBe(0);
@@ -425,7 +530,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   });
 
   it('permits a conscious image/port override while preserving the selected project', () => {
-    const release = deployment();
+    const release = releasedFixture();
     expect(release.status, release.stderr).toBe(0);
     const overrideImage = `ghcr.io/example/platform@sha256:${'f'.repeat(64)}`;
     const operation = operationalCompose(release.checkout, 'phasscode-platform-dev', {
@@ -437,7 +542,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   });
 
   it('rejects Compose flags that would silently replace the selected project, env-file or source files', () => {
-    const release = deployment();
+    const release = releasedFixture();
     expect(release.status, release.stderr).toBe(0);
     for (const flag of [
       '--project-name=another-project',
@@ -456,7 +561,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   });
 
   it('retains the applied proxy overlay for retention and a later deployment with no explicit mode', () => {
-    const release = deployment('development', { PHASSCODE_USE_PROXY: 'true' });
+    const release = releasedFixture('development', true);
     expect(release.status, release.stderr).toBe(0);
     expect(readFileSync(join(release.checkout, '.deployment/use-proxy'), 'utf8').trim()).toBe(
       'true',
@@ -471,7 +576,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   }, 30_000);
 
   it('supports an explicit --no-proxy operation and an explicitly selected non-proxy release', () => {
-    const release = deployment('development', { PHASSCODE_USE_PROXY: 'true' });
+    const release = releasedFixture('development', true);
     expect(release.status, release.stderr).toBe(0);
     const operation = operationalCompose(release.checkout, 'phasscode-platform-dev', {}, [
       '--no-proxy',
@@ -496,7 +601,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   });
 
   it('fails before Docker when the persisted proxy mode is invalid', () => {
-    const release = deployment();
+    const release = releasedFixture();
     expect(release.status, release.stderr).toBe(0);
     writeFileSync(join(release.checkout, '.deployment/use-proxy'), 'not-a-mode\n');
     const operation = operationalCompose(release.checkout, 'phasscode-platform-dev');

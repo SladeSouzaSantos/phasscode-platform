@@ -31,7 +31,7 @@ export function redactText(text: string, privateValues: readonly string[] = []):
 export function evaluateTurn(
   raw: unknown,
   expectation: Expectation,
-  catalog: readonly Source[],
+  catalog: readonly (Source & { repositoryUrl?: string; demoUrl?: string; visibility?: string })[],
   context: { live: boolean; isNew: boolean; expectedConversationId?: string },
 ): TurnAssessment {
   const parsed = chatResponseSchema.safeParse(raw);
@@ -86,11 +86,20 @@ export function evaluateTurn(
   const sourceIds = response.sources.map((source) => source.id);
   const validSources = response.sources.every((source) => {
     const reference = catalog.find((item) => item.id === source.id);
+    const publicProject =
+      reference &&
+      ['project', 'platform'].includes(reference.type) &&
+      reference.visibility !== 'private' &&
+      reference.visibility !== 'third-party';
+    const knownUrls = publicProject
+      ? [reference.repositoryUrl, reference.demoUrl, reference.url]
+      : [reference?.url];
+    const documentedUrls = knownUrls.filter((url): url is string => typeof url === 'string');
     return (
       reference &&
       reference.type === source.type &&
       reference.title === source.title &&
-      reference.url === source.url
+      (source.url === undefined ? documentedUrls.length === 0 : documentedUrls.includes(source.url))
     );
   });
   add(

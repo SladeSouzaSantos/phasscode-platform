@@ -1,21 +1,26 @@
 # PHASSCODE Platform
 
 Backend do portfólio PHASSCODE e do assistente Orbe Mágico. O monorepo oferece
-chat executável em Node.js, com conhecimento público estruturado, fontes e provedores
-mock e real separados. O frontend React existente não foi alterado.
+chat público em Node.js, login Google OIDC e agendamento com aprovação administrativa,
+Google Calendar e notificações assíncronas. O frontend React é integrado separadamente.
 
-**Fases 1 e 2 concluídas e publicadas pela PR #2.** A base tem 31 documentos. A avaliação real e
-suas reexecuções estão no [fechamento da Fase 2](evaluation/reports/phase2-closeout.md). A revisão
-pós-Fase 2 prepara ambientes isolados no `minimac-server`, orçamento global de LLM e deploy manual.
-Validação atual: **195 testes aprovados** (153 locais, 25 de infraestrutura e 17 de integração),
-além de build, smoke e auditoria sem vulnerabilidades reportadas.
-Arquivos, correções e limites estão na [entrega da revisão](docs/testing/post-phase2-validation.md).
-A [conferência final](docs/testing/post-phase2-audit.md) verifica cada requisito e as pendências antes da Fase 3.
-O chat já permite integração local do frontend. Google OIDC continua sendo a primeira entrega da Fase 3.
+**Fase 3 em homologação, com implementação local e contratos disponíveis.** Login, reuniões,
+administração e ações do Orbe têm contratos para integração do frontend. Veja o
+[guia da Fase 3](docs/api/phase3-integration.md), a [configuração](docs/deployment/phase3.md)
+e a [validação de 23/10](docs/testing/phase3-local-validation-2026-10-23.md). As funções novas começam desativadas;
+habilitá-las exige PostgreSQL/Redis e as configurações próprias dos provedores.
+As Fases 1 e 2 e sua avaliação real estão no [fechamento anterior](evaluation/reports/phase2-closeout.md).
+A retomada anterior partiu de `dev/64c8414`; a implementação da Fase 3 está em `dev/5770836`.
+A validação inclui suites locais e PostgreSQL/Redis descartáveis,
+navegador real com OIDC local, qualificação da imagem com API/worker separados e avaliação v4
+autorizada na OpenRouter. Evidências e limites estão no relatório; não comprovam funcionamento
+nas contas externas ou no servidor publicado. O proprietário confirmou que configurará os provedores
+e implementará a UI; o [handoff do frontend](docs/api/phase3-frontend-handoff.md) já está disponível.
 
-Login Google OIDC, agendamento, aprovação administrativa, Google Calendar, notificações, BullMQ, Java, RabbitMQ e Kafka
-fazem parte das próximas fases. Os perfis opcionais dos brokers disponibilizam infraestrutura, não
-adaptadores de aplicação. Nenhum endpoint de reunião é anunciado como funcional.
+O portfólio e o Orbe continuam públicos. Login Google não concede papel administrativo; cookies
+HttpOnly protegem a sessão, e JWTs de serviço permanecem no backend. Autorização Calendar é
+independente do login. Java/Spring, RabbitMQ e Kafka continuam nas próximas fases; seus perfis de
+infraestrutura não representam adaptadores implementados.
 
 ## Execução rápida sem credenciais
 
@@ -23,11 +28,12 @@ Requisitos: Node.js 24 LTS e npm 11. Execute os comandos na raiz do repositório
 
 ```powershell
 npm ci --ignore-scripts
-Copy-Item .env.example .env
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 npm run dev
 ```
 
-No Linux/macOS, use `cp .env.example .env`. A configuração inicial usa memória e mock; o histórico
+No Linux/macOS, use `test -f .env || cp .env.example .env`. Preserve um `.env` existente e confira
+suas opções antes de iniciar. A configuração inicial usa memória e mock; o histórico
 se perde ao reiniciar e esse modo não é permitido em produção. O mock devolve textos extraídos da
 base e inclui `meta.simulated: true` e um aviso na resposta. Não representa geração por LLM.
 
@@ -48,7 +54,9 @@ Abra Swagger em <http://localhost:3000/docs/> e o contrato em
 
 ## Docker e persistência
 
-Requer Docker Engine ativo e Compose v2. Copie `.env.example` para `.env` e configure a senha local.
+Requer Docker Engine ativo e Compose v2. Crie `.env` a partir do exemplo somente se ainda não existir
+e configure a senha local. Os comandos desta seção são procedimentos de operação; a auditoria da
+retomada usou dependências descartáveis, sem migrations no servidor ou alteração do `.env` real.
 Se usar caracteres reservados em `POSTGRES_PASSWORD`, codifique-os na URI ou escolha uma senha
 alfanumérica aleatória; a interpolação do Compose não faz URL encoding.
 
@@ -74,10 +82,17 @@ Para Node no host com dependências em containers:
 
 ```bash
 docker compose -f compose.yaml -f compose.dev.yaml up -d postgres redis
-# Em .env: PERSISTENCE=postgres, DATABASE_URL conforme exemplo, REDIS_URL=redis://localhost:6379
+# Em .env: PERSISTENCE=postgres, DATABASE_URL=postgresql://USUARIO:SENHA_CODIFICADA@localhost:5432/BASE
+# e REDIS_URL=redis://localhost:6379; use as credenciais/portas escolhidas para o banco local.
 npm run migrate
 npm run dev
 ```
+
+No `.env.example`, `NODE_ENV`, `HOST`, `PORT`, `DATABASE_URL` e `REDIS_URL` são opções do processo
+Node no host. No Compose, `PHASSCODE_NODE_ENV` escolhe o ambiente do container e
+`PHASSCODE_HTTP_PORT` escolhe a porta publicada; as URLs dos bancos são derivadas internamente
+dos campos `POSTGRES_*` e dos serviços. As opções são independentes. O env-file do Node não
+expande `${POSTGRES_*}` em `DATABASE_URL`: informe uma URI completa somente quando rodar no host.
 
 Migrations são transacionais, usam advisory lock e verificam checksums. Não edite uma migration
 aplicada; crie a próxima. Para parar sem remover dados: `docker compose down`.
@@ -92,14 +107,31 @@ npm run db:retention
 
 Os perfis `rabbitmq` e `kafka` são opcionais e independentes. O ambiente padrão usa somente Redis.
 Eles serão conectados e validados nas Fases 5 e 6. O Kafka local usa um nó KRaft; não é um cluster de
-produção. Notificações e lembretes via BullMQ começam na Fase 3.
+produção. O worker BullMQ da Fase 3 é opt-in pelo perfil `worker`.
 
 ## Chat com LLM real
 
-No `.env`, configure:
+Escolha um modo de execução; os blocos de credenciais de provedor único e fallback são
+alternativos. A seleção é:
+
+| `LLM_FALLBACK_ENABLED` | `LLM_PROVIDER`                  | Credenciais utilizadas                                                                                 |
+| ---------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `false`                | `mock`                          | Nenhuma; respostas simuladas.                                                                          |
+| `false`                | `openai` ou `openai-compatible` | `LLM_API_KEY`, `LLM_MODEL` e opções genéricas.                                                         |
+| `true`                 | Qualquer um dos valores acima   | Somente `LLM_OPENROUTER_*`, `LLM_GEMINI_*`, `LLM_GROQ_*` e `LLM_COHERE_*` dos candidatos configurados. |
+
+O Orbe também oferece fallback opt-in **OpenRouter → Gemini → Groq → Cohere**, com chaves,
+modelos e cotas separados, cooldown no Redis e prazo total por resposta. Veja o
+[guia de configuração](docs/deployment/llm-fallback.md). A configuração começa desativada e
+preserva o chat existente. OpenRouter aceita somente variantes gratuitas nesse modo;
+Gemini/Groq exigem conta/modelo no plano gratuito. Cohere trial fica restrita a experimentação
+não comercial e é recusada em produção. O recurso não garante gratuidade de uma conta faturada.
+
+Para usar um provedor único, configure no `.env`:
 
 ```dotenv
 LLM_PROVIDER=openai
+LLM_FALLBACK_ENABLED=false
 LLM_MODEL=MODELO_DISPONIVEL_NA_SUA_CONTA
 LLM_API_KEY=CHAVE_SOMENTE_NO_BACKEND
 LLM_API_MODE=responses
@@ -109,21 +141,30 @@ LLM_GLOBAL_MAX_CALLS=60
 LLM_GLOBAL_WINDOW_MS=86400000
 ```
 
+Para usar a cadeia, defina `LLM_FALLBACK_ENABLED=true` e preencha chave, modelo e cota de cada
+candidato conforme o guia. Nesse modo, você pode remover `LLM_API_KEY`, `LLM_MODEL`,
+`LLM_BASE_URL` e `LLM_API_MODE` do seu `.env`: esses campos genéricos ficam inativos. Não repita
+a mesma chave nos dois blocos. As janelas por provedor herdam `LLM_GLOBAL_WINDOW_MS`; os quatro
+`LLM_<PROVEDOR>_WINDOW_MS` aparecem comentados no exemplo para overrides opcionais. A cota global
+e as cotas de cada fornecedor têm funções diferentes e continuam independentes.
+
 Para um provedor compatível: `LLM_PROVIDER=openai-compatible`, `LLM_BASE_URL` e
 `LLM_API_MODE=chat-completions`, além de modelo e chave. O servidor deve implementar tool calling
 compatível com o SDK. A API do provedor é configuração do operador; visitantes não podem alterá-la.
-O adaptador usa LangChain.js, timeout, cancelamento, zero retries automáticos, ferramentas de leitura
-com parâmetros validados e até três chamadas ao modelo. Não há fallback silencioso para mock.
+O adaptador usa LangChain.js, timeout, cancelamento, zero retries automáticos e ferramentas limitadas
+com parâmetros validados. São até três rodadas do modelo; a cadeia permite até seis tentativas
+HTTP no total, incluindo falhas e continuação após ferramentas. Não há fallback silencioso para mock.
 Provedor real exige Redis e `LLM_GLOBAL_MAX_CALLS` explícito, inclusive em desenvolvimento. O contador
 atômico é compartilhado pelas instâncias que usam o mesmo Redis e `LLM_GLOBAL_BUDGET_KEY`. Cada
 invocação conta, inclusive após ferramentas e tentativas que falham; mock e políticas determinísticas
 não contam. Esgotamento retorna `LLM_BUDGET_EXHAUSTED` (429) com `Retry-After`; falha no controle
 retorna 503, sem chamar o modelo. O orçamento limita chamadas, não tokens nem custo financeiro.
 
-Exemplo de configuração OpenRouter:
+Alternativa de provedor único usando OpenRouter, com os mesmos controles globais acima:
 
 ```dotenv
 LLM_PROVIDER=openai-compatible
+LLM_FALLBACK_ENABLED=false
 LLM_BASE_URL=https://openrouter.ai/api/v1
 LLM_API_MODE=chat-completions
 LLM_API_KEY=CHAVE_COMUM_OPENROUTER_SOMENTE_NO_BACKEND
@@ -134,24 +175,32 @@ OPENROUTER_REASONING_ENABLED=false
 
 Use uma chave comum criada em <https://openrouter.ai/settings/keys>. Chaves management/provisioning
 permitem administrar credenciais, mas não gerar respostas de IA. Substitua o ID do exemplo por um
-modelo com suporte a ferramentas. O adaptador atual envia `strict: true` nos argumentos das
-ferramentas; não exige `response_format` para a resposta final. Após editar `.env`, execute
+modelo com suporte a ferramentas. O modo de provedor único envia `strict: true` nas ferramentas;
+na cadeia, os parâmetros variam por transporte e a validação local permanece obrigatória.
+Nenhum modo exige `response_format` para a resposta final. Após editar `.env`, execute
 `docker compose up -d --force-recreate api` para aplicar as variáveis ao container. O smoke real
 com OpenRouter, continuidade de conversa e ferramenta executada está registrado no progresso.
 
 `OPENROUTER_REASONING_ENABLED` é uma extensão explícita para `openai-compatible` com
-`chat-completions`; vazio preserva o padrão do provedor. No modelo Nemotron usado nesta avaliação,
+`chat-completions`, ou para o candidato OpenRouter da cadeia; vazio preserva o padrão do provedor.
+No modelo Nemotron usado nesta avaliação,
 foi configurado `false` para reservar a saída ao texto final. Reasoning e texto podem compartilhar o
 mesmo limite de tokens, causando resposta vazia quando o orçamento é consumido antes da resposta.
 Esse comportamento e as opções por modelo estão na
 [documentação OpenRouter](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
 
-`store: false` é enviado ao provedor. Isso não configura a política de retenção da conta nem substitui
-as políticas do fornecedor. Mensagens e contexto são enviados ao LLM configurado; informe esse
-tratamento ao visitante antes de disponibilizar a integração publicamente.
+O modo de provedor único envia `store: false`; na cadeia, esse campo é enviado à OpenRouter e
+omitido nos outros transportes. Isso não configura a política de retenção da conta nem substitui
+as políticas do fornecedor. Mensagens e contexto podem ser enviados aos candidatos habilitados;
+informe esse tratamento ao visitante antes de disponibilizar a integração publicamente.
+Flags `LANGCHAIN_VERBOSE`, `LANGCHAIN_TRACING`, `LANGCHAIN_TRACING_V2`, `LANGSMITH_TRACING` e
+`LANGSMITH_TRACING_V2` não precisam ser configuradas: o padrão é desativado e `true` é recusado
+para impedir diagnóstico automático com mensagens completas.
 
-O prompt ativo está em [`apps/orbe-node/prompts/v3.md`](apps/orbe-node/prompts/v3.md), identificado
-como `orbe-v3`; as versões anteriores foram preservadas. A [base profissional](knowledge/portfolio.json) tem 31
+O prompt atual é [`v4.md`](apps/orbe-node/prompts/v4.md), identificado como `orbe-v4`, inclusive
+quando login e reuniões estão desativados. Ferramentas de reunião continuam exigindo configuração
+e o opt-in HTTP descrito abaixo; a escolha do prompt não habilita funcionalidades. As versões
+anteriores, incluindo `v3.md`, foram preservadas como histórico. A [base profissional](knowledge/portfolio.json) tem 31
 documentos sobre perfil, quatro experiências, sete formações, cursos, idiomas, projetos, contato e lacunas. Sua
 [proveniência](knowledge/SOURCES.md) registra fontes e revisões consultadas. Formação e experiência
 preservam o status declarado nas fontes; previsões de conclusão e vínculos atuais não são presumidos
@@ -161,6 +210,24 @@ dados pessoais desnecessários não foram incorporados. O LinkedIn bloqueou a le
 foi tratado como verificado. Edite a base e reinicie para
 atualizar. A recuperação lexical pondera termos e mantém o contexto de continuações; embeddings/
 pgvector serão avaliados quando houver volume que os justifique.
+
+O Orbe apresenta os fatos profissionais diretamente, distinguindo experiência em empresas,
+projetos pessoais, estudos e contribuições. Tecnologias têm vínculos explícitos com seus registros:
+Java no SIGAA é experiência profissional; Spring Boot/JPA aparece em um projeto público de estudo.
+Sistemas de terceiros podem ser apresentados sem repositório pessoal ou autoria exclusiva.
+Ressalvas ficam restritas à lacuna ou divergência que afeta a pergunta.
+
+As `sources` são selecionadas entre os documentos efetivamente enviados ao modelo, conforme a
+pergunta e os fatos da resposta. Buscar um documento não o transforma automaticamente em fonte.
+O servidor remove fontes irrelevantes/redundantes e prefere links existentes de repositório ou
+demonstração, mantendo o mesmo DTO. Normalmente retorna poucas fontes, sem exigir exatamente três.
+
+Perguntas de duração usam união de intervalos mensais estruturados, com referência temporal e
+sem contar sobreposições duas vezes. Vínculos mistos de engenharia/desenvolvimento não viram anos
+integrais de experiência com uma tecnologia. Se faltar contexto para uma soma completa, a aplicação
+não fornece um total como se toda a trajetória estivesse presente. Mensagens como “Testando!” e
+perguntas sobre vida afetiva recebem respostas breves, determinísticas, sem chamada à LLM.
+Veja [a correção de comportamento e sua validação](docs/testing/orbe-v4-professional.md).
 
 ## Contrato e integração com o frontend
 
@@ -187,20 +254,24 @@ Use [o cliente TypeScript](examples/frontend-client.ts) para adaptar o Orbe exis
 envio, token de conversa, loading e erros com tipos inferidos do contrato. Não inclui chave do LLM.
 O [guia de integração do frontend](docs/api/frontend-integration.md) detalha CORS, erros, reset,
 fontes e o contrato atual. **A integração local do Orbe já pode começar**, sem exigir login.
-Disponibilidade e solicitações de reunião serão integradas após os contratos e regras da Fase 3.
+Login e reuniões também podem ser integrados pelo [guia da Fase 3](docs/api/phase3-integration.md).
+O cliente atualizado deve enviar `X-Orbe-Capabilities: meetings-v1` para receber ferramentas de
+reunião e `actions`, e renderizar o formulário de confirmação antes do POST de consentimento.
+Sem esse header, o chat preserva a resposta legada, sem `actions`, mesmo com reuniões habilitadas.
 
 ## Login com JWT e OAuth/OIDC
 
-Login real será a primeira entrega da Fase 3, começando somente com **Google OpenID Connect**.
-O login visual do frontend consultado ainda é uma simulação em memória. O token de conversa atual
-não é JWT nem autentica usuários. Portfólio e Orbe continuarão públicos; funcionalidades específicas,
-especialmente a administração, exigirão autenticação e autorização.
+O código local de login usa **Google OpenID Connect**; a homologação com Google real está pendente.
+O frontend pode preparar a substituição de sua simulação pelo fluxo BFF. O token de conversa não autentica usuários; portfólio e Orbe continuam
+públicos. Administração exige identidade e papel atual; login social não concede `admin`.
 
 A [arquitetura de autenticação](docs/architecture/authentication.md) separa `User`, identidades
 vinculadas e credenciais. Node e Java/Spring usarão uma única fonte de usuários, papéis e permissões,
-com contratos compatíveis. O navegador usará sessão por cookie HttpOnly/Secure/SameSite e proteção
-CSRF; os serviços validarão os access tokens JWT. O consentimento Google Calendar será independente
+com contratos compatíveis. O navegador usa sessão por cookie HttpOnly/Secure/SameSite e proteção
+CSRF; JWTs de serviço ficam no backend. O consentimento Google Calendar é independente
 do login. A decisão está na [ADR 0004](docs/adr/0004-authentication.md).
+Refresh, detecção de reuso e logout usam o mesmo mutex por família no PostgreSQL. A proteção de
+revogação vale entre instâncias; o frontend deve serializar suas próprias renovações.
 
 E-mail/senha com Argon2id, verificação de e-mail, recuperação segura e proteção contra força bruta;
 vinculação GitHub; MFA e passkeys estão no roadmap. Não há implementações parciais desses métodos.
@@ -210,13 +281,15 @@ vinculação GitHub; MFA e passkeys estão no roadmap. Não há implementações
 Fastify oferece HTTP, validação de transporte e testes por injeção com pouca estrutura adicional.
 O caso de uso depende de portas para geração, conhecimento e conversas. Adaptadores implementam
 memória/PostgreSQL e mock/LangChain. Um único app modular evita separar serviços antes de haver
-necessidade operacional; gateway, Java e worker surgirão quando tiverem função executável própria.
+necessidade operacional. O worker BullMQ é separado; gateway e Java permanecem na evolução.
 
 ```text
 apps/orbe-node/           HTTP, aplicação, domínio, adaptadores e prompt versionado
+apps/worker-node/         dispatcher SQL, BullMQ, entregas e lembretes
 packages/contracts/      Zod, tipos inferidos e OpenAPI gerado
 packages/shared-config/  configuração validada por ambiente
 packages/database/       pool, migrations e retenção
+packages/integrations/   adaptadores Google Calendar, SMTP e Telegram
 knowledge/               fatos públicos editáveis
 infrastructure/          Docker, migrations e exemplo para Nginx existente
 tests/                   domínio, HTTP, contrato, SDK e integração externa local
@@ -241,6 +314,19 @@ npm run contracts:generate
 `check` executa lint, formatação, tipos, conformidade do arquivo OpenAPI, testes e build.
 Os testes padrão não requerem credenciais nem bancos. O adaptador real é testado com servidor HTTP
 simulado para Responses e Chat Completions, incluindo o ciclo de tool calling.
+
+Verificações específicas da Fase 3:
+
+```bash
+npm run phase3:preflight -- --target=compose --json # Offline; usa somente variáveis do processo.
+npm run test:browser # Edge/Chrome instalado ou Chromium gerenciado; apenas loopback.
+npm run smoke:phase3:docker -- --image IMAGEM_CANDIDATA_LOCAL # Teste privado descartável.
+npm run eval:orbe:phase3 # Apenas plano; --live exige escopo autorizado e Redis exclusivo.
+```
+
+Para ler explicitamente o `.env` existente no preflight, sem alterá-lo:
+`node --env-file=.env --import tsx scripts/phase3-preflight.ts --target=compose --json`.
+O código 2 informa configuração incompleta. Veja [pré-checagem e runbook](docs/deployment/phase3-preflight.md).
 
 Avaliação do Orbe com a API real já configurada:
 
@@ -278,8 +364,9 @@ $env:TEST_REDIS_URL='redis://localhost:6379/1'
 npm run test:integration
 ```
 
-Essa suíte falha explicitamente se as URLs não forem fornecidas. Ela aplica migrations e remove
-apenas os registros criados pelos testes. Consulte [o guia de testes](docs/testing/README.md).
+Essa suíte falha explicitamente se as URLs não forem fornecidas. Ela aplica migrations e exercita
+retenção na base inteira; deve usar exclusivamente dependências descartáveis. O cleanup remove
+fixtures, mas o schema instalado permanece. Consulte [o guia de testes](docs/testing/README.md).
 
 ## Evolução e operação
 
@@ -292,10 +379,15 @@ apenas os registros criados pelos testes. Consulte [o guia de testes](docs/testi
 - Fases 5–6: adaptadores RabbitMQ e Kafka com suas semânticas próprias e testes reais.
 - Fase 7: métricas/tracing, homologação, operação e publicação controlada.
 
-Para a próxima fase serão necessários configuração central de identidade e cliente Google OIDC;
-separadamente, OAuth client/secret e refresh token Google Calendar, calendários autorizados,
-bot token/chat ID Telegram e SMTP.
+Para homologar a Fase 3, configurar cliente Google OIDC e a chave do emissor central implementado;
+separadamente, OAuth client/secret e refresh token Calendar, calendário autorizado e canais SMTP/Telegram.
 Nenhuma dessas credenciais é necessária para a execução do chat em mock ou com a LLM configurada.
+
+A migration aditiva `005_calendar_create_uncertainty.sql` persiste a incerteza de criação no
+Calendar. Conflito comprovado antes do insert, sem tentativa anterior ambígua, pode liberar a
+reserva; depois de ambiguidade, um retry com conflito ou GET `404` não resolve a escrita anterior.
+O cancelamento exige evidência externa suficiente e pode conservar a reserva indefinidamente
+se ela não aparecer. Detalhes e recuperação estão na [arquitetura de reuniões](docs/architecture/meetings.md).
 
 CI roda em PRs e branches `dev`/`main`, com análise estática, auditoria, integração, build e smoke
 Docker. A [PR #2](https://github.com/SladeSouzaSantos/phasscode-platform/pull/2) foi incorporada em
@@ -316,5 +408,5 @@ Não altera domínio, DNS, certificados, servidor ou infraestrutura compartilhad
 Veja [progresso e ponto exato de continuação](docs/PROGRESS.md),
 [tarefas por fase e critérios de conclusão](docs/TASKS.md),
 [arquitetura](docs/architecture/overview.md), [segurança](docs/security.md) e
-[deploy futuro](docs/deployment/README.md). Limitações e resultados medidos estão registrados no
+[operação e deploy](docs/deployment/README.md). Limitações e resultados medidos estão registrados no
 progresso; arquivos criados não significam integrações externas validadas.
