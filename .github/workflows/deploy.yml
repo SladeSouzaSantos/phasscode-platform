@@ -1,7 +1,10 @@
-name: Backend release | CI > SAST > Image > DAST > Manual deploy > Verify
-# Nao existe trigger push/PR. Criar/publicar uma release exige executar este workflow manualmente.
-# Aplicacao no servidor exige ainda apply_remote=true e ENABLE_REMOTE_DEPLOY=true no environment.
+name: Backend release | CI > SAST > Image > DAST > Deploy > Verify
+# Push em dev/main executa testes, seguranca e deploy no ambiente correspondente.
+# PROD exige required reviewers no environment production (configuracao GitHub fora deste arquivo).
+# Push faz deploy somente com ENABLE_REMOTE_DEPLOY=true; dispatch exige tambem apply_remote=true.
 on:
+  push:
+    branches: [dev, main]
   workflow_dispatch:
     inputs:
       target:
@@ -16,7 +19,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: backend-release-${{ inputs.target }}
+  group: backend-release-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   tests:
@@ -27,7 +30,7 @@ jobs:
         with: { persist-credentials: false }
       - name: Validate branch/environment
         env:
-          RELEASE_TARGET: ${{ inputs.target }}
+          RELEASE_TARGET: ${{ github.event_name == 'push' && (github.ref_name == 'main' && 'production' || 'development') || inputs.target }}
         run: |
           set -euo pipefail
           if [[ "$RELEASE_TARGET" == production ]]; then
@@ -96,7 +99,7 @@ jobs:
           file: infrastructure/docker/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.meta.outputs.name }}:sha-${{ github.sha }}-${{ inputs.target }}
+          tags: ${{ steps.meta.outputs.name }}:sha-${{ github.sha }}-${{ github.event_name == 'push' && (github.ref_name == 'main' && 'production' || 'development') || inputs.target }}
           labels: org.opencontainers.image.revision=${{ github.sha }}
           provenance: true
           sbom: true
@@ -148,17 +151,17 @@ jobs:
         if: always()
         run: docker compose --env-file /dev/null down --volumes
   deploy:
-    if: inputs.apply_remote
+    if: github.event_name == 'push' || inputs.apply_remote
     runs-on: ubuntu-latest
     needs: [image, dast]
     timeout-minutes: 25
-    environment: ${{ inputs.target }}
+    environment: ${{ github.event_name == 'push' && (github.ref_name == 'main' && 'production' || 'development') || inputs.target }}
     env:
-      DEPLOY_TARGET: ${{ inputs.target }}
+      DEPLOY_TARGET: ${{ github.event_name == 'push' && (github.ref_name == 'main' && 'production' || 'development') || inputs.target }}
       DEPLOY_SHA: ${{ github.sha }}
       IMAGE_REF: ${{ needs.image.outputs.ref }}
-      DEPLOY_BRANCH: ${{ inputs.target == 'production' && 'main' || 'dev' }}
-      PROJECT_DIR: ${{ inputs.target == 'production' && '/opt/projects/phasscode-platform' || '/opt/projects/phasscode-platform-dev' }}
+      DEPLOY_BRANCH: ${{ github.event_name == 'push' && github.ref_name || (inputs.target == 'production' && 'main' || 'dev') }}
+      PROJECT_DIR: ${{ github.event_name == 'push' && (github.ref_name == 'main' && '/opt/projects/phasscode-platform' || '/opt/projects/phasscode-platform-dev') || (inputs.target == 'production' && '/opt/projects/phasscode-platform' || '/opt/projects/phasscode-platform-dev') }}
       GHCR_USER: ${{ github.repository_owner }}
       GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
       PHASSCODE_USE_PROXY: ${{ vars.PHASSCODE_USE_PROXY }}
@@ -209,7 +212,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy
     timeout-minutes: 5
-    environment: ${{ inputs.target }}
+    environment: ${{ github.event_name == 'push' && (github.ref_name == 'main' && 'production' || 'development') || inputs.target }}
     steps:
       - name: Verify explicitly configured public API URL (liveness only; no LLM)
         env:
