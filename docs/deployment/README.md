@@ -7,10 +7,10 @@ no GitHub e validado no servidor. Esta revisão não publicou imagens nem acesso
 
 ## Checkouts e isolamento
 
-| Ambiente        | Checkout                               | Branch | Projeto Compose          | Imagem local                   | HTTP no host     |
-| --------------- | -------------------------------------- | ------ | ------------------------ | ------------------------------ | ---------------- |
+| Ambiente        | Checkout                               | Branch | Projeto Compose          | Imagem local                   | HTTP no host              |
+| --------------- | -------------------------------------- | ------ | ------------------------ | ------------------------------ | ------------------------- |
 | Produção        | `/opt/projects/phasscode-platform`     | `main` | `phasscode-platform`     | `phasscode-platform:local`     | `127.0.0.1:<porta-livre>` |
-| Desenvolvimento | `/opt/projects/phasscode-platform-dev` | `dev`  | `phasscode-platform-dev` | `phasscode-platform-dev:local` | `127.0.0.1:3001` |
+| Desenvolvimento | `/opt/projects/phasscode-platform-dev` | `dev`  | `phasscode-platform-dev` | `phasscode-platform-dev:local` | `127.0.0.1:3001`          |
 
 **Porta de produção:** a porta 3000 do host já pertence ao Grafana e 3001 é reservada ao backend DEV. Antes da liberação, inspecione as portas reais do Mac Mini e escolha uma porta TCP livre, distinta de ambas, no intervalo 1024–65535. Configure `PHASSCODE_HTTP_PORT` com o mesmo número no `.env` privado do checkout PROD e como **variable no GitHub Environment `production`**. O workflow a encaminha via SSH; `deploy.sh production` recusa porta ausente, inválida ou igual a 3000/3001 antes de mudar serviços ou dados. Não presume que 3002 ou qualquer outra porta esteja livre. O bind permanece exclusivamente em `127.0.0.1`, sem publicar a API em `0.0.0.0`.
 
