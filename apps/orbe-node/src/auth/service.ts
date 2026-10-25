@@ -202,17 +202,23 @@ export class AuthService {
   ): Promise<Principal> {
     return this.safe(async () => {
       let session: AuthSession | undefined;
-      const authorization = request.headers.authorization;
-      if (authorization) {
-        if (!authorization.startsWith('Bearer ') || authorization.length > 8192)
-          throw unauthorized();
-        const claims = await this.tokens!.verify(authorization.slice(7));
-        session = await this.store!.sessionById(claims.sessionId);
-        if (session?.userId !== claims.userId) throw unauthorized();
-        if (options.csrf && request.headers.origin) this.origin(request);
-      } else {
+      if (options.csrf) {
+        // Routes with side effects require the opaque browser cookie AND its CSRF proof.
+        // A caller-controlled Authorization header must never switch off either check.
         session = await this.cookieSession(request);
-        if (options.csrf && session) this.csrf(request, session);
+        if (!this.active(session)) throw unauthorized();
+        this.csrf(request, session);
+      } else {
+        const authorization = request.headers.authorization;
+        if (authorization) {
+          if (!authorization.startsWith('Bearer ') || authorization.length > 8192)
+            throw unauthorized();
+          const claims = await this.tokens!.verify(authorization.slice(7));
+          session = await this.store!.sessionById(claims.sessionId);
+          if (session?.userId !== claims.userId) throw unauthorized();
+        } else {
+          session = await this.cookieSession(request);
+        }
       }
       if (!this.active(session)) throw unauthorized();
       if (options.admin && !session.user.roles.includes('admin'))
