@@ -116,18 +116,25 @@ Configure `TRUST_PROXY` somente para os IPs/CIDRs confirmados de proxies confiá
 rede compartilhada ampla sem analisar quem pode ingressar nela. O modelo sobrescreve headers de
 encaminhamento recebidos; uma cadeia com CDN precisa de configuração própria de IP real.
 
-## Release manual no GitHub
+## Release automatizada e manual no GitHub
 
-[`deploy.yml`](../../.github/workflows/deploy.yml) tem apenas `workflow_dispatch`:
+[`deploy.yml`](../../.github/workflows/deploy.yml) dispara em `push` para `dev` e `main`,
+e também permite `workflow_dispatch`:
 
-1. Executar `dev`/`development` ou `main`/`production`; o workflow rejeita combinações diferentes.
+1. Em push, `dev` seleciona o environment `development` e `main` seleciona `production`.
+   Em dispatch manual, selecionar `dev`/`development` ou `main`/`production`;
+   o workflow rejeita combinações diferentes.
 2. Testes, smoke, integração descartável, auditoria e CodeQL precedem a imagem GHCR `linux/amd64`.
    Confirmar essa arquitetura no Mac Mini antes da primeira release. A imagem leva SHA OCI, SBOM e
    proveniência; DAST e deploy recebem o mesmo digest imutável.
 3. ZAP lê OpenAPI com alvo sobrescrito para a API descartável, em mock e sem chave de LLM. Os
    relatórios duram 14 dias; falhas definidas em `.ci/zap-rules.conf` bloqueiam a release.
-4. `apply_remote=false` publica/testa a imagem sem aplicar no servidor. Para aplicação manual,
-   exigir `apply_remote=true` e `ENABLE_REMOTE_DEPLOY=true` no environment GitHub correspondente.
+4. Em execução manual, `apply_remote=false` publica/testa a imagem sem aplicar no servidor;
+   `apply_remote=true` permite deploy. Em push, o deploy é automático somente se
+   `ENABLE_REMOTE_DEPLOY=true` no environment GitHub correspondente. O deploy manual também exige
+   essa variável. Em `production`, configurar **Required reviewers** no GitHub Environment
+   para exigir aprovação humana antes de iniciar o job. Apenas referenciar o environment no YAML
+   não cria nem garante essa aprovação.
 5. Tailscale prefere OAuth completo; credencial parcial falha. A authkey é alternativa somente
    quando nenhum dos dois campos OAuth foi configurado. SSH valida fingerprint obrigatório.
 6. No checkout preparado, confirmar branch/árvore limpa, fazer fast-forward somente para o SHA
