@@ -165,6 +165,7 @@ jobs:
       GHCR_USER: ${{ github.repository_owner }}
       GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
       PHASSCODE_USE_PROXY: ${{ vars.PHASSCODE_USE_PROXY }}
+      PHASSCODE_HTTP_PORT: ${{ vars.PHASSCODE_HTTP_PORT }}
     steps:
       - uses: actions/checkout@v7
         with: { persist-credentials: false }
@@ -188,7 +189,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           fingerprint: ${{ secrets.SSH_HOST_FINGERPRINT }}
-          envs: DEPLOY_TARGET,DEPLOY_SHA,IMAGE_REF,DEPLOY_BRANCH,PROJECT_DIR,GHCR_USER,GHCR_PULL_TOKEN,PHASSCODE_USE_PROXY
+          envs: DEPLOY_TARGET,DEPLOY_SHA,IMAGE_REF,DEPLOY_BRANCH,PROJECT_DIR,GHCR_USER,GHCR_PULL_TOKEN,PHASSCODE_USE_PROXY,PHASSCODE_HTTP_PORT
           command_timeout: 20m
           script: |
             set -eu
