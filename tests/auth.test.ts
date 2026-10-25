@@ -247,7 +247,9 @@ describe('sessions, authorization, rotation and JWT resource access', () => {
     const logged = await login(app, service, google);
     store.users.get(logged.state.user.id)!.roles.push('admin');
     const validJwt = await service.issueAccessToken(request(logged.sessionCookie));
-    const invalidJwt = validJwt.slice(0, -1) + (validJwt.endsWith('a') ? 'b' : 'a');
+    const parts = validJwt.split('.');
+    parts[2] = (parts[2]!.startsWith('a') ? 'b' : 'a') + parts[2]!.slice(1);
+    const invalidJwt = parts.join('.');
 
     // Either individually validated credential can authenticate read-only access.
     expect(
