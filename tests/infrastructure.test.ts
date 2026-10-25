@@ -112,7 +112,7 @@ function render(
 
 describe('Docker environment isolation (real Compose interpolation, no daemon)', () => {
   it('isolates production/development names, images, private networks, volumes and HTTP ports', () => {
-    const production = render('phasscode-platform', '3000');
+    const production = render('phasscode-platform', '3202');
     const development = render('phasscode-platform-dev', '3001');
     expect(production.status, production.stderr).toBe(0);
     expect(development.status, development.stderr).toBe(0);
@@ -126,7 +126,7 @@ describe('Docker environment isolation (real Compose interpolation, no daemon)',
       expect(prod.volumes![name]!.name).not.toBe(dev.volumes![name]!.name);
     }
     expect(prod.services.api!.ports).toEqual([
-      { host_ip: '127.0.0.1', target: 3000, published: '3000', mode: 'ingress', protocol: 'tcp' },
+      { host_ip: '127.0.0.1', target: 3000, published: '3202', mode: 'ingress', protocol: 'tcp' },
     ]);
     expect(dev.services.api!.ports![0]).toMatchObject({
       host_ip: '127.0.0.1',
@@ -309,6 +309,7 @@ function deployment(
         TEST_LOG: shellPath(log),
         PHASSCODE_PROJECTS_ROOT: shellPath(fixture),
         PHASSCODE_USE_PROXY: '',
+        PHASSCODE_HTTP_PORT: target === 'production' ? '3202' : '',
         FAKE_BRANCH: target === 'production' ? 'main' : 'dev',
         ...overrides,
       },
@@ -330,7 +331,7 @@ function rememberReleasedSnapshot(
   for (const [file, value] of Object.entries({
     'image-ref': digest,
     'project-name': project,
-    'http-port': target === 'production' ? '3000' : '3001',
+    'http-port': target === 'production' ? '3202' : '3001',
     'use-proxy': String(proxy),
   }))
     expect(readFileSync(join(release.checkout, '.deployment', file), 'utf8').trim()).toBe(value);
@@ -422,9 +423,27 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     expect(mutable.log).toBe('');
   });
 
+  it.each(['', '3000', '3001', '999', '65536', 'abc'])(
+    'rejects unsafe production HTTP port %j before modifying the server',
+    (port) => {
+      const result = deployment('production', { PHASSCODE_HTTP_PORT: port });
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain('PHASSCODE_HTTP_PORT');
+      expect(result.log).toBe('');
+      expect(existsSync(join(result.checkout, '.deployment'))).toBe(false);
+    },
+  );
+
+  it('preserves the DEV host port regardless of the production port variable', () => {
+    const result = deployment('development', { PHASSCODE_HTTP_PORT: '3202' }, false);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('port=127.0.0.1:3001');
+    expect(result.log).toBe('');
+  });
+
   it.each([
     ['development', 'phasscode-platform-dev', '3001'],
-    ['production', 'phasscode-platform', '3000'],
+    ['production', 'phasscode-platform', '3202'],
   ])('selects only %s resources and migrates before activation', (target, project, port) => {
     const result = deployment(target);
     expect(result.status, result.stderr).toBe(0);
@@ -487,7 +506,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
 
   it.each([
     ['development', 'phasscode-platform-dev', '3001'],
-    ['production', 'phasscode-platform', '3000'],
+    ['production', 'phasscode-platform', '3202'],
   ])(
     'retention after %s deploy reuses its saved immutable image, project and port',
     (target, project, port) => {
@@ -644,6 +663,8 @@ it('release workflow automates dev/main pushes, retains manual dry-run and gates
   expect(source).toContain('test "$ENABLE_REMOTE_DEPLOY" = true');
   expect(workflow.jobs.deploy!.needs).toEqual(['image', 'dast']);
   expect(workflow.jobs.deploy!.env!.PHASSCODE_USE_PROXY).toBe('${{ vars.PHASSCODE_USE_PROXY }}');
+  expect(workflow.jobs.deploy!.env!.PHASSCODE_HTTP_PORT).toBe('${{ vars.PHASSCODE_HTTP_PORT }}');
+  expect(source).toContain('PHASSCODE_USE_PROXY,PHASSCODE_HTTP_PORT');
   expect(workflow.jobs.dast!.env!.LLM_PROVIDER).toBe('mock');
   expect(workflow.jobs.dast!.env!.LLM_API_KEY).toBe('');
   expect(source).toContain('ENABLE_REMOTE_DEPLOY');

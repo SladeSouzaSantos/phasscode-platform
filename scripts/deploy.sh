@@ -11,7 +11,15 @@ revision=$3
 [[ "$image_ref" =~ ^ghcr\.io/[a-z0-9][a-z0-9._/-]*@sha256:[a-f0-9]{64}$ ]] || fail 'An immutable GHCR digest is required.'
 [[ "$revision" =~ ^[a-f0-9]{40}$ ]] || fail 'A full Git commit SHA is required.'
 case "$target" in
-  production) project=phasscode-platform; branch=main; port=3000 ;;
+  production)
+    project=phasscode-platform
+    branch=main
+    # PROD requires an explicit, verified free loopback port. Never overwrite Grafana/DEV.
+    port=${PHASSCODE_HTTP_PORT:-}
+    [[ "$port" =~ ^[1-9][0-9]{3,4}$ ]] || fail 'Production requires an explicit numeric PHASSCODE_HTTP_PORT.'
+    (( 10#$port >= 1024 && 10#$port <= 65535 )) || fail 'PHASSCODE_HTTP_PORT must be between 1024 and 65535.'
+    [[ "$port" != 3000 && "$port" != 3001 ]] || fail 'PHASSCODE_HTTP_PORT 3000 (Grafana) and 3001 (DEV) are reserved.'
+    ;;
   development) project=phasscode-platform-dev; branch=dev; port=3001 ;;
   *) fail 'Choose production or development.' ;;
 esac
