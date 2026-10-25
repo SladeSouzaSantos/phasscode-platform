@@ -44,7 +44,7 @@ export interface ObservedRequest {
   path: string;
   origin: string | undefined;
 }
-export async function browserFixture() {
+export async function browserFixture(options: { googleClaims?: Record<string, unknown> } = {}) {
   const cleanups: Array<() => Promise<void>> = [];
   const dispose = async () => {
     const results = await Promise.allSettled(
@@ -87,7 +87,10 @@ export async function browserFixture() {
       ) {
         // Fake approval is an actual HTTP redirect. Token exchange and signing
         // remain in the shared local issuer fixture; no production provider runs.
-        const callback = google.authorize(url.href, { iss: browserIssuer });
+        const callback = google.authorize(url.href, {
+          ...options.googleClaims,
+          iss: browserIssuer,
+        });
         response.writeHead(302, { location: `${api}${callback}` }).end();
         return;
       }
@@ -129,6 +132,7 @@ export async function browserFixture() {
       REDIS_URL: 'redis://127.0.0.1:6379',
       CORS_ORIGINS: frontend,
       AUTH_ENABLED: 'true',
+      AUTH_ADMIN_EMAIL: 'alice@example.test',
       AUTH_PUBLIC_URL: api,
       AUTH_FRONTEND_URL: `${frontend}/login-complete`,
       AUTH_COOKIE_SECURE: 'false',

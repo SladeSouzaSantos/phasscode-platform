@@ -9,18 +9,45 @@ de referência com renovação compartilhada e confirmação explícita.
 
 ## Login e sessão
 
-1. Navegar com `window.location.assign(API + '/api/v1/auth/login/google')`. Não usar popup com
-   tokens no JavaScript. O callback fixo no backend valida PKCE/state/nonce e redireciona para
-   `AUTH_FRONTEND_URL`, sem código/JWT nos parâmetros do frontend.
+1. Navegar para `GET /api/v1/auth/login/google`, opcionalmente com `returnTo` contendo o caminho
+   atual do portfólio, query e hash. Não usar popup com tokens no JavaScript. O callback fixo no
+   backend valida PKCE/state/nonce. No sucesso retorna `302` ao destino vinculado ao login;
+   somente a conta Google verificada do administrador ganha sessão. Uma navegação HTML recusada
+   retorna `303` ao mesmo destino com `auth_error=AUTH_ADMIN_ONLY`, sem cadastrar outra conta.
+   Clientes com `Accept: application/json` continuam recebendo `403 AUTH_ADMIN_ONLY` em JSON,
+   com a mensagem “Acesso negado. Apenas o administrador tem acesso.”
 2. Consultar `GET /api/v1/auth/session` com `credentials: 'include'`. A resposta anônima é
    `{authenticated:false,user:null,csrfToken:null,expiresAt:null}`. Quando autenticado, `user`
    contém `id`, `email`, `displayName`, `roles`; `csrfToken` e `expiresAt` acompanham a sessão.
+   Cookies de usuários fora da política ou sem papel administrativo também produzem estado anônimo.
 3. Para `POST /api/v1/auth/refresh`, `/api/v1/auth/logout` e comandos administrativos, enviar
    `credentials: 'include'` e `X-CSRF-Token` obtido da sessão. O navegador inclui `Origin`.
    Atualizar o token CSRF depois do refresh. Logout retorna `204` e revoga a família da sessão.
 
 ```ts
 const API = 'http://localhost:3000';
+
+function beginGoogleLogin() {
+  const returnTo = window.location.pathname + window.location.search + window.location.hash;
+  const query = new URLSearchParams({ returnTo });
+  window.location.assign(`${API}/api/v1/auth/login/google?${query}`);
+}
+
+const currentUrl = new URL(window.location.href);
+const authError = currentUrl.searchParams.get('auth_error');
+const loginMessage = document.getElementById('login-message');
+if (authError === 'AUTH_ADMIN_ONLY' && loginMessage) {
+  loginMessage.textContent = 'Acesso negado. Apenas o administrador tem acesso.';
+}
+if (currentUrl.searchParams.has('auth_error')) {
+  currentUrl.searchParams.delete('auth_error');
+  window.history.replaceState(
+    window.history.state,
+    '',
+    currentUrl.pathname + currentUrl.search + currentUrl.hash,
+  );
+}
+
 let session = await fetch(`${API}/api/v1/auth/session`, {
   credentials: 'include',
 }).then((r) => r.json());
@@ -36,18 +63,56 @@ async function refreshSession() {
 }
 ```
 
+`returnTo` é um caminho relativo iniciado por uma única `/`, limitado a **1024 bytes UTF-8**,
+resolvido exclusivamente na origem de `AUTH_FRONTEND_URL`. O backend preserva path/query/hash,
+recusa URLs absolutas, `//`, barras invertidas e formas inseguras; uma segunda origem autorizada
+por CORS não se torna destino de retorno. O valor é vinculado à transação e ao cookie do navegador,
+não é escolhido novamente no callback. Sem esse parâmetro, o destino é `AUTH_FRONTEND_URL`.
+Um `auth_error` antigo é removido do destino antes de concluir o login; em nova falha, o backend
+acrescenta apenas o código atual. Não colocar tokens ou dados privados em `returnTo`.
+
+Falhas posteriores à validação de state e da transação podem retornar ao navegador com um destes
+códigos fixos: `AUTH_ADMIN_ONLY`, `AUTH_REQUIRED`, `AUTH_LOGIN_FAILED`, `AUTH_PROVIDER_UNAVAILABLE`
+ou `AUTH_UNAVAILABLE`. Usar mensagens locais constantes para cada código conhecido, remover
+`auth_error` da URL com `history.replaceState` e permitir nova tentativa manual. Não usar o valor
+da query como HTML ou como prova de autorização. O retorno nunca contém código OAuth, JWT, tokens,
+e-mail ou mensagem recebida do provedor. Callback sem state/prova válida ou replay não redireciona
+e não encerra uma sessão administrativa existente. `Accept: application/json` conserva a resposta
+HTTP/JSON de erro, mesmo quando o destino de retorno é válido.
+Navegação é identificada por `Sec-Fetch-Mode: navigate` ou, sem esse header, por `Accept: text/html`.
+`Accept: application/json` tem precedência; sem indicação de navegação, a resposta continua JSON.
+O callback envia `Cache-Control: no-store` e `Referrer-Policy: no-referrer` para não armazenar a
+resposta nem propagar sua URL OAuth no Referer da navegação seguinte.
+
 Guardar o CSRF em memória. A sessão fica em cookie HttpOnly/Secure/SameSite=Lax, host-only.
 Nenhum access/refresh JWT é devolvido ao navegador; não criar armazenamento de JWT no localStorage.
 `GET /api/v1/me` exige identidade e retorna o perfil. Papéis no React controlam a apresentação;
-o backend verifica o papel atual em cada comando. `401` pede novo login; `403` pode indicar papel
-insuficiente ou CSRF/Origin incorreto. Login habilitado não cria administradores automaticamente.
+o backend verifica o papel e a identidade atuais em cada comando, inclusive com JWT de serviço.
+`401` pede novo login; `403 AUTH_ADMIN_ONLY` indica conta não admitida ou administração revogada;
+outros `403` podem indicar CSRF/Origin incorreto. Exibir a mensagem de acesso negado como texto,
+sem repetir login ou mutações automaticamente. O frontend recebe a recusa da navegação por
+`auth_error` na página de retorno. O retorno só representa uma sessão válida depois de confirmar
+`authenticated:true` em `/auth/session`.
+Oferecer retorno ao portfólio público e nova tentativa manual com a conta correta, sem abrir
+novo login automaticamente. A recusa de uma identidade validada por política administrativa limpa
+cookies de transação/sessão; callback inválido sem state/prova de navegador não encerra uma sessão
+administrativa existente. Refresh
+negado por `AUTH_ADMIN_ONLY` limpa a sessão. Logout ainda pode revogar uma família antiga com
+Origin/CSRF válidos.
+
+O primeiro login admitido atribui `admin` e audita a concessão na mesma transação, desde que não
+exista histórico administrativo. Um papel revogado não é reposto pelo login; o operador precisa
+recuperá-lo explicitamente. O frontend não deve apresentar esse caso como erro temporário.
 Com `AUTH_ENABLED=false`, as rotas auth retornam `404 AUTH_DISABLED`.
 
 Em desenvolvimento HTTP, usar `AUTH_COOKIE_SECURE=false` e o mesmo hostname no frontend/backend
 (ex.: ambos `localhost`). Em produção, servir frontend e BFF no mesmo site HTTPS, preferencialmente
 na mesma origem por proxy. `credentials` não torna cookies SameSite utilizáveis entre sites distintos.
 `CORS_ORIGINS` deve conter a origem exata, sem wildcard. O frontend não escolhe issuer, callback,
-papel ou URL de retorno. Apenas login Google está disponível; senha/GitHub/MFA/passkeys são roadmap.
+papel, e-mail autorizado ou origem de retorno; pode informar apenas o caminho relativo permitido.
+`AUTH_ADMIN_EMAIL` é configuração privada do backend,
+obrigatória com `AUTH_ENABLED=true`; não colocar em `VITE_*` nem confiar em comparação na UI.
+Apenas login Google está disponível; senha/GitHub/MFA/passkeys são roadmap.
 
 ## Proposta, consentimento e pedido público
 

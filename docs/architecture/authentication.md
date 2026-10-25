@@ -1,6 +1,6 @@
 # Autenticação do portfólio: JWT, OAuth e implementações Node/Java
 
-Estado em 22/10/2026: implementação da Fase 3 em andamento, auditada na retomada; não encerrada.
+Atualizado em 25/10/2026: implementação da Fase 3 em homologação; login exclusivo do administrador.
 Google OIDC, sessão BFF, emissão/validação JWT e autorização por papéis têm código e testes
 locais no backend Node. A configuração padrão mantém `AUTH_ENABLED=false`.
 Os testes usam provedor OIDC HTTP local com assinatura/JWKS reais; login na conta Google e
@@ -32,7 +32,8 @@ não é, por isso, um token válido para a PHASSCODE API.
 Node e Java usarão o mesmo emissor, audience, identidade interna e política de permissões. A
 identidade externa será vinculada por `(issuer, subject)` a um único usuário do projeto; e-mail
 sozinho não é uma chave segura para unir contas. Papéis serão atribuídos pelo servidor ou emissor
-confiável, nunca pelo formulário ou por texto de uma conversa. Login social não concede `admin`.
+confiável, nunca pelo formulário ou por texto de uma conversa. A admissão Google atual é restrita
+ao único administrador configurado; não existe cadastro público por login social.
 
 O modelo lógico separará usuário, formas de login e credenciais:
 
@@ -60,12 +61,34 @@ migração que invalide explicitamente as sessões existentes ao trocar a implem
 
 ## Fluxo escolhido para o navegador
 
+`AUTH_ADMIN_EMAIL` é obrigatório quando `AUTH_ENABLED=true`. Após validar a identidade OIDC,
+o backend exige e-mail verificado pelo Google e comparação exata com esse valor, removendo
+espaços nas extremidades e ignorando maiúsculas/minúsculas. Pontos e aliases com `+` não são
+normalizados; domínios, nomes parecidos ou e-mails fornecidos por query não concedem acesso.
+O valor é configuração do backend, sem endereço de proprietário fixo no código.
+Uma conta fora da política é recusada antes de persistir usuário/identidade ou criar sessão.
+Clientes JSON recebem `403 AUTH_ADMIN_ONLY` com “Acesso negado. Apenas o administrador tem acesso.”;
+uma navegação HTML com transação válida retorna `303` ao portfólio com o código público
+`auth_error=AUTH_ADMIN_ONLY`. A verificação de e-mail não
+substitui assinatura, issuer, audience, nonce ou subject e não vincula contas por e-mail.
+
+O primeiro login dessa identidade admitida concede `admin` uma única vez por usuário, somente
+se não há histórico administrativo em `auth_role_audit`. A concessão e sua auditoria são
+transacionais. Um papel revogado ou usuário desabilitado nunca é restabelecido pelo login.
+Recuperação exige ação explícita do operador pelo CLI auditado. Revogar pelo CLI registra o veto
+mesmo quando o papel já está ausente. O perfil do mesmo `(issuer, subject)` pode ser atualizado
+com os dados validados, sem criar vínculo por coincidência de e-mail.
+
 O backend implementa Backend for Frontend (BFF), preferencialmente na mesma origem do portfólio
 pelo proxy. `openid-client` conduz Authorization Code com PKCE `S256`, `state` e `nonce`, com
 verificação explícita da assinatura do ID token por JWKS (`enableNonRepudiationChecks`). A
 transação é vinculada a cookie do navegador e consumida atomicamente antes da troca do código.
-Ela expira em dez minutos. O callback e o retorno ao frontend são URLs fixas da configuração,
-sem parâmetro de redirecionamento arbitrário. Não há implicit flow ou password grant. O fluxo segue a
+Ela expira em dez minutos. O callback é fixo na configuração. `returnTo` opcional no início do
+login permite somente caminho relativo de até 1024 bytes UTF-8, com query/hash, na origem exata
+de `AUTH_FRONTEND_URL`. URLs absolutas, `//`, barras invertidas e formas inseguras são recusadas.
+O destino é vinculado ao cookie inteiro cujo hash integra a transação OAuth, sem migration nova;
+alterá-lo no callback ou cookie invalida a prova de navegador. Sem parâmetro, o retorno usa
+`AUTH_FRONTEND_URL`. Não há implicit flow ou password grant. O fluxo segue a
 [RFC 9700, recomendações para OAuth 2.0](https://www.rfc-editor.org/rfc/rfc9700.html).
 
 O navegador recebe somente cookie de sessão opaco, `HttpOnly`, `Secure`, host-only,
@@ -102,7 +125,8 @@ validade/cache dos consumidores. Não há criptografia ou protocolo próprios.
 
 ## Autorização, CORS e CSRF
 
-O chat continuará público: login do visitante é opcional e não substitui o token de conversa.
+O chat, o portfólio e a solicitação de reuniões continuam públicos. Login é exclusivo do
+administrador e não substitui o token de conversa.
 Antes de liberar listagem de solicitações, dados pessoais ou decisões de reuniões, exigir sessão
 válida e permissão administrativa. Cada ação fará sua autorização no servidor e produzirá uma
 trilha de auditoria sem tokens ou credenciais.
@@ -118,16 +142,31 @@ O carregador de autenticação recebe a mesma lista normalizada usada pelo CORS 
 de frontend fora dessa lista impede a inicialização, inclusive quando `CORS_ORIGINS` foi omitido
 e o padrão da API permanece `http://localhost:5173`.
 
-Uma sessão ausente/expirada retorna `401`; identidade sem permissão retorna `403`. Sem cookie,
-`GET /auth/session` retorna estado anônimo. Com `AUTH_ENABLED=false`, os endpoints de autenticação
+Uma sessão ausente/expirada retorna `401`; identidade fora da política ou sem papel administrativo
+retorna `403 AUTH_ADMIN_ONLY`. Isso vale também para cookies e JWTs emitidos antes da restrição ou
+de uma revogação: a política e o papel são lidos da fonte central, sem confiar em claims antigos.
+`GET /auth/session` retorna estado anônimo sem cookie ou para uma conta não admitida, sem expor
+perfil ou CSRF. Com `AUTH_ENABLED=false`, os endpoints de autenticação
 recusam a operação com `404 AUTH_DISABLED`. O `404` de conversa continua
 sem revelar se o problema é ID, token ou expiração.
+
+O callback de uma identidade validada e recusada pela política limpa cookies de transação e sessão.
+Um callback inválido sem prova de state/navegador não encerra uma sessão administrativa válida.
+Em navegação HTML, falhas posteriores à validação e consumo da transação retornam `303` ao destino
+vinculado com um `auth_error` fixo: `AUTH_ADMIN_ONLY`, `AUTH_REQUIRED`, `AUTH_LOGIN_FAILED`,
+`AUTH_PROVIDER_UNAVAILABLE` ou `AUTH_UNAVAILABLE`. Não são transportados tokens, código OAuth,
+e-mail ou mensagens do provedor. Respostas API com `Accept: application/json` conservam seu status
+HTTP/JSON; state inválido ou replay não permite redirecionar. O sucesso continua usando `302`.
+Refresh recusado por `AUTH_ADMIN_ONLY`
+também limpa a sessão do navegador. Logout continua permitindo revogar uma família antiga com
+Origin/CSRF válidos, mesmo quando a conta deixou de atender à política de admissão.
 
 ## Google primeiro, extensões posteriores
 
 O primeiro incremento implementa somente Google OIDC, sessão, JWT e autorização. Google deve
-confirmar `email_verified`, mas e-mail nunca une contas ou concede papel. A promoção administrativa
-é uma operação offline explícita do operador, auditada no banco. Não criar endpoints fictícios, botões ativos ou adaptadores vazios de e-mail/senha,
+confirmar `email_verified`, e o e-mail autorizado só limita admissão: ele nunca une contas.
+A política de concessão inicial e revogação administrativa permanece auditada no banco.
+Não criar endpoints fictícios, botões ativos ou adaptadores vazios de e-mail/senha,
 GitHub, MFA ou passkeys para apresentar esses recursos como disponíveis.
 
 As extensões aprovadas para o desenho futuro são:

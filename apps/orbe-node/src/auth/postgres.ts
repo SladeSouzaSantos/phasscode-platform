@@ -3,6 +3,7 @@ import type pg from 'pg';
 import type {
   AuthSession,
   AuthStore,
+  AuthUserProvisioning,
   AuthUser,
   ExternalProfile,
   NewAuthSession,
@@ -106,7 +107,10 @@ export class PgAuthStore implements AuthStore {
         }
       : undefined;
   }
-  async findOrCreateUser(profile: ExternalProfile): Promise<AuthUser> {
+  async findOrCreateUser(
+    profile: ExternalProfile,
+    { bootstrapAdmin = false }: AuthUserProvisioning = {},
+  ): Promise<AuthUser> {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
@@ -129,6 +133,29 @@ export class PgAuthStore implements AuthStore {
           [randomUUID(), id, profile.issuer, profile.subject],
         );
         await client.query("INSERT INTO auth_user_roles(user_id,role) VALUES ($1,'user')", [id]);
+      }
+      // Share the CLI's per-user lock. Read roles/audit in later statements so
+      // their READ COMMITTED snapshot includes a revocation that we waited for.
+      await client.query('SELECT id FROM auth_users WHERE id=$1 FOR UPDATE', [id]);
+      if (existing.rows[0])
+        await client.query('UPDATE auth_users SET email=$2, display_name=$3 WHERE id=$1', [
+          id,
+          profile.email,
+          profile.displayName,
+        ]);
+      if (bootstrapAdmin) {
+        const granted = await client.query(
+          `INSERT INTO auth_user_roles(user_id,role)
+           SELECT u.id,'admin' FROM auth_users u WHERE u.id=$1 AND u.disabled_at IS NULL
+             AND NOT EXISTS (SELECT 1 FROM auth_role_audit a WHERE a.user_id=u.id AND a.role='admin')
+           ON CONFLICT DO NOTHING RETURNING user_id`,
+          [id],
+        );
+        if (granted.rowCount)
+          await client.query(
+            "INSERT INTO auth_role_audit(id,user_id,action,role) VALUES($1,$2,'grant','admin')",
+            [randomUUID(), id],
+          );
       }
       const result = await client.query<{
         email: string | null;

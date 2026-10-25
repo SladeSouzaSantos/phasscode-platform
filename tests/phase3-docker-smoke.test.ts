@@ -126,6 +126,7 @@ describe('disposable Phase 3 image qualification', () => {
       expect(config.services[name]!.pull_policy).toBe('never');
       expect(config.services[name]!.environment).toMatchObject({
         AUTH_ENABLED: 'true',
+        AUTH_ADMIN_EMAIL: 'admin@example.test',
         MEETINGS_ENABLED: 'true',
         WORKER_ENABLED: 'true',
         GOOGLE_CALENDAR_MODE: 'fake',

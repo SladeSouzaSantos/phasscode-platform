@@ -42,27 +42,75 @@ export const authJwksSchema = z.strictObject({
 const redirect = {
   302: {
     description:
-      'Redirecionamento fixo do fluxo Google OIDC; cookies HttpOnly, sem tokens no JSON/URL do frontend.',
+      'Redirecionamento do fluxo Google OIDC; retorno somente à origem configurada, cookies HttpOnly e nenhum token no frontend.',
   },
   ...standardErrors,
 };
 export const authOpenApiPaths = {
   '/api/v1/auth/login/google': {
-    get: { summary: 'Iniciar login Google OIDC (quando habilitado)', responses: redirect },
-  },
-  '/api/v1/auth/callback/google': {
     get: {
-      summary: 'Callback Google com PKCE/state/nonce e uso único',
+      summary: 'Iniciar login Google OIDC exclusivo do administrador (quando habilitado)',
       parameters: [
-        { in: 'query', name: 'state', required: true, schema: { type: 'string' } },
-        { in: 'query', name: 'code', required: true, schema: { type: 'string' } },
+        {
+          in: 'query',
+          name: 'returnTo',
+          required: false,
+          description:
+            'Caminho relativo iniciado por uma única barra, com query/hash opcionais; máximo de 1024 bytes UTF-8. Resolvido exclusivamente na origem de AUTH_FRONTEND_URL e vinculado à transação do navegador. URLs absolutas, externas, //, barras invertidas e variantes inseguras são recusadas. Omitido: retorno fixo AUTH_FRONTEND_URL.',
+          schema: { type: 'string', maxLength: 1024, pattern: '^/(?!/)' },
+          example: '/portfolio?section=projetos#contato',
+        },
       ],
       responses: redirect,
     },
   },
+  '/api/v1/auth/callback/google': {
+    get: {
+      summary: 'Callback Google com PKCE/state/nonce e admissão exclusiva do administrador',
+      parameters: [
+        { in: 'query', name: 'state', required: true, schema: { type: 'string' } },
+        {
+          in: 'query',
+          name: 'code',
+          required: false,
+          description:
+            'Código Google obrigatório no sucesso; ausente quando o provedor recusa o login.',
+          schema: { type: 'string' },
+        },
+        {
+          in: 'query',
+          name: 'error',
+          required: false,
+          description:
+            'Recusa do provedor, mapeada a código público fixo sem refletir o valor recebido.',
+          schema: { type: 'string' },
+        },
+      ],
+      responses: {
+        ...redirect,
+        303: {
+          description:
+            'Navegação HTML: falha após validar state e transação do navegador retorna ao destino confiável com auth_error público. Sem estado válido/replay não há redirecionamento. Accept application/json preserva status HTTP/JSON.',
+          headers: {
+            Location: {
+              description:
+                'Destino vinculado ao login na origem de AUTH_FRONTEND_URL, com path/query/hash preservados e auth_error contendo somente AUTH_ADMIN_ONLY, AUTH_REQUIRED, AUTH_LOGIN_FAILED, AUTH_PROVIDER_UNAVAILABLE ou AUTH_UNAVAILABLE; sem código OAuth, tokens, e-mail ou mensagem interna.',
+              schema: { type: 'string', format: 'uri' },
+            },
+          },
+        },
+        403: {
+          ...standardErrors[403],
+          description:
+            'JSON/API: AUTH_ADMIN_ONLY para conta Google verificada fora da política administrativa ou papel revogado. Sem cadastro ou sessão. Navegação HTML retorna 303 após validar a transação. Acesso negado. Apenas o administrador tem acesso.',
+        },
+      },
+    },
+  },
   '/api/v1/auth/session': {
     get: {
-      summary: 'Sessão do navegador e token CSRF; nenhum JWT exposto',
+      summary:
+        'Sessão administrativa do navegador e CSRF; contas não admitidas retornam estado anônimo',
       responses: {
         200: { description: 'Estado da sessão', content: json(authSessionSchema) },
         ...standardErrors,

@@ -24,16 +24,31 @@ variáveis `VITE_*`.
    do 404 como conversa indisponível. O login não é requisito para conversar. Inicialmente usar
    `new OrbeClient(API)`; sem opt-in a resposta mantém o formato legado, mesmo com reuniões ativas.
 2. **Substituir o login demonstrativo pelo Google.** A ação de entrar navega para
-   `client.googleLoginUrl`, sem popup ou tokens no JavaScript. Ao carregar a página de retorno fixa,
-   chamar `client.getSession()`. Renderizar usuário/papéis somente a partir da resposta. Não ativar
+   `client.googleLoginUrl`, sem popup ou tokens no JavaScript. Para preservar a página de origem,
+   acrescentar `returnTo` com `URLSearchParams`, usando `location.pathname + location.search +
+location.hash`, conforme o [exemplo de integração](phase3-integration.md#login-e-sessão).
+   O destino precisa pertencer à origem de `AUTH_FRONTEND_URL`; o caminho é limitado a 1024 bytes
+   UTF-8 e não admite URL absoluta, `//` ou barras invertidas. Sem parâmetro, o retorno fixo é mantido.
+   Ao carregar a página de retorno, chamar `client.getSession()`. Renderizar usuário/papéis somente
+   a partir da resposta. Não ativar
    formulários de senha, GitHub ou MFA: essas formas de login ainda são roadmap. Com `AUTH_DISABLED`,
    apresentar a função como indisponível e preservar o restante do portfólio público.
+   O login é exclusivo do administrador: para outra conta Google, uma navegação HTML volta com
+   `303` e `auth_error=AUTH_ADMIN_ONLY`, sem sessão. Comparar o código exato e mostrar o texto
+   constante “Acesso negado. Apenas o administrador tem acesso.”; remover apenas `auth_error`
+   com `history.replaceState`, preservando os demais parâmetros e hash. Não refletir o valor
+   como HTML nem usá-lo como autorização. `Accept: application/json` preserva o erro `403` em JSON.
+   Outros códigos de retorno e regras de state/replay estão no guia. Não iniciar logins em loop.
+   Onde houver tela de acesso negado da UI, oferecer volta ao portfólio público e uma tentativa
+   manual com a conta correta; não bloquear chat/reuniões. A recusa administrativa de uma identidade
+   validada limpa os cookies; callback sem prova válida não encerra uma sessão administrativa.
 3. **Gerenciar a sessão.** Os cookies são HttpOnly; o cliente usa `credentials: 'include'` nas rotas
    autenticadas e guarda CSRF somente em memória. Chamar `client.refresh()` antes da expiração quando
    necessário. Chamadas concorrentes na mesma instância compartilham uma única renovação; logout
    espera uma renovação em andamento. Não criar uma instância por componente nem renovar em todos
    os fetches. Coordenação entre abas é responsabilidade adicional do frontend; o exemplo não
-   coordena abas/processos. Em 401, pedir novo login; em 403, conferir papel/Origin/CSRF. Não repetir
+   coordena abas/processos. Em 401, pedir novo login; em `403 AUTH_ADMIN_ONLY`, mostrar acesso negado;
+   nos outros 403, conferir papel/Origin/CSRF. Sessão fora da política retorna estado anônimo. Não repetir
    mutações automaticamente para tentar corrigir um erro de autenticação.
 4. **Consultar disponibilidade.** Usar `client.availability(from, to)` em janelas de até sete dias.
    Exibir `start`/`end` no `timeZone` retornado, inicialmente `America/Fortaleza`. A API entrega os
@@ -51,6 +66,7 @@ variáveis `VITE_*`.
 7. **Acompanhar e administrar.** Guardar `id` e `meetingToken` somente em memória e consultar com
    `client.status`. Para administração, usar `listMeetings` com cursor e `decide`; cada comando exige
    autenticação/admin no servidor e CSRF por cookie. Esconder botões por papel é apenas apresentação.
+   Não incluir `AUTH_ADMIN_EMAIL` no bundle nem aceitar e-mail/papel por query para liberar acesso.
    Depois de 409, atualizar lista/disponibilidade. Evitar polling agressivo: o limite das rotas da
    Fase 3 é compartilhado por IP, inicialmente 20 requisições/minuto.
 

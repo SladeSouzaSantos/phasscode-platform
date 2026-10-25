@@ -28,7 +28,9 @@ real (SMTP ou Telegram). Manter esses recursos desligados continua válido para 
 o código `2` informa que a Fase 3 ainda não está configurada, sem habilitar nada automaticamente.
 
 A checagem identifica política explícita de reuniões, CORS, dependências PostgreSQL/Redis,
-credenciais parciais, simuladores em produção, TTLs e margem de lease. Se uma LLM real estiver
+credenciais parciais, simuladores em produção, TTLs e margem de lease.
+`AUTH_ADMIN_EMAIL` válido é requisito do login habilitado; configurar somente o e-mail Google
+verificado do proprietário, sem wildcard ou lista de contas. Se uma LLM real estiver
 selecionada, também confere seus pré-requisitos e orçamento. Ela não comprova disponibilidade,
 conteúdo criptográfico da chave, validade de credenciais, escopos Google, entrega de mensagens,
 migrations aplicadas, saúde dos serviços ou integração do navegador.
@@ -65,8 +67,11 @@ os `.env` existentes e separar a homologação de qualquer servidor publicado.
 2. No ambiente autorizado, conferir `/ready` e heartbeat do worker. Esses sinais cobrem dependências
    locais e consumo, sem provar saúde de Google, SMTP ou Telegram. Iniciar o worker pode processar
    **todo o backlog** desse banco; não usá-lo como diagnóstico sem efeitos.
-3. Homologar Google OIDC no navegador com callback, cookies, refresh, CSRF e logout. Atribuição de
-   administração exige operador e identidade conferida; login não promove usuários automaticamente.
+3. Homologar Google OIDC no navegador com a conta autorizada em `AUTH_ADMIN_EMAIL`, callback,
+   cookies, refresh, CSRF e logout. Conferir concessão inicial auditada, revogação administrativa
+   e recusa de outra conta sem criar usuário ou sessão: `303` com `auth_error=AUTH_ADMIN_ONLY`
+   na navegação HTML e `403 AUTH_ADMIN_ONLY` em clientes JSON. Não restaurar
+   automaticamente papel revogado; recuperação usa o procedimento operacional explícito.
 4. Com acesso à conta explicitamente autorizado, consultar FreeBusy no calendário escolhido.
    Conexão/autenticação SMTP sem envio e autenticação do bot Telegram são verificações externas
    separadas, ainda não oferecidas pelo preflight; não tratar configuração presente como sucesso.
