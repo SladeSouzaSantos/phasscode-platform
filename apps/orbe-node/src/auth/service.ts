@@ -88,6 +88,17 @@ export class AuthService {
     const value = request.cookies?.[this.cookieName];
     return validSecret(value) ? this.store!.sessionByHash(authHash(value)) : undefined;
   }
+  private async bearerSession(request: FastifyRequest): Promise<AuthSession | undefined> {
+    const authorization = request.headers.authorization;
+    // Absence of a bearer credential never authorizes a request. The final
+    // requirePrincipal guard accepts only an active server-backed session.
+    if (authorization === undefined) return undefined;
+    if (!authorization.startsWith('Bearer ') || authorization.length > 8192) throw unauthorized();
+    const claims = await this.tokens!.verify(authorization.slice(7));
+    const session = await this.store!.sessionById(claims.sessionId);
+    if (session?.userId !== claims.userId) throw unauthorized();
+    return session;
+  }
   async beginLogin(request: FastifyRequest) {
     return this.safe(async () => {
       if (request.headers.origin) this.origin(request);
@@ -202,17 +213,21 @@ export class AuthService {
   ): Promise<Principal> {
     return this.safe(async () => {
       let session: AuthSession | undefined;
-      const authorization = request.headers.authorization;
-      if (authorization) {
-        if (!authorization.startsWith('Bearer ') || authorization.length > 8192)
-          throw unauthorized();
-        const claims = await this.tokens!.verify(authorization.slice(7));
-        session = await this.store!.sessionById(claims.sessionId);
-        if (session?.userId !== claims.userId) throw unauthorized();
-        if (options.csrf && request.headers.origin) this.origin(request);
-      } else {
+      if (options.csrf) {
+        // Routes with side effects require the opaque browser cookie AND its CSRF proof.
+        // A caller-controlled Authorization header must never switch off either check.
         session = await this.cookieSession(request);
-        if (options.csrf && session) this.csrf(request, session);
+        if (!this.active(session)) throw unauthorized();
+        this.csrf(request, session);
+      } else {
+        // Validate both independent credential types before choosing an identity.
+        // A raw Authorization header must not decide whether authentication
+        // or the final server-backed session check is performed.
+        const [cookie, bearer] = await Promise.all([
+          this.cookieSession(request),
+          this.bearerSession(request),
+        ]);
+        session = bearer ?? cookie;
       }
       if (!this.active(session)) throw unauthorized();
       if (options.admin && !session.user.roles.includes('admin'))

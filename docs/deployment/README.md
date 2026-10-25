@@ -7,10 +7,14 @@ no GitHub e validado no servidor. Esta revisão não publicou imagens nem acesso
 
 ## Checkouts e isolamento
 
-| Ambiente        | Checkout                               | Branch | Projeto Compose          | Imagem local                   | HTTP no host     |
-| --------------- | -------------------------------------- | ------ | ------------------------ | ------------------------------ | ---------------- |
-| Produção        | `/opt/projects/phasscode-platform`     | `main` | `phasscode-platform`     | `phasscode-platform:local`     | `127.0.0.1:3000` |
-| Desenvolvimento | `/opt/projects/phasscode-platform-dev` | `dev`  | `phasscode-platform-dev` | `phasscode-platform-dev:local` | `127.0.0.1:3001` |
+| Ambiente        | Checkout                               | Branch | Projeto Compose          | Imagem local                   | HTTP no host              |
+| --------------- | -------------------------------------- | ------ | ------------------------ | ------------------------------ | ------------------------- |
+| Produção        | `/opt/projects/phasscode-platform`     | `main` | `phasscode-platform`     | `phasscode-platform:local`     | `127.0.0.1:<porta-livre>` |
+| Desenvolvimento | `/opt/projects/phasscode-platform-dev` | `dev`  | `phasscode-platform-dev` | `phasscode-platform-dev:local` | `127.0.0.1:3001`          |
+
+**Porta de produção:** a porta 3000 do host já pertence ao Grafana e 3001 é reservada ao backend DEV. Antes da liberação, inspecione as portas reais do Mac Mini e escolha uma porta TCP livre, distinta de ambas, no intervalo 1024–65535. Configure `PHASSCODE_HTTP_PORT` com o mesmo número no `.env` privado do checkout PROD e como **variable no GitHub Environment `production`**. O workflow a encaminha via SSH; `deploy.sh production` recusa porta ausente, inválida ou igual a 3000/3001 antes de mudar serviços ou dados. Não presume que 3002 ou qualquer outra porta esteja livre. O bind permanece exclusivamente em `127.0.0.1`, sem publicar a API em `0.0.0.0`.
+
+Para um plano local sem efeitos, forneça explicitamente `PHASSCODE_HTTP_PORT=PORTA_CONFIRMADA` no processo ao chamar `bash scripts/deploy.sh production ...` sem `--apply`. Isso não altera `.env` nem instala serviços.
 
 Cada checkout tem seu próprio `.env`, ignorado pelo Git. Configure `COMPOSE_PROJECT_NAME`,
 `PHASSCODE_IMAGE` e `PHASSCODE_HTTP_PORT` conforme a tabela. Em releases, `PHASSCODE_IMAGE` recebe
@@ -116,18 +120,25 @@ Configure `TRUST_PROXY` somente para os IPs/CIDRs confirmados de proxies confiá
 rede compartilhada ampla sem analisar quem pode ingressar nela. O modelo sobrescreve headers de
 encaminhamento recebidos; uma cadeia com CDN precisa de configuração própria de IP real.
 
-## Release manual no GitHub
+## Release automatizada e manual no GitHub
 
-[`deploy.yml`](../../.github/workflows/deploy.yml) tem apenas `workflow_dispatch`:
+[`deploy.yml`](../../.github/workflows/deploy.yml) dispara em `push` para `dev` e `main`,
+e também permite `workflow_dispatch`:
 
-1. Executar `dev`/`development` ou `main`/`production`; o workflow rejeita combinações diferentes.
+1. Em push, `dev` seleciona o environment `development` e `main` seleciona `production`.
+   Em dispatch manual, selecionar `dev`/`development` ou `main`/`production`;
+   o workflow rejeita combinações diferentes.
 2. Testes, smoke, integração descartável, auditoria e CodeQL precedem a imagem GHCR `linux/amd64`.
    Confirmar essa arquitetura no Mac Mini antes da primeira release. A imagem leva SHA OCI, SBOM e
    proveniência; DAST e deploy recebem o mesmo digest imutável.
 3. ZAP lê OpenAPI com alvo sobrescrito para a API descartável, em mock e sem chave de LLM. Os
    relatórios duram 14 dias; falhas definidas em `.ci/zap-rules.conf` bloqueiam a release.
-4. `apply_remote=false` publica/testa a imagem sem aplicar no servidor. Para aplicação manual,
-   exigir `apply_remote=true` e `ENABLE_REMOTE_DEPLOY=true` no environment GitHub correspondente.
+4. Em execução manual, `apply_remote=false` publica/testa a imagem sem aplicar no servidor;
+   `apply_remote=true` permite deploy. Em push, o deploy é automático somente se
+   `ENABLE_REMOTE_DEPLOY=true` no environment GitHub correspondente. O deploy manual também exige
+   essa variável. Em `production`, configurar **Required reviewers** no GitHub Environment
+   para exigir aprovação humana antes de iniciar o job. Apenas referenciar o environment no YAML
+   não cria nem garante essa aprovação.
 5. Tailscale prefere OAuth completo; credencial parcial falha. A authkey é alternativa somente
    quando nenhum dos dois campos OAuth foi configurado. SSH valida fingerprint obrigatório.
 6. No checkout preparado, confirmar branch/árvore limpa, fazer fast-forward somente para o SHA
@@ -142,8 +153,8 @@ alcançável pela tailnet e a tag `TAILSCALE_TAGS` precisa estar autorizada na A
 `GHCR_PULL_TOKEN` deve permitir somente leitura do pacote. O token de pull usa configuração Docker
 temporária no servidor. O checkout também precisa ter acesso Git de leitura já preparado.
 
-Variáveis por environment: `ENABLE_REMOTE_DEPLOY`, `TAILSCALE_TAGS`, `PHASSCODE_USE_PROXY` e
-`API_PUBLIC_URL`. A última deve ser a origem HTTPS real; se ausente, o workflow informa que só
+Variáveis por environment: `ENABLE_REMOTE_DEPLOY`, `TAILSCALE_TAGS`, `PHASSCODE_USE_PROXY`,
+`PHASSCODE_HTTP_PORT` (obrigatória no PROD, após verificar disponibilidade) e `API_PUBLIC_URL`. A última deve ser a origem HTTPS real; se ausente, o workflow informa que só
 validou readiness local. A verificação pública usa `/health`; ela não comprova a revisão da imagem atrás de um CDN;
 a verificação do digest/SHA ocorre localmente no servidor. Credenciais LLM e banco ficam no `.env`
 privado do checkout, nunca nas entradas do workflow.

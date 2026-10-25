@@ -199,6 +199,84 @@ describe('sessions, authorization, rotation and JWT resource access', () => {
       ).statusCode,
     ).toBe(200);
   });
+  it('never lets a caller-provided Bearer header bypass cookie CSRF on admin mutations', async () => {
+    const { app, service, store } = await setup();
+    const logged = await login(app, service, google);
+    store.users.get(logged.state.user.id)!.roles.push('admin');
+    const jwt = await service.issueAccessToken(request(logged.sessionCookie));
+
+    // A valid, signed JWT remains accepted for a read-only request.
+    expect(
+      (await app.inject({ url: '/test-admin', headers: { authorization: `Bearer ${jwt}` } }))
+        .statusCode,
+    ).toBe(200);
+
+    // Supplying Authorization must not select a weaker auth/CSRF path for mutations.
+    for (const headers of [
+      { authorization: `Bearer ${jwt}` },
+      { authorization: `Bearer ${jwt}`, cookie: logged.sessionCookie },
+      {
+        authorization: `Bearer ${jwt}`,
+        cookie: logged.sessionCookie,
+        origin: 'http://localhost:5173',
+        'x-csrf-token': 'invalid',
+      },
+    ]) {
+      const response = await app.inject({ method: 'POST', url: '/test-admin', headers });
+      expect([401, 403]).toContain(response.statusCode);
+    }
+
+    // Even when both credentials are present, the browser cookie requires its CSRF proof.
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/test-admin',
+          headers: {
+            authorization: `Bearer ${jwt}`,
+            cookie: logged.sessionCookie,
+            origin: 'http://localhost:5173',
+            'x-csrf-token': logged.state.csrfToken,
+          },
+        })
+      ).statusCode,
+    ).toBe(200);
+  });
+  it('rejects forged JWTs even alongside a valid browser cookie', async () => {
+    const { app, service, store } = await setup();
+    const logged = await login(app, service, google);
+    store.users.get(logged.state.user.id)!.roles.push('admin');
+    const validJwt = await service.issueAccessToken(request(logged.sessionCookie));
+    const parts = validJwt.split('.');
+    parts[2] = (parts[2]!.startsWith('a') ? 'b' : 'a') + parts[2]!.slice(1);
+    const invalidJwt = parts.join('.');
+
+    // Either individually validated credential can authenticate read-only access.
+    expect(
+      (await app.inject({ url: '/test-admin', headers: { cookie: logged.sessionCookie } }))
+        .statusCode,
+    ).toBe(200);
+    expect(
+      (await app.inject({ url: '/test-admin', headers: { authorization: `Bearer ${validJwt}` } }))
+        .statusCode,
+    ).toBe(200);
+
+    for (const authorization of ['Basic invalid', `Bearer ${invalidJwt}`]) {
+      expect(
+        (
+          await app.inject({
+            url: '/test-admin',
+            headers: { cookie: logged.sessionCookie, authorization },
+          })
+        ).statusCode,
+      ).toBe(401);
+    }
+    expect((await app.inject({ url: '/test-admin', headers: {} })).statusCode).toBe(401);
+    expect(
+      (await app.inject({ url: '/test-admin', headers: { authorization: 'Bearer invalid' } }))
+        .statusCode,
+    ).toBe(401);
+  });
   it('rotates the opaque cookie and revokes the entire family on refresh reuse', async () => {
     const { app, service } = await setup();
     const result = await login(app, service, google);
