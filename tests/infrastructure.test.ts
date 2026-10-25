@@ -614,15 +614,31 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   });
 });
 
-it('release workflow is manual, gates deployment and scans only disposable mock infrastructure', () => {
+it('release workflow automates dev/main pushes, retains manual dry-run and gates deployment', () => {
   const source = readFileSync(join(root, '.github/workflows/deploy.yml'), 'utf8');
   const workflow = parse(source) as {
-    on: Record<string, { inputs: Record<string, { default?: unknown }> }>;
-    jobs: Record<string, { if?: string; needs?: string[]; env?: Record<string, string> }>;
+    on: {
+      push: { branches: string[] };
+      workflow_dispatch: { inputs: Record<string, { default?: unknown }> };
+    };
+    jobs: Record<string, {
+      if?: string;
+      needs?: string[];
+      environment?: string;
+      env?: Record<string, string>;
+    }>;
   };
-  expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch']);
-  expect(workflow.on.workflow_dispatch!.inputs.apply_remote!.default).toBe(false);
-  expect(workflow.jobs.deploy!.if).toBe('inputs.apply_remote');
+  expect(Object.keys(workflow.on).sort()).toEqual(['push', 'workflow_dispatch']);
+  expect(workflow.on.push.branches).toEqual(['dev', 'main']);
+  expect(workflow.on.workflow_dispatch.inputs.apply_remote!.default).toBe(false);
+  expect(workflow.jobs.deploy!.if).toBe("github.event_name == 'push' || inputs.apply_remote");
+  expect(workflow.jobs.deploy!.environment).toContain("'production'");
+  expect(workflow.jobs.deploy!.environment).toContain("'development'");
+  expect(workflow.jobs.verify!.environment).toBe(workflow.jobs.deploy!.environment);
+  expect(workflow.jobs.deploy!.env!.DEPLOY_TARGET).toContain("github.ref_name == 'main'");
+  expect(workflow.jobs.deploy!.env!.DEPLOY_BRANCH).toContain('github.ref_name');
+  expect(workflow.jobs.deploy!.env!.PROJECT_DIR).toContain('github.ref_name');
+  expect(source).toContain('test "$ENABLE_REMOTE_DEPLOY" = true');
   expect(workflow.jobs.deploy!.needs).toEqual(['image', 'dast']);
   expect(workflow.jobs.deploy!.env!.PHASSCODE_USE_PROXY).toBe('${{ vars.PHASSCODE_USE_PROXY }}');
   expect(workflow.jobs.dast!.env!.LLM_PROVIDER).toBe('mock');
