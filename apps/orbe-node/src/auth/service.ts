@@ -93,8 +93,7 @@ export class AuthService {
     // Absence of a bearer credential never authorizes a request. The final
     // requirePrincipal guard accepts only an active server-backed session.
     if (authorization === undefined) return undefined;
-    if (!authorization.startsWith('Bearer ') || authorization.length > 8192)
-      throw unauthorized();
+    if (!authorization.startsWith('Bearer ') || authorization.length > 8192) throw unauthorized();
     const claims = await this.tokens!.verify(authorization.slice(7));
     const session = await this.store!.sessionById(claims.sessionId);
     if (session?.userId !== claims.userId) throw unauthorized();
