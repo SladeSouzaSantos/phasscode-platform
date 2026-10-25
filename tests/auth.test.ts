@@ -242,7 +242,7 @@ describe('sessions, authorization, rotation and JWT resource access', () => {
       ).statusCode,
     ).toBe(200);
   });
-  it('validates both credentials and rejects an invalid bearer even alongside a valid cookie', async () => {
+  it('rejects forged JWTs even alongside a valid browser cookie', async () => {
     const { app, service, store } = await setup();
     const logged = await login(app, service, google);
     store.users.get(logged.state.user.id)!.roles.push('admin');
@@ -271,9 +271,7 @@ describe('sessions, authorization, rotation and JWT resource access', () => {
         ).statusCode,
       ).toBe(401);
     }
-    expect(
-      (await app.inject({ url: '/test-admin', headers: {} })).statusCode,
-    ).toBe(401);
+    expect((await app.inject({ url: '/test-admin', headers: {} })).statusCode).toBe(401);
     expect(
       (await app.inject({ url: '/test-admin', headers: { authorization: 'Bearer invalid' } }))
         .statusCode,
