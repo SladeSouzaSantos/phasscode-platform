@@ -242,6 +242,41 @@ describe('sessions, authorization, rotation and JWT resource access', () => {
       ).statusCode,
     ).toBe(200);
   });
+  it('validates both credentials and rejects an invalid bearer even alongside a valid cookie', async () => {
+    const { app, service, store } = await setup();
+    const logged = await login(app, service, google);
+    store.users.get(logged.state.user.id)!.roles.push('admin');
+    const validJwt = await service.issueAccessToken(request(logged.sessionCookie));
+    const invalidJwt = validJwt.slice(0, -1) + (validJwt.endsWith('a') ? 'b' : 'a');
+
+    // Either individually validated credential can authenticate read-only access.
+    expect(
+      (await app.inject({ url: '/test-admin', headers: { cookie: logged.sessionCookie } }))
+        .statusCode,
+    ).toBe(200);
+    expect(
+      (await app.inject({ url: '/test-admin', headers: { authorization: `Bearer ${validJwt}` } }))
+        .statusCode,
+    ).toBe(200);
+
+    for (const authorization of ['Basic invalid', `Bearer ${invalidJwt}`]) {
+      expect(
+        (
+          await app.inject({
+            url: '/test-admin',
+            headers: { cookie: logged.sessionCookie, authorization },
+          })
+        ).statusCode,
+      ).toBe(401);
+    }
+    expect(
+      (await app.inject({ url: '/test-admin', headers: {} })).statusCode,
+    ).toBe(401);
+    expect(
+      (await app.inject({ url: '/test-admin', headers: { authorization: 'Bearer invalid' } }))
+        .statusCode,
+    ).toBe(401);
+  });
   it('rotates the opaque cookie and revokes the entire family on refresh reuse', async () => {
     const { app, service } = await setup();
     const result = await login(app, service, google);
