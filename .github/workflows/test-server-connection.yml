@@ -1,0 +1,47 @@
+name: Test Mac Mini Connection
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  connectivity:
+    name: Test Tailscale and SSH
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Connect to Tailscale
+        uses: ./.github/actions/tailscale-connect
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tags: tag:ci
+
+      - name: Test SSH access to Mac Mini
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          fingerprint: ${{ secrets.SSH_HOST_FINGERPRINT }}
+          command_timeout: 1m
+          script: |
+            set -eu
+
+            echo "SSH authentication successful"
+            hostname
+            whoami
+            uname -m
+
+            test -d /opt/projects/phasscode-platform-dev/.git
+            test "$(git -C /opt/projects/phasscode-platform-dev branch --show-current)" = dev
+
+            docker info --format 'Docker architecture: {{.Architecture}}'
+
+            echo "Mac Mini connection test passed"
