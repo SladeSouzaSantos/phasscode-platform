@@ -30,14 +30,20 @@ responder automaticamente ao preflight nesse modo. Assim, OPTIONS e a decisão C
 pelo navegador e pela API reais, passando somente pelo proxy local com origens restritas.
 
 A configuração é construída com dados sintéticos em memória. O fixture não carrega `.env`,
-nenhuma conexão PostgreSQL/Redis é aberta, nenhuma migration ou concessão administrativa é
-executada. O frontend do proprietário não é alterado. O teste não grava screenshots, vídeos,
+nenhuma conexão PostgreSQL/Redis é aberta e nenhuma migration ou alteração administrativa em
+banco real é executada. A concessão inicial de admin usa somente o armazenamento sintético do
+fixture, com e-mail de teste em `AUTH_ADMIN_EMAIL`. O frontend do proprietário não é alterado.
+O teste não grava screenshots, vídeos,
 traces ou tokens em arquivos.
 
 ## O que é conferido
 
 - Chat público antes e depois do login, com o formato legado sem `actions`.
-- Redirecionamento de login, callback fixo e sessão obtida com credenciais do navegador.
+- Redirecionamento de login, callback fixo e sessão administrativa obtida com a conta autorizada.
+- Retorno ao caminho/query/hash autorizado por `returnTo`, com `302` no sucesso ou `303` e
+  `auth_error=AUTH_ADMIN_ONLY` na recusa de outra conta Google, sem criar sessão; API JSON mantém
+  `403`. O e-mail admitido vem da configuração sintética, sem depender da conta real do proprietário.
+- Recusa de destino externo/inseguro e de redirecionamento sem prova de state/navegador ou replay.
 - Cookie HttpOnly/host-only/SameSite=Lax, inacessível por `document.cookie`.
 - Sessão anônima quando `fetch` omite credenciais e perfil autenticado quando as inclui.
 - Preflight CORS real e recusa de outra origem local, inclusive com CSRF válido.
@@ -54,3 +60,17 @@ Execução local em 23/10/2026: **1/1 teste aprovado**, usando Edge headless no 
 `playwright-core` 1.64.1. Duração registrada: 11,07 segundos, incluindo inicialização e limpeza.
 Formatação, ESLint dos arquivos do smoke e typecheck também foram conferidos na implementação;
 as evidências consolidadas da revisão ficam no relatório de retomada.
+Esse registro é histórico. Em 25/10/2026, a suíte passou com **3/3 testes**, incluindo recusa de
+outra conta Google com `403 AUTH_ADMIN_ONLY`, sem sessão e com chat público disponível. A conta
+autorizada continua passando por OIDC, cookies, CORS, CSRF, refresh e logout reais locais.
+Essa execução antecede a correção de retorno `303` ao frontend.
+
+Na revalidação do retorno em 25/10/2026, **4/4 testes passaram** com Edge headless. O teste da
+conta recusada voltou ao caminho, query e fragmento originais com `auth_error=AUTH_ADMIN_ONLY`,
+sem criar sessão. O teste adicional de conta autorizada confirmou o mesmo destino após o login.
+O fluxo de OIDC, cookies, CORS, CSRF, refresh/logout e a recusa do proxy continuam passando.
+O proxy preserva fragmentos somente em `Location` com destino local permitido; fragmentos em
+requisições HTTP continuam recusados. Não há seguimento automático de redirecionamentos.
+
+Veja a [validação da política administrativa](admin-only-auth.md), que distingue esses resultados
+da homologação externa e dos testes PostgreSQL não executados nesta revisão.

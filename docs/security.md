@@ -37,7 +37,25 @@ comparação constante; UUID não concede acesso. Tokens não são registrados n
 Google OIDC e administração estão implementados na Fase 3, com PKCE/state/nonce, sessão opaca
 HttpOnly/Secure/SameSite, Origin/CSRF e verificação do papel atual no PostgreSQL. JWT de serviço
 é RS256, com issuer/audience/expiração, propósito e sid ativo; não é exposto ao navegador. Contas
-externas são vinculadas por issuer/subject, sem união por e-mail ou promoção automática de admin.
+externas são vinculadas por issuer/subject, sem união por e-mail.
+O login é exclusivo do administrador: `AUTH_ADMIN_EMAIL` obrigatório com auth habilitada precisa
+coincidir com o e-mail verificado pelo Google, após trim/lowercase exatos, sem normalização de
+pontos ou aliases. Outra conta é recusada antes de persistir usuário/identidade ou criar sessão:
+clientes JSON recebem `403 AUTH_ADMIN_ONLY`; navegação HTML com transação válida retorna `303`
+ao portfólio com `auth_error=AUTH_ADMIN_ONLY`. A política e o papel atual são revalidados para cookies e JWTs, fechando acesso
+de contas antigas não admitidas e de administradores revogados; `/auth/session` as apresenta como
+anônimas. O frontend não escolhe o e-mail autorizado. Portfólio, chat e pedidos públicos de reunião
+continuam acessíveis sem login. A concessão inicial de admin e sua revogação são auditadas.
+
+`returnTo` só aceita caminho relativo de até 1024 bytes UTF-8 na origem exata de `AUTH_FRONTEND_URL`;
+não aceita URL absoluta/externa, `//` ou barras invertidas. Path/query/hash são vinculados à transação
+e ao cookie inteiro, cujo hash é validado antes de qualquer retorno. Callback inválido ou replay
+não redireciona nem encerra sessão administrativa. Falhas de navegação só retornam códigos públicos
+fixos em `auth_error`, sem tokens, código OAuth, e-mail ou mensagens externas. O frontend deve
+comparar códigos conhecidos e exibir texto constante; o parâmetro não comprova autenticação.
+Um `auth_error` antigo é removido antes do retorno do login. O callback envia
+`Cache-Control: no-store` e `Referrer-Policy: no-referrer`; não há código OAuth no Referer do
+retorno ao portfólio. O frontend deve manter tokens/dados privados fora de `returnTo`.
 
 O prompt e as ferramentas separam instruções de dados. A busca aceita somente texto de consulta
 e lê documentos públicos. Ferramentas opcionais de reuniões consultam a agenda e preparam propostas;

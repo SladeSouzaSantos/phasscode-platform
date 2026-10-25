@@ -13,6 +13,7 @@ const environment = (): NodeJS.ProcessEnv => ({
   DATABASE_URL: 'postgresql://offline:private-database-canary@localhost/offline',
   REDIS_URL: 'redis://:private-redis-canary@localhost:6379/1',
   AUTH_ENABLED: 'true',
+  AUTH_ADMIN_EMAIL: 'private-admin-canary@example.test',
   AUTH_PUBLIC_URL: 'https://api.example.test',
   AUTH_FRONTEND_URL: 'https://portfolio.example.test/login-complete',
   CORS_ORIGINS: 'https://portfolio.example.test',
@@ -87,6 +88,7 @@ describe('preflight offline da Fase 3', () => {
     );
   });
   it.each([
+    'AUTH_ADMIN_EMAIL',
     'AUTH_GOOGLE_CLIENT_SECRET',
     'GOOGLE_CALENDAR_REFRESH_TOKEN',
     'DATABASE_URL',
@@ -117,6 +119,7 @@ describe('preflight offline da Fase 3', () => {
   });
   it.each([
     'AUTH_ENABLED',
+    'AUTH_ADMIN_EMAIL',
     'GOOGLE_CALENDAR_MODE',
     'OUTBOX_LEASE_MS',
     'MEETINGS_TIMEZONE',

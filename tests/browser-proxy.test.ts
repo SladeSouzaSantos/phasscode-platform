@@ -266,8 +266,12 @@ describe('proxy HTTP restrito do navegador', () => {
       }),
     );
     let location = `${redirected}/api/v1/auth/callback/google?code=synthetic`;
+    let issuerHits = 0;
     const issuer = await listen(
-      createServer((_request, response) => response.writeHead(302, { location }).end()),
+      createServer((_request, response) => {
+        issuerHits++;
+        response.writeHead(302, { location }).end();
+      }),
     );
     const proxy = await listen(createLocalProxy([issuer, redirected]));
 
@@ -283,15 +287,34 @@ describe('proxy HTTP restrito do navegador', () => {
     expect(relative.status).toBe(302);
     expect(relative.headers.location).toBe(location);
 
+    for (const localReturn of [
+      `${redirected}/projects?tab=java#section`,
+      `${redirected}#section`,
+      '/local-next?state=synthetic#section',
+      '#section',
+    ]) {
+      location = localReturn;
+      const previousHits = issuerHits;
+      const result = await viaProxy(proxy, `${issuer}/authorize`);
+      expect(result.status, localReturn).toBe(302);
+      expect(result.headers.location).toBe(localReturn);
+      expect(issuerHits).toBe(previousHits + 1);
+      expect(redirectedHits).toBe(1);
+    }
+
     for (const rejected of [
       `${forbidden}/callback`,
+      `${forbidden}/callback#fragment`,
       `//127.0.0.1:${new URL(forbidden).port}/callback`,
       'https://example.invalid/callback',
+      'https://example.invalid/callback#fragment',
       'http://169.254.169.254/latest/meta-data/',
       `http://user:secret@127.0.0.1:${new URL(redirected).port}/callback`,
       `http://2130706433:${new URL(redirected).port}/callback`,
       `//localhost:${new URL(redirected).port}/callback`,
-      `${redirected}/callback#fragment`,
+      `${redirected}/callback#bad\\fragment`,
+      `${redirected}/callback#bad fragment`,
+      `${redirected}/callback#bad\tfragment`,
       'javascript:alert(1)',
     ]) {
       location = rejected;

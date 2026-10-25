@@ -117,7 +117,9 @@ com um módulo coeso; separar serviço HTTP adicional apenas quando houver respo
   - Sessão do navegador por cookie HttpOnly/Secure/SameSite, proteção CSRF, renovação/revogação
     e JWT de API validado por assinatura, algoritmos permitidos, issuer, audience e expiração.
   - Aceite: testar callback inválido/replay, PKCE/state/nonce, sessão/logout/CSRF, JWT inválido ou
-    expirado e distinção 401/403. Login não concede administração automaticamente. Portfólio/Orbe
+    expirado e distinção 401/403. Login exclusivo do e-mail Google verificado de `AUTH_ADMIN_EMAIL`,
+    com bootstrap administrativo inicial auditado e recusa de outras contas antes de cadastro/
+    sessão. Revogação não é revertida automaticamente. Portfólio/Orbe
     continuam públicos; consentimento e credenciais Google Calendar ficam independentes.
   - Referências: [arquitetura](architecture/authentication.md), [ADR 0004](adr/0004-authentication.md)
     e [contrato implementado para frontend](api/phase3-integration.md). O módulo central AuthService,

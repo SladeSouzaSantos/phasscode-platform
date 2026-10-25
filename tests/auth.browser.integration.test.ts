@@ -94,6 +94,88 @@ it('bloqueia no proxy um destino loopback fora da allowlist sem atingir o servid
   }
 });
 
+it('devolve outra conta Google à página original com erro seguro, sem sessão e com chat público', async () => {
+  const denied = await browserFixture({
+    googleClaims: { email: 'intruder@example.test', sub: 'google-intruder' },
+  });
+  let deniedBrowser: Browser | undefined;
+  let deniedContext: BrowserContext | undefined;
+  try {
+    deniedBrowser = await launchLocalBrowser(denied.proxy);
+    deniedContext = await deniedBrowser.newContext({ serviceWorkers: 'block' });
+    const page = await deniedContext.newPage();
+    page.setDefaultTimeout(10000);
+    await page.goto(`${denied.frontend}/projects?tab=java#section`);
+    await page.evaluate((api) => {
+      const link = document.querySelector<HTMLAnchorElement>('#login');
+      if (!link) throw new Error('Link local de login indisponível.');
+      const login = new URL('/api/v1/auth/login/google', api);
+      login.searchParams.set('returnTo', location.pathname + location.search + location.hash);
+      link.href = login.href;
+    }, denied.api);
+    const expectedReturn = new URL(`${denied.frontend}/projects?tab=java#section`);
+    expectedReturn.searchParams.set('auth_error', 'AUTH_ADMIN_ONLY');
+    const callbackResponse = page.waitForResponse((response) =>
+      response.url().startsWith(`${denied.api}/api/v1/auth/callback/google?`),
+    );
+    await page.locator('#login').click();
+    const response = await callbackResponse;
+    expect(response.status()).toBe(303);
+    expect(response.headers().location).toBe(expectedReturn.href);
+    await page.waitForURL(expectedReturn.href);
+    expect(await page.title()).toBe('PHASSCODE local browser fixture');
+    expect(await deniedContext.cookies(denied.api)).toEqual([]);
+    expect((await browserFetch(page, denied.api, '/api/v1/auth/session')).body.authenticated).toBe(
+      false,
+    );
+    const chat = await browserFetch(page, denied.api, '/api/v1/chat', {
+      method: 'POST',
+      body: { message: 'oi' },
+      credentials: 'omit',
+    });
+    expect(chat.status).toBe(200);
+    expect(chat.body).not.toHaveProperty('actions');
+  } finally {
+    await deniedContext?.close();
+    await deniedBrowser?.close();
+    await denied.close();
+  }
+});
+
+it('retorna o administrador à página autorizada preservando caminho, consulta e fragmento', async () => {
+  if (!fixture || !browser) throw new Error('Fixture de navegador indisponível.');
+  const { api, frontend, cookieName } = fixture;
+  const isolated = await browser.newContext({ serviceWorkers: 'block' });
+  isolated.setDefaultTimeout(10000);
+  try {
+    const page = await isolated.newPage();
+    const original = `${frontend}/projects?tab=java#section`;
+    await page.goto(original);
+    await page.evaluate((api) => {
+      const link = document.querySelector<HTMLAnchorElement>('#login');
+      if (!link) throw new Error('Link local de login indisponível.');
+      const login = new URL('/api/v1/auth/login/google', api);
+      login.searchParams.set('returnTo', location.pathname + location.search + location.hash);
+      link.href = login.href;
+    }, api);
+    const callbackResponse = page.waitForResponse((response) =>
+      response.url().startsWith(`${api}/api/v1/auth/callback/google?`),
+    );
+    await page.locator('#login').click();
+    expect((await callbackResponse).headers().location).toBe(original);
+    await page.waitForURL(original);
+    const session = await browserFetch(page, api, '/api/v1/auth/session');
+    expect(session.status).toBe(200);
+    expect(session.body.authenticated).toBe(true);
+    expect(session.body.user.roles).toEqual(['admin', 'user']);
+    expect(
+      (await isolated.cookies(api)).find((cookie) => cookie.name === cookieName),
+    ).toMatchObject({ httpOnly: true, sameSite: 'Lax' });
+  } finally {
+    await isolated.close();
+  }
+});
+
 it('valida login, cookie HttpOnly, CORS/CSRF, refresh e logout em navegador real local', async () => {
   if (!fixture || !context) throw new Error('Fixture de navegador indisponível.');
   const { api, frontend, attacker, cookieName, requests, google } = fixture;
@@ -130,7 +212,7 @@ it('valida login, cookie HttpOnly, CORS/CSRF, refresh e logout em navegador real
   const initialResponse = await browserFetch(page, api, '/api/v1/auth/session');
   const initial = initialResponse.body as SessionState;
   expect(initial.authenticated).toBe(true);
-  expect(initial.user?.roles).toEqual(['user']);
+  expect(initial.user?.roles).toEqual(['admin', 'user']);
   expect(typeof initial.csrfToken).toBe('string');
   expect('accessToken' in initial).toBe(false);
   expect('refreshToken' in initial).toBe(false);

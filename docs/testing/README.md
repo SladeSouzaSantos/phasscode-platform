@@ -3,6 +3,9 @@
 Execute `npm ci --ignore-scripts`, `npm run check` e `npm audit --audit-level=high` na raiz.
 `npm test` usa somente mock e servidores HTTP locais simulando o provedor. Não exige chave paga.
 
+A [validação do login exclusivo do administrador](admin-only-auth.md) registra a política de
+`AUTH_ADMIN_EMAIL`, provisionamento auditado, sessões anteriores e os checks locais de 25/10.
+
 A [revisão dos alertas CodeQL do PR #4](pr4-codeql-review.md) explica a finalidade dos fingerprints
 Redis, a restrição de destinos do proxy e a correção de CORS/reflexão no servidor sintético.
 Inclui a justificativa do falso positivo de hash (#4) e as regressões de cotas, CORS, CSRF e OIDC.

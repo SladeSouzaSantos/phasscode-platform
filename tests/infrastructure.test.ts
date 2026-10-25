@@ -200,6 +200,7 @@ describe('Docker environment isolation (real Compose interpolation, no daemon)',
 
   it('forwards phase 3 session and integration timing overrides to API and worker', () => {
     const overrides = {
+      AUTH_ADMIN_EMAIL: 'admin@example.test',
       AUTH_ACCESS_TTL_SECONDS: '240',
       AUTH_SESSION_TTL_SECONDS: '1200',
       AUTH_SESSION_MAX_SECONDS: '14400',

@@ -31,10 +31,14 @@ export interface AuthSession extends NewAuthSession {
   user: AuthUser;
   revokedAt: Date | null;
 }
+export interface AuthUserProvisioning {
+  // Trusted application policy only; never accepted from HTTP input.
+  bootstrapAdmin?: boolean;
+}
 export interface AuthStore {
   saveTransaction(transaction: OAuthTransaction): Promise<void>;
   consumeTransaction(stateHash: string, browserHash: string): Promise<OAuthTransaction | undefined>;
-  findOrCreateUser(profile: ExternalProfile): Promise<AuthUser>;
+  findOrCreateUser(profile: ExternalProfile, options?: AuthUserProvisioning): Promise<AuthUser>;
   insertSession(session: NewAuthSession): Promise<void>;
   sessionByHash(hash: string): Promise<AuthSession | undefined>;
   sessionById(id: string): Promise<AuthSession | undefined>;

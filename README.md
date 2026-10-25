@@ -17,10 +17,17 @@ autorizada na OpenRouter. Evidências e limites estão no relatório; não compr
 nas contas externas ou no servidor publicado. O proprietário confirmou que configurará os provedores
 e implementará a UI; o [handoff do frontend](docs/api/phase3-frontend-handoff.md) já está disponível.
 
-O portfólio e o Orbe continuam públicos. Login Google não concede papel administrativo; cookies
+O portfólio, o Orbe e as solicitações de reunião continuam públicos. O login Google é exclusivo
+do administrador: `AUTH_ADMIN_EMAIL` deve conter o único e-mail autorizado e verificado pelo
+Google. Outras contas são recusadas antes de criar usuário ou sessão: a navegação volta ao
+portfólio com `auth_error=AUTH_ADMIN_ONLY`; clientes JSON recebem `403`. O parâmetro opcional
+`returnTo` preserva a página de origem dentro da origem autorizada; o [guia de integração](docs/api/phase3-integration.md)
+explica o retorno e a mensagem de acesso negado. Cookies
 HttpOnly protegem a sessão, e JWTs de serviço permanecem no backend. Autorização Calendar é
 independente do login. Java/Spring, RabbitMQ e Kafka continuam nas próximas fases; seus perfis de
 infraestrutura não representam adaptadores implementados.
+As regras de admissão, provisionamento e os testes estão na
+[validação do login administrativo](docs/testing/admin-only-auth.md).
 
 ## Execução rápida sem credenciais
 
