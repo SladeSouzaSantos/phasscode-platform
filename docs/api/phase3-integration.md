@@ -20,8 +20,9 @@ de referência com renovação compartilhada e confirmação explícita.
    `{authenticated:false,user:null,csrfToken:null,expiresAt:null}`. Quando autenticado, `user`
    contém `id`, `email`, `displayName`, `roles`; `csrfToken` e `expiresAt` acompanham a sessão.
    Cookies de usuários fora da política ou sem papel administrativo também produzem estado anônimo.
-3. Para `POST /api/v1/auth/refresh`, `/api/v1/auth/logout` e comandos administrativos, enviar
-   `credentials: 'include'` e `X-CSRF-Token` obtido da sessão. O navegador inclui `Origin`.
+3. Para `POST /api/v1/auth/refresh`, `/api/v1/auth/logout` e os POSTs administrativos de reuniões,
+   enviar `credentials: 'include'` e `X-CSRF-Token` obtido da sessão. O navegador inclui `Origin`,
+   que deve corresponder a uma origem permitida pelo backend; não defini-lo manualmente no fetch.
    Atualizar o token CSRF depois do refresh. Logout retorna `204` e revoga a família da sessão.
 
 ```ts
@@ -87,7 +88,8 @@ resposta nem propagar sua URL OAuth no Referer da navegação seguinte.
 Guardar o CSRF em memória. A sessão fica em cookie HttpOnly/Secure/SameSite=Lax, host-only.
 Nenhum access/refresh JWT é devolvido ao navegador; não criar armazenamento de JWT no localStorage.
 `GET /api/v1/me` exige identidade e retorna o perfil. Papéis no React controlam a apresentação;
-o backend verifica o papel e a identidade atuais em cada comando, inclusive com JWT de serviço.
+o backend verifica o papel e a identidade atuais nos acessos autenticados, inclusive nas leituras
+com JWT de serviço. Os requisitos dos comandos administrativos estão detalhados abaixo.
 `401` pede novo login; `403 AUTH_ADMIN_ONLY` indica conta não admitida ou administração revogada;
 outros `403` podem indicar CSRF/Origin incorreto. Exibir a mensagem de acesso negado como texto,
 sem repetir login ou mutações automaticamente. O frontend recebe a recusa da navegação por
@@ -189,13 +191,32 @@ oferecer também formulário direto para quem não desejar compartilhar dados pe
 
 ## Administração
 
-`GET /api/v1/admin/meetings?limit=25&status=PENDING` exige papel `admin`, com paginação por
-`nextCursor` opaco. Não usar números de página nem ordenar no frontend como se toda a base
-estivesse carregada. Os itens administrativos têm nome, e-mail, assunto, versão e falha resumida.
+`GET /api/v1/admin/meetings?limit=25&status=PENDING` aceita cookie de sessão ou access JWT da
+plataforma em `Authorization: Bearer ...`. Em ambos os casos, exige sessão ativa no servidor,
+identidade admitida pela política administrativa e papel `admin` atual. Um JWT com assinatura
+válida não substitui essas verificações. A leitura não exige `X-CSRF-Token`; o CORS continua
+aplicável às chamadas do navegador. O React usa cookie com `credentials: 'include'`, sem receber
+ou armazenar JWT.
 
-Os POSTs `/api/v1/admin/meetings/{id}/approve`, `/reject` e `/cancel` não aceitam dados da reunião
-no corpo e exigem sessão/admin/CSRF. Retries da mesma decisão são idempotentes quando o estado
-já permite a mesma resposta. `409` indica conflito/transição inválida; atualizar lista/status.
+A paginação usa `nextCursor` opaco. Não usar números de página nem ordenar no frontend como se
+toda a base estivesse carregada. Os itens administrativos têm nome, e-mail, assunto, versão e
+falha resumida.
+
+Os POSTs `/api/v1/admin/meetings/{id}/approve`, `/api/v1/admin/meetings/{id}/reject` e
+`/api/v1/admin/meetings/{id}/cancel` exigem **sempre cookie de sessão ativo, `Origin` permitido e
+`X-CSRF-Token` correspondente à sessão**, além da identidade/papel administrativos atuais.
+Essa exigência permanece mesmo se a requisição incluir `Authorization: Bearer ...`: Bearer
+isolado não autoriza esses comandos nem desativa a proteção CSRF.
+
+No navegador, enviar `credentials: 'include'` e o CSRF atual; `Origin` é controlado pelo navegador,
+não é uma credencial e não deve ser forjado ou usado como substituto da sessão/CSRF. O cliente
+React já usa esse fluxo e não precisa migrar para Bearer por causa desta distinção de contrato.
+As exigências dos comandos administrativos não tornam as consultas/propostas/solicitações
+públicas dependentes de login ou CSRF de sessão; o status privado continua usando `X-Meeting-Token`.
+
+Os comandos administrativos não aceitam dados da reunião no corpo. Retries da mesma decisão são
+idempotentes quando o estado já permite a mesma resposta. `409` indica conflito/transição inválida;
+atualizar lista/status.
 Cancelar uma reserva preserva sua proteção até verificar a remoção no Calendar. Falhas de
 notificação não desfazem decisões. SMTP comunica o visitante; Telegram informa o administrador
 sem nome, e-mail ou assunto do visitante. O backend mantém auditoria da decisão.
