@@ -32,6 +32,7 @@
     "test:infrastructure": "vitest run tests/infrastructure.test.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:browser": "vitest run --config vitest.browser.config.ts",
+    "test:e2e": "node scripts/b2-e2e.mjs",
     "test:watch": "vitest",
     "contracts:generate": "tsx packages/contracts/src/generate.ts",
     "contracts:check": "tsx packages/contracts/src/generate.ts --check",
