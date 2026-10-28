@@ -48,6 +48,9 @@ const frontendPaths = [
   'playwright.f2.config.ts',
   'playwright.phase3.config.ts',
   'playwright.orbe.config.ts',
+  // Exact non-secret CI policy sources used by the frontend workflow regression test.
+  '.github/workflows/deploy.yml',
+  '.github/workflows/paired-dev-ci.yml',
   'src',
   'public',
   'tests',

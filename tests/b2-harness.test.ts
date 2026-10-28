@@ -307,6 +307,9 @@ describe('B2 disposable runner policy without a Docker daemon', () => {
 
   it('selects known source paths without dotenv, credentials, artifacts or backup paths', () => {
     expect(snapshotPathAllowed('src/services/authClient.ts', 'frontend')).toBe(true);
+    expect(snapshotPathAllowed('.github/workflows/deploy.yml', 'frontend')).toBe(true);
+    expect(snapshotPathAllowed('.github/workflows/paired-dev-ci.yml', 'frontend')).toBe(true);
+    expect(snapshotPathAllowed('.github/workflows/unapproved.yml', 'frontend')).toBe(false);
     expect(snapshotPathAllowed('tests/e2e/runtime.ts', 'backend')).toBe(true);
     expect(
       snapshotPathAllowed('infrastructure/postgres/migrations/001_initial.sql', 'backend'),
