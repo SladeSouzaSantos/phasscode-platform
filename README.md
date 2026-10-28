@@ -36,11 +36,15 @@ As regras de admissão, provisionamento e os testes estão na
   `paired-dev-ci.yml`, com B2/F3 completo sobre dois checkouts descartáveis: o SHA do backend
   do próprio evento e um snapshot do HEAD `dev` do frontend, ambos registrados no resumo.
   **Esses testes não autorizam imagem de release, SSH, deploy nem uso de provedores reais.**
-- `.github/workflows/deploy.yml` não é acionado em push. É uma release **manual**, somente
-  em `dev`, com `target=development` e `apply_remote=false` por padrão. Ela exige
-  `PHASSCODE_RELEASE_BACKEND_SHA` e `PHASSCODE_RELEASE_FRONTEND_SHA` imutáveis, válidos para
-  o HEAD selecionado e iguais ao par aprovado. Esses valores só precisam ser atualizados
-  quando houver uma **candidata de release**, não a cada commit de desenvolvimento.
+- Push em `dev` também aciona `.github/workflows/deploy.yml` para **qualificar automaticamente
+  uma candidata**: captura o commit do backend do evento e o SHA do frontend obtido no checkout,
+  passa CI/SAST e o B2/F3 sem filtros, publica imagem imutável no GHCR e executa DAST isolado.
+  O artifact `backend-dev-candidate-pair` registra ambos os SHAs. A candidata não autoriza deploy.
+- O **deploy permanece manual**, via `workflow_dispatch` na branch `dev`, com
+  `target=development`, `apply_remote=false` por padrão e os parâmetros opcionais
+  `backend_sha` e `frontend_sha` copiados do artifact. Os parâmetros substituem as variáveis
+  persistentes `PHASSCODE_RELEASE_*_SHA`; não é preciso editá-las a cada commit ou candidata.
+  A execução manual requalifica o par imutável; dois SHAs incompatíveis falham sem publicar.
 - O deploy remoto exige, além da aprovação do par e das verificações, `apply_remote=true`,
   `ENABLE_REMOTE_DEPLOY=true` no environment `development` e autorização operacional
   independente (R3/R4, CORS, R5). Mantê-lo em `false` preserva o Mac Mini. `main` e

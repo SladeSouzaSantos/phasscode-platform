@@ -673,6 +673,7 @@ it('separates automatic DEV checks from manual immutable release and blocks remo
   const source = readFileSync(join(root, '.github/workflows/deploy.yml'), 'utf8');
   const workflow = parse(source) as {
     on: {
+      push: { branches: string[] };
       workflow_dispatch: { inputs: Record<string, { default?: unknown }> };
     };
     jobs: Record<
@@ -685,7 +686,8 @@ it('separates automatic DEV checks from manual immutable release and blocks remo
       }
     >;
   };
-  expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch']);
+  expect(Object.keys(workflow.on).sort()).toEqual(['push', 'workflow_dispatch']);
+  expect(workflow.on.push.branches).toEqual(['dev']);
   const backendCi = parse(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8')) as {
     on: { push: { branches: string[] } };
   };
@@ -704,10 +706,16 @@ it('separates automatic DEV checks from manual immutable release and blocks remo
   expect(isolatedSource).not.toContain('appleboy/ssh-action');
   expect(isolatedSource).not.toContain('docker/build-push-action');
   expect(workflow.on.workflow_dispatch.inputs.apply_remote!.default).toBe(false);
+  expect(workflow.on.workflow_dispatch.inputs.backend_sha).toBeDefined();
+  expect(workflow.on.workflow_dispatch.inputs.frontend_sha).toBeDefined();
+  expect(source).toContain('github.event_name == \'push\' && github.sha');
+  expect(source).toContain('source":"automatic-dev-candidate"');
+  expect(source).toContain('backend-dev-candidate-pair');
   expect(workflow.jobs.deploy!.if).toBe(
     "github.ref == 'refs/heads/dev' && inputs.target == 'development' && inputs.apply_remote",
   );
   expect(workflow.jobs.coordinated!.if).toContain('refs/heads/dev');
+  expect(workflow.jobs.coordinated!.if).toContain("github.event_name == 'push'");
   expect(workflow.jobs.deploy!.environment).toContain("'production'");
   expect(workflow.jobs.deploy!.environment).toContain("'development'");
   expect(workflow.jobs.verify!.environment).toBe(workflow.jobs.deploy!.environment);

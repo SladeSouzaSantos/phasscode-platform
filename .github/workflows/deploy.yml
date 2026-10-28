@@ -1,8 +1,10 @@
 name: Backend release | CI > SAST > Image > DAST > Deploy > Verify
-# Release exclusivamente manual. CI em push: ci.yml, security.yml, paired-dev-ci.yml.
-# Pares imutaveis requerem SHAs aprovados; main/production permanece NO-GO.
-# Deploy remoto exige apply_remote=true E ENABLE_REMOTE_DEPLOY=true.
+# DEV push: qualify a captured immutable backend/frontend pair in disposable CI.
+# The candidate image and DAST are automatic, but remote apply is manual-only.
+# PROD/main remains NO-GO. R3/R4 and CORS remain separate operational gates.
 on:
+  push:
+    branches: [dev]
   workflow_dispatch:
     inputs:
       target:
@@ -14,6 +16,14 @@ on:
         description: Aplicar a release no servidor apos os checks (padrao somente publica e testa imagem)
         type: boolean
         default: false
+      backend_sha:
+        description: SHA imutavel do backend autorizado para este dispatch (opcional, fallback vars)
+        type: string
+        required: false
+      frontend_sha:
+        description: SHA imutavel do frontend autorizado para este dispatch (opcional, fallback vars)
+        type: string
+        required: false
 permissions:
   contents: read
 concurrency:
@@ -31,15 +41,15 @@ jobs:
   # Repository-level Actions vars MUST pin both SHAs. Missing pins fail closed.
   # Production is intentionally blocked until a separate main-compatible gate exists.
   coordinated:
-    if: github.ref == 'refs/heads/dev' && inputs.target == 'development'
+    if: github.ref == 'refs/heads/dev' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.target == 'development'))
     runs-on: ubuntu-latest
     needs: [tests]
     timeout-minutes: 70
     permissions:
       contents: read
     env:
-      PHASSCODE_RELEASE_BACKEND_SHA: ${{ vars.PHASSCODE_RELEASE_BACKEND_SHA }}
-      PHASSCODE_RELEASE_FRONTEND_SHA: ${{ vars.PHASSCODE_RELEASE_FRONTEND_SHA }}
+      PHASSCODE_RELEASE_BACKEND_SHA: ${{ github.event_name == 'push' && github.sha || inputs.backend_sha || vars.PHASSCODE_RELEASE_BACKEND_SHA }}
+      PHASSCODE_RELEASE_FRONTEND_SHA: ${{ inputs.frontend_sha || vars.PHASSCODE_RELEASE_FRONTEND_SHA }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -49,20 +59,28 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: SladeSouzaSantos/web-portfolio-v2
-          ref: ${{ vars.PHASSCODE_RELEASE_FRONTEND_SHA }}
+          ref: ${{ github.event_name == 'push' && 'dev' || inputs.frontend_sha || vars.PHASSCODE_RELEASE_FRONTEND_SHA }}
           path: paired/frontend
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - name: Verify pinned pair (DEV only; cannot be satisfied with moving refs)
+      - name: Verify immutable captured DEV pair before running any tests
         run: |
           set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            export PHASSCODE_RELEASE_FRONTEND_SHA="$(git -C paired/frontend rev-parse HEAD)"
+          fi
           node paired/backend/scripts/release-pair-gate.mjs backend
           test "$(git -C paired/backend rev-parse HEAD)" = "$PHASSCODE_RELEASE_BACKEND_SHA"
           test "$(git -C paired/frontend rev-parse HEAD)" = "$PHASSCODE_RELEASE_FRONTEND_SHA"
           git -C paired/backend switch -c dev
           git -C paired/frontend switch -c dev
+          {
+            echo "Candidate only; Mac Mini deploy requires a separate manual approval."
+            echo "backend_SHA=$(git -C paired/backend rev-parse HEAD)"
+            echo "frontend_SHA=$(git -C paired/frontend rev-parse HEAD)"
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Install harness dependencies (no scripts)
         working-directory: paired/backend
         run: npm ci --ignore-scripts
@@ -88,6 +106,18 @@ jobs:
           DOCKER_HOST: unix:///var/run/docker.sock
           DOCKER_CONTEXT: default
         run: npm run test:e2e -- --frontend ../frontend --regression
+      - name: Save exact candidate pair for manual promotion
+        run: |
+          set -euo pipefail
+          BACKEND_SHA="$(git -C paired/backend rev-parse HEAD)"
+          FRONTEND_SHA="$(git -C paired/frontend rev-parse HEAD)"
+          printf '{"backend_sha":"%s","frontend_sha":"%s","ci_run_id":"%s","source":"automatic-dev-candidate","approved_for_deploy":false}\n' "$BACKEND_SHA" "$FRONTEND_SHA" "$GITHUB_RUN_ID" > candidate-pair.json
+      - uses: actions/upload-artifact@v6
+        with:
+          name: backend-dev-candidate-pair
+          path: candidate-pair.json
+          if-no-files-found: error
+          retention-days: 14
 
   tests:
     runs-on: ubuntu-latest
