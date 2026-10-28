@@ -102,8 +102,18 @@ wildcard. `http://127.0.0.1:5173` e `http://localhost:5173` são origens diferen
 
 O preflight permite `Content-Type`, `X-Conversation-Token`, `X-CSRF-Token`, `X-Meeting-Token`,
 `Idempotency-Key`, `Authorization` e `X-Orbe-Capabilities`; expõe `X-Correlation-Id` e `Retry-After`. O chat público não
-exige cookies. Quando auth está habilitada, CORS admite credenciais para as origens explícitas;
-as chamadas de sessão/admin usam `credentials: 'include'` e CSRF, conforme o guia da Fase 3.
+exige cookies. Quando auth está habilitada, CORS admite credenciais para as origens explícitas.
+O React consulta sessão e administração com cookie e `credentials: 'include'`; enviar
+`X-CSRF-Token` nas rotas que o exigem, como refresh, logout e os POSTs administrativos de reuniões.
+`GET /api/v1/admin/meetings` aceita cookie ou access JWT vinculado a sessão ativa, identidade
+admitida e papel `admin` atual, sem exigir CSRF nessa leitura.
+
+Os POSTs administrativos `approve`, `reject` e `cancel` exigem sempre cookie ativo, `Origin`
+permitido e CSRF correspondente, mesmo quando há `Authorization: Bearer ...`; Bearer sozinho
+não os autoriza. `Origin` é controlado pelo navegador e não é uma credencial a ser configurada
+manualmente no fetch. O React já envia cookie/CSRF e não precisa de alteração para esse contrato.
+Isso não acrescenta login ou CSRF de sessão ao chat ou às operações públicas de reuniões.
+Veja a distinção entre leitura e comandos no [guia da Fase 3](phase3-integration.md#administração).
 
 No Docker, após mudar variáveis, recrie a API com `docker compose up -d --force-recreate api`.
 A publicação de uma URL HTTPS e a configuração do proxy são um marco posterior; este guia já
