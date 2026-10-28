@@ -74,8 +74,10 @@ jobs:
           node paired/backend/scripts/release-pair-gate.mjs backend
           test "$(git -C paired/backend rev-parse HEAD)" = "$PHASSCODE_RELEASE_BACKEND_SHA"
           test "$(git -C paired/frontend rev-parse HEAD)" = "$PHASSCODE_RELEASE_FRONTEND_SHA"
-          git -C paired/backend switch -c dev
-          git -C paired/frontend switch -c dev
+          # The named 'dev' checkout already creates a local branch on push;
+          # -B also creates it from the validated immutable SHA on manual dispatch.
+          git -C paired/backend checkout -B dev
+          git -C paired/frontend checkout -B dev
           {
             echo "Candidate only; Mac Mini deploy requires a separate manual approval."
             echo "backend_SHA=$(git -C paired/backend rev-parse HEAD)"
