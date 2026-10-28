@@ -4,3 +4,4 @@ coverage
 package-lock.json
 .npm-cache
 packages/contracts/openapi.json
+.docker-local/

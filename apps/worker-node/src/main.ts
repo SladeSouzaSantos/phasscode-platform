@@ -1,3 +1,4 @@
+import { unlinkSync } from 'node:fs';
 import { writeFile, unlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -140,8 +141,26 @@ export function startWorkerProcess(shutdownDeadlineMs = 40_000) {
   process.on('SIGINT', onSignal);
   process.on('SIGTERM', onSignal);
 
+  // Keep this transition in a separate closure: the shutdown deadline can
+  // update phase asynchronously while startup awaits SQL or runtime cleanup.
+  const markStartupFailed = () => {
+    startupFailed = true;
+    if (phase !== 'shutdown-incomplete') phase = 'startup-failed';
+    supervisedRecoveryRequired = true;
+    process.exitCode = 1;
+    console.error('WORKER_START_FAILED');
+  };
+
   const startup = (async () => {
     try {
+      // A restarted container can retain a recent heartbeat from its previous process.
+      // Invalidate that stale evidence before any potentially blocking startup work.
+      try {
+        unlinkSync(heartbeatPath);
+      } catch (error) {
+        if (!(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT'))
+          throw new Error('WORKER_STALE_HEARTBEAT_CLEANUP_FAILED', { cause: error });
+      }
       const config = loadConfig();
       if (stopping) return;
       if (!config.worker.WORKER_ENABLED) throw new Error('WORKER_DISABLED');
@@ -201,13 +220,7 @@ export function startWorkerProcess(shutdownDeadlineMs = 40_000) {
         runtimeStarting && (!(error instanceof WorkerStartupError) || !error.cleanupComplete);
       const intentionalCancellation =
         stopping && error instanceof WorkerStartupError && error.cleanupComplete && error.cancelled;
-      if (!intentionalCancellation) {
-        startupFailed = true;
-        if (phase !== 'shutdown-incomplete') phase = 'startup-failed';
-        supervisedRecoveryRequired = true;
-        process.exitCode = 1;
-        console.error('WORKER_START_FAILED');
-      }
+      if (!intentionalCancellation) markStartupFailed();
       void shutdown();
     } finally {
       settleStartup();

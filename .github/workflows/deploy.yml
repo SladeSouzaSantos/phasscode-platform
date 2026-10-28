@@ -22,6 +22,58 @@ concurrency:
   group: backend-release-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  # R1: full Backend CI executes in THIS run and on THIS github.sha.
+  # The independent push CI cannot be referenced with needs:.
+  ci_gate:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  # R2: one unfiltered B2/F3 integration of the exact approved backend/frontend pair.
+  # Repository-level Actions vars MUST pin both SHAs. Missing pins fail closed.
+  # Production is intentionally blocked until a separate main-compatible gate exists.
+  coordinated:
+    runs-on: ubuntu-latest
+    needs: [tests]
+    timeout-minutes: 70
+    permissions:
+      contents: read
+    env:
+      PHASSCODE_RELEASE_BACKEND_SHA: ${{ vars.PHASSCODE_RELEASE_BACKEND_SHA }}
+      PHASSCODE_RELEASE_FRONTEND_SHA: ${{ vars.PHASSCODE_RELEASE_FRONTEND_SHA }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: paired/backend
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: SladeSouzaSantos/web-portfolio-v2
+          ref: ${{ vars.PHASSCODE_RELEASE_FRONTEND_SHA }}
+          path: paired/frontend
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Verify pinned pair (DEV only; cannot be satisfied with moving refs)
+        run: |
+          set -euo pipefail
+          node paired/backend/scripts/release-pair-gate.mjs backend
+          test "$(git -C paired/backend rev-parse HEAD)" = "$PHASSCODE_RELEASE_BACKEND_SHA"
+          test "$(git -C paired/frontend rev-parse HEAD)" = "$PHASSCODE_RELEASE_FRONTEND_SHA"
+          git -C paired/backend switch -c dev
+          git -C paired/frontend switch -c dev
+      - name: Install harness dependencies (no scripts)
+        working-directory: paired/backend
+        run: npm ci --ignore-scripts
+      - name: Validate B2 harness guards
+        working-directory: paired/backend
+        run: node node_modules/vitest/vitest.mjs run tests/b2-harness.test.ts --pool threads --maxWorkers 1
+      - name: Execute complete integrated B2/F3 pair on disposable local Docker
+        working-directory: paired/backend
+        run: npm run test:e2e -- --frontend ../frontend --regression
+
   tests:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -73,7 +125,7 @@ jobs:
         with: { category: backend-release }
   image:
     runs-on: ubuntu-latest
-    needs: sast
+    needs: [sast, ci_gate, coordinated]
     timeout-minutes: 20
     permissions:
       contents: read
@@ -130,6 +182,8 @@ jobs:
           docker compose --env-file /dev/null pull api migrate
           docker compose --env-file /dev/null up -d --no-build --wait api
           curl --fail --silent --show-error http://127.0.0.1:18080/ready
+      - name: Qualify the identical published digest with enabled Phase 3 API/worker
+        run: node scripts/phase3-docker-smoke.mjs --image "$PHASSCODE_IMAGE"
       - name: OWASP ZAP API scan (never targets a live environment)
         run: |
           mkdir -p security-reports
@@ -153,7 +207,7 @@ jobs:
   deploy:
     if: github.event_name == 'push' || inputs.apply_remote
     runs-on: ubuntu-latest
-    needs: [image, dast]
+    needs: [image, dast, ci_gate, coordinated]
     timeout-minutes: 25
     environment: ${{ github.event_name == 'push' && (github.ref_name == 'main' && 'production' || 'development') || inputs.target }}
     env:

@@ -26,8 +26,14 @@ const fake = vi.hoisted(() => {
     start: vi.fn<(...args: unknown[]) => Promise<typeof runtime>>(),
     write: vi.fn<(...args: unknown[]) => Promise<void>>(),
     unlink: vi.fn<(...args: unknown[]) => Promise<void>>(),
+    unlinkStartup: vi.fn<(...args: unknown[]) => void>(),
   };
 });
+
+vi.mock('node:fs', async (original) => ({
+  ...(await original<typeof import('node:fs')>()),
+  unlinkSync: fake.unlinkStartup,
+}));
 
 vi.mock('node:fs/promises', async (original) => ({
   ...(await original<typeof import('node:fs/promises')>()),
@@ -152,6 +158,7 @@ beforeEach(() => {
   fake.start.mockResolvedValue(fake.runtime);
   fake.write.mockResolvedValue(undefined);
   fake.unlink.mockResolvedValue(undefined);
+  fake.unlinkStartup.mockImplementation(() => undefined);
   vi.spyOn(console, 'info').mockImplementation(() => undefined);
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
   vi.spyOn(process, 'exit').mockImplementation(() => {
@@ -199,6 +206,60 @@ describe('worker main lifecycle with fully simulated dependencies', () => {
     expect(fake.config).not.toHaveBeenCalled();
     expect(fake.createPool).not.toHaveBeenCalled();
     expect(signals.size).toBe(0);
+  });
+
+  it('removes a leftover heartbeat synchronously before starting any dependency', async () => {
+    const order: string[] = [];
+    fake.unlinkStartup.mockImplementationOnce(() => {
+      order.push('invalidate-old-heartbeat');
+    });
+    fake.config.mockImplementationOnce(() => {
+      order.push('load-config');
+      return config;
+    });
+    fake.createPool.mockImplementationOnce(() => {
+      order.push('create-pool');
+      return fake.pool;
+    });
+    const instance = start();
+    await instance.startup;
+    expect(fake.unlinkStartup).toHaveBeenCalledExactlyOnceWith(
+      expect.stringContaining('phasscode-worker-heartbeat'),
+    );
+    expect(order).toEqual(['invalidate-old-heartbeat', 'load-config', 'create-pool']);
+    await expect(instance.shutdown()).resolves.toBe('completed');
+  });
+
+  it('starts normally when the previous heartbeat is absent', async () => {
+    fake.unlinkStartup.mockImplementationOnce(() => {
+      throw Object.assign(new Error(canary), { code: 'ENOENT' });
+    });
+    const instance = start();
+    await instance.startup;
+    expect(instance.getStatus().phase).toBe('running');
+    await expect(instance.shutdown()).resolves.toBe('completed');
+  });
+
+  it('does not report readiness when an old heartbeat cannot be invalidated', async () => {
+    fake.unlinkStartup.mockImplementationOnce(() => {
+      throw Object.assign(new Error(canary), { code: 'EACCES' });
+    });
+    const instance = start();
+    await instance.startup;
+    await expect(instance.shutdown()).resolves.toBe('incomplete');
+    expect(instance.getStatus()).toEqual({
+      phase: 'shutdown-incomplete',
+      startupFailed: true,
+      shutdownFailure: 'startup-failed',
+      resourcesClosed: true,
+      supervisedRecoveryRequired: true,
+    });
+    expect(fake.config).not.toHaveBeenCalled();
+    expect(fake.createPool).not.toHaveBeenCalled();
+    expect(fake.start).not.toHaveBeenCalled();
+    expect(fake.write).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(1);
+    expect(console.info).not.toHaveBeenCalledWith('WORKER_SHUTDOWN_COMPLETED');
   });
 
   it('exposes detached lifecycle snapshots without claiming health or starting recovery', async () => {

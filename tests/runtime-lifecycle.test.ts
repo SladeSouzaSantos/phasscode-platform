@@ -450,18 +450,21 @@ describe('worker runtime lifecycle with no real clients or providers', () => {
     await closing;
   });
 
-  it.each([undefined, '', '0'])('rejects unsafe handoff token %s without bypassing ownership', async (token) => {
-    const controller = new AbortController();
-    const runtime = await start(controller.signal);
-    controller.abort();
-    const job = acquiredJob();
-    const failure: unknown = await processJob(job, token).catch((error: unknown) => error);
-    expect(failure).toMatchObject({ message: 'WORKER_JOB_HANDOFF_FAILED' });
-    expect(failure).not.toBeInstanceOf(WaitingError);
-    expect(job.moveToWait).not.toHaveBeenCalled();
-    expect(doubles.process).not.toHaveBeenCalled();
-    await expect(runtime.close()).rejects.toThrow('WORKER_SHUTDOWN_FAILED');
-  });
+  it.each([undefined, '', '0'])(
+    'rejects unsafe handoff token %s without bypassing ownership',
+    async (token) => {
+      const controller = new AbortController();
+      const runtime = await start(controller.signal);
+      controller.abort();
+      const job = acquiredJob();
+      const failure: unknown = await processJob(job, token).catch((error: unknown) => error);
+      expect(failure).toMatchObject({ message: 'WORKER_JOB_HANDOFF_FAILED' });
+      expect(failure).not.toBeInstanceOf(WaitingError);
+      expect(job.moveToWait).not.toHaveBeenCalled();
+      expect(doubles.process).not.toHaveBeenCalled();
+      await expect(runtime.close()).rejects.toThrow('WORKER_SHUTDOWN_FAILED');
+    },
+  );
 
   it('does not claim a waiting transition when the handoff rejects', async () => {
     const controller = new AbortController();
