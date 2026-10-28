@@ -70,8 +70,24 @@ jobs:
       - name: Validate B2 harness guards
         working-directory: paired/backend
         run: node node_modules/vitest/vitest.mjs run tests/b2-harness.test.ts --pool threads --maxWorkers 1
+      # B2 intentionally refuses implicit pulls. Images are preloaded only in this
+      # disposable GitHub runner, never on a remote Docker context or Mac Mini.
+      - name: Preload allowlisted B2/F3 dependency images on local runner
+        env:
+          DOCKER_HOST: unix:///var/run/docker.sock
+          DOCKER_CONTEXT: default
+        run: |
+          set -euo pipefail
+          test "$(docker context inspect default --format '{{.Endpoints.docker.Host}}')" = "unix:///var/run/docker.sock"
+          docker pull postgres:17-alpine
+          docker pull redis:7-alpine
+          test "$(docker image inspect postgres:17-alpine --format '{{.Os}}')" = linux
+          test "$(docker image inspect redis:7-alpine --format '{{.Os}}')" = linux
       - name: Execute complete integrated B2/F3 pair on disposable local Docker
         working-directory: paired/backend
+        env:
+          DOCKER_HOST: unix:///var/run/docker.sock
+          DOCKER_CONTEXT: default
         run: npm run test:e2e -- --frontend ../frontend --regression
 
   tests:
