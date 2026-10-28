@@ -1,10 +1,8 @@
 name: Backend release | CI > SAST > Image > DAST > Deploy > Verify
-# Push em dev/main executa testes, seguranca e deploy no ambiente correspondente.
-# PROD exige required reviewers no environment production (configuracao GitHub fora deste arquivo).
-# Push faz deploy somente com ENABLE_REMOTE_DEPLOY=true; dispatch exige tambem apply_remote=true.
+# Release exclusivamente manual. CI em push: ci.yml, security.yml, paired-dev-ci.yml.
+# Pares imutaveis requerem SHAs aprovados; main/production permanece NO-GO.
+# Deploy remoto exige apply_remote=true E ENABLE_REMOTE_DEPLOY=true.
 on:
-  push:
-    branches: [dev, main]
   workflow_dispatch:
     inputs:
       target:
@@ -33,6 +31,7 @@ jobs:
   # Repository-level Actions vars MUST pin both SHAs. Missing pins fail closed.
   # Production is intentionally blocked until a separate main-compatible gate exists.
   coordinated:
+    if: github.ref == 'refs/heads/dev' && inputs.target == 'development'
     runs-on: ubuntu-latest
     needs: [tests]
     timeout-minutes: 70
@@ -221,7 +220,7 @@ jobs:
         if: always()
         run: docker compose --env-file /dev/null down --volumes
   deploy:
-    if: github.event_name == 'push' || inputs.apply_remote
+    if: github.ref == 'refs/heads/dev' && inputs.target == 'development' && inputs.apply_remote
     runs-on: ubuntu-latest
     needs: [image, dast, ci_gate, coordinated]
     timeout-minutes: 25

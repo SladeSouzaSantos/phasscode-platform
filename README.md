@@ -29,6 +29,23 @@ infraestrutura não representam adaptadores implementados.
 As regras de admissão, provisionamento e os testes estão na
 [validação do login administrativo](docs/testing/admin-only-auth.md).
 
+## CI automática versus release manual
+
+- Push ou PR para `dev`/`main`: `.github/workflows/ci.yml` valida qualidade, contratos, testes
+  e Docker; o workflow de segurança executa sua análise. O push para `dev` também executa
+  `paired-dev-ci.yml`, com B2/F3 completo sobre dois checkouts descartáveis: o SHA do backend
+  do próprio evento e um snapshot do HEAD `dev` do frontend, ambos registrados no resumo.
+  **Esses testes não autorizam imagem de release, SSH, deploy nem uso de provedores reais.**
+- `.github/workflows/deploy.yml` não é acionado em push. É uma release **manual**, somente
+  em `dev`, com `target=development` e `apply_remote=false` por padrão. Ela exige
+  `PHASSCODE_RELEASE_BACKEND_SHA` e `PHASSCODE_RELEASE_FRONTEND_SHA` imutáveis, válidos para
+  o HEAD selecionado e iguais ao par aprovado. Esses valores só precisam ser atualizados
+  quando houver uma **candidata de release**, não a cada commit de desenvolvimento.
+- O deploy remoto exige, além da aprovação do par e das verificações, `apply_remote=true`,
+  `ENABLE_REMOTE_DEPLOY=true` no environment `development` e autorização operacional
+  independente (R3/R4, CORS, R5). Mantê-lo em `false` preserva o Mac Mini. `main` e
+  produção continuam bloqueados por esse fluxo.
+
 ## Execução rápida sem credenciais
 
 Requisitos: Node.js 24 LTS e npm 11. Execute os comandos na raiz do repositório.

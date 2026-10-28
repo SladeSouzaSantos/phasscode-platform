@@ -669,11 +669,10 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   });
 });
 
-it('release workflow automates dev/main pushes, retains manual dry-run and gates deployment', () => {
+it('separates automatic DEV checks from manual immutable release and blocks remote apply', () => {
   const source = readFileSync(join(root, '.github/workflows/deploy.yml'), 'utf8');
   const workflow = parse(source) as {
     on: {
-      push: { branches: string[] };
       workflow_dispatch: { inputs: Record<string, { default?: unknown }> };
     };
     jobs: Record<
@@ -686,10 +685,29 @@ it('release workflow automates dev/main pushes, retains manual dry-run and gates
       }
     >;
   };
-  expect(Object.keys(workflow.on).sort()).toEqual(['push', 'workflow_dispatch']);
-  expect(workflow.on.push.branches).toEqual(['dev', 'main']);
+  expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch']);
+  const backendCi = parse(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8')) as {
+    on: { push: { branches: string[] } };
+  };
+  expect(backendCi.on.push.branches).toEqual(['dev', 'main']);
+  const pairedDevCi = parse(
+    readFileSync(join(root, '.github/workflows/paired-dev-ci.yml'), 'utf8'),
+  ) as {
+    on: { push: { branches: string[] } };
+    jobs: Record<string, { if?: string; needs?: string[] }>;
+  };
+  expect(pairedDevCi.on.push.branches).toEqual(['dev']);
+  expect(pairedDevCi.jobs.paired_dev!.if).toContain("refs/heads/dev");
+  const isolatedSource = readFileSync(join(root, '.github/workflows/paired-dev-ci.yml'), 'utf8');
+  expect(isolatedSource).toContain('npm run test:e2e -- --frontend ../frontend --regression');
+  expect(isolatedSource).not.toContain('ENABLE_REMOTE_DEPLOY');
+  expect(isolatedSource).not.toContain('appleboy/ssh-action');
+  expect(isolatedSource).not.toContain('docker/build-push-action');
   expect(workflow.on.workflow_dispatch.inputs.apply_remote!.default).toBe(false);
-  expect(workflow.jobs.deploy!.if).toBe("github.event_name == 'push' || inputs.apply_remote");
+  expect(workflow.jobs.deploy!.if).toBe(
+    "github.ref == 'refs/heads/dev' && inputs.target == 'development' && inputs.apply_remote",
+  );
+  expect(workflow.jobs.coordinated!.if).toContain("refs/heads/dev");
   expect(workflow.jobs.deploy!.environment).toContain("'production'");
   expect(workflow.jobs.deploy!.environment).toContain("'development'");
   expect(workflow.jobs.verify!.environment).toBe(workflow.jobs.deploy!.environment);
