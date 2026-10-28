@@ -27,8 +27,9 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: backend-release-${{ github.ref }}
-  cancel-in-progress: false
+  # Cancel only superseded automatic candidates, never a manual release.
+  group: backend-release-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 jobs:
   # R1: full Backend CI executes in THIS run and on THIS github.sha.
   # The independent push CI cannot be referenced with needs:.
