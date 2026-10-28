@@ -708,7 +708,7 @@ it('separates automatic DEV checks from manual immutable release and blocks remo
   expect(workflow.on.workflow_dispatch.inputs.apply_remote!.default).toBe(false);
   expect(workflow.on.workflow_dispatch.inputs.backend_sha).toBeDefined();
   expect(workflow.on.workflow_dispatch.inputs.frontend_sha).toBeDefined();
-  expect(source).toContain('github.event_name == \'push\' && github.sha');
+  expect(source).toContain("github.event_name == 'push' && github.sha");
   expect(source).toContain('source":"automatic-dev-candidate"');
   expect(source).toContain('backend-dev-candidate-pair');
   expect(workflow.jobs.deploy!.if).toBe(
