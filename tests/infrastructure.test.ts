@@ -697,7 +697,7 @@ it('separates automatic DEV checks from manual immutable release and blocks remo
     jobs: Record<string, { if?: string; needs?: string[] }>;
   };
   expect(pairedDevCi.on.push.branches).toEqual(['dev']);
-  expect(pairedDevCi.jobs.paired_dev!.if).toContain("refs/heads/dev");
+  expect(pairedDevCi.jobs.paired_dev!.if).toContain('refs/heads/dev');
   const isolatedSource = readFileSync(join(root, '.github/workflows/paired-dev-ci.yml'), 'utf8');
   expect(isolatedSource).toContain('npm run test:e2e -- --frontend ../frontend --regression');
   expect(isolatedSource).not.toContain('ENABLE_REMOTE_DEPLOY');
@@ -707,7 +707,7 @@ it('separates automatic DEV checks from manual immutable release and blocks remo
   expect(workflow.jobs.deploy!.if).toBe(
     "github.ref == 'refs/heads/dev' && inputs.target == 'development' && inputs.apply_remote",
   );
-  expect(workflow.jobs.coordinated!.if).toContain("refs/heads/dev");
+  expect(workflow.jobs.coordinated!.if).toContain('refs/heads/dev');
   expect(workflow.jobs.deploy!.environment).toContain("'production'");
   expect(workflow.jobs.deploy!.environment).toContain("'development'");
   expect(workflow.jobs.verify!.environment).toBe(workflow.jobs.deploy!.environment);
