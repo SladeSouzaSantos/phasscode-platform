@@ -66,3 +66,24 @@ jobs:
           DOCKER_HOST: unix:///var/run/docker.sock
           DOCKER_CONTEXT: default
         run: npm run test:e2e -- --frontend ../frontend --regression
+      # Print only predefined phase names and aggregate counts; no raw logs or tokens.
+      - name: Summarize safe B2/F3 failure phases
+        if: failure()
+        run: |
+          node --input-type=module <<'NODE'
+          import { readdir, readFile } from 'node:fs/promises';
+          import { join } from 'node:path';
+          const root = 'paired/backend/.docker-local/b2-e2e';
+          let found = false;
+          for (const entry of await readdir(root).catch(() => [])) {
+            try {
+              const report = JSON.parse(await readFile(join(root, entry, 'runtime-summary.json'), 'utf8'));
+              const phases = (report.phases ?? []).map(({ name, status, tests }) => ({
+                name, status, ...(tests ? { tests } : {}),
+              }));
+              console.log('B2/F3 phase summary:', JSON.stringify({ passed: report.passed, phases }));
+              found = true;
+            } catch { /* Preserve the primary failure if the summary is missing. */ }
+          }
+          if (!found) console.log('No disposable runtime summary was generated.');
+          NODE
