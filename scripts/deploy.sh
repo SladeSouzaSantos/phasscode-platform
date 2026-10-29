@@ -78,7 +78,14 @@ worker_running=$(docker ps --filter "${worker_filter[0]}" --filter "${worker_fil
 [[ -z "$worker_running" ]] ||
   fail 'LEGACY_WORKER_RUNNING: retire the legacy worker with scripts/retire-worker.sh before deployment.'
 if [[ -n "$worker_all" ]]; then
-  [[ "$worker_all" != *
+  [[ $(echo "$worker_all" | wc -l) -eq 1 ]] ||
+    fail 'LEGACY_WORKER_MULTIPLE: inspect legacy containers manually.'
+  [[ -f .deployment/worker-retired &&
+     "$(cat -- .deployment/worker-retired)" == "$project" ]] ||
+    fail 'LEGACY_WORKER_UNRECONCILED: inspect backlog and retire the old worker before deployment.'
+fi
+services=(api migrate retention)
+"${compose[@]}" --profile maintenance pull "${services[@]}"
 image_revision=$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$image_ref")
 [[ "$image_revision" == "$revision" ]] || fail 'Pulled image revision differs from the tested release; database and running services were not changed.'
 
