@@ -479,6 +479,8 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
           PHASSCODE_PROJECTS_ROOT: shellPath(dirname(plan.checkout)),
           PHASSCODE_USE_PROXY: '',
           PHASSCODE_HTTP_PORT: target === 'production' ? '3202' : '3001',
+          PHASSCODE_IMAGE: '',
+          COMPOSE_PROJECT_NAME: target === 'production' ? 'phasscode-platform' : 'phasscode-platform-dev',
           FAKE_BRANCH: target === 'production' ? 'main' : 'dev',
           ...options,
         },
