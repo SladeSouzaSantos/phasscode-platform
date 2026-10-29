@@ -84,7 +84,7 @@ describe('contexto profissional do Orbe v4', () => {
     expect(relevantText).toMatch(/Java ou inteligência artificial/);
     const prompt = await readFile('apps/orbe-node/prompts/v4.md', 'utf8');
     expect(prompt).toContain('Sua audiência prioritária');
-    expect(prompt).toContain('não explicar sua função como Orbe');
+    expect(prompt).toContain('não sobre sua função');
     expect(prompt).toContain('Não se apresente');
     expect(prompt).toContain('Nunca ofereça reuniões');
   });
