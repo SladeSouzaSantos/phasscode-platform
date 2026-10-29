@@ -255,7 +255,7 @@ writeFileSync(
   hooks,
   `
 docker() {
-  printf 'docker[%s|%s|%s] %s\\n' "$COMPOSE_PROJECT_NAME" "$PHASSCODE_HTTP_PORT" "$PHASSCODE_IMAGE" "$*" >> "$TEST_LOG"
+  printf 'docker[%s|%s|%s] %s\\n' "$COMPOSE_PROJECT_NAME" "$PHASSCODE_HTTP_PORT" "\${PHASSCODE_IMAGE:-}" "$*" >> "$TEST_LOG"
   case "$*" in
     *'ps --all --filter label=com.docker.compose.project='*'label=com.docker.compose.service=worker'*) [[ \${FAKE_WORKER_PRESENT:-0} != 1 ]] || echo worker-container ;;
     *'ps --filter label=com.docker.compose.project='*'label=com.docker.compose.service=worker'*) [[ \${FAKE_WORKER_RUNNING:-0} != 1 || -e "$TEST_LOG.stopped" ]] || echo worker-container ;;
@@ -501,6 +501,8 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
           PHASSCODE_PROJECTS_ROOT: shellPath(dirname(plan.checkout)),
           PHASSCODE_USE_PROXY: '',
           PHASSCODE_HTTP_PORT: target === 'production' ? '3202' : '3001',
+          PHASSCODE_IMAGE: '',
+          COMPOSE_PROJECT_NAME: target === 'production' ? 'phasscode-platform' : 'phasscode-platform-dev',
           FAKE_BRANCH: target === 'production' ? 'main' : 'dev',
           ...options,
         },
