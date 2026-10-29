@@ -11,6 +11,7 @@ import { RedisLlmCallBudget } from './adapters/redis-llm-budget.js';
 import { createRedisFallbackInvocationFactory } from './adapters/fallback-llm.js';
 import type { ChatProvider } from './domain/ports.js';
 import { buildApp } from './http/app.js';
+import { RestrictedPublicEvidenceReader } from './application/public-evidence.js';
 import { PROMPT_VERSION } from './application/chat.js';
 
 try {
@@ -84,6 +85,7 @@ try {
     throw new Error('Dependências indisponíveis ou migrations pendentes. Execute npm run migrate.');
   }
   const app = await buildApp({
+    evidenceReader: new RestrictedPublicEvidenceReader(),
     config,
     knowledge,
     provider,

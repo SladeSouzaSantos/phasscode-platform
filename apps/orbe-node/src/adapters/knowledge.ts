@@ -45,7 +45,7 @@ const broadTerms = new Set(['portfolio', 'projeto', 'tecnologia', 'competencia',
 /** Broad recruiting questions need concrete evidence instead of falling through lexical search. */
 function isCareerOverview(query: string): boolean {
   const text = knowledgePhrase(query);
-  return /\b(?:qualificad\w*|qualificac\w*|habilidad\w*|diferencia\w*|pontos? fortes?|aptidao|recrutad\w*|recruiter\w*|contrat\w*|vaga\w*|candidat\w*|oportunidad\w*|programador\w*|desenvolvedor\w*)\b/.test(
+  return /\b(?:qualificad\w*|qualificac\w*|habilidad\w*|diferencia\w*|pontos? fortes?|aptidao|recrutad\w*|recruiter\w*|contrat\w*|vaga\w*|candidat\w*|oportunidad\w*|programador\w*|desenvolvedor\w*|juniors?|juniores|plenos?|seniors?|seniores|senioridade|nivel\w*|compatib\w*)\b/.test(
     text,
   );
 }
