@@ -11,6 +11,7 @@ import { chatRequestSchema, openApiDocument } from '../../../../packages/contrac
 import type { Config } from '../../../../packages/shared-config/src/index.js';
 import type { ChatProvider, ConversationStore, KnowledgeRepository } from '../domain/ports.js';
 import { ChatService } from '../application/chat.js';
+import type { PublicEvidenceReader } from '../application/public-evidence.js';
 import { AppError } from '../domain/errors.js';
 import { AuthService } from '../auth/service.js';
 import { registerAuthRoutes } from '../auth/routes.js';
@@ -27,6 +28,7 @@ export interface AppOptions {
   meetings?: MeetingService;
   phase3Ready?: () => Promise<void>;
   publicOnly?: boolean;
+  evidenceReader?: PublicEvidenceReader;
 }
 export async function buildApp({
   config,
@@ -38,6 +40,7 @@ export async function buildApp({
   meetings,
   phase3Ready,
   publicOnly = false,
+  evidenceReader,
 }: AppOptions) {
   if (publicOnly && (config.auth.enabled || meetings))
     throw new Error('Orbe público não aceita autenticação ou reuniões.');
@@ -78,7 +81,15 @@ export async function buildApp({
             serializers: { req: (req: { method: string }) => ({ method: req.method }) },
           },
   });
-  const service = new ChatService(store, provider, knowledge, config, Boolean(meetings));
+  const service = new ChatService(
+    store,
+    provider,
+    knowledge,
+    config,
+    Boolean(meetings),
+    () => new Date(),
+    evidenceReader,
+  );
   await app.register(helmet);
   app.addHook('onRequest', async (request, reply) => {
     reply.header('X-Correlation-Id', request.id);

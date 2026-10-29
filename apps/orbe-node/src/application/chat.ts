@@ -32,6 +32,7 @@ import {
 } from '../domain/security.js';
 import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
+import type { PublicEvidenceReader } from './public-evidence.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
 export class ChatService {
@@ -42,6 +43,7 @@ export class ChatService {
     private readonly config: Config,
     private readonly meetingsEnabled = false,
     private readonly now: () => Date = () => new Date(),
+    private readonly evidenceReader?: PublicEvidenceReader,
   ) {}
 
   async execute(
@@ -79,6 +81,22 @@ export class ChatService {
             ...retrieved,
           ];
           retrieved = [...new Map(ordered.map((doc) => [doc.id, doc])).values()];
+        }
+        // External pages are untrusted data, never instructions. Restrict retrieval to
+        // public LinkedIn job postings and known public GitHub project READMEs.
+        if (
+          this.evidenceReader &&
+          !isInjection(request.message) &&
+          !isOffTopicTask(request.message)
+        ) {
+          const evidence = await this.evidenceReader.read(request.message, retrieved);
+          if (evidence.length) {
+            const replacements = new Map(evidence.map((doc) => [doc.id, doc]));
+            retrieved = [
+              ...evidence.filter((doc) => doc.id === 'external-vacancy'),
+              ...retrieved.map((doc) => replacements.get(doc.id) ?? doc),
+            ];
+          }
         }
         if (meetingTurn)
           retrieved.unshift({
