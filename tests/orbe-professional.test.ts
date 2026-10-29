@@ -83,7 +83,7 @@ describe('contexto profissional do Orbe v4', () => {
     expect(prompt).toContain('Sua audiência prioritária');
     expect(prompt).toContain('não explicar sua função como Orbe');
     expect(prompt).toContain('Não se apresente');
-    expect(prompt).toContain('não ofereça reuniões');
+    expect(prompt).toContain('Nunca ofereça reuniões');
   });
 
   it('mantém a formação concluída e a graduação trancada distintas', async () => {
