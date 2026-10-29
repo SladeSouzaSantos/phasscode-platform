@@ -1,0 +1,27 @@
+name: Temporary public Orbe formatting review
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'tests/infrastructure.test.ts'
+      - '.github/workflows/public-format-review.yml'
+permissions:
+  contents: read
+jobs:
+  format-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - name: Format infrastructure test
+        run: |
+          npx prettier --write tests/infrastructure.test.ts
+          printf 'BEGIN_FORMAT:tests/infrastructure.test.ts\n'
+          base64 -w0 tests/infrastructure.test.ts
+          printf '\nEND_FORMAT\n'
