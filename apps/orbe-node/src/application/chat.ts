@@ -31,6 +31,7 @@ import {
   personalLifeAnswer,
 } from '../domain/security.js';
 import { eligibleHistory } from './context.js';
+import { summarizeConversation } from './insights.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
@@ -203,6 +204,7 @@ export class ChatService {
         });
         return {
           response,
+          insight: summarizeConversation(history, request.message),
           messages: [
             { role: 'user', content: request.message },
             { role: 'assistant', content: response.answer },

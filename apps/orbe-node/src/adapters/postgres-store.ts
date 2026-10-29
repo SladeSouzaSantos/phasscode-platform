@@ -71,6 +71,15 @@ export class PostgresConversationStore implements ConversationStore {
         'DELETE FROM conversation_messages WHERE conversation_id = $1 AND id NOT IN (SELECT id FROM conversation_messages WHERE conversation_id = $1 ORDER BY id DESC LIMIT $2)',
         [input.id, this.maxMessages],
       );
+      if (result.insight)
+        await client.query(
+          'INSERT INTO conversation_insights(conversation_id, intent, summary, topics, turns) ' +
+          'VALUES ($1, $2, $3, $4::text[], 1) ' +
+          'ON CONFLICT (conversation_id) DO UPDATE SET ' +
+          'intent = EXCLUDED.intent, summary = EXCLUDED.summary, topics = EXCLUDED.topics, ' +
+          'turns = conversation_insights.turns + 1, updated_at = now()',
+          [input.id, result.insight.intent, result.insight.summary, result.insight.topics],
+        );
       await client.query('UPDATE conversations SET updated_at = now() WHERE id = $1', [input.id]);
       await client.query('COMMIT');
       return result.response;
@@ -97,6 +106,7 @@ export class PostgresConversationStore implements ConversationStore {
     );
     if (result.rowCount !== 1) throw new Error('Migrations pendentes.');
     await this.pool.query('SELECT id FROM conversation_messages LIMIT 0');
+    await this.pool.query('SELECT conversation_id FROM conversation_insights LIMIT 0');
   }
   async close(): Promise<void> {
     await this.pool.end();

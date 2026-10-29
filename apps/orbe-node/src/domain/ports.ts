@@ -52,6 +52,7 @@ export interface ChatProvider {
 export interface TurnResult {
   response: ChatResponse;
   messages: Message[];
+  insight?: import('../application/insights.js').ConversationInsight;
 }
 export interface ConversationStore {
   runTurn(

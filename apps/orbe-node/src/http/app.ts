@@ -11,6 +11,8 @@ import { chatRequestSchema, openApiDocument } from '../../../../packages/contrac
 import type { Config } from '../../../../packages/shared-config/src/index.js';
 import type { ChatProvider, ConversationStore, KnowledgeRepository } from '../domain/ports.js';
 import { ChatService } from '../application/chat.js';
+import type { PostgresConversationInsights } from '../adapters/conversation-insights.js';
+import { registerConversationInsightsRoutes } from './conversation-insights-routes.js';
 import { AppError } from '../domain/errors.js';
 import { AuthService } from '../auth/service.js';
 import { registerAuthRoutes } from '../auth/routes.js';
@@ -26,6 +28,7 @@ export interface AppOptions {
   auth?: AuthService;
   meetings?: MeetingService;
   phase3Ready?: () => Promise<void>;
+  insights?: PostgresConversationInsights;
 }
 export async function buildApp({
   config,
@@ -36,6 +39,7 @@ export async function buildApp({
   auth,
   meetings,
   phase3Ready,
+  insights,
 }: AppOptions) {
   if (config.auth.enabled && !auth) throw new Error('Autenticação habilitada sem serviço.');
   if (config.meetings.enabled && !meetings) throw new Error('Reuniões habilitadas sem serviço.');
@@ -223,6 +227,12 @@ export async function buildApp({
   app.get('/api/v1/openapi.json', async () => openApiDocument);
   const authentication = auth ?? new AuthService({ enabled: false });
   await registerAuthRoutes(app, authentication);
+  if (insights && config.auth.enabled)
+    registerConversationInsightsRoutes(app, {
+      insights,
+      auth: authentication,
+      retentionDays: config.CHAT_RETENTION_DAYS,
+    });
   if (meetings) registerMeetingRoutes(app, { service: meetings, auth: authentication });
   app.post(
     '/api/v1/chat',

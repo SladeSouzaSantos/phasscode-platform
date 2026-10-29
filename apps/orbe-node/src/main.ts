@@ -5,6 +5,7 @@ import { createPool } from '../../../packages/database/src/pool.js';
 import { JsonKnowledgeRepository } from './adapters/knowledge.js';
 import { MemoryConversationStore } from './adapters/memory-store.js';
 import { PostgresConversationStore } from './adapters/postgres-store.js';
+import { PostgresConversationInsights } from './adapters/conversation-insights.js';
 import { MockChatProvider } from './adapters/mock-provider.js';
 import { LangChainChatProvider } from './adapters/langchain-provider.js';
 import { RedisLlmCallBudget } from './adapters/redis-llm-budget.js';
@@ -109,6 +110,7 @@ try {
     store,
     ...(redis ? { redis } : {}),
     auth,
+    ...(config.auth.enabled && pool ? { insights: new PostgresConversationInsights(pool) } : {}),
     ...(meetings ? { meetings } : {}),
     ...(phase3Ready ? { phase3Ready } : {}),
   }).catch(async (error: unknown) => {

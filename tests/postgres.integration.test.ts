@@ -51,6 +51,14 @@ describe('PostgreSQL e Redis reais', () => {
       first.conversationId,
     ]);
     expect(stored.rows[0].token_hash).not.toBe(first.conversationToken);
+    const insight = await pool.query(
+      'SELECT summary, intent, topics, turns FROM conversation_insights WHERE conversation_id = $1',
+      [first.conversationId],
+    );
+    expect(insight.rows[0].turns).toBe(5);
+    expect(insight.rows[0].topics).toContain('Projetos');
+    expect(insight.rows[0].summary).toContain('Projetos');
+    expect(insight.rows[0].summary).not.toContain('PHASSCODE');
     expect(
       (
         await pool.query('SELECT id FROM conversation_messages WHERE conversation_id = $1', [

@@ -73,7 +73,7 @@ describe('admissão de turnos PostgreSQL', () => {
       });
       expect(fake.connect).toHaveBeenCalledTimes(8);
       await expect(second.ready()).resolves.toBeUndefined();
-      expect(fake.query).toHaveBeenCalledTimes(2);
+      expect(fake.query).toHaveBeenCalledTimes(3);
     } finally {
       slow.release();
       await Promise.all(pending);
