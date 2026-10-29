@@ -259,7 +259,14 @@ docker() {
   case "$*" in
     *'ps --all --filter label=com.docker.compose.project='*'label=com.docker.compose.service=worker'*) [[ \${FAKE_WORKER_PRESENT:-0} != 1 ]] || echo worker-container ;;
     *'ps --filter label=com.docker.compose.project='*'label=com.docker.compose.service=worker'*) [[ \${FAKE_WORKER_RUNNING:-0} != 1 || -e "$TEST_LOG.stopped" ]] || echo worker-container ;;
-    *'exec -T postgres sh -c'*) [[ \${FAKE_AUDIT_UNAVAILABLE:-0} != 1 ]] || return 9; echo "\${FAKE_AUDIT_COUNTS:-0|0|0|0}" ;;
+    *'exec -T postgres sh -c'*)
+      [[ \${FAKE_AUDIT_UNAVAILABLE:-0} != 1 ]] || return 9
+      if [[ -e "$TEST_LOG.stopped" ]]; then
+        echo "\${FAKE_AUDIT_COUNTS_AFTER_STOP:-\${FAKE_AUDIT_COUNTS:-0|0|0|0}}"
+      else
+        echo "\${FAKE_AUDIT_COUNTS:-0|0|0|0}"
+      fi
+      ;;
     *'stop --timeout 45 worker'*) [[ \${FAKE_STOP_FAIL:-0} != 1 ]] || return 9; touch "$TEST_LOG.stopped" ;;
     *'inspect --format {{.State.Running}}|{{.State.ExitCode}}'*) echo "\${FAKE_WORKER_EXIT_STATE:-false|0}" ;;
     *'config --format json'*) printf '{\\n  "WORKER_ENABLED": "%s"\\n}\\n' "\${FAKE_WORKER_ENABLED:-false}" ;;
@@ -569,6 +576,19 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     );
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain(code);
+    expect(existsSync(join(result.checkout, '.deployment/worker-stop-attempted'))).toBe(true);
+    expect(existsSync(join(result.checkout, '.deployment/worker-retired'))).toBe(false);
+  });
+
+  it('retirement rechecks the database after shutdown and blocks new obligations', () => {
+    const result = retireWorker('development', {
+      FAKE_WORKER_PRESENT: '1',
+      FAKE_WORKER_RUNNING: '1',
+      FAKE_AUDIT_COUNTS_AFTER_STOP: '1|0|0|0',
+    }, true);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('LEGACY_OBLIGATIONS_AFTER_STOP');
+    expect(result.log).toContain('stop --timeout 45 worker');
     expect(existsSync(join(result.checkout, '.deployment/worker-stop-attempted'))).toBe(true);
     expect(existsSync(join(result.checkout, '.deployment/worker-retired'))).toBe(false);
   });
