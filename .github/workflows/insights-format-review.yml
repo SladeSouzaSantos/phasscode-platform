@@ -23,7 +23,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Format only proposed insight sources, output code-only fixture
         run: |
-          for file in apps/orbe-node/src/adapters/conversation-insights.ts apps/orbe-node/src/adapters/postgres-store.ts apps/orbe-node/src/application/insights.ts apps/orbe-node/src/http/conversation-insights-routes.ts packages/contracts/src/index.ts packages/contracts/src/conversation-insights.ts tests/conversation-insights-routes.test.ts tests/conversation-insights.test.ts; do
+          for file in tests/conversation-insights-routes.test.ts tests/conversation-insights.test.ts; do
             npx prettier --write "$file"
             printf 'BEGIN_FORMAT:%s\n' "$file"
             base64 -w0 "$file"
