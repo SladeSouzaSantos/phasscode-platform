@@ -138,13 +138,14 @@ export async function buildApp({
       );
     }
   });
-  if (!publicOnly) await app.register(swagger, {
-    mode: 'static',
-    specification: {
-      path: resolve('packages/contracts/openapi.json'),
-      baseDir: resolve('packages/contracts'),
-    },
-  });
+  if (!publicOnly)
+    await app.register(swagger, {
+      mode: 'static',
+      specification: {
+        path: resolve('packages/contracts/openapi.json'),
+        baseDir: resolve('packages/contracts'),
+      },
+    });
   if (!publicOnly) await app.register(swaggerUi, { routePrefix: '/docs', staticCSP: true });
   app.setErrorHandler((error, request, reply) => {
     const httpStatus =
@@ -244,7 +245,8 @@ export async function buildApp({
   const authentication = auth ?? new AuthService({ enabled: false });
   // Public runtime has no login routes. Legacy route tests remain isolated behind enabled config.
   if (!publicOnly && config.auth.enabled) await registerAuthRoutes(app, authentication);
-  if (!publicOnly && meetings) registerMeetingRoutes(app, { service: meetings, auth: authentication });
+  if (!publicOnly && meetings)
+    registerMeetingRoutes(app, { service: meetings, auth: authentication });
   app.post(
     '/api/v1/chat',
     {
