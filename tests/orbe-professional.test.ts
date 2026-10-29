@@ -84,9 +84,40 @@ describe('contexto profissional do Orbe v4', () => {
     expect(relevantText).toMatch(/Java ou inteligência artificial/);
     const prompt = await readFile('apps/orbe-node/prompts/v4.md', 'utf8');
     expect(prompt).toContain('Sua audiência prioritária');
-    expect(prompt).toContain('não sobre sua função');
+    expect(prompt).toMatch(/não sobre\s+sua função/);
     expect(prompt).toContain('Não se apresente');
     expect(prompt).toContain('Nunca ofereça reuniões');
+  });
+
+  it('responde projetos Java usando somente projetos verificáveis, sem tratar empregos como projetos', async () => {
+    const { service, generate } = await setup();
+    await service.execute({ message: 'Quais projetos com Java?' });
+    expect(generate).toHaveBeenCalledOnce();
+    const docs = generate.mock.calls[0]![0].documents;
+    expect(docs.map((doc) => doc.id)).toContain('webservice-springboot-jpa');
+    expect(docs.every((doc) => doc.type === 'project' || doc.type === 'platform')).toBe(true);
+    expect(docs.map((doc) => doc.id)).not.toContain('experiencia-acrux');
+    expect(docs.map((doc) => doc.id)).not.toContain('experiencia-sig');
+    expect(docs.map((doc) => doc.id)).not.toContain('lithology');
+  });
+
+  it('recupera a atuação mista em programação sem inflar a soma de meses formais', async () => {
+    const { service, generate } = await setup();
+    await service.execute({ message: 'Pedro tem quantos anos de experiência com programação?' });
+    const docs = generate.mock.calls[0]![0].documents;
+    const ids = docs.map((doc) => doc.id);
+    for (const id of [
+      'experiencia-acrux',
+      'experiencia-sig',
+      'experiencia-geowellex',
+      'experiencia-greencity',
+      'greencity-sdgp',
+    ])
+      expect(ids).toContain(id);
+    expect(docs.find((doc) => doc.id === 'greencity-sdgp')?.content).toContain('Flutter');
+    const prompt = await readFile('apps/orbe-node/prompts/v4.md', 'utf8');
+    expect(prompt).toContain('Nunca apresente esse subtotal como toda a experiência');
+    expect(prompt).toContain('sem chamá-los de');
   });
 
   it('mantém a formação concluída e a graduação trancada distintas', async () => {

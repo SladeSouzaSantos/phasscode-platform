@@ -33,6 +33,7 @@ import {
 import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
+import { mentionedTechnologies } from '../knowledge-matching.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
 export class ChatService {
@@ -75,9 +76,20 @@ export class ChatService {
           ? (this.knowledge.experienceDocuments?.() ?? [])
           : [];
         if (experienceDocuments.length) {
+          const broadProgrammingQuestion =
+            mentionedTechnologies(query).size === 0 &&
+            /\b(?:programa\w*|desenvolv\w*|software)\b/i.test(query);
+          // Include one concrete product developed in a mixed engineering/software
+          // role. Structured tenure calculation still uses only verified periods.
+          const mixedRoleProject = broadProgrammingQuestion
+            ? this.knowledge
+                .search('SDGP dimensionamento fotovoltaico')
+                .filter((doc) => doc.id === 'greencity-sdgp')
+            : [];
           const ordered = [
             ...retrieved.filter((doc) => doc.experiencePeriod),
             ...experienceDocuments,
+            ...mixedRoleProject,
             ...retrieved,
           ];
           retrieved = [...new Map(ordered.map((doc) => [doc.id, doc])).values()];
