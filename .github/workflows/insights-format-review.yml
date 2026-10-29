@@ -1,0 +1,31 @@
+name: Temporary insights formatting review (offline)
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'apps/orbe-node/src/**'
+      - 'packages/contracts/src/**'
+      - 'tests/conversation-insights*'
+      - '.github/workflows/insights-format-review.yml'
+permissions:
+  contents: read
+jobs:
+  format-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - name: Format only proposed insight sources, output code-only fixture
+        run: |
+          for file in apps/orbe-node/src/adapters/conversation-insights.ts apps/orbe-node/src/adapters/postgres-store.ts apps/orbe-node/src/application/insights.ts apps/orbe-node/src/http/conversation-insights-routes.ts packages/contracts/src/index.ts packages/contracts/src/conversation-insights.ts tests/conversation-insights-routes.test.ts tests/conversation-insights.test.ts; do
+            npx prettier --write "$file"
+            printf 'BEGIN_FORMAT:%s\n' "$file"
+            base64 -w0 "$file"
+            printf '\nEND_FORMAT\n'
+          done
