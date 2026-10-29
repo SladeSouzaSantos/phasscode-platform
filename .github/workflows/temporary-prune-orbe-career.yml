@@ -1,0 +1,30 @@
+name: One-time cleanup Orbe career PR branch
+on:
+  push:
+    branches: [dev]
+    paths: ['.github/workflows/temporary-prune-orbe-career.yml']
+permissions:
+  contents: write
+  pull-requests: read
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const {owner,repo}=context.repo;
+            const target='fix/orbe-career-project-answers-20261029';
+            const expected='e5fba2d8a43e92b4cedfaff65affc8c3a312b50c';
+            const pr=await github.rest.pulls.get({owner,repo,pull_number:21});
+            if (!pr.data.merged || pr.data.base.ref!=='dev' || pr.data.head.sha!==expected)
+              throw new Error('Expected merged PR #21.');
+            const {data:r}=await github.rest.repos.get({owner,repo});
+            if(r.default_branch!=='main') throw new Error('Default changed.');
+            const {data:b}=await github.rest.repos.getBranch({owner,repo,branch:target});
+            if(b.protected||b.commit.sha!==expected) throw new Error('Unexpected branch state.');
+            const opened=await github.rest.pulls.list({owner,repo,state:'open',per_page:100});
+            if(opened.data.some(p=>p.head.ref===target)) throw new Error('Open PR depends on branch.');
+            await github.rest.git.deleteRef({owner,repo,ref:'heads/'+target});
+            core.info('Removed completed Orbe career branch.');
