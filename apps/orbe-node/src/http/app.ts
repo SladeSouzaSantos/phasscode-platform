@@ -26,6 +26,7 @@ export interface AppOptions {
   auth?: AuthService;
   meetings?: MeetingService;
   phase3Ready?: () => Promise<void>;
+  publicOnly?: boolean;
 }
 export async function buildApp({
   config,
@@ -36,7 +37,10 @@ export async function buildApp({
   auth,
   meetings,
   phase3Ready,
+  publicOnly = false,
 }: AppOptions) {
+  if (publicOnly && (config.auth.enabled || meetings))
+    throw new Error('Orbe público não aceita autenticação ou reuniões.');
   if (config.auth.enabled && !auth) throw new Error('Autenticação habilitada sem serviço.');
   if (config.meetings.enabled && !meetings) throw new Error('Reuniões habilitadas sem serviço.');
   const app = Fastify({
@@ -134,14 +138,14 @@ export async function buildApp({
       );
     }
   });
-  await app.register(swagger, {
+  if (!publicOnly) await app.register(swagger, {
     mode: 'static',
     specification: {
       path: resolve('packages/contracts/openapi.json'),
       baseDir: resolve('packages/contracts'),
     },
   });
-  await app.register(swaggerUi, { routePrefix: '/docs', staticCSP: true });
+  if (!publicOnly) await app.register(swaggerUi, { routePrefix: '/docs', staticCSP: true });
   app.setErrorHandler((error, request, reply) => {
     const httpStatus =
       typeof error === 'object' &&
@@ -220,11 +224,27 @@ export async function buildApp({
       },
     });
   });
-  app.get('/api/v1/openapi.json', async () => openApiDocument);
+  const publicOpenApiDocument = publicOnly
+    ? {
+        ...openApiDocument,
+        info: {
+          ...openApiDocument.info,
+          description: 'API pública do Orbe profissional: sem contas, reuniões ou notificações.',
+        },
+        components: { securitySchemes: {} },
+        paths: {
+          '/health': openApiDocument.paths['/health'],
+          '/ready': openApiDocument.paths['/ready'],
+          '/api/v1/chat': openApiDocument.paths['/api/v1/chat'],
+          '/api/v1/openapi.json': openApiDocument.paths['/api/v1/openapi.json'],
+        },
+      }
+    : openApiDocument;
+  app.get('/api/v1/openapi.json', async () => publicOpenApiDocument);
   const authentication = auth ?? new AuthService({ enabled: false });
   // Public runtime has no login routes. Legacy route tests remain isolated behind enabled config.
-  if (config.auth.enabled) await registerAuthRoutes(app, authentication);
-  if (meetings) registerMeetingRoutes(app, { service: meetings, auth: authentication });
+  if (!publicOnly && config.auth.enabled) await registerAuthRoutes(app, authentication);
+  if (!publicOnly && meetings) registerMeetingRoutes(app, { service: meetings, auth: authentication });
   app.post(
     '/api/v1/chat',
     {

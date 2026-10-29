@@ -88,6 +88,7 @@ try {
     knowledge,
     provider,
     store,
+    publicOnly: true,
     ...(redis ? { redis } : {}),
   }).catch(async (error: unknown) => {
     await store.close();
