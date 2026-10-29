@@ -502,7 +502,8 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
           PHASSCODE_USE_PROXY: '',
           PHASSCODE_HTTP_PORT: target === 'production' ? '3202' : '3001',
           PHASSCODE_IMAGE: '',
-          COMPOSE_PROJECT_NAME: target === 'production' ? 'phasscode-platform' : 'phasscode-platform-dev',
+          COMPOSE_PROJECT_NAME:
+            target === 'production' ? 'phasscode-platform' : 'phasscode-platform-dev',
           FAKE_BRANCH: target === 'production' ? 'main' : 'dev',
           ...options,
         },
@@ -583,11 +584,15 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   });
 
   it('retirement rechecks the database after shutdown and blocks new obligations', () => {
-    const result = retireWorker('development', {
-      FAKE_WORKER_PRESENT: '1',
-      FAKE_WORKER_RUNNING: '1',
-      FAKE_AUDIT_COUNTS_AFTER_STOP: '1|0|0|0',
-    }, true);
+    const result = retireWorker(
+      'development',
+      {
+        FAKE_WORKER_PRESENT: '1',
+        FAKE_WORKER_RUNNING: '1',
+        FAKE_AUDIT_COUNTS_AFTER_STOP: '1|0|0|0',
+      },
+      true,
+    );
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain('LEGACY_OBLIGATIONS_AFTER_STOP');
     expect(result.log).toContain('stop --timeout 45 worker');
