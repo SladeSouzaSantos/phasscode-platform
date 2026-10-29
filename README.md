@@ -46,10 +46,10 @@ Perguntas pessoais, credenciais e tentativas de injeção não são atendidas.
 
 ## Deploy no Mac Mini
 
-| Branch | Backend | Checkout |
-| --- | --- | --- |
-| `dev` | `devapi.phasscode.com` | `/opt/projects/phasscode-platform-dev` |
-| `main` | `api.phasscode.com` | `/opt/projects/phasscode-platform` |
+| Branch | Backend                | Checkout                               |
+| ------ | ---------------------- | -------------------------------------- |
+| `dev`  | `devapi.phasscode.com` | `/opt/projects/phasscode-platform-dev` |
+| `main` | `api.phasscode.com`    | `/opt/projects/phasscode-platform`     |
 
 O GitHub Actions valida testes, SAST, imagem GHCR e DAST descartável.
 A publicação remota é manual: selecione a branch no workflow
