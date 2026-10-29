@@ -674,12 +674,15 @@ it('keeps public dev/main releases manual, branch-scoped, and safety gated', () 
       push: { branches: string[] };
       workflow_dispatch: { inputs: Record<string, { default?: unknown }> };
     };
-    jobs: Record<string, {
-      if?: string;
-      needs?: string[];
-      environment?: string;
-      env?: Record<string, string>;
-    }>;
+    jobs: Record<
+      string,
+      {
+        if?: string;
+        needs?: string[];
+        environment?: string;
+        env?: Record<string, string>;
+      }
+    >;
   };
   expect(Object.keys(workflow.on).sort()).toEqual(['push', 'workflow_dispatch']);
   expect(workflow.on.push.branches).toEqual(['dev', 'main']);
