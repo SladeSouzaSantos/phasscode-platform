@@ -1,0 +1,30 @@
+name: Temporary public Orbe formatting review
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'README.md'
+      - 'tests/phase3-docker-smoke.test.ts'
+      - '.github/workflows/public-format-review.yml'
+permissions:
+  contents: read
+jobs:
+  format-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - name: Format reviewed documentation and test
+        run: |
+          for file in README.md tests/phase3-docker-smoke.test.ts; do
+            npx prettier --write "$file"
+            printf 'BEGIN_FORMAT:%s\n' "$file"
+            base64 -w0 "$file"
+            printf '\nEND_FORMAT\n'
+          done
