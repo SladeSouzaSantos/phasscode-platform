@@ -1,0 +1,32 @@
+name: Temporary legacy worker formatting and infrastructure diagnostics
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'docs/deployment/README.md'
+      - 'tests/infrastructure.test.ts'
+      - '.github/workflows/temp-legacy-format.yml'
+permissions:
+  contents: read
+jobs:
+  format-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - name: Format touched files for reviewed commit
+        run: |
+          for file in docs/deployment/README.md tests/infrastructure.test.ts; do
+            npx prettier --write "$file"
+            printf 'BEGIN_FORMAT:%s\n' "$file"
+            base64 -w0 "$file"
+            printf '\nEND_FORMAT\n'
+          done
+      - name: Focused infrastructure and retirement tests
+        run: npm run test:infrastructure
