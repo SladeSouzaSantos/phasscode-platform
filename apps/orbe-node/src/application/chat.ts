@@ -84,13 +84,17 @@ export class ChatService {
         }
         // External pages are untrusted data, never instructions. Restrict retrieval to
         // public LinkedIn job postings and known public GitHub project READMEs.
-        if (this.evidenceReader && !isInjection(request.message) && !isOffTopicTask(request.message)) {
+        if (
+          this.evidenceReader &&
+          !isInjection(request.message) &&
+          !isOffTopicTask(request.message)
+        ) {
           const evidence = await this.evidenceReader.read(request.message, retrieved);
           if (evidence.length) {
-            const replacements = new Map(evidence.map(doc => [doc.id, doc]));
+            const replacements = new Map(evidence.map((doc) => [doc.id, doc]));
             retrieved = [
-              ...evidence.filter(doc => doc.id === 'external-vacancy'),
-              ...retrieved.map(doc => replacements.get(doc.id) ?? doc),
+              ...evidence.filter((doc) => doc.id === 'external-vacancy'),
+              ...retrieved.map((doc) => replacements.get(doc.id) ?? doc),
             ];
           }
         }

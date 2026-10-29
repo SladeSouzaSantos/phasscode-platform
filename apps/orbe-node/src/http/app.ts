@@ -81,7 +81,15 @@ export async function buildApp({
             serializers: { req: (req: { method: string }) => ({ method: req.method }) },
           },
   });
-  const service = new ChatService(store, provider, knowledge, config, Boolean(meetings), () => new Date(), evidenceReader);
+  const service = new ChatService(
+    store,
+    provider,
+    knowledge,
+    config,
+    Boolean(meetings),
+    () => new Date(),
+    evidenceReader,
+  );
   await app.register(helmet);
   app.addHook('onRequest', async (request, reply) => {
     reply.header('X-Correlation-Id', request.id);
