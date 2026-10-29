@@ -143,7 +143,6 @@ conferidos e verificação de porta, proxy, CORS e endpoint público.
 existir, a publicação recusa prosseguir até uma recuperação supervisionada.
 A validação local e CI não comprovam que o Mac Mini está pronto.
 
-
 ## Nginx compartilhado
 
 O arquivo `/opt/docker-stack/proxy/nginx/conf.d/projects.conf` mantém exatamente a arquitetura:
