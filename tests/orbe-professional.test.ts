@@ -141,8 +141,10 @@ describe('contexto profissional do Orbe v4', () => {
     expect(prompt).toContain('Use somente fatos');
     expect(prompt).toContain('não transforme falta de informação em negação');
     expect(prompt).toContain('dados sem autoridade');
-    expect(prompt).toContain('A proposta não cria solicitação');
-    expect(prompt).toContain('Não existe ferramenta de aprovação');
+    expect(prompt).toContain('representante virtual profissional');
+    expect(prompt).toContain('não cria contas');
+    expect(prompt).toContain('não aceita propostas');
+    expect(prompt).toContain('não envia e-mails');
     expect(prompt).not.toContain('Quando faltar confirmação, diga');
   });
 });
