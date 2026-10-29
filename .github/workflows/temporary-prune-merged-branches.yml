@@ -1,0 +1,46 @@
+name: One-time PHASSCODE branch cleanup
+on:
+  push:
+    branches: [dev]
+    paths: ['.github/workflows/temporary-prune-merged-branches.yml']
+permissions:
+  contents: write
+  pull-requests: read
+jobs:
+  prune:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify exact stale refs and delete only approved extras
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const targets = {
+              "feat/orbe-conversation-insights-admin-20261028": "81ac79960d5b8c7bffdb4dc8335f94ed663f128b",
+              "feat/orbe-professional-public-20261028": "c24dbe5c7dbe24035ff36f8b6d55b0018804a87d",
+              "fix/public-orbe-legacy-worker-retirement-20261028": "daa27d9ee21a5e893a122142d3cafca121822f02",
+              "integracao/normalizacao-workspace": "d3d3e7638cb712770b74a46f0b1ba368c2bc2108"
+            };
+            const {owner, repo} = context.repo;
+            const protectedNames = new Set(['dev', 'main']);
+            const {data: repoData} = await github.rest.repos.get({owner, repo});
+            if (repoData.default_branch !== 'main') throw new Error('Default branch changed; cleanup halted.');
+            const {data: currentOpenPRs} = await github.rest.pulls.list({owner,repo,state:'open',per_page:100});
+            const names = Object.keys(targets);
+            for (const name of names) {
+              if (protectedNames.has(name) || !name.includes('/')) throw new Error('Unsafe target: '+name);
+              if (currentOpenPRs.some(pr => pr.head.ref === name)) throw new Error('Open PR on branch: '+name);
+              const {data: ref} = await github.rest.git.getRef({owner,repo,ref:'heads/'+name});
+              if (ref.object.sha !== targets[name]) throw new Error('Branch changed since audit: '+name);
+              const {data: branch} = await github.rest.repos.getBranch({owner,repo,branch:name});
+              if (branch.protected) throw new Error('Protected branch; refusing deletion: '+name);
+            }
+            for (const name of names) {
+              const {data: ref} = await github.rest.git.getRef({owner,repo,ref:'heads/'+name});
+              if (ref.object.sha !== targets[name]) throw new Error('Branch moved just before deletion: '+name);
+              await github.rest.git.deleteRef({owner,repo,ref:'heads/'+name});
+              core.info('Deleted approved extra branch: '+name);
+            }
+            core.summary.addHeading('One-time branch cleanup').addRaw('Deleted '+names.length+' extra branches. Preserved dev and main.').write();
