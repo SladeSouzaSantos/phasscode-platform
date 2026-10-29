@@ -42,6 +42,22 @@ const documentsSchema = z
   .max(500);
 const broadTerms = new Set(['portfolio', 'projeto', 'tecnologia', 'competencia', 'profissional']);
 
+/** Broad recruiting questions need concrete evidence instead of falling through lexical search. */
+function isCareerOverview(query: string): boolean {
+  const text = knowledgePhrase(query);
+  return /\b(?:qualificad\w*|qualificac\w*|habilidad\w*|diferencia\w*|pontos? fortes?|aptidao|recrutad\w*|recruiter\w*|contrat\w*|vaga\w*|candidat\w*|oportunidad\w*|programador\w*|desenvolvedor\w*)\b/.test(
+    text,
+  );
+}
+
+const recruiterOverviewIds = [
+  'pedro-santos',
+  'experiencia-sig',
+  'webservice-springboot-jpa',
+  'phasscode-platform',
+  'competencias-publicas',
+] as const;
+
 export class JsonKnowledgeRepository implements KnowledgeRepository {
   constructor(private readonly documents: KnowledgeDocument[]) {}
   static async load(path = 'knowledge/portfolio.json'): Promise<JsonKnowledgeRepository> {
@@ -64,6 +80,14 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     const queryTerms = knowledgeTerms(query);
     const queryPhrase = ` ${knowledgePhrase(query)} `;
     const queryTechnologies = mentionedTechnologies(query);
+    if (queryTechnologies.size === 0 && isCareerOverview(query)) {
+      const selected = recruiterOverviewIds.flatMap((id) => {
+        const document = this.documents.find((item) => item.id === id);
+        return document ? [document] : [];
+      });
+      // Custom repositories in tests may not contain the curated records.
+      if (selected.length >= 3) return selected.slice(0, 5);
+    }
     const credentialQuestion =
       /\b(?:certificad\w*|certificac\w*|diploma\w*|curso\w*|formac\w*|graduac\w*)\b/.test(
         knowledgePhrase(query),

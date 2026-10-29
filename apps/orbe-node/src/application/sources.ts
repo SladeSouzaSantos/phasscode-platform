@@ -23,13 +23,16 @@ function validUrl(value: string | undefined): string | undefined {
     const url = new URL(value);
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
       return undefined;
+    // An internal data file or source-code permalink is never a recruiting reference.
+    if (/\/assets\/json\/|\/src\/data\/|\.(?:json|ts|tsx)(?:$|[?#])/i.test(url.pathname))
+      return undefined;
     return value;
   } catch {
     return undefined;
   }
 }
 
-/** Keep the existing HTTP DTO: metadata is internal, and no link is synthesized. */
+/** Keep the existing HTTP DTO; cite public portfolio pages or public projects, not internal files. */
 export function documentSource(document: KnowledgeDocument): Source {
   const publicProject =
     (document.type === 'project' || document.type === 'platform') &&
@@ -115,10 +118,20 @@ export function selectSources(input: {
       return { document, overlap, relevant, named, score };
     })
     .filter((entry) => entry.relevant)
-    .sort(
-      (left, right) =>
-        right.score - left.score || left.document.id.localeCompare(right.document.id),
-    );
+    .sort((left, right) => {
+      // Prefer a demonstrable project when factual relevance is comparable.
+      const project = (document: KnowledgeDocument) =>
+        (document.type === 'project' || document.type === 'platform') &&
+        document.visibility !== 'private' &&
+        document.visibility !== 'third-party' &&
+        Boolean(validUrl(document.repositoryUrl) ?? validUrl(document.demoUrl));
+      if (
+        Math.abs(right.score - left.score) < 3 &&
+        project(left.document) !== project(right.document)
+      )
+        return project(left.document) ? -1 : 1;
+      return right.score - left.score || left.document.id.localeCompare(right.document.id);
+    });
 
   const selected: Source[] = [];
   const covered = new Set<string>();

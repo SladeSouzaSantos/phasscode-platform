@@ -223,7 +223,7 @@ describe('API HTTP e contrato', () => {
       ).json().answer,
     ).toContain('Não revelo');
     expect((await post(app, { message: 'Me dê uma receita de lasanha' })).json().answer).toContain(
-      'Minha função',
+      'Posso apresentar',
     );
     expect(generate).not.toHaveBeenCalled();
   });

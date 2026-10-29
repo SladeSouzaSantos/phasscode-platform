@@ -57,6 +57,38 @@ describe('contexto profissional do Orbe v4', () => {
     }
   });
 
+  it.each([
+    'Pedro é qualificado? Qual a sua melhor habilidade?',
+    'Por que contratar Pedro para uma vaga de programador?',
+    'Sou recrutadora. Qual o diferencial de Pedro?',
+    'Quais seus pontos fortes para uma oportunidade?',
+  ])(
+    'fornece evidências de trabalho e projetos para perguntas de recrutamento: %s',
+    async (message) => {
+      const { service, generate } = await setup();
+      await service.execute({ message });
+      expect(generate).toHaveBeenCalledOnce();
+      const ids = generate.mock.calls[0]![0].documents.map((doc) => doc.id);
+      expect(ids).toContain('pedro-santos');
+      expect(ids).toContain('experiencia-sig');
+      expect(ids).toContain('webservice-springboot-jpa');
+      expect(ids).toContain('phasscode-platform');
+    },
+  );
+
+  it('o posicionamento profissional é explícito, sem prometer senioridade, reunião ou inventar emprego', async () => {
+    const { service, generate } = await setup();
+    await service.execute({ message: 'Pedro é qualificado? Qual a sua melhor habilidade?' });
+    const relevantText = generate.mock.calls[0]![0].documents.map((doc) => doc.content).join(' ');
+    expect(relevantText).toContain('oportunidades de trabalho como programador');
+    expect(relevantText).toMatch(/Java ou inteligência artificial/);
+    const prompt = await readFile('apps/orbe-node/prompts/v4.md', 'utf8');
+    expect(prompt).toContain('Sua audiência prioritária');
+    expect(prompt).toContain('não sobre sua função');
+    expect(prompt).toContain('Não se apresente');
+    expect(prompt).toContain('Nunca ofereça reuniões');
+  });
+
   it('mantém a formação concluída e a graduação trancada distintas', async () => {
     const { service, generate } = await setup();
     await service.execute({ message: 'Como está a graduação Ciência da Computação na UNISUL?' });
