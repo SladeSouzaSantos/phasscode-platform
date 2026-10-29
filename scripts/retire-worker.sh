@@ -36,7 +36,7 @@ if [[ ${PHASSCODE_USE_PROXY:-} == true ]]; then compose+=(--proxy); fi
 filter=("label=com.docker.compose.project=$project" "label=com.docker.compose.service=worker")
 all=$(docker ps --all --filter "${filter[0]}" --filter "${filter[1]}" --format '{{.ID}}')
 running=$(docker ps --filter "${filter[0]}" --filter "${filter[1]}" --format '{{.ID}}')
-[[ "$all" != *$'\\n'* && "$running" != *$'\\n'* ]] ||
+[[ "$all" != *$'\n'* && "$running" != *$'\n'* ]] ||
   fail 'Multiple legacy workers found. Inspect manually.'
 if [[ -z "$all" ]]; then
   [[ -z "$running" ]] || fail 'Inconsistent Docker worker state.'
@@ -51,12 +51,12 @@ counts=$("${compose[@]}" exec -T postgres sh -c '
   exec psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -F "|" -c "
     SELECT
       (SELECT COUNT(*) FROM meeting_outbox WHERE processed_at IS NULL),
-      (SELECT COUNT(*) FROM notification_deliveries WHERE status IN (\x27PENDING\x27,\x27SENDING\x27)),
-      (SELECT COUNT(*) FROM meetings WHERE status IN (\x27PENDING\x27,\x27APPROVED\x27,\x27CONFIRMED\x27)),
+      (SELECT COUNT(*) FROM notification_deliveries WHERE status IN (\$\$PENDING\$\$,\$\$SENDING\$\$)),
+      (SELECT COUNT(*) FROM meetings WHERE status IN (\$\$PENDING\$\$,\$\$APPROVED\$\$,\$\$CONFIRMED\$\$)),
       (SELECT COUNT(*) FROM meetings WHERE calendar_lease_until > now());
   "
 ') || fail 'LEGACY_AUDIT_UNAVAILABLE: inspect PostgreSQL without changing data.'
-[[ "$counts" =~ ^[0-9]+\\|[0-9]+\\|[0-9]+\\|[0-9]+$ ]] ||
+[[ "$counts" =~ ^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+$ ]] ||
   fail 'LEGACY_AUDIT_INVALID: unexpected aggregate-only response.'
 IFS='|' read -r outbox deliveries meetings leases <<< "$counts"
 printf 'Legacy audit: pending_outbox=%s pending_notifications=%s active_meetings=%s active_calendar_leases=%s worker_running=%s\n' \
@@ -73,7 +73,7 @@ mkdir -p -- .deployment
 [[ ! -e .deployment/worker-retired-next && ! -L .deployment/worker-retired-next ]] ||
   fail 'Unexpected retirement state; inspect before retry.'
 # Marker remains after an interrupted stop and prevents all future deploys.
-printf '%s\\n' "$project" > .deployment/worker-stop-attempted
+printf '%s\n' "$project" > .deployment/worker-stop-attempted
 if [[ -n "$running" ]]; then
   "${compose[@]}" --profile worker stop --timeout 45 worker ||
     fail 'LEGACY_WORKER_STOP_FAILED: inspect shutdown logs and outbox before retrying.'
@@ -83,7 +83,7 @@ fi
 # A failed graceful shutdown (e.g. deadline or SIGKILL) is not a valid retirement.
 [[ "$(docker inspect --format '{{.State.Running}}|{{.State.ExitCode}}' "$all")" == 'false|0' ]] ||
   fail 'LEGACY_WORKER_EXIT_UNSAFE: inspect termination and reconcile before retrying.'
-printf '%s\\n' "$project" > .deployment/worker-retired-next
+printf '%s\n' "$project" > .deployment/worker-retired-next
 mv -- .deployment/worker-retired-next .deployment/worker-retired
 rm -- .deployment/worker-stop-attempted
 echo 'LEGACY_WORKER_RETIRED: graceful shutdown verified. No migrations or data deletion performed.'
