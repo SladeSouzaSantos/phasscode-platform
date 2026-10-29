@@ -423,28 +423,26 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     }
   });
 
-  it('exercises worker stop ordering in fake production only, never DEV', () => {
+  it('stops the legacy worker before migration but never restarts it in public mode', () => {
     const result = deployment('production', { FAKE_WORKER_ENABLED: 'true' });
     expect(result.status, result.stderr).toBe(0);
-    expect(result.log).toContain('pull api migrate retention worker');
+    expect(result.log).toContain('pull api migrate retention');
+    expect(result.log).not.toContain('pull api migrate retention worker');
     expect(result.log.indexOf('stop worker')).toBeLessThan(
       result.log.indexOf('run --rm --no-deps migrate'),
     );
-    expect(result.log.indexOf('run --rm --no-deps migrate')).toBeLessThan(
-      result.log.indexOf('up -d --no-build --no-deps --wait worker'),
-    );
-    expect(result.log).toContain('ps -q worker');
-    expect(result.log).toContain('worker-container');
+    expect(result.log).not.toContain('up -d --no-build --no-deps --wait worker');
+    expect(result.log).not.toContain('ps -q worker');
   });
-  it('keeps a fake production worker failure marked incomplete without rollback', () => {
+  it('does not reactivate a retired worker even when a legacy worker fails to start', () => {
     const result = deployment('production', {
       FAKE_WORKER_ENABLED: 'true',
       FAKE_WORKER_FAIL: '1',
     });
-    expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain('Worker failed after migration');
-    expect(existsSync(join(result.checkout, '.deployment/attempted-image-ref'))).toBe(true);
-    expect(existsSync(join(result.checkout, '.deployment/image-ref'))).toBe(false);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.log).toContain('stop worker');
+    expect(result.log).not.toContain('up -d --no-build --no-deps --wait worker');
+    expect(existsSync(join(result.checkout, '.deployment/image-ref'))).toBe(true);
     expect(result.log).not.toMatch(/down|--volumes/);
   });
   it('does nothing by default and rejects mutable image tags', () => {
@@ -669,7 +667,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   });
 });
 
-it('separates automatic DEV checks from manual immutable release and blocks remote apply', () => {
+it('keeps public dev/main releases manual, branch-scoped, and safety gated', () => {
   const source = readFileSync(join(root, '.github/workflows/deploy.yml'), 'utf8');
   const workflow = parse(source) as {
     on: {
@@ -687,35 +685,18 @@ it('separates automatic DEV checks from manual immutable release and blocks remo
     >;
   };
   expect(Object.keys(workflow.on).sort()).toEqual(['push', 'workflow_dispatch']);
-  expect(workflow.on.push.branches).toEqual(['dev']);
-  const backendCi = parse(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8')) as {
+  expect(workflow.on.push.branches).toEqual(['dev', 'main']);
+  const ci = parse(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8')) as {
     on: { push: { branches: string[] } };
   };
-  expect(backendCi.on.push.branches).toEqual(['dev', 'main']);
-  const pairedDevCi = parse(
-    readFileSync(join(root, '.github/workflows/paired-dev-ci.yml'), 'utf8'),
-  ) as {
-    on: { push: { branches: string[] } };
-    jobs: Record<string, { if?: string; needs?: string[] }>;
-  };
-  expect(pairedDevCi.on.push.branches).toEqual(['dev']);
-  expect(pairedDevCi.jobs.paired_dev!.if).toContain('refs/heads/dev');
-  const isolatedSource = readFileSync(join(root, '.github/workflows/paired-dev-ci.yml'), 'utf8');
-  expect(isolatedSource).toContain('npm run test:e2e -- --frontend ../frontend --regression');
-  expect(isolatedSource).not.toContain('ENABLE_REMOTE_DEPLOY');
-  expect(isolatedSource).not.toContain('appleboy/ssh-action');
-  expect(isolatedSource).not.toContain('docker/build-push-action');
+  expect(ci.on.push.branches).toEqual(['dev', 'main']);
   expect(workflow.on.workflow_dispatch.inputs.apply_remote!.default).toBe(false);
-  expect(workflow.on.workflow_dispatch.inputs.backend_sha).toBeDefined();
-  expect(workflow.on.workflow_dispatch.inputs.frontend_sha).toBeDefined();
-  expect(source).toContain("github.event_name == 'push' && github.sha");
-  expect(source).toContain('source":"automatic-dev-candidate"');
-  expect(source).toContain('backend-dev-candidate-pair');
-  expect(workflow.jobs.deploy!.if).toBe(
-    "github.ref == 'refs/heads/dev' && inputs.target == 'development' && inputs.apply_remote",
-  );
-  expect(workflow.jobs.coordinated!.if).toContain('refs/heads/dev');
-  expect(workflow.jobs.coordinated!.if).toContain("github.event_name == 'push'");
+  expect(workflow.jobs.deploy!.if).toContain("github.event_name == 'workflow_dispatch'");
+  expect(workflow.jobs.deploy!.if).toContain("github.ref == 'refs/heads/dev'");
+  expect(workflow.jobs.deploy!.if).toContain("github.ref == 'refs/heads/main'");
+  expect(workflow.jobs.deploy!.if).toContain("inputs.target == 'development'");
+  expect(workflow.jobs.deploy!.if).toContain("inputs.target == 'production'");
+  expect(workflow.jobs.deploy!.if).toContain('inputs.apply_remote');
   expect(workflow.jobs.deploy!.environment).toContain("'production'");
   expect(workflow.jobs.deploy!.environment).toContain("'development'");
   expect(workflow.jobs.verify!.environment).toBe(workflow.jobs.deploy!.environment);
@@ -723,16 +704,17 @@ it('separates automatic DEV checks from manual immutable release and blocks remo
   expect(workflow.jobs.deploy!.env!.DEPLOY_BRANCH).toContain('github.ref_name');
   expect(workflow.jobs.deploy!.env!.PROJECT_DIR).toContain('github.ref_name');
   expect(source).toContain('test "$ENABLE_REMOTE_DEPLOY" = true');
-  expect(workflow.jobs.deploy!.needs).toEqual(['image', 'dast', 'ci_gate', 'coordinated']);
+  expect(workflow.jobs.deploy!.needs).toEqual(['image', 'dast', 'ci_gate']);
   expect(workflow.jobs.deploy!.env!.PHASSCODE_USE_PROXY).toBe('${{ vars.PHASSCODE_USE_PROXY }}');
   expect(workflow.jobs.deploy!.env!.PHASSCODE_HTTP_PORT).toBe('${{ vars.PHASSCODE_HTTP_PORT }}');
   expect(source).toContain('PHASSCODE_USE_PROXY,PHASSCODE_HTTP_PORT');
   expect(workflow.jobs.dast!.env!.LLM_PROVIDER).toBe('mock');
   expect(workflow.jobs.dast!.env!.LLM_API_KEY).toBe('');
-  expect(source).toContain('ENABLE_REMOTE_DEPLOY');
   expect(source).toContain('needs.image.outputs.ref');
   expect(source).toContain('-O http://127.0.0.1:18080');
   expect(source).toContain('"$PUBLIC_URL/health"');
   expect(source).not.toContain('"$PUBLIC_URL/ready"');
   expect(source).not.toContain('--live');
+  expect(source).not.toContain('backend-dev-candidate-pair');
+  expect(workflow.jobs).not.toHaveProperty('coordinated');
 });

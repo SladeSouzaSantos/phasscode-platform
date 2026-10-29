@@ -50,7 +50,7 @@ export const injectionRefusal =
 export const unknownAnswer =
   'Essa informação ainda não consta na base pública verificada do PHASSCODE. Posso apresentar os projetos e as tecnologias documentados.';
 export const meetingUnavailable =
-  'O agendamento de reuniões ainda não está disponível nesta versão. Não consigo consultar horários, registrar solicitações ou confirmar reuniões. Posso explicar os projetos do PHASSCODE.';
+  'Não faço agendamentos, reservas nem envio notificações. Para entrar em contato profissionalmente com Pedro Santos, utilize o LinkedIn https://linkedin.com/in/phasscode ou o e-mail público phassantos.dev@gmail.com.';
 export const greetingAnswer =
   'Olá! Sou o Orbe Mágico do PHASSCODE. Posso apresentar o perfil profissional, os projetos e as tecnologias documentados no portfólio. O que você gostaria de conhecer?';
 export const simpleTestAnswer =

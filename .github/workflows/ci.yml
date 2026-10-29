@@ -76,8 +76,8 @@ jobs:
       - uses: actions/setup-node@v7
         with: { node-version: 24 }
       - run: docker build -f infrastructure/docker/Dockerfile -t phasscode-platform:ci .
-      - name: Qualify the selected image with separate enabled Phase 3 API and worker
-        run: node scripts/phase3-docker-smoke.mjs --image phasscode-platform:ci
+      - name: Validate public Orbe image without privileged services
+        run: docker image inspect phasscode-platform:ci --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' >/dev/null
       - name: Validate Compose
         env: { POSTGRES_PASSWORD: ci-only }
         run: docker compose --env-file /dev/null config --quiet

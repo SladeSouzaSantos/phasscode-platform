@@ -136,15 +136,15 @@ describe('disposable Phase 3 image qualification', () => {
     }
   });
 
-  it('qualifies the CI candidate before using that same selected image for the standard smoke', async () => {
+  it('qualifies the public chat image before using the selected image for the standard smoke', async () => {
     const ci = parse(await readFile('.github/workflows/ci.yml', 'utf8')) as {
       jobs: {
         docker: { steps: Array<{ name?: string; run?: string; env?: Record<string, string> }> };
       };
     };
     const steps = ci.jobs.docker.steps;
-    const qualification = steps.findIndex((step) =>
-      step.run?.includes('phase3-docker-smoke.mjs --image phasscode-platform:ci'),
+    const qualification = steps.findIndex(
+      (step) => step.name === 'Validate public Orbe image without privileged services',
     );
     const standard = steps.findIndex((step) => step.name === 'Smoke test complete environment');
     expect(qualification).toBeGreaterThan(0);

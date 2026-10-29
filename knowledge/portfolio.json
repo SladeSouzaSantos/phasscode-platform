@@ -28,7 +28,7 @@
     "id": "phasscode-platform",
     "title": "PHASSCODE Platform — backend do Orbe Mágico",
     "url": "https://github.com/SladeSouzaSantos/phasscode-platform",
-    "content": "PHASSCODE Platform é o backend do Orbe Mágico, com Node.js, TypeScript, Fastify, LangChain, PostgreSQL, Redis, BullMQ e Docker. POST /api/v1/chat oferece respostas com fontes e histórico protegido por token; a recuperação consulta conhecimento JSON por termos, sem embeddings. Há fallback configurável OpenRouter → Gemini → Groq → Cohere, com cotas e cooldown. Google OIDC, cookie HttpOnly, CSRF, JWT de serviço e identidades vinculadas mantêm usuários e papéis centralizados. Portfólio e Orbe são públicos. Reuniões exigem proposta, confirmação explícita do visitante e aprovação administrativa; o worker só confirma após verificar o evento no Calendar. O worker também processa SMTP, Telegram e lembretes com outbox e idempotência. Login Google e autorização Calendar são independentes. Funções opcionais dependem de configuração e homologação externa; presença de código não indica que estejam habilitadas nesta implantação. Java/Spring, RabbitMQ, Kafka, e-mail/senha, GitHub, MFA e passkeys estão no roadmap.",
+    "content": "PHASSCODE Platform é o backend público do Orbe Mágico, representante virtual profissional de Pedro Santos. Implementado com Node.js, TypeScript, Fastify, LangChain, PostgreSQL, Redis e Docker. POST /api/v1/chat responde com fontes do portfólio e histórico protegido por token de conversa, pesquisando uma base de conhecimento JSON. Há fallback configurável de LLMs com limites de uso e cooldown. A experiência pública não possui login, área administrativa, reuniões, calendário, notificações nem envio de mensagens. Tecnologias experimentadas anteriormente no desenvolvimento não significam funcionalidades disponíveis no produto atual.",
     "keywords": [
       "backend",
       "node",
@@ -37,11 +37,9 @@
       "inteligencia artificial",
       "projeto",
       "plataforma",
-      "calendar",
-      "agendamento",
-      "reuniao",
-      "disponibilidade",
-      "notificacoes"
+      "profissional",
+      "assistente",
+      "orbe"
     ],
     "category": "personal",
     "visibility": "public",
@@ -52,7 +50,6 @@
       "LangChain",
       "PostgreSQL",
       "Redis",
-      "BullMQ",
       "Docker"
     ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/phasscode-platform"
