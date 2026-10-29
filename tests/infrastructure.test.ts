@@ -458,6 +458,110 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
       expect(denied.log).not.toContain('migrate');
     }
   });
+  function retireWorker(
+    target: 'development' | 'production',
+    options: Record<string, string> = {},
+    apply = false,
+  ) {
+    const plan = deployment(target, {}, false);
+    const log = join(dirname(plan.checkout), 'retirement-commands.log');
+    writeFileSync(log, '');
+    const result = spawnSync(
+      bash,
+      [shellPath(join(root, 'scripts/retire-worker.sh')), target, apply ? '--apply' : '--inspect'],
+      {
+        encoding: 'utf8',
+        timeout: processTimeoutMs,
+        env: {
+          ...process.env,
+          BASH_ENV: shellPath(hooks),
+          TEST_LOG: shellPath(log),
+          PHASSCODE_PROJECTS_ROOT: shellPath(dirname(plan.checkout)),
+          PHASSCODE_USE_PROXY: '',
+          PHASSCODE_HTTP_PORT: target === 'production' ? '3202' : '3001',
+          FAKE_BRANCH: target === 'production' ? 'main' : 'dev',
+          ...options,
+        },
+      },
+    );
+    return { ...result, checkout: plan.checkout, log: readFileSync(log, 'utf8') };
+  }
+
+  it('a read-only retirement inspection reports only aggregates, without stopping workers', () => {
+    const result = retireWorker('development', {
+      FAKE_WORKER_PRESENT: '1',
+      FAKE_WORKER_RUNNING: '1',
+      FAKE_AUDIT_COUNTS: '3|1|2|0',
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('pending_outbox=3');
+    expect(result.stdout).toContain('pending_notifications=1');
+    expect(result.stdout).toContain('active_meetings=2');
+    expect(result.stdout).toContain('worker_running=yes');
+    expect(result.log).toContain('exec -T postgres');
+    expect(result.log).not.toContain('stop --timeout');
+    expect(existsSync(join(result.checkout, '.deployment'))).toBe(false);
+  });
+
+  it('retirement refuses unsatisfied commitments without touching an active worker', () => {
+    const result = retireWorker('development', {
+      FAKE_WORKER_PRESENT: '1',
+      FAKE_WORKER_RUNNING: '1',
+      FAKE_AUDIT_COUNTS: '0|0|1|0',
+    }, true);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('LEGACY_OBLIGATIONS_PRESENT');
+    expect(result.log).not.toContain('stop --timeout');
+    expect(existsSync(join(result.checkout, '.deployment/worker-retired'))).toBe(false);
+  });
+
+  it('retirement stops a checked legacy worker, checks exit 0 and records a scoped marker', () => {
+    const result = retireWorker('development', {
+      FAKE_WORKER_PRESENT: '1',
+      FAKE_WORKER_RUNNING: '1',
+    }, true);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.log).toContain('stop --timeout 45 worker');
+    expect(result.log).toContain('inspect --format {{.State.Running}}|{{.State.ExitCode}}');
+    expect(readFileSync(join(result.checkout, '.deployment/worker-retired'), 'utf8')).toBe('phasscode-platform-dev\n');
+    expect(existsSync(join(result.checkout, '.deployment/worker-stop-attempted'))).toBe(false);
+    expect(existsSync(join(result.checkout, '.deploy-lock'))).toBe(false);
+    expect(result.log).not.toMatch(/down|--volumes|run --rm --no-deps migrate/);
+  });
+
+  it.each([
+    [{ FAKE_STOP_FAIL: '1' }, 'LEGACY_WORKER_STOP_FAILED'],
+    [{ FAKE_WORKER_EXIT_STATE: 'false|1' }, 'LEGACY_WORKER_EXIT_UNSAFE'],
+  ])('retirement fails closed and retains its interruption marker (%j)', (failure, code) => {
+    const result = retireWorker('development', {
+      FAKE_WORKER_PRESENT: '1',
+      FAKE_WORKER_RUNNING: '1',
+      ...failure,
+    }, true);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(code);
+    expect(existsSync(join(result.checkout, '.deployment/worker-stop-attempted'))).toBe(true);
+    expect(existsSync(join(result.checkout, '.deployment/worker-retired'))).toBe(false);
+  });
+
+  it('retirement without legacy container has no DB access or mutations', () => {
+    const result = retireWorker('production', {}, true);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('No legacy worker container');
+    expect(result.log).not.toContain('exec -T postgres');
+    expect(existsSync(join(result.checkout, '.deployment'))).toBe(false);
+  });
+
+  it('retirement fails closed when Postgres aggregates are unavailable', () => {
+    const result = retireWorker('development', {
+      FAKE_WORKER_PRESENT: '1',
+      FAKE_AUDIT_UNAVAILABLE: '1',
+    }, true);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('LEGACY_AUDIT_UNAVAILABLE');
+    expect(result.log).not.toContain('stop --timeout');
+  });
+
   it('does nothing by default and rejects mutable image tags', () => {
     const plan = deployment('development', {}, false);
     expect(plan.status, plan.stderr).toBe(0);
