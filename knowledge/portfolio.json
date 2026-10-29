@@ -58,7 +58,7 @@
     "type": "profile",
     "id": "pedro-santos",
     "title": "Pedro Santos — perfil profissional",
-    "url": "https://devgbc.phasscode.com/#sobre",
+    "url": "https://gbc.phasscode.com/#sobre",
     "content": "Pedro Santos é desenvolvedor backend e FullStack, com trajetória que relaciona software, engenharia e energias renováveis. Seu nome completo é Pedro Henrique Alves de Souza Santos; usa PHASSCODE e SladeSouzaSantos em seus perfis. O portfólio destaca Java, inteligência artificial e Flutter. Seus interesses incluem arquitetura de software e soluções para engenharia e dimensionamento solar. Atua na Greencity Sustainable Energy, conforme atualização direta do proprietário em 21/10/2026. O proprietário declarou interesse em oportunidades de trabalho como programador, especialmente com Java ou inteligência artificial; seu perfil reúne experiência profissional em software e projetos de engenharia, backend e integração de LLMs. Essas áreas refletem atuação e projetos distintos, não certificação de especialista em cada tecnologia.",
     "keywords": [
       "pedro",
@@ -89,7 +89,7 @@
     "type": "profile",
     "id": "competencias-publicas",
     "title": "Conhecimentos técnicos e competências",
-    "url": "https://devgbc.phasscode.com/#sobre",
+    "url": "https://gbc.phasscode.com/#sobre",
     "content": "O perfil profissional de Pedro reúne Java, Spring Boot, Spring Data, Spring Security e Quarkus; Python com Django e FastAPI; PHP, C, C++ e Node.js; React, Angular, TypeScript, JavaScript, Flutter/Dart, HTML/CSS e WordPress. Inclui SOLID, Clean Architecture, Clean Code, DDD, Scrum, microsserviços e APIs REST. O perfil registra ainda conhecimentos em LangChain4j, LLMs, RAG, LangGraph, MCP, Kafka, RabbitMQ, PostgreSQL, Redis, MongoDB, MySQL, Firebase, H2, JPA, Hibernate, Flyway, JUnit/Testcontainers, Cypress, Git/GitHub Actions, Docker/Swarm, Kubernetes, AWS, Cloudflare/Tailscale e observabilidade. Esta visão geral de conhecimentos é distinta das tecnologias de cada experiência e projeto: Java/Hibernate/JBoss/PostgreSQL aparecem na atuação no SIGAA; Spring Boot/Spring Data JPA/H2 no webservice de estudo; Python/FastAPI no HSP Simulator; React/TypeScript no portfólio; Node.js/LangChain/Docker na PHASSCODE Platform.",
     "keywords": [
       "tecnologias",
@@ -132,7 +132,7 @@
     "type": "profile",
     "id": "contato-publico",
     "title": "Canais profissionais de contato",
-    "url": "https://devgbc.phasscode.com/#sobre",
+    "url": "https://gbc.phasscode.com/#sobre",
     "content": "Os canais profissionais publicados por Pedro Santos são GitHub em https://github.com/SladeSouzaSantos, LinkedIn em https://linkedin.com/in/phasscode, e-mail phassantos.dev@gmail.com e site https://phasscode.com. São formas públicas de contato; a base não registra preços, disponibilidade de contratação, telefone ou endereço residencial.",
     "keywords": [
       "contato",
@@ -403,7 +403,7 @@
     "type": "profile",
     "id": "experiencia-greencity",
     "title": "Experiência profissional — Greencity Sustainable Energy",
-    "url": "https://devgbc.phasscode.com/#experiencia",
+    "url": "https://gbc.phasscode.com/#experiencia",
     "content": "Pedro Santos atua na Greencity Sustainable Energy desde fevereiro de 2019, como Engenheiro de Projetos Fotovoltaicos / Desenvolvedor Web e Mobile. Seu trabalho combina projetos de energia renovável, coordenação de equipes e processos e desenvolvimento de aplicações para engenharia. O histórico inclui aplicativo Android para dimensionamento fotovoltaico e propostas em PDF com Dart, Flutter e Firebase, além de Python e PHP no ecossistema. A atuação atual foi confirmada pelo proprietário em 21/10/2026. O período na empresa reúne engenharia e software; não equivale automaticamente a dedicação integral ao desenvolvimento nem a experiência com Java.",
     "keywords": [
       "experiencia",
@@ -439,7 +439,7 @@
     "type": "profile",
     "id": "experiencia-geowellex",
     "title": "Experiência profissional — Geowellex",
-    "url": "https://devgbc.phasscode.com/#experiencia",
+    "url": "https://gbc.phasscode.com/#experiencia",
     "content": "Pedro Santos trabalhou na Geowellex de março de 2017 a outubro de 2018, como Mud Logging / Desenvolvedor de Sistemas. Desenvolveu sistema web de controle de estoque com HTML, CSS, JavaScript, PHP e MySQL, junto a atividades de coleta, análise e organização de dados geológicos em operações de perfuração. As fontes registram a experiência profissional, sem disponibilizar repositório desse sistema.",
     "keywords": [
       "experiencia",
@@ -471,7 +471,7 @@
     "type": "profile",
     "id": "experiencia-sig",
     "title": "Experiência profissional — SIG Software e SIGAA",
-    "url": "https://devgbc.phasscode.com/#experiencia",
+    "url": "https://gbc.phasscode.com/#experiencia",
     "content": "Pedro Santos trabalhou como Desenvolvedor de Sistemas na SIG Software e Consultoria em TI de junho de 2016 a fevereiro de 2017. Atuou no desenvolvimento e na manutenção evolutiva de sistemas de gestão acadêmica, especialmente novas funcionalidades do SIGAA, com Java, Hibernate, JBoss e PostgreSQL. Trabalhou em equipe multidisciplinar com Scrum, revisão de código, testes funcionais/manuais e documentação técnica. O SIGAA é um sistema de terceiros: a participação registrada é desenvolvimento e manutenção de funcionalidades, sem autoria exclusiva, propriedade do produto ou código público pessoal identificado.",
     "keywords": [
       "experiencia",
@@ -505,7 +505,7 @@
     "type": "profile",
     "id": "experiencia-acrux",
     "title": "Experiência profissional — estágio ACRUX",
-    "url": "https://devgbc.phasscode.com/#experiencia",
+    "url": "https://gbc.phasscode.com/#experiencia",
     "content": "Pedro Santos foi estagiário Programador de Sistemas na ACRUX de fevereiro de 2014 a janeiro de 2015. Trabalhou na finalização e implementação de funcionalidades de software para acompanhamento de calhas em poços de petróleo, usando Java, H2 Database e NetBeans, em equipe multidisciplinar com Scrum. O histórico não disponibiliza repositório desse sistema. A identificação desse software como Lithology não está estabelecida, devido à divergência de atribuição entre as fontes.",
     "keywords": [
       "experiencia",
@@ -536,7 +536,7 @@
     "type": "profile",
     "id": "formacao-computacao",
     "title": "Formação — Ciência da Computação trancada, UNISUL",
-    "url": "https://devgbc.phasscode.com/#academico",
+    "url": "https://gbc.phasscode.com/#academico",
     "content": "O Bacharelado em Ciência da Computação de Pedro Santos na UNISUL está trancado nas últimas disciplinas, com previsão de conclusão em dezembro de 2027. Esse status foi atualizado diretamente pelo proprietário em 21/10/2026 e substitui a previsão antiga de dezembro de 2026. O histórico registra início em julho de 2023 e estudos de fundamentos de computação, desenvolvimento, sistemas distribuídos/mobile, inteligência artificial, modelagem e segurança. Trata-se de graduação ainda não concluída, com disciplinas finais pendentes.",
     "keywords": [
       "formacao",
@@ -561,7 +561,7 @@
     "type": "profile",
     "id": "formacao-gestao-ti",
     "title": "Formação concluída — Gestão da Tecnologia da Informação, UNIBF",
-    "url": "https://devgbc.phasscode.com/#academico",
+    "url": "https://gbc.phasscode.com/#academico",
     "content": "Pedro Santos concluiu o Tecnólogo em Gestão da Tecnologia da Informação na UNIBF em agosto de 2025. O período registrado é abril de 2024 a agosto de 2025. A formação abrange bancos de dados, redes, sistemas operacionais, gestão de projetos, segurança, inteligência artificial, orientação a objetos e testes.",
     "keywords": [
       "formacao",
@@ -583,7 +583,7 @@
     "type": "profile",
     "id": "formacao-eletrotecnica",
     "title": "Formação concluída — Técnico em Eletrotécnica",
-    "url": "https://devgbc.phasscode.com/#academico",
+    "url": "https://gbc.phasscode.com/#academico",
     "content": "Pedro Santos concluiu o curso Técnico em Eletrotécnica na Escola Politécnica Brasileira em outubro de 2022. O período registrado é outubro de 2020 a outubro de 2022, com conteúdos de instalações elétricas, manutenção, eletrônica, máquinas elétricas e automação.",
     "keywords": [
       "formacao",
@@ -603,7 +603,7 @@
     "type": "profile",
     "id": "formacao-energia-eletrica",
     "title": "Formação concluída — Engenharia Elétrica e Sistemas de Energia",
-    "url": "https://devgbc.phasscode.com/#academico",
+    "url": "https://gbc.phasscode.com/#academico",
     "content": "Pedro Santos concluiu a pós-graduação lato sensu em Engenharia Elétrica e de Sistemas de Energia pela Unyleya em setembro de 2020. O período registrado é setembro de 2018 a setembro de 2020. A formação aborda geração, distribuição, componentes elétricos e comunicação de dispositivos de subestações.",
     "keywords": [
       "formacao",
@@ -624,7 +624,7 @@
     "type": "profile",
     "id": "formacao-eolica",
     "title": "Formação concluída — Especialização Técnica em Energia Eólica",
-    "url": "https://devgbc.phasscode.com/#academico",
+    "url": "https://gbc.phasscode.com/#academico",
     "content": "Pedro Santos concluiu a Especialização Técnica em Energia Eólica no CTGAS-ER em setembro de 2017. O período registrado é agosto de 2016 a setembro de 2017, com fundamentos de geração eólica, medição anemométrica, aerodinâmica, aerogeradores, automação, manutenção e viabilidade de projetos.",
     "keywords": [
       "formacao",
@@ -644,7 +644,7 @@
     "type": "profile",
     "id": "formacao-petroleo",
     "title": "Formação concluída — Engenharia de Petróleo e Gás, UnP",
-    "url": "https://devgbc.phasscode.com/#academico",
+    "url": "https://gbc.phasscode.com/#academico",
     "content": "Pedro Santos concluiu o Bacharelado em Engenharia de Petróleo e Gás na Universidade Potiguar (UnP), com formação em geologia, reservatórios, poços e operações da indústria de óleo e gás. A data exata de conclusão permanece divergente: o currículo informa dezembro de 2014 e o site antigo fevereiro de 2015. A divergência é de data, e não de status de conclusão.",
     "keywords": [
       "formacao",

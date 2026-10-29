@@ -232,12 +232,12 @@ describe('seleção determinística de fontes usadas na resposta', () => {
       .search('experiência Java no SIGAA')
       .find((doc) => doc.id === 'experiencia-sig');
     expect(sigaa).toBeDefined();
-    expect(documentSource(sigaa!).url).toBe('https://devgbc.phasscode.com/#experiencia');
+    expect(documentSource(sigaa!).url).toBe('https://gbc.phasscode.com/#experiencia');
     const skills = knowledge
       .search('competências técnicas Java')
       .find((doc) => doc.id === 'competencias-publicas');
     expect(skills).toBeDefined();
-    expect(documentSource(skills!).url).toBe('https://devgbc.phasscode.com/#sobre');
+    expect(documentSource(skills!).url).toBe('https://gbc.phasscode.com/#sobre');
     for (const url of [
       'https://phasscode.com/assets/json/experiencia.json',
       'https://github.com/example/repo/blob/main/src/data/perfil.ts',

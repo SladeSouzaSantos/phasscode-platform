@@ -253,7 +253,7 @@ porque não há código público ou certificado anexado; preserve seu escopo e l
 
 A API continua usando `knowledge/portfolio.json` somente como base interna de fatos.
 Citações ao visitante devem apontar para **projetos verificáveis** (GitHub ou demonstração)
-ou para as **seções públicas** do portfólio DEV (`#sobre`, `#experiencia`,
+ou para as **seções públicas** do portfólio (`#sobre`, `#experiencia`,
 `#academico`), nunca para caminhos de JSON, `src/data/perfil.ts` ou prompts.
 Experiências em produtos de terceiros não recebem repositórios inventados. Projeto de
 estudo é apresentado como estudo; experiência profissional permanece distinta. O objetivo
