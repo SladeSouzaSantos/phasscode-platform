@@ -5,7 +5,9 @@ import { registerConversationInsightsRoutes } from '../apps/orbe-node/src/http/c
 import type { PostgresConversationInsights } from '../apps/orbe-node/src/adapters/conversation-insights.js';
 
 const apps: ReturnType<typeof Fastify>[] = [];
-afterEach(async () => { await Promise.all(apps.splice(0).map((app) => app.close())); });
+afterEach(async () => {
+  await Promise.all(apps.splice(0).map((app) => app.close()));
+});
 
 describe('GET admin/conversations', () => {
   function setup(allowAdmin: boolean) {
@@ -42,7 +44,8 @@ describe('GET admin/conversations', () => {
   it('usa escopo de administração e retorna métricas sem mensagens', async () => {
     const { app, list, auth } = setup(true);
     const response = await app.inject({
-      method: 'GET', url: '/api/v1/admin/conversations?limit=10&offset=20',
+      method: 'GET',
+      url: '/api/v1/admin/conversations?limit=10&offset=20',
     });
     expect(response.statusCode).toBe(200);
     expect(auth.requirePrincipal).toHaveBeenCalledWith(expect.anything(), { admin: true });
@@ -53,7 +56,8 @@ describe('GET admin/conversations', () => {
     const { app, list } = setup(true);
     for (const query of ['limit=500', 'offset=-1', 'unexpected=value']) {
       const response = await app.inject({
-        method: 'GET', url: '/api/v1/admin/conversations?' + query,
+        method: 'GET',
+        url: '/api/v1/admin/conversations?' + query,
       });
       expect(response.statusCode).toBe(400);
     }
