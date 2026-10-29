@@ -46,7 +46,8 @@ fi
 # Aggregate-only read from the existing Postgres container; no visitor details or secrets
 # are printed. A missing schema, unavailable database or malformed response fails closed.
 # Do not copy passwords into the host shell or log full Compose configuration.
-counts=$("${compose[@]}" exec -T postgres sh -c '
+audit_counts() {
+  "${compose[@]}" exec -T postgres sh -c '
   export PGPASSWORD="$POSTGRES_PASSWORD"
   exec psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -F "|" -c "
     SELECT
@@ -55,7 +56,9 @@ counts=$("${compose[@]}" exec -T postgres sh -c '
       (SELECT COUNT(*) FROM meetings WHERE status IN (\$\$PENDING\$\$,\$\$APPROVED\$\$,\$\$CONFIRMED\$\$)),
       (SELECT COUNT(*) FROM meetings WHERE calendar_lease_until > now());
   "
-') || fail 'LEGACY_AUDIT_UNAVAILABLE: inspect PostgreSQL without changing data.'
+'
+}
+counts=$(audit_counts) || fail 'LEGACY_AUDIT_UNAVAILABLE: inspect PostgreSQL without changing data.'
 [[ "$counts" =~ ^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+$ ]] ||
   fail 'LEGACY_AUDIT_INVALID: unexpected aggregate-only response.'
 IFS='|' read -r outbox deliveries meetings leases <<< "$counts"
@@ -83,6 +86,10 @@ fi
 # A failed graceful shutdown (e.g. deadline or SIGKILL) is not a valid retirement.
 [[ "$(docker inspect --format '{{.State.Running}}|{{.State.ExitCode}}' "$all")" == 'false|0' ]] ||
   fail 'LEGACY_WORKER_EXIT_UNSAFE: inspect termination and reconcile before retrying.'
+post_stop_counts=$(audit_counts) ||
+  fail 'LEGACY_AUDIT_AFTER_STOP_UNAVAILABLE: operator reconciliation required.'
+[[ "$post_stop_counts" == '0|0|0|0' ]] ||
+  fail 'LEGACY_OBLIGATIONS_AFTER_STOP: reconcile newly queued external effects.'
 printf '%s\n' "$project" > .deployment/worker-retired-next
 mv -- .deployment/worker-retired-next .deployment/worker-retired
 rm -- .deployment/worker-stop-attempted
