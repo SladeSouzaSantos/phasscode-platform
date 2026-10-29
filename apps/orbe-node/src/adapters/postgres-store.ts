@@ -74,10 +74,10 @@ export class PostgresConversationStore implements ConversationStore {
       if (result.insight)
         await client.query(
           'INSERT INTO conversation_insights(conversation_id, intent, summary, topics, turns) ' +
-          'VALUES ($1, $2, $3, $4::text[], 1) ' +
-          'ON CONFLICT (conversation_id) DO UPDATE SET ' +
-          'intent = EXCLUDED.intent, summary = EXCLUDED.summary, topics = EXCLUDED.topics, ' +
-          'turns = conversation_insights.turns + 1, updated_at = now()',
+            'VALUES ($1, $2, $3, $4::text[], 1) ' +
+            'ON CONFLICT (conversation_id) DO UPDATE SET ' +
+            'intent = EXCLUDED.intent, summary = EXCLUDED.summary, topics = EXCLUDED.topics, ' +
+            'turns = conversation_insights.turns + 1, updated_at = now()',
           [input.id, result.insight.intent, result.insight.summary, result.insight.topics],
         );
       await client.query('UPDATE conversations SET updated_at = now() WHERE id = $1', [input.id]);
