@@ -16,12 +16,18 @@ describe('public professional Orbe runtime', () => {
       components: { securitySchemes: Record<string, unknown> };
     }>();
     expect(Object.keys(spec.paths).sort()).toEqual([
-      '/api/v1/chat', '/api/v1/openapi.json', '/health', '/ready',
+      '/api/v1/chat',
+      '/api/v1/openapi.json',
+      '/health',
+      '/ready',
     ]);
     expect(spec.components.securitySchemes).toEqual({});
     for (const url of [
-      '/docs/', '/api/v1/auth/session', '/api/v1/admin/meetings',
-      '/api/v1/meetings/availability', '/.well-known/jwks.json',
+      '/docs/',
+      '/api/v1/auth/session',
+      '/api/v1/admin/meetings',
+      '/api/v1/meetings/availability',
+      '/.well-known/jwks.json',
     ]) {
       expect((await app.inject(url)).statusCode, url).toBe(404);
     }
