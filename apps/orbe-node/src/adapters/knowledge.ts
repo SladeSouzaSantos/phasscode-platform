@@ -53,8 +53,10 @@ function isCareerOverview(query: string): boolean {
 /** An explicit technology-project request must not turn job histories into public projects. */
 function isTechnologyProjectQuestion(query: string): boolean {
   const phrase = knowledgePhrase(query);
-  return /\b(?:projetos?|repositorios?|exemplos?|codigo)\b/.test(phrase) &&
-    mentionedTechnologies(query).size > 0;
+  return (
+    /\b(?:projetos?|repositorios?|exemplos?|codigo)\b/.test(phrase) &&
+    mentionedTechnologies(query).size > 0
+  );
 }
 
 const recruiterOverviewIds = [
@@ -88,11 +90,15 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     const queryPhrase = ` ${knowledgePhrase(query)} `;
     const queryTechnologies = mentionedTechnologies(query);
     if (isTechnologyProjectQuestion(query)) {
-      const projects = this.documents.filter((document) =>
-        (document.type === 'project' || document.type === 'platform') &&
-        document.visibility !== 'private' &&
-        document.visibility !== 'third-party' &&
-        technologyMatches(queryTechnologies, mentionedTechnologies(document.technologies?.join(' ') ?? ''))
+      const projects = this.documents.filter(
+        (document) =>
+          (document.type === 'project' || document.type === 'platform') &&
+          document.visibility !== 'private' &&
+          document.visibility !== 'third-party' &&
+          technologyMatches(
+            queryTechnologies,
+            mentionedTechnologies(document.technologies?.join(' ') ?? ''),
+          ),
       );
       if (projects.length > 0) return projects.slice(0, 5);
     }

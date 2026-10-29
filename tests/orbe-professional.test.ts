@@ -94,21 +94,27 @@ describe('contexto profissional do Orbe v4', () => {
     await service.execute({ message: 'Quais projetos com Java?' });
     expect(generate).toHaveBeenCalledOnce();
     const docs = generate.mock.calls[0]![0].documents;
-    expect(docs.map(doc => doc.id)).toContain('webservice-springboot-jpa');
-    expect(docs.every(doc => doc.type === 'project' || doc.type === 'platform')).toBe(true);
-    expect(docs.map(doc => doc.id)).not.toContain('experiencia-acrux');
-    expect(docs.map(doc => doc.id)).not.toContain('experiencia-sig');
-    expect(docs.map(doc => doc.id)).not.toContain('lithology');
+    expect(docs.map((doc) => doc.id)).toContain('webservice-springboot-jpa');
+    expect(docs.every((doc) => doc.type === 'project' || doc.type === 'platform')).toBe(true);
+    expect(docs.map((doc) => doc.id)).not.toContain('experiencia-acrux');
+    expect(docs.map((doc) => doc.id)).not.toContain('experiencia-sig');
+    expect(docs.map((doc) => doc.id)).not.toContain('lithology');
   });
 
   it('recupera a atuação mista em programação sem inflar a soma de meses formais', async () => {
     const { service, generate } = await setup();
     await service.execute({ message: 'Pedro tem quantos anos de experiência com programação?' });
     const docs = generate.mock.calls[0]![0].documents;
-    const ids = docs.map(doc => doc.id);
-    for (const id of ['experiencia-acrux', 'experiencia-sig', 'experiencia-geowellex', 'experiencia-greencity', 'greencity-sdgp'])
+    const ids = docs.map((doc) => doc.id);
+    for (const id of [
+      'experiencia-acrux',
+      'experiencia-sig',
+      'experiencia-geowellex',
+      'experiencia-greencity',
+      'greencity-sdgp',
+    ])
       expect(ids).toContain(id);
-    expect(docs.find(doc => doc.id === 'greencity-sdgp')?.content).toContain('Flutter');
+    expect(docs.find((doc) => doc.id === 'greencity-sdgp')?.content).toContain('Flutter');
     const prompt = await readFile('apps/orbe-node/prompts/v4.md', 'utf8');
     expect(prompt).toContain('Nunca apresente esse subtotal como toda a experiência');
     expect(prompt).toContain('sem chamá-los de');

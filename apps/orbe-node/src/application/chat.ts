@@ -82,9 +82,9 @@ export class ChatService {
           // Include one concrete product developed in a mixed engineering/software
           // role. Structured tenure calculation still uses only verified periods.
           const mixedRoleProject = broadProgrammingQuestion
-            ? this.knowledge.search('SDGP dimensionamento fotovoltaico').filter(
-                (doc) => doc.id === 'greencity-sdgp',
-              )
+            ? this.knowledge
+                .search('SDGP dimensionamento fotovoltaico')
+                .filter((doc) => doc.id === 'greencity-sdgp')
             : [];
           const ordered = [
             ...retrieved.filter((doc) => doc.experiencePeriod),
