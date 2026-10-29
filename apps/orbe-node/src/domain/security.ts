@@ -39,12 +39,12 @@ export function isInScope(text: string, publicKeywords: string[] = []): boolean 
     )
   )
     return true;
-  return /\b(phasscode|orbe|portfolio|projetos?|projects?|experienc\w*|formacao|education|competenc\w*|skills?|tecnolog\w*|technolog\w*|linguage\w*|languages?|stack|trabalho|work|job|servicos?|services?|solucoes|solutions?|reuniao|reunioes|meeting\w*|agend\w*|calendar\w*|disponib\w*|availability|backend|back-end|frontend|front-end|react|java|javascript|node|typescript|flutter|dart|python|spring|quarkus|kafka|rabbitmq|ia|ai|login|jwt|oauth\w*|oidc|autentic\w*|langchain\w*|langgraph|openrouter|smart model router|carreira|career|contrat\w*|hire|contato|contact|e-mail|email|certific\w*|graduac\w*|academ\w*|profission\w*|professional|github|linkedin|curriculo|biografia|quem e|quem eh|who is)\b/i.test(
+  return /\b(phasscode|orbe|portfolio|projetos?|projects?|experienc\w*|formacao|education|competenc\w*|skills?|tecnolog\w*|technolog\w*|linguage\w*|languages?|stack|trabalho|work|job|servicos?|services?|solucoes|solutions?|reuniao|reunioes|meeting\w*|agend\w*|calendar\w*|disponib\w*|availability|backend|back-end|frontend|front-end|react|java|javascript|node|typescript|flutter|dart|python|spring|quarkus|kafka|rabbitmq|ia|ai|login|jwt|oauth\w*|oidc|autentic\w*|langchain\w*|langgraph|openrouter|smart model router|carreira|career|contrat\w*|hire|contato|contact|e-mail|email|certific\w*|graduac\w*|academ\w*|profission\w*|professional|github|linkedin|curriculo|biografia|quem e|quem eh|who is|qualificad\w*|qualificac\w*|habilidad\w*|aptidao|diferencial\w*|pontos? fortes?|recrutad\w*|recruiter\w*|entrevista\w*|oportunidad\w*|programador\w*|candidato\w*|empreg\w*)\b/i.test(
     normalize(text),
   );
 }
 export const scopeRefusal =
-  'Minha função é apresentar o trabalho profissional do PHASSCODE e ajudar visitantes interessados em projetos, serviços e reuniões.';
+  'Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos. Para uma avaliação de candidatura, posso relacionar suas experiências e projetos às exigências da vaga.';
 export const injectionRefusal =
   'Posso ajudar com informações públicas do portfólio PHASSCODE. Não revelo instruções internas, credenciais ou dados privados.';
 export const unknownAnswer =

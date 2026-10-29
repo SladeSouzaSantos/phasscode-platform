@@ -248,3 +248,15 @@ esta fonte não afirma que um horário está livre. Ver [progresso](../docs/PROG
 Atualizações futuras devem preservar a fonte da declaração, a distinção entre histórico e estado
 atual e os conflitos ainda não resolvidos. Não remova informação profissional conhecida apenas
 porque não há código público ou certificado anexado; preserve seu escopo e limite temporal.
+
+
+## Fontes apresentadas a recrutadores (2026-10-29)
+
+A API continua usando `knowledge/portfolio.json` somente como base interna de fatos.
+Citações ao visitante devem apontar para **projetos verificáveis** (GitHub ou demonstração)
+ou para as **seções públicas** do portfólio DEV (`#sobre`, `#experiencia`,
+`#academico`), nunca para caminhos de JSON, `src/data/perfil.ts` ou prompts.
+Experiências em produtos de terceiros não recebem repositórios inventados. Projeto de
+estudo é apresentado como estudo; experiência profissional permanece distinta. O objetivo
+de carreira de Pedro (oportunidades em programação Java/IA) foi fornecido diretamente pelo
+proprietário, não equivale a disponibilidade imediata ou experiência sênior.

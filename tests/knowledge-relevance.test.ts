@@ -226,6 +226,22 @@ describe('seleção determinística de fontes usadas na resposta', () => {
     });
   });
 
+  it('nunca entrega links diretos para JSON ou arquivos-fonte como referência profissional', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const sigaa = knowledge.search('experiência Java no SIGAA').find((doc) => doc.id === 'experiencia-sig');
+    expect(sigaa).toBeDefined();
+    expect(documentSource(sigaa!).url).toBe('https://devgbc.phasscode.com/#experiencia');
+    const skills = knowledge.search('competências técnicas Java').find((doc) => doc.id === 'competencias-publicas');
+    expect(skills).toBeDefined();
+    expect(documentSource(skills!).url).toBe('https://devgbc.phasscode.com/#sobre');
+    for (const url of [
+      'https://phasscode.com/assets/json/experiencia.json',
+      'https://github.com/example/repo/blob/main/src/data/perfil.ts',
+    ]) {
+      expect(documentSource({ ...documents[2]!, url })).not.toHaveProperty('url');
+    }
+  });
+
   it('prefere demo existente quando falta repositório e descarta esquemas não HTTP', () => {
     expect(documentSource({ ...documents[1]!, repositoryUrl: undefined }).url).toBe(
       'https://example.com/demo',
