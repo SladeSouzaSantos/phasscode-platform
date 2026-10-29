@@ -62,16 +62,19 @@ describe('contexto profissional do Orbe v4', () => {
     'Por que contratar Pedro para uma vaga de programador?',
     'Sou recrutadora. Qual o diferencial de Pedro?',
     'Quais seus pontos fortes para uma oportunidade?',
-  ])('fornece evidências de trabalho e projetos para perguntas de recrutamento: %s', async (message) => {
-    const { service, generate } = await setup();
-    await service.execute({ message });
-    expect(generate).toHaveBeenCalledOnce();
-    const ids = generate.mock.calls[0]![0].documents.map((doc) => doc.id);
-    expect(ids).toContain('pedro-santos');
-    expect(ids).toContain('experiencia-sig');
-    expect(ids).toContain('webservice-springboot-jpa');
-    expect(ids).toContain('phasscode-platform');
-  });
+  ])(
+    'fornece evidências de trabalho e projetos para perguntas de recrutamento: %s',
+    async (message) => {
+      const { service, generate } = await setup();
+      await service.execute({ message });
+      expect(generate).toHaveBeenCalledOnce();
+      const ids = generate.mock.calls[0]![0].documents.map((doc) => doc.id);
+      expect(ids).toContain('pedro-santos');
+      expect(ids).toContain('experiencia-sig');
+      expect(ids).toContain('webservice-springboot-jpa');
+      expect(ids).toContain('phasscode-platform');
+    },
+  );
 
   it('o posicionamento profissional é explícito, sem prometer senioridade, reunião ou inventar emprego', async () => {
     const { service, generate } = await setup();

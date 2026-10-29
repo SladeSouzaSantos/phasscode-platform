@@ -125,7 +125,10 @@ export function selectSources(input: {
         document.visibility !== 'private' &&
         document.visibility !== 'third-party' &&
         Boolean(validUrl(document.repositoryUrl) ?? validUrl(document.demoUrl));
-      if (Math.abs(right.score - left.score) < 3 && project(left.document) !== project(right.document))
+      if (
+        Math.abs(right.score - left.score) < 3 &&
+        project(left.document) !== project(right.document)
+      )
         return project(left.document) ? -1 : 1;
       return right.score - left.score || left.document.id.localeCompare(right.document.id);
     });

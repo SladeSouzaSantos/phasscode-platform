@@ -249,7 +249,6 @@ Atualizações futuras devem preservar a fonte da declaração, a distinção en
 atual e os conflitos ainda não resolvidos. Não remova informação profissional conhecida apenas
 porque não há código público ou certificado anexado; preserve seu escopo e limite temporal.
 
-
 ## Fontes apresentadas a recrutadores (2026-10-29)
 
 A API continua usando `knowledge/portfolio.json` somente como base interna de fatos.
