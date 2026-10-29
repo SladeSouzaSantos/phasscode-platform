@@ -17,7 +17,11 @@ interface AdminAuth {
 
 export function registerConversationInsightsRoutes(
   app: FastifyInstance,
-  { insights, auth, retentionDays }: {
+  {
+    insights,
+    auth,
+    retentionDays,
+  }: {
     insights: PostgresConversationInsights;
     auth: AdminAuth;
     retentionDays: number;
