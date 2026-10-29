@@ -143,8 +143,8 @@ describe('disposable Phase 3 image qualification', () => {
       };
     };
     const steps = ci.jobs.docker.steps;
-    const qualification = steps.findIndex((step) =>
-      step.name === 'Validate public Orbe image without privileged services',
+    const qualification = steps.findIndex(
+      (step) => step.name === 'Validate public Orbe image without privileged services',
     );
     const standard = steps.findIndex((step) => step.name === 'Smoke test complete environment');
     expect(qualification).toBeGreaterThan(0);
