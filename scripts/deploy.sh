@@ -66,16 +66,26 @@ case "$proxy_mode" in
   *) fail 'PHASSCODE_USE_PROXY or saved proxy mode must be true or false.' ;;
 esac
 "${compose[@]}" config --quiet
-# Read only the non-secret flag; never source .env or print interpolated configuration.
-worker_enabled=false # Public Orbe never restarts the retired notification worker.
-# R3: an old DEV worker has no proven complete drain for its first stop.
-# No environment-variable bypass: require a separately reviewed operational controller.
-if [[ "$target" == development ]]; then
-  fail 'R3_R4_NO_GO: DEV apply is blocked until supervised first-stop and recovery are qualified.'
+# A running or unreviewed legacy worker must be retired before any migration.
+# Docker label discovery is read-only and restricted to the exact Compose project.
+[[ ! -L .deployment/worker-retired && ! -L .deployment/worker-stop-attempted ]] ||
+  fail 'LEGACY_WORKER_UNSAFE_STATE: inspect the deployment metadata.'
+[[ ! -e .deployment/worker-stop-attempted ]] ||
+  fail 'LEGACY_WORKER_STOP_INCOMPLETE: inspect and reconcile the supervised retirement.'
+worker_filter=("label=com.docker.compose.project=$project" "label=com.docker.compose.service=worker")
+worker_all=$(docker ps --all --filter "${worker_filter[0]}" --filter "${worker_filter[1]}" --format '{{.ID}}')
+worker_running=$(docker ps --filter "${worker_filter[0]}" --filter "${worker_filter[1]}" --format '{{.ID}}')
+[[ -z "$worker_running" ]] ||
+  fail 'LEGACY_WORKER_RUNNING: retire the legacy worker with scripts/retire-worker.sh before deployment.'
+if [[ -n "$worker_all" ]]; then
+  [[ $(echo "$worker_all" | wc -l) -eq 1 ]] ||
+    fail 'LEGACY_WORKER_MULTIPLE: inspect legacy containers manually.'
+  [[ -f .deployment/worker-retired &&
+     "$(cat -- .deployment/worker-retired)" == "$project" ]] ||
+    fail 'LEGACY_WORKER_UNRECONCILED: inspect backlog and retire the old worker before deployment.'
 fi
 services=(api migrate retention)
-if [[ "$worker_enabled" == true ]]; then services+=(worker); fi
-"${compose[@]}" --profile maintenance --profile worker pull "${services[@]}"
+"${compose[@]}" --profile maintenance pull "${services[@]}"
 image_revision=$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$image_ref")
 [[ "$image_revision" == "$revision" ]] || fail 'Pulled image revision differs from the tested release; database and running services were not changed.'
 
@@ -87,9 +97,10 @@ if [[ -f .deployment/image-ref ]]; then
   cp -- .deployment/image-ref .deployment/previous-image-ref
 fi
 printf '%s\n' "$image_ref" > .deployment/attempted-image-ref
-mark_attempt_phase 'worker-stop-requested'
-# Drain the previous worker before schema changes; no database rollback is implied on failure.
-"${compose[@]}" --profile worker stop worker
+# Do not stop/restart workers in the general-purpose deploy path.
+# Recheck after pulling in case an operator restarted the retired service.
+[[ -z "$(docker ps --filter "${worker_filter[0]}" --filter "${worker_filter[1]}" --format '{{.ID}}')" ]] ||
+  fail 'LEGACY_WORKER_RUNNING: a worker appeared during release preparation; supervised recovery required.'
 mark_attempt_phase 'dependencies-start-requested'
 "${compose[@]}" up -d --no-build --wait postgres redis
 mark_attempt_phase 'migration-requested'
@@ -104,14 +115,6 @@ actual_image=$(docker inspect --format '{{.Config.Image}}' "$container_id")
 [[ "$actual_image" == "$image_ref" ]] || fail 'Running API does not use the tested immutable image.'
 actual_revision=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$container_id")
 [[ "$actual_revision" == "$revision" ]] || fail 'Running image revision differs from the tested release.'
-if [[ "$worker_enabled" == true ]]; then
-  mark_attempt_phase 'worker-start-requested'
-  "${compose[@]}" --profile worker up -d --no-build --no-deps --wait worker || fail 'Worker failed after migration. Investigate outbox and configuration; no automatic rollback was attempted.'
-  worker_id=$("${compose[@]}" --profile worker ps -q worker)
-  [[ -n "$worker_id" ]] || fail 'Worker container is missing.'
-  [[ $(docker inspect --format '{{.Config.Image}}' "$worker_id") == "$image_ref" ]] || fail 'Worker does not use the tested immutable image.'
-  [[ $(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$worker_id") == "$revision" ]] || fail 'Worker revision differs from the tested release.'
-fi
 mark_attempt_phase 'readiness-requested'
 curl --fail --silent --show-error --max-time 20 "http://127.0.0.1:$port/ready" |
   grep -Eq '"status"[[:space:]]*:[[:space:]]*"ready"' || fail 'Readiness verification failed; migration is not reverted automatically.'

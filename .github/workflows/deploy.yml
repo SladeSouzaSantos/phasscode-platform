@@ -1,7 +1,6 @@
 name: Backend release | CI > SAST > Image > DAST > Deploy > Verify
-# DEV push: qualify a captured immutable backend/frontend pair in disposable CI.
-# The candidate image and DAST are automatic, but remote apply is manual-only.
-# PROD/main remains NO-GO. R3/R4 and CORS remain separate operational gates.
+# Dev/main qualify immutable images automatically; remote application is manual-only.
+# Legacy worker retirement and unreconciled migrations are mandatory safety gates.
 on:
   push:
     branches: [dev, main]
@@ -16,14 +15,6 @@ on:
         description: Aplicar a release no servidor apos os checks (padrao somente publica e testa imagem)
         type: boolean
         default: false
-      backend_sha:
-        description: SHA imutavel do backend autorizado para este dispatch (opcional, fallback vars)
-        type: string
-        required: false
-      frontend_sha:
-        description: SHA imutavel do frontend autorizado para este dispatch (opcional, fallback vars)
-        type: string
-        required: false
 permissions:
   contents: read
 concurrency:
@@ -38,9 +29,7 @@ jobs:
     permissions:
       contents: read
 
-  # R2: one unfiltered B2/F3 integration of the exact approved backend/frontend pair.
-  # Repository-level Actions vars MUST pin both SHAs. Missing pins fail closed.
-  # Production is intentionally blocked until a separate main-compatible gate exists.
+  # Independent public Orbe qualification on dev/main.
   tests:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -216,6 +205,39 @@ jobs:
             cd "$PROJECT_DIR"
             test "$(git branch --show-current)" = "$DEPLOY_BRANCH"
             test -z "$(git status --porcelain)"
+            # Read-only operational gate BEFORE the on-server Git checkout is advanced.
+            test ! -L .deployment
+            test ! -e .deployment/attempted-image-ref
+            test ! -L .deployment/attempted-image-ref
+            test ! -e .deployment/attempted-phase
+            test ! -L .deployment/attempted-phase
+            test ! -e .deployment/worker-stop-attempted
+            test ! -L .deployment/worker-stop-attempted
+            test ! -d .deploy-lock
+            test ! -L .deploy-lock
+            if [ "$DEPLOY_TARGET" = development ]; then
+              WORKER_PROJECT=phasscode-platform-dev
+            else
+              WORKER_PROJECT=phasscode-platform
+            fi
+            WORKER_RUNNING=$(docker ps \
+              --filter "label=com.docker.compose.project=$WORKER_PROJECT" \
+              --filter "label=com.docker.compose.service=worker" --format '{{.ID}}')
+            if [ -n "$WORKER_RUNNING" ]; then
+              echo 'LEGACY_WORKER_RUNNING: supervised retirement required before remote deploy.' >&2
+              exit 1
+            fi
+            WORKER_ALL=$(docker ps --all \
+              --filter "label=com.docker.compose.project=$WORKER_PROJECT" \
+              --filter "label=com.docker.compose.service=worker" --format '{{.ID}}')
+            if [ -n "$WORKER_ALL" ]; then
+              test ! -L .deployment/worker-retired
+              test -f .deployment/worker-retired
+              test "$(cat .deployment/worker-retired)" = "$WORKER_PROJECT" || {
+                echo 'LEGACY_WORKER_UNRECONCILED: inspect pending commitments before deploy.' >&2
+                exit 1
+              }
+            fi
             git fetch origin "$DEPLOY_BRANCH"
             test "$(git rev-parse FETCH_HEAD)" = "$DEPLOY_SHA"
             git merge --ff-only "$DEPLOY_SHA"
