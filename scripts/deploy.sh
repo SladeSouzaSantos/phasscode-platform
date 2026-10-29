@@ -67,7 +67,7 @@ case "$proxy_mode" in
 esac
 "${compose[@]}" config --quiet
 # Read only the non-secret flag; never source .env or print interpolated configuration.
-worker_enabled=$("${compose[@]}" --profile worker config --format json | awk '/^[[:space:]]*"WORKER_ENABLED":[[:space:]]*"true"/ { enabled=1 } END { print enabled ? "true" : "false" }')
+worker_enabled=false # Public Orbe never restarts the retired notification worker.
 # R3: an old DEV worker has no proven complete drain for its first stop.
 # No environment-variable bypass: require a separately reviewed operational controller.
 if [[ "$target" == development ]]; then

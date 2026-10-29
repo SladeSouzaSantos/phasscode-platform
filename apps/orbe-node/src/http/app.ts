@@ -222,7 +222,8 @@ export async function buildApp({
   });
   app.get('/api/v1/openapi.json', async () => openApiDocument);
   const authentication = auth ?? new AuthService({ enabled: false });
-  await registerAuthRoutes(app, authentication);
+  // Public runtime has no login routes. Legacy route tests remain isolated behind enabled config.
+  if (config.auth.enabled) await registerAuthRoutes(app, authentication);
   if (meetings) registerMeetingRoutes(app, { service: meetings, auth: authentication });
   app.post(
     '/api/v1/chat',
