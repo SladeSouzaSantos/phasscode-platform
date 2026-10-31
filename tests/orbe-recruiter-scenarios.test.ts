@@ -170,6 +170,81 @@ describe('Academia Arcana / base profissional do Orbe DEV', () => {
     expect(byId('greencity-os').demoUrl).toBeUndefined();
   });
 
+  it.each([
+    [
+      'vaga Java profissional com Hibernate, PostgreSQL e lacunas Spring Boot',
+      'Sou recrutador Java. Qual sua experiência profissional Java, Hibernate e PostgreSQL e onde estudou Spring Boot?',
+      ['experiencia-sig', 'experiencia-acrux', 'webservice-springboot-jpa'],
+    ],
+    [
+      'entrevista IA e LangChain com laboratório RAG',
+      'Para vaga IA com LangChain e RAG, quais implementações reais e laboratórios existem?',
+      ['phasscode-platform', 'embeddings-neo4j-rag'],
+    ],
+    [
+      'React TypeScript com testes e acessibilidade',
+      'Vaga React TypeScript com testes Playwright, WCAG e acessibilidade. O que comprovou?',
+      ['web-portfolio-v2'],
+    ],
+    [
+      'Flutter com base profissional em energia',
+      'Vaga Flutter e Firebase: quais projetos e experiências profissionais comprováveis?',
+      ['greencity-os', 'experiencia-greencity'],
+    ],
+    [
+      'qualidade e QA',
+      'Sou recrutador QA e automação de testes. O que ele entregou com acessibilidade?',
+      ['web-portfolio-v2', 'phasscode-platform'],
+    ],
+    [
+      'DevOps e pipelines',
+      'Vaga DevOps/SRE: quais pipelines GitHub Actions e deploy Docker ele implementou?',
+      ['phasscode-platform'],
+    ],
+    [
+      'engenharia de dados Python',
+      'Vaga de engenharia de dados com Python, NASA POWER, pvlib e FastAPI',
+      ['hsp-simulator'],
+    ],
+    [
+      'software e energia',
+      'Vaga para utilities e energia fotovoltaica: projetos e experiência na Greencity?',
+      ['experiencia-greencity', 'hsp-simulator'],
+    ],
+  ])('prioriza evidências em %s sem carregar código integral', async (_title, query, requiredIds) => {
+    const { knowledge } = await createService();
+    const results = knowledge.search(query as string);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBeLessThanOrEqual(5);
+    for (const id of requiredIds as string[]) {
+      expect(results.map((doc) => doc.id)).toContain(id);
+    }
+    expect(results.every((doc) => doc.content.length <= 6000)).toBe(true);
+  });
+
+  it('a base não troca stacks entre empregadores, ignora falsos negativos em testes e distingue RAG', async () => {
+    const docs = JSON.parse(await readFile('knowledge/portfolio.json', 'utf8'));
+    const byId = (id: string) => docs.find((doc: { id: string }) => doc.id === id);
+    const acrux = byId('experiencia-acrux').content as string;
+    const sig = byId('experiencia-sig').content as string;
+    const frontend = byId('web-portfolio-v2').content as string;
+    const backend = byId('phasscode-platform').content as string;
+    const hsp = byId('hsp-simulator').content as string;
+    expect(acrux).toContain('H2');
+    expect(acrux).toContain('NetBeans');
+    expect(acrux).toContain('NÃO transferir');
+    expect(sig).toContain('Hibernate');
+    expect(sig).toContain('JBoss');
+    expect(sig).toContain('PostgreSQL');
+    expect(frontend).toContain('Playwright');
+    expect(frontend).toContain('axe-core');
+    expect(frontend).toContain('WCAG');
+    expect(backend).toContain('LangChain');
+    expect(backend).toContain('NÃO é um RAG vetorial');
+    expect(hsp).toContain('NÃO comprova');
+    expect(hsp).toContain('PVsyst');
+  });
+
   it('mantém matriz opt-in de entrevistas com 12 casos verificáveis', async () => {
     const data = JSON.parse(await readFile('evaluation/recruiter-cases.json', 'utf8'));
     const matrix = matrixSchema.parse(data);
