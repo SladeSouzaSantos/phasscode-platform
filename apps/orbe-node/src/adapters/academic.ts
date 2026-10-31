@@ -90,6 +90,9 @@ export function enrichAcademicDocument(
   const education = evidence.educations.get(document.id);
   const track = evidence.tracks.get(document.id);
   const phrase = knowledgePhrase(query);
+  // Preserve the complete seven-record course catalog without extra context.
+  if (track && /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(phrase))
+    return document;
   const lines: string[] = [];
   if (education) {
     lines.push(
@@ -132,7 +135,7 @@ export function enrichAcademicDocument(
     );
   }
   if (!lines.length) return document;
-  const available = Math.max(0, Math.min(1500, 6000 - document.content.length - 1));
+  const available = Math.max(0, Math.min(550, 6000 - document.content.length - 1));
   if (!available) return document;
   return { ...document, content: `${document.content}\n${lines.join('\n').slice(0, available)}` };
 }
