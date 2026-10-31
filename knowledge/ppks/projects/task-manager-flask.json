@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "1.0",
+  "id": "task-manager-flask",
+  "kind": "project",
+  "identity": {
+    "name": "TASK MANAGER — projeto de estudo",
+    "nature": "study",
+    "role": "Desenvolvimento para estudo",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/task-manager-using-flask",
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "fullstack",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "TASK MANAGER: Aplicação de gestão de tarefas com Flask, autenticação de usuários, persistência e testes.",
+    "technical": "TASK MANAGER: Aplicação de gestão de tarefas com Flask, autenticação de usuários, persistência e testes. O repositório documenta uma infraestrutura de observabilidade e práticas de DevSecOps como estudo de caso. Pontos implementados/documentados: Separação de rotas, autenticação e persistência com Flask e SQLAlchemy. Testes automatizados e análise de segurança integrados à pipeline. Observabilidade com Prometheus, Grafana, Loki, Promtail e Alertmanager.. Tecnologias registradas neste projeto: Python, Flask, SQLAlchemy, pytest, Docker, Grafana. Projeto ou exercício de estudo, não emprego nem produto comercial validado.",
+    "problemSolved": null
+  },
+  "stack": [
+    {
+      "name": "Python",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Flask",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "SQLAlchemy",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "pytest",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Docker",
+      "kind": "infrastructure",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Grafana",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "unknown",
+    "components": [],
+    "patterns": [],
+    "dataFlow": null
+  },
+  "features": [],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: fullstack",
+      "demonstrates": "Este projeto documenta competências em Python, Flask, SQLAlchemy, pytest, Docker, Grafana; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/task-manager-using-flask",
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": true
+  }
+}
