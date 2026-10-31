@@ -422,7 +422,8 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       const sqlCourse = relevant(/\b(?:sql server|oracle|angular)\b/);
       if (research) recommend('hsp-simulator', 'phasscode-platform');
       if (java) recommend('experiencia-sig');
-      if (relevant(/\bspring boot\b/)) recommend('webservice-springboot-jpa', 'competencias-publicas');
+      if (relevant(/\bspring boot\b/))
+        recommend('webservice-springboot-jpa', 'competencias-publicas');
       if (fullstack) recommend('phasscode-platform', 'web-portfolio-v2');
       if (devops) recommend('phasscode-platform', 'task-manager-flask');
       if (ai) recommend('phasscode-platform', 'greencity-os');
