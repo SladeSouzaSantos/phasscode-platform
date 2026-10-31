@@ -95,9 +95,12 @@ async function claim(pool: pg.Pool, kind: ReportKind): Promise<ClaimedRow | unde
     return {
       ...row,
       ...(row.report_day
-        ? { report_day: row.report_day instanceof Date
-            ? row.report_day.toISOString().slice(0, 10)
-            : row.report_day }
+        ? {
+            report_day:
+              row.report_day instanceof Date
+                ? row.report_day.toISOString().slice(0, 10)
+                : row.report_day,
+          }
         : {}),
       claim_token: token,
     };
