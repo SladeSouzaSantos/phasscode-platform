@@ -51,7 +51,7 @@ interface ClaimedRow {
   topics?: string[];
   projects?: string[];
   intent?: string;
-  report_day?: string;
+  report_day?: Date | string;
   claim_token: string;
 }
 function tableFor(kind: ReportKind): string {
@@ -92,7 +92,15 @@ async function claim(pool: pg.Pool, kind: ReportKind): Promise<ClaimedRow | unde
       );
     }
     await client.query('COMMIT');
-    return { ...row, claim_token: token };
+    return {
+      ...row,
+      ...(row.report_day
+        ? { report_day: row.report_day instanceof Date
+            ? row.report_day.toISOString().slice(0, 10)
+            : row.report_day }
+        : {}),
+      claim_token: token,
+    };
   } catch (error) {
     await client.query('ROLLBACK').catch(() => undefined);
     throw error;
@@ -182,7 +190,7 @@ async function deliverOne(pool: pg.Pool, config: ReportConfig, kind: ReportKind)
         }),
       );
     } else {
-      await notify(config, await dailyText(pool, row.report_day!));
+      await notify(config, await dailyText(pool, String(row.report_day!)));
     }
     await mark(pool, kind, row, true);
   } catch {
@@ -202,8 +210,10 @@ async function run(): Promise<void> {
   });
   let stopping = false;
   let running = false;
+  let wake: (() => void) | undefined;
   const onStop = () => {
     stopping = true;
+    wake?.();
   };
   process.once('SIGINT', onStop);
   process.once('SIGTERM', onStop);
@@ -232,7 +242,18 @@ async function run(): Promise<void> {
     await pool.query('SELECT 1 FROM orbe_conversation_reports LIMIT 0');
     await tick();
     while (!stopping) {
-      await new Promise<void>((resolve) => setTimeout(resolve, config.pollMs));
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(() => {
+          wake = undefined;
+          resolve();
+        }, config.pollMs);
+        wake = () => {
+          clearTimeout(timer);
+          wake = undefined;
+          resolve();
+        };
+        if (stopping) wake();
+      });
       if (!stopping) await tick();
     }
   } finally {
