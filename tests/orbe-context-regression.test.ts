@@ -63,7 +63,9 @@ describe('limites de contexto na entrevista do Orbe', () => {
           ],
         });
       }
-      return new AIMessage('O portfólio PHASSCODE usa React, TypeScript, Playwright e axe-core para testar acessibilidade WCAG.');
+      return new AIMessage(
+        'O portfólio PHASSCODE usa React, TypeScript, Playwright e axe-core para testar acessibilidade WCAG.',
+      );
     };
     const provider = new LangChainChatProvider(
       config,
