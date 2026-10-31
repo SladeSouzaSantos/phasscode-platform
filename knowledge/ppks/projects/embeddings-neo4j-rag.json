@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "1.0",
+  "id": "embeddings-neo4j-rag",
+  "kind": "project",
+  "identity": {
+    "name": "Embeddings e Neo4j — laboratório RAG",
+    "nature": "study",
+    "role": "Desenvolvimento para estudo",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/embeddings-neo4j-rag",
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "ai",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "embeddings-neo4j-rag é um laboratório de estudo publicado no perfil de SladeSouzaSantos, com Node.",
+    "technical": "embeddings-neo4j-rag é um laboratório de estudo publicado no perfil de SladeSouzaSantos, com Node.js, TypeScript, LangChain, embeddings HuggingFace, Neo4j e leitura de PDF. Prepara fragmentos, cria embeddings em Neo4jVectorStore e recupera documentos por similaridade para gerar respostas com OpenRouter. O package.json credita erickwendel como author: o registro é de estudo com material de terceiros, sem autoria original exclusiva atribuída a Pedro. É separado da recuperação lexical da PHASSCODE Platform.",
+    "problemSolved": null
+  },
+  "stack": [
+    {
+      "name": "Node.js",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "TypeScript",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "LangChain",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "HuggingFace",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Neo4j",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "OpenRouter",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "unknown",
+    "components": [],
+    "patterns": [],
+    "dataFlow": null
+  },
+  "features": [],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: ai",
+      "demonstrates": "Este projeto documenta competências em Node.js, TypeScript, LangChain, HuggingFace, Neo4j, OpenRouter; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/embeddings-neo4j-rag",
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": true
+  }
+}
