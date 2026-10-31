@@ -109,6 +109,23 @@ Ao aplicar depois no seu ambiente, será necessário reconstruir a imagem com o 
 recriar a API com as variáveis novas. Somente `--force-recreate` com uma imagem anterior não inclui
 esta implementação. Nenhum build de release, deploy ou alteração de `.env` é realizado por este guia.
 
+## Limite de conversa versus cotas reais
+
+O frontend define `VITE_ORBE_MAX_USER_TURNS=100` para 100 perguntas por
+conversa. `0` desliga apenas o limite de perguntas na interface.
+O frontend precisa ser recompilado para aplicar essa variável de ambiente.
+
+O backend controla o consumo independentemente por meio de
+`LLM_GLOBAL_MAX_CALLS`, `LLM_*_MAX_CALLS` e limites HTTP.
+Uma pergunta pode gerar várias chamadas, inclusive tentativas de fallback.
+Modelos gratuitos continuam sujeitos a cotas reais, por isso esses orçamentos
+devem permanecer positivos e explícitos no servidor.
+
+Quando todos os candidatos estão sob cota ou cooldown, a API retorna
+`LLM_PROVIDERS_LIMITED` (503), com `Retry-After`, se calculável;
+o frontend exibe a condição ao visitante. A cota global retorna
+`LLM_BUDGET_EXHAUSTED` (429). Erros de conexão ou timeout continuam distintos.
+
 ## Comportamento e limites
 
 - Status upstream 402, 408, 429, 5xx, falha de rede e timeout individual permitem avançar.
