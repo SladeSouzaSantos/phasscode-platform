@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0",
+  "id": "smart-model-router",
+  "kind": "project",
+  "identity": {
+    "name": "Smart Model Router Gateway — integração experimental de LLMs",
+    "nature": "personal",
+    "role": "Autor do projeto",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/98be28bd7d4f2d66a903aeaae68a0b6ac225ce0c/smart-model-router-gateway",
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "ai",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "Smart Model Router Gateway é um projeto experimental de integração de LLMs no repositório integracao_apis_llms de Pedro Santos.",
+    "technical": "Smart Model Router Gateway é um projeto experimental de integração de LLMs no repositório integracao_apis_llms de Pedro Santos. Usa Node.js, TypeScript, Fastify e o SDK da OpenRouter. Implementa POST /chat com question e encaminha a geração a OpenRouterService, que configura modelos, mensagens, temperatura e limite de tokens, retornando modelo e conteúdo. Demonstra centralização e roteamento de chamadas a modelos. É separado da PHASSCODE Platform e de seu contrato POST /api/v1/chat.",
+    "problemSolved": null
+  },
+  "stack": [
+    {
+      "name": "Node.js",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "TypeScript",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Fastify",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "OpenRouter",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "unknown",
+    "components": [],
+    "patterns": [],
+    "dataFlow": null
+  },
+  "features": [],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: ai",
+      "demonstrates": "Este projeto documenta competências em Node.js, TypeScript, Fastify, OpenRouter; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/integracao_apis_llms",
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": true
+  }
+}
