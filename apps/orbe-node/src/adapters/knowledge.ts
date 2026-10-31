@@ -184,8 +184,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       const courseRecord = doc.id.startsWith('cursos-');
       const namedCourse = explicitSubject && courseRecord;
       const genericCertificates =
-        /\b(?:certificad\w*|certificac\w*)\b/.test(queryPhrase) &&
-        queryTechnologies.size === 0;
+        /\b(?:certificad\w*|certificac\w*)\b/.test(queryPhrase) && queryTechnologies.size === 0;
       const eligibleCourse =
         courseIntent || namedCourse || (genericCertificates && doc.id === 'cursos-declarados');
       if (courseRecord && eligibleCourse) relevance += courseIntent ? 16 : 6;
@@ -200,7 +199,10 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         doc,
         eligible:
           (!courseRecord || eligibleCourse) &&
-          (queryTechnologies.size === 0 || credentialQuestion || technologyMatch || explicitSubject),
+          (queryTechnologies.size === 0 ||
+            credentialQuestion ||
+            technologyMatch ||
+            explicitSubject),
         score: [...queryTerms].reduce(
           (score, term) =>
             score +

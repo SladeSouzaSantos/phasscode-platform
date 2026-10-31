@@ -78,7 +78,9 @@ describe('conhecimento e conversas', () => {
     const response = await service.execute({ message: 'Quais certificados você tem?' });
     expect(response.sources.map((source) => source.id)).toContain('cursos-declarados');
     expect(response.answer).toContain('42 cursos livres');
-    expect(response.answer).toMatch(/certificaç(?:ão|ões) ofic(?:ial|iais)|certificações oficiais/i);
+    expect(response.answer).toMatch(
+      /certificaç(?:ão|ões) ofic(?:ial|iais)|certificações oficiais/i,
+    );
     expect(response.answer).not.toMatch(/(?:possui|tem) certifica[çc][aã]o Kubernetes/i);
   });
   it('limita histórico por quantidade e orçamento de contexto', async () => {
