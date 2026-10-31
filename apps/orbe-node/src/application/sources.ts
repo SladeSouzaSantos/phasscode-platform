@@ -72,8 +72,20 @@ export function selectSources(input: {
   const answerPhrase = ` ${knowledgePhrase(supportedAnswer)} `;
   const answerTechnologies = mentionedTechnologies(supportedAnswer);
   const queryTechnologies = mentionedTechnologies(input.query);
+  // A personal project cannot substantiate duties at a third-party employer.
+  // Keep company-experience evidence separate even when Java technologies overlap.
+  const queryPhrase = knowledgePhrase(input.query);
+  const employmentInquiry =
+    /\b(?:sigaa|sig software|geowellex|acrux)\b/.test(queryPhrase) &&
+    /\b(?:atuou|atuacao|contribuicao|responsabilidades?|empresa|emprego|trabalh\w*|experienc\w*)\b/.test(queryPhrase);
   const documents = [
-    ...new Map(input.documents.map((document) => [document.id, document])).values(),
+    ...new Map(
+      input.documents
+        .filter((document) =>
+          !employmentInquiry || (document.type !== 'project' && document.type !== 'platform'),
+        )
+        .map((document) => [document.id, document]),
+    ).values(),
   ];
   const indexed = documents.map((document) => {
     // Evidence footnotes contain other record names and URLs; they are not the record's subject.
