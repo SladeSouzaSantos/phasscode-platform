@@ -77,6 +77,8 @@ export class ChatService {
         // verified employer, not just the 5 best lexical search matches.
         const chronologicalOverview =
           /\b(?:trajetoria|historico profissional|experiencias profissionais|todas as experiencias|ordem cronologica|empresas em ordem|cada empresa)\b/.test(normalizedQuery);
+        const completeCourseCatalog =
+          /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(normalizedQuery);
         const durationQuestion = isExperienceDurationQuestion(query);
         const experienceDocuments = durationQuestion || chronologicalOverview
           ? (this.knowledge.experienceDocuments?.() ?? []).sort((a, b) =>
@@ -161,7 +163,7 @@ export class ChatService {
             0,
             this.config.CHAT_CONTEXT_CHARS - 3000 - request.message.length,
           );
-          const historyBudget = Math.floor(dataBudget / 2);
+          const historyBudget = Math.floor(dataBudget / (completeCourseCatalog ? 6 : 2));
           let chars = 0;
           for (let index = eligible.length - 2; index >= 0; index -= 2) {
             const pair = eligible.slice(index, index + 2);
@@ -176,7 +178,7 @@ export class ChatService {
           }
           // Recuperação tem orçamento independente para manter toda chamada limitada.
           let remaining = dataBudget - historyBudget;
-          const documents = retrieved.slice(0, 5).flatMap((doc) => {
+          const documents = retrieved.slice(0, completeCourseCatalog ? 7 : 5).flatMap((doc) => {
             if (remaining <= 0) return [];
             const content = doc.content.slice(0, remaining);
             remaining -= content.length;
