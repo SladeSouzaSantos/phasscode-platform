@@ -129,6 +129,33 @@ describe('Academia Arcana / base profissional do Orbe DEV', () => {
     expect(docs.map((d) => d.id)).toContain('webservice-springboot-jpa');
   });
 
+  it('entrega ACRUX, SIGAA, Geowellex e Greencity em ordem cronológica sem perder vínculos', async () => {
+    const { service, generate } = await createService();
+    await service.execute({
+      message: 'Quais experiências profissionais ele teve em ordem cronológica, com datas e responsabilidades?',
+    });
+    expect(generate).toHaveBeenCalledOnce();
+    const docs = generate.mock.calls[0]![0].documents;
+    expect(docs.filter((doc) => doc.experiencePeriod).map((doc) => doc.id)).toEqual([
+      'experiencia-acrux',
+      'experiencia-sig',
+      'experiencia-geowellex',
+      'experiencia-greencity',
+    ]);
+  });
+
+  it('fundamenta JUnit básico e pipelines autorais sem garantir 404 nem módulos do SIGAA', async () => {
+    const docs = JSON.parse(await readFile('knowledge/portfolio.json', 'utf8'));
+    const byId = (id: string) => docs.find((doc: { id: string }) => doc.id === id);
+    expect(byId('webservice-springboot-jpa').content).toContain('JUnit 5');
+    expect(byId('webservice-springboot-jpa').content).toContain('Optional.get()');
+    expect(byId('webservice-springboot-jpa').content).toContain('NÃO afirmar');
+    expect(byId('phasscode-platform').content).toContain('GitHub Actions');
+    expect(byId('experiencia-sig').content).toContain('junho de 2016');
+    expect(byId('experiencia-sig').content).toContain('não identifica versões');
+    expect(byId('greencity-os').demoUrl).toBeUndefined();
+  });
+
   it('mantém matriz opt-in de entrevistas com 12 casos verificáveis', async () => {
     const data = JSON.parse(await readFile('evaluation/recruiter-cases.json', 'utf8'));
     const matrix = matrixSchema.parse(data);
