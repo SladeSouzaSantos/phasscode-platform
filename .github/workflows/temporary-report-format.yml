@@ -1,0 +1,34 @@
+name: Temporary report feature formatting
+on:
+  push:
+    branches: [dev]
+    paths: ['.github/workflows/temporary-report-format.yml']
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Normalize report feature
+        run: |
+          npx prettier --write apps/orbe-node/src/application/report-classification.ts apps/orbe-node/src/adapters/postgres-store.ts apps/orbe-node/src/application/chat.ts apps/orbe-node/src/domain/ports.ts apps/orbe-node/src/http/app.ts apps/orbe-node/src/main.ts apps/report-node/src/main.ts apps/report-node/src/report-format.ts packages/database/src/retention.ts packages/contracts/src/index.ts tests/orbe-reports.test.ts tests/reports.integration.test.ts README.md
+          git diff --check
+      - name: Commit formatting
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- apps/orbe-node/src/application/report-classification.ts apps/orbe-node/src/adapters/postgres-store.ts apps/orbe-node/src/application/chat.ts apps/orbe-node/src/domain/ports.ts apps/orbe-node/src/http/app.ts apps/orbe-node/src/main.ts apps/report-node/src/main.ts apps/report-node/src/report-format.ts packages/database/src/retention.ts packages/contracts/src/index.ts tests/orbe-reports.test.ts tests/reports.integration.test.ts README.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'style(orbe): normalize report feature source files'
+            git push origin HEAD:dev
+          fi
