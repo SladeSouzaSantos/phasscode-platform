@@ -33,7 +33,7 @@ import {
 import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
-import { mentionedTechnologies } from '../knowledge-matching.js';
+import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
 export class ChatService {
@@ -72,8 +72,16 @@ export class ChatService {
             (/\b(?:\d{4}-\d{2}-\d{2}|[\w.+-]+@[\w.-]+\.[a-z]{2,})\b/i.test(request.message) &&
               Boolean(previous && isMeetingRequest(previous.content))));
         let retrieved = this.knowledge.search(query);
-        const experienceDocuments = isExperienceDurationQuestion(query)
-          ? (this.knowledge.experienceDocuments?.() ?? [])
+        const normalizedQuery = knowledgePhrase(query);
+        // Recruiters asking for the complete chronological career need every
+        // verified employer, not just the 5 best lexical search matches.
+        const chronologicalOverview =
+          /\\b(?:trajetoria|historico profissional|experiencias profissionais|todas as experiencias|ordem cronologica|empresas em ordem|cada empresa)\\b/.test(normalizedQuery);
+        const durationQuestion = isExperienceDurationQuestion(query);
+        const experienceDocuments = durationQuestion || chronologicalOverview
+          ? (this.knowledge.experienceDocuments?.() ?? []).sort((a, b) =>
+              (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''),
+            )
           : [];
         if (experienceDocuments.length) {
           const broadProgrammingQuestion =
@@ -86,12 +94,14 @@ export class ChatService {
                 .search('SDGP dimensionamento fotovoltaico')
                 .filter((doc) => doc.id === 'greencity-sdgp')
             : [];
-          const ordered = [
-            ...retrieved.filter((doc) => doc.experiencePeriod),
-            ...experienceDocuments,
-            ...mixedRoleProject,
-            ...retrieved,
-          ];
+          const ordered = chronologicalOverview
+            ? [...experienceDocuments, ...retrieved]
+            : [
+                ...retrieved.filter((doc) => doc.experiencePeriod),
+                ...experienceDocuments,
+                ...mixedRoleProject,
+                ...retrieved,
+              ];
           retrieved = [...new Map(ordered.map((doc) => [doc.id, doc])).values()];
         }
         // External pages are untrusted data, never instructions. Restrict retrieval to
