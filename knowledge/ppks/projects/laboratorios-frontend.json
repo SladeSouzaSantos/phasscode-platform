@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "1.0",
+  "id": "laboratorios-frontend",
+  "kind": "project",
+  "identity": {
+    "name": "Laboratórios HTML/CSS/JavaScript — formulários, armazenamento e áudio",
+    "nature": "study",
+    "role": "Papel não detalhado no catálogo",
+    "repositoryUrl": null,
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "frontend",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "O portfólio reúne projetos de estudo em HTML, CSS e JavaScript: Monibank, formulário bancário simulado com validação de CPF e maioridade; Mochila JS, lista com Local Storage e manipulação do DOM; Jogo do Número Secreto, reconhecimento e síntese de voz com Web Speech API; e Teclado de Som, eventos de",
+    "technical": "O portfólio reúne projetos de estudo em HTML, CSS e JavaScript: Monibank, formulário bancário simulado com validação de CPF e maioridade; Mochila JS, lista com Local Storage e manipulação do DOM; Jogo do Número Secreto, reconhecimento e síntese de voz com Web Speech API; e Teclado de Som, eventos de clique/teclado e áudio. Links publicados: https://projetos.phasscode.com/projetos/monibank/, https://projetos.phasscode.com/projetos/mochila_local_storage_js/, https://projetos.phasscode.com/projetos/n_secreto/ e https://projetos.phasscode.com/projetos/teclado_som/. São demonstrações educacionais; não constituem produtos bancários reais.",
+    "problemSolved": null
+  },
+  "stack": [
+    {
+      "name": "HTML",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "CSS",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "JavaScript",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "unknown",
+    "components": [],
+    "patterns": [],
+    "dataFlow": null
+  },
+  "features": [],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Escopo do projeto documentado",
+      "demonstrates": "Competências descritas no catálogo de curadoria; detalhes técnicos requerem revisão específica.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "Arquitetura e padrões de projeto",
+      "status": "not_verified",
+      "description": "Os documentos existentes não comprovam uma implementação arquitetural específica."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Catálogo inicial: revisão do repositório/código pendente."
+    }
+  ],
+  "sync": {
+    "sourceRepository": null,
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:45:31.178Z",
+    "analyzedAt": "2026-10-31T19:45:31.178Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": false
+  }
+}
