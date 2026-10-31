@@ -185,10 +185,21 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       const namedCourse = explicitSubject && courseRecord;
       const genericCertificates =
         /\b(?:certificad\w*|certificac\w*)\b/.test(queryPhrase) && queryTechnologies.size === 0;
+      const namedHackers =
+        queryPhrase.includes(' hackers do bem ') && doc.id === 'cursos-hackers-do-bem';
       const eligibleCourse =
-        courseIntent || namedCourse || (genericCertificates && doc.id === 'cursos-declarados');
+        courseIntent ||
+        namedCourse ||
+        namedHackers ||
+        (genericCertificates && doc.id === 'cursos-declarados');
       if (courseRecord && eligibleCourse) relevance += courseIntent ? 16 : 6;
+      if (namedHackers) relevance += 30;
       if (vendorCertificate && doc.id === 'trajetoria-a-confirmar') relevance += 35;
+      if (
+        /\\b(?:competenc\\w*|habilidad\\w*)\\b/.test(queryPhrase) &&
+        doc.id === 'competencias-publicas'
+      )
+        relevance += 35;
       // For vacancies Java, the SIGAA work and public Spring/JPA study are
       // complementary evidence; unrelated course tracks are not substitutes.
       if (isCareerOverview(query) && queryTechnologies.has('java') && !educationIntent) {
