@@ -150,7 +150,7 @@ describe('fábricas Redis de réplicas mantêm os mesmos recursos', () => {
       globalBudget,
     );
     await expect(first([], signal())(messages)).resolves.toBeInstanceOf(AIMessage);
-    await expect(second([], signal())(messages)).rejects.toMatchObject({ code: 'LLM_UNAVAILABLE' });
+    await expect(second([], signal())(messages)).rejects.toMatchObject({ code: 'LLM_PROVIDERS_LIMITED' });
     expect(invokeModel).toHaveBeenCalledOnce();
     expect(globalBudget.reserve).toHaveBeenCalledOnce();
     expect([...redis.counts.values()]).toEqual([1]);
@@ -174,8 +174,8 @@ describe('fábricas Redis de réplicas mantêm os mesmos recursos', () => {
     invokeModel.mockRejectedValueOnce(
       Object.assign(new Error('Synthetic rate limit.'), { status: 429 }),
     );
-    await expect(first([], signal())(messages)).rejects.toMatchObject({ code: 'LLM_UNAVAILABLE' });
-    await expect(second([], signal())(messages)).rejects.toMatchObject({ code: 'LLM_UNAVAILABLE' });
+    await expect(first([], signal())(messages)).rejects.toMatchObject({ code: 'LLM_PROVIDERS_LIMITED' });
+    await expect(second([], signal())(messages)).rejects.toMatchObject({ code: 'LLM_PROVIDERS_LIMITED' });
     expect(invokeModel).toHaveBeenCalledOnce();
     expect(globalBudget.reserve).toHaveBeenCalledOnce();
     expect([...redis.counts.values()]).toEqual([1]);
