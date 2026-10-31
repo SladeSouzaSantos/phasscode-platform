@@ -3,160 +3,87 @@
   "skills": [
     {
       "skill": "Java",
-      "professional": [
-        "experiencia-sig",
-        "experiencia-acrux"
-      ],
-      "projects": [
-        "webservice-springboot-jpa"
-      ],
-      "education": [
-        "formacao-unipds-java"
-      ],
-      "courseTracks": [
-        "cursos-java-arquitetura"
-      ]
+      "professional": ["experiencia-sig", "experiencia-acrux"],
+      "projects": ["webservice-springboot-jpa"],
+      "education": ["formacao-unipds-java"],
+      "courseTracks": ["cursos-java-arquitetura"]
     },
     {
       "skill": "Spring Boot",
       "professional": [],
-      "projects": [
-        "webservice-springboot-jpa"
-      ],
-      "education": [
-        "formacao-unipds-java"
-      ],
-      "courseTracks": [
-        "cursos-java-arquitetura"
-      ]
+      "projects": ["webservice-springboot-jpa"],
+      "education": ["formacao-unipds-java"],
+      "courseTracks": ["cursos-java-arquitetura"]
     },
     {
       "skill": "Node.js/TypeScript",
       "professional": [],
-      "projects": [
-        "phasscode-platform",
-        "web-portfolio-v2"
-      ],
+      "projects": ["phasscode-platform", "web-portfolio-v2"],
       "education": [],
-      "courseTracks": [
-        "cursos-frontend-mobile"
-      ]
+      "courseTracks": ["cursos-frontend-mobile"]
     },
     {
       "skill": "React",
       "professional": [],
-      "projects": [
-        "web-portfolio-v2"
-      ],
+      "projects": ["web-portfolio-v2"],
       "education": [],
-      "courseTracks": [
-        "cursos-frontend-mobile"
-      ]
+      "courseTracks": ["cursos-frontend-mobile"]
     },
     {
       "skill": "Angular",
       "professional": [],
       "projects": [],
       "education": [],
-      "courseTracks": [
-        "cursos-frontend-mobile"
-      ]
+      "courseTracks": ["cursos-frontend-mobile"]
     },
     {
       "skill": "SQL Server",
       "professional": [],
       "projects": [],
-      "education": [
-        "formacao-gestao-ti"
-      ],
-      "courseTracks": [
-        "cursos-bancos-dados"
-      ]
+      "education": ["formacao-gestao-ti"],
+      "courseTracks": ["cursos-bancos-dados"]
     },
     {
       "skill": "PostgreSQL",
-      "professional": [
-        "experiencia-sig"
-      ],
-      "projects": [
-        "phasscode-platform"
-      ],
-      "education": [
-        "formacao-gestao-ti"
-      ],
-      "courseTracks": [
-        "cursos-bancos-dados"
-      ]
+      "professional": ["experiencia-sig"],
+      "projects": ["phasscode-platform"],
+      "education": ["formacao-gestao-ti"],
+      "courseTracks": ["cursos-bancos-dados"]
     },
     {
       "skill": "MySQL",
-      "professional": [
-        "experiencia-geowellex"
-      ],
+      "professional": ["experiencia-geowellex"],
       "projects": [],
-      "education": [
-        "formacao-gestao-ti"
-      ],
-      "courseTracks": [
-        "cursos-bancos-dados"
-      ]
+      "education": ["formacao-gestao-ti"],
+      "courseTracks": ["cursos-bancos-dados"]
     },
     {
       "skill": "Python",
       "professional": [],
-      "projects": [
-        "hsp-simulator",
-        "task-manager-flask"
-      ],
-      "education": [
-        "formacao-computacao"
-      ],
-      "courseTracks": [
-        "cursos-ia-dados"
-      ]
+      "projects": ["hsp-simulator", "task-manager-flask"],
+      "education": ["formacao-computacao"],
+      "courseTracks": ["cursos-ia-dados"]
     },
     {
       "skill": "Inteligência Artificial/LLMs",
       "professional": [],
-      "projects": [
-        "phasscode-platform",
-        "greencity-os"
-      ],
-      "education": [
-        "formacao-unipds-ia",
-        "formacao-gestao-ti"
-      ],
-      "courseTracks": [
-        "cursos-ia-dados"
-      ]
+      "projects": ["phasscode-platform", "greencity-os"],
+      "education": ["formacao-unipds-ia", "formacao-gestao-ti"],
+      "courseTracks": ["cursos-ia-dados"]
     },
     {
       "skill": "Docker/CI-CD",
       "professional": [],
-      "projects": [
-        "phasscode-platform",
-        "task-manager-flask",
-        "hsp-simulator"
-      ],
+      "projects": ["phasscode-platform", "task-manager-flask", "hsp-simulator"],
       "education": [],
-      "courseTracks": [
-        "cursos-devops-qualidade"
-      ]
+      "courseTracks": ["cursos-devops-qualidade"]
     },
     {
       "skill": "Segurança/Testes",
       "professional": [],
-      "projects": [
-        "phasscode-platform",
-        "web-portfolio-v2"
-      ],
-      "education": [
-        "formacao-gestao-ti",
-        "formacao-prisma"
-      ],
-      "courseTracks": [
-        "cursos-devops-qualidade"
-      ]
+      "projects": ["phasscode-platform", "web-portfolio-v2"],
+      "education": ["formacao-gestao-ti", "formacao-prisma"],
+      "courseTracks": ["cursos-devops-qualidade"]
     },
     {
       "skill": "AWS",

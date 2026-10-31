@@ -81,31 +81,48 @@ async function validateAcademicCatalog(catalog) {
   const tracks = loaded.tracks.tracks;
   const courses = tracks.flatMap((t) => t.courses);
   const unique = (items) => new Set(items).size === items.length;
-  if (!unique(degrees.map((e) => e.id)) || !unique(tracks.map((t) => t.id)) ||
-      !unique(courses.map((c) => c.id)) || !unique(loaded.skills.skills.map((s) => s.skill)))
+  if (
+    !unique(degrees.map((e) => e.id)) ||
+    !unique(tracks.map((t) => t.id)) ||
+    !unique(courses.map((c) => c.id)) ||
+    !unique(loaded.skills.skills.map((s) => s.skill))
+  )
     throw new Error('PPKS_ACADEMIC_DUPLICATE');
   if (degrees.some((e) => !known.has(e.id)) || tracks.some((t) => !known.has(t.id)))
     throw new Error('PPKS_ACADEMIC_CATALOG_MISMATCH');
-  if (courses.length !== 42 || tracks.length !== 6 || degrees.length !== 9 ||
-      courses.some((c) => c.status !== 'completed'))
+  if (
+    courses.length !== 42 ||
+    tracks.length !== 6 ||
+    degrees.length !== 9 ||
+    courses.some((c) => c.status !== 'completed')
+  )
     throw new Error('PPKS_ACADEMIC_COVERAGE_MISMATCH');
   const completed = degrees.filter((e) => e.status === 'completed');
   if (completed.some((e) => !e.completedAt && e.evidence !== 'owner_confirmed'))
     throw new Error('PPKS_ACADEMIC_COMPLETION_UNVERIFIED');
   const computerScience = degrees.find((e) => e.id === 'formacao-computacao');
-  if (computerScience?.status !== 'pending_completion' ||
-      !/2027/.test(computerScience.expectedWindow) || !/2028/.test(computerScience.expectedWindow))
+  if (
+    computerScience?.status !== 'pending_completion' ||
+    !/2027/.test(computerScience.expectedWindow) ||
+    !/2028/.test(computerScience.expectedWindow)
+  )
     throw new Error('PPKS_UNISUL_COMPLETION_INVALID');
-  const projectIds = new Set(catalog.filter((c) => ['project','platform'].includes(c.type)).map((c) => c.id));
+  const projectIds = new Set(
+    catalog.filter((c) => ['project', 'platform'].includes(c.type)).map((c) => c.id),
+  );
   const experienceIds = new Set(catalog.filter((c) => c.experiencePeriod).map((c) => c.id));
   for (const skill of loaded.skills.skills) {
-    if (skill.education.some((id) => !degrees.some((e) => e.id === id)) ||
-        skill.courseTracks.some((id) => !tracks.some((t) => t.id === id)) ||
-        skill.projects.some((id) => !projectIds.has(id)) ||
-        skill.professional.some((id) => !experienceIds.has(id)))
+    if (
+      skill.education.some((id) => !degrees.some((e) => e.id === id)) ||
+      skill.courseTracks.some((id) => !tracks.some((t) => t.id === id)) ||
+      skill.projects.some((id) => !projectIds.has(id)) ||
+      skill.professional.some((id) => !experienceIds.has(id))
+    )
       throw new Error(`PPKS_SKILL_REFERENCE_INVALID ${skill.skill}`);
   }
-  console.log(`PPKS_ACADEMIC_OK: ${degrees.length} educations, ${tracks.length} tracks, ${courses.length} courses, ${loaded.skills.skills.length} skills`);
+  console.log(
+    `PPKS_ACADEMIC_OK: ${degrees.length} educations, ${tracks.length} tracks, ${courses.length} courses, ${loaded.skills.skills.length} skills`,
+  );
 }
 
 function buildIndex(projects, experiences, generatedAt) {

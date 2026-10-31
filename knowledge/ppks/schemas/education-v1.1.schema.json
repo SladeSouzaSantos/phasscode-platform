@@ -3,10 +3,7 @@
   "title": "PPKS Academic Education v1.1",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "educations"
-  ],
+  "required": ["schemaVersion", "educations"],
   "properties": {
     "schemaVersion": {
       "const": "1.1"
@@ -62,12 +59,7 @@
             "maxLength": 1000
           },
           "status": {
-            "enum": [
-              "completed",
-              "in_progress",
-              "pending_completion",
-              "not_verified"
-            ]
+            "enum": ["completed", "in_progress", "pending_completion", "not_verified"]
           },
           "completedAt": {
             "anyOf": [
@@ -125,12 +117,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "name",
-                "status",
-                "hours",
-                "evidence"
-              ],
+              "required": ["name", "status", "hours", "evidence"],
               "properties": {
                 "name": {
                   "type": "string",
@@ -138,10 +125,7 @@
                   "maxLength": 1000
                 },
                 "status": {
-                  "enum": [
-                    "approved",
-                    "curriculum_topic"
-                  ]
+                  "enum": ["approved", "curriculum_topic"]
                 },
                 "hours": {
                   "anyOf": [
@@ -155,10 +139,7 @@
                   ]
                 },
                 "evidence": {
-                  "enum": [
-                    "academic_transcript",
-                    "owner_confirmed"
-                  ]
+                  "enum": ["academic_transcript", "owner_confirmed"]
                 }
               }
             }

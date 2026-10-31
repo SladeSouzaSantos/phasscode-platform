@@ -364,11 +364,7 @@
           "evidence": "academic_transcript"
         }
       ],
-      "competencies": [
-        "Engenharia Elétrica",
-        "Sistemas de Energia",
-        "Geração e Distribuição"
-      ],
+      "competencies": ["Engenharia Elétrica", "Sistemas de Energia", "Geração e Distribuição"],
       "limitations": []
     },
     {
@@ -415,12 +411,7 @@
           "evidence": "owner_confirmed"
         }
       ],
-      "competencies": [
-        "Energia Eólica",
-        "Aerodinâmica",
-        "Automação",
-        "Manutenção"
-      ],
+      "competencies": ["Energia Eólica", "Aerodinâmica", "Automação", "Manutenção"],
       "limitations": []
     },
     {
@@ -461,10 +452,7 @@
           "evidence": "owner_confirmed"
         }
       ],
-      "competencies": [
-        "Eletrotécnica",
-        "Sistemas Elétricos"
-      ],
+      "competencies": ["Eletrotécnica", "Sistemas Elétricos"],
       "limitations": []
     },
     {
@@ -480,9 +468,7 @@
       "statusDetail": "Conclusão confirmada pelo proprietário; data e certificado desta formação não foram conferidos nesta revisão.",
       "evidence": "owner_confirmed",
       "coursework": [],
-      "competencies": [
-        "Segurança da Informação"
-      ],
+      "competencies": ["Segurança da Informação"],
       "limitations": [
         "Outras quatro especializações da FacPrisma não têm conclusão individual documentalmente confirmada nesta base"
       ]
@@ -525,11 +511,7 @@
           "evidence": "owner_confirmed"
         }
       ],
-      "competencies": [
-        "Java",
-        "Spring Boot",
-        "Arquitetura de Software"
-      ],
+      "competencies": ["Java", "Spring Boot", "Arquitetura de Software"],
       "limitations": [
         "Conteúdo programático não comprova domínio profissional de Spring Boot ou Quarkus"
       ]
@@ -572,15 +554,8 @@
           "evidence": "owner_confirmed"
         }
       ],
-      "competencies": [
-        "Engenharia de IA",
-        "RAG",
-        "Agentes",
-        "LLMs"
-      ],
-      "limitations": [
-        "Ementa da pós não equivale a uma implementação funcional de todos os temas"
-      ]
+      "competencies": ["Engenharia de IA", "RAG", "Agentes", "LLMs"],
+      "limitations": ["Ementa da pós não equivale a uma implementação funcional de todos os temas"]
     }
   ]
 }

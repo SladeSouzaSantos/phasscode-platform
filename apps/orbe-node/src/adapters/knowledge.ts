@@ -77,7 +77,13 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     private readonly academic: AcademicEvidence | null = null,
   ) {}
   private select(documents: KnowledgeDocument[], query: string): KnowledgeDocument[] {
-    return documents.map((document) => enrichProjectDocument(enrichAcademicDocument(document, query, this.academic), query, this.projectCards));
+    return documents.map((document) =>
+      enrichProjectDocument(
+        enrichAcademicDocument(document, query, this.academic),
+        query,
+        this.projectCards,
+      ),
+    );
   }
   static async load(path = 'knowledge/portfolio.json'): Promise<JsonKnowledgeRepository> {
     const documents = documentsSchema.parse(JSON.parse(await readFile(path, 'utf8')));
@@ -338,7 +344,6 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       add('experiencia-greencity', 'hsp-simulator');
     }
 
-
     // Recruitment queries must balance work, projects and academic proof within
     // the existing five-document context ceiling. Never equate a course with a job.
     const recruiter: string[] = [];
@@ -346,8 +351,12 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       const relevant = (pattern: RegExp) => pattern.test(phrase);
       const recommend = (...ids: string[]) => recruiter.push(...ids);
       const java = relevant(/\b(?:java|spring|jpa|hibernate)\b/);
-      const fullstack = relevant(/\b(?:node|nodejs|typescript|react|vue|angular|fullstack|full stack)\b/);
-      const research = relevant(/\b(?:pesquisa|poc|pocs|prototip\w*|experimenta\w*|metricas|desempenho)\b/);
+      const fullstack = relevant(
+        /\b(?:node|nodejs|typescript|react|vue|angular|fullstack|full stack)\b/,
+      );
+      const research = relevant(
+        /\b(?:pesquisa|poc|pocs|prototip\w*|experimenta\w*|metricas|desempenho)\b/,
+      );
       const devops = relevant(/\b(?:devops|ci cd|terraform|camunda|linux|infraestrutura)\b/);
       const ai = relevant(/\b(?:rag|llms?|agentes|inteligencia artificial|ia aplicada|aws.*ia)\b/);
       const sqlCourse = relevant(/\b(?:sql server|oracle|angular)\b/);

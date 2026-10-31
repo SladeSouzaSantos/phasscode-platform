@@ -13,10 +13,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Java",
-            "Arquitetura de Software"
-          ],
+          "skills": ["Java", "Arquitetura de Software"],
           "evidenceVisibility": "private"
         },
         {
@@ -26,9 +23,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Java"
-          ],
+          "skills": ["Java"],
           "evidenceVisibility": "private"
         },
         {
@@ -38,10 +33,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Java",
-            "Arquitetura de Software"
-          ],
+          "skills": ["Java", "Arquitetura de Software"],
           "evidenceVisibility": "private"
         },
         {
@@ -51,10 +43,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Java",
-            "Arquitetura de Software"
-          ],
+          "skills": ["Java", "Arquitetura de Software"],
           "evidenceVisibility": "private"
         },
         {
@@ -64,10 +53,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Java",
-            "TDD/JUnit"
-          ],
+          "skills": ["Java", "TDD/JUnit"],
           "evidenceVisibility": "private"
         },
         {
@@ -77,10 +63,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Java",
-            "Arquitetura de Software"
-          ],
+          "skills": ["Java", "Arquitetura de Software"],
           "evidenceVisibility": "private"
         },
         {
@@ -90,9 +73,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Java"
-          ],
+          "skills": ["Java"],
           "evidenceVisibility": "private"
         },
         {
@@ -102,9 +83,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Arquitetura de Software"
-          ],
+          "skills": ["Arquitetura de Software"],
           "evidenceVisibility": "private"
         },
         {
@@ -114,9 +93,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Java"
-          ],
+          "skills": ["Java"],
           "evidenceVisibility": "private"
         }
       ]
@@ -133,10 +110,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Python",
-            "IA/Dados"
-          ],
+          "skills": ["Python", "IA/Dados"],
           "evidenceVisibility": "private"
         },
         {
@@ -146,10 +120,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Python",
-            "IA/Dados"
-          ],
+          "skills": ["Python", "IA/Dados"],
           "evidenceVisibility": "private"
         },
         {
@@ -159,9 +130,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Python"
-          ],
+          "skills": ["Python"],
           "evidenceVisibility": "private"
         },
         {
@@ -171,9 +140,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "IA/Dados"
-          ],
+          "skills": ["IA/Dados"],
           "evidenceVisibility": "private"
         },
         {
@@ -183,9 +150,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "IA/Dados"
-          ],
+          "skills": ["IA/Dados"],
           "evidenceVisibility": "private"
         }
       ]
@@ -202,9 +167,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "HTML/CSS"
-          ],
+          "skills": ["HTML/CSS"],
           "evidenceVisibility": "private"
         },
         {
@@ -214,9 +177,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "JavaScript"
-          ],
+          "skills": ["JavaScript"],
           "evidenceVisibility": "private"
         },
         {
@@ -226,9 +187,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "TypeScript"
-          ],
+          "skills": ["TypeScript"],
           "evidenceVisibility": "private"
         },
         {
@@ -238,9 +197,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Flutter/Dart"
-          ],
+          "skills": ["Flutter/Dart"],
           "evidenceVisibility": "private"
         },
         {
@@ -250,10 +207,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Flutter/Dart",
-            "Testes/Qualidade"
-          ],
+          "skills": ["Flutter/Dart", "Testes/Qualidade"],
           "evidenceVisibility": "private"
         },
         {
@@ -263,9 +217,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Firebase"
-          ],
+          "skills": ["Firebase"],
           "evidenceVisibility": "private"
         },
         {
@@ -275,9 +227,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Angular"
-          ],
+          "skills": ["Angular"],
           "evidenceVisibility": "private"
         }
       ]
@@ -314,9 +264,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "UX/UI"
-          ],
+          "skills": ["UX/UI"],
           "evidenceVisibility": "private"
         },
         {
@@ -326,9 +274,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "UX/UI"
-          ],
+          "skills": ["UX/UI"],
           "evidenceVisibility": "private"
         },
         {
@@ -338,9 +284,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "UX/UI"
-          ],
+          "skills": ["UX/UI"],
           "evidenceVisibility": "private"
         },
         {
@@ -350,9 +294,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Arquitetura de Software"
-          ],
+          "skills": ["Arquitetura de Software"],
           "evidenceVisibility": "private"
         }
       ]
@@ -369,9 +311,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "SQL"
-          ],
+          "skills": ["SQL"],
           "evidenceVisibility": "private"
         },
         {
@@ -381,10 +321,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "SQL",
-            "SQL Server"
-          ],
+          "skills": ["SQL", "SQL Server"],
           "evidenceVisibility": "private"
         },
         {
@@ -394,9 +331,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "NoSQL"
-          ],
+          "skills": ["NoSQL"],
           "evidenceVisibility": "private"
         },
         {
@@ -406,11 +341,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "SQL",
-            "SQL Server",
-            "IA/Dados"
-          ],
+          "skills": ["SQL", "SQL Server", "IA/Dados"],
           "evidenceVisibility": "private"
         }
       ]
@@ -427,9 +358,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Docker"
-          ],
+          "skills": ["Docker"],
           "evidenceVisibility": "private"
         },
         {
@@ -439,9 +368,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Git/GitHub"
-          ],
+          "skills": ["Git/GitHub"],
           "evidenceVisibility": "private"
         },
         {
@@ -451,9 +378,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Git/GitHub"
-          ],
+          "skills": ["Git/GitHub"],
           "evidenceVisibility": "private"
         },
         {
@@ -463,9 +388,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Testes/Qualidade"
-          ],
+          "skills": ["Testes/Qualidade"],
           "evidenceVisibility": "private"
         },
         {
@@ -495,9 +418,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": null,
-          "skills": [
-            "Testes/Qualidade"
-          ],
+          "skills": ["Testes/Qualidade"],
           "evidenceVisibility": "private"
         },
         {
@@ -507,9 +428,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": 80,
-          "skills": [
-            "Segurança"
-          ],
+          "skills": ["Segurança"],
           "evidenceVisibility": "private"
         },
         {
@@ -519,9 +438,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": 64,
-          "skills": [
-            "Segurança"
-          ],
+          "skills": ["Segurança"],
           "evidenceVisibility": "private"
         },
         {
@@ -531,9 +448,7 @@
           "status": "completed",
           "verification": "owner_confirmed",
           "hours": 96,
-          "skills": [
-            "Segurança"
-          ],
+          "skills": ["Segurança"],
           "evidenceVisibility": "private"
         },
         {
@@ -543,10 +458,7 @@
           "status": "completed",
           "verification": "document_verified",
           "hours": 80,
-          "skills": [
-            "DevOps/DevSecOps",
-            "Segurança"
-          ],
+          "skills": ["DevOps/DevSecOps", "Segurança"],
           "evidenceVisibility": "private"
         }
       ]
