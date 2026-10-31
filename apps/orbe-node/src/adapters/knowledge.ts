@@ -425,6 +425,8 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       const sqlCourse = relevant(/\b(?:sql server|oracle|angular)\b/);
       if (research) recommend('hsp-simulator', 'phasscode-platform');
       if (java) recommend('experiencia-sig');
+      // MySQL used professionally at Geowellex is distinct from study databases.
+      if (relevant(/\b(?:mysql|php)\b/)) recommend('experiencia-geowellex');
       if (relevant(/\bspring boot\b/))
         recommend('webservice-springboot-jpa', 'competencias-publicas');
       if (fullstack) recommend('phasscode-platform', 'web-portfolio-v2');
