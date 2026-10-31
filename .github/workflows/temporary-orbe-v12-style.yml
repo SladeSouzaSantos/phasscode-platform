@@ -1,0 +1,29 @@
+name: Temporary Orbe v1.2 source formatter
+on:
+  push:
+    branches: [dev]
+    paths: [.github/workflows/temporary-orbe-v12-style.yml]
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx prettier --write apps/orbe-node/src/adapters/knowledge.ts apps/orbe-node/src/application/chat.ts
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/orbe-node/src/adapters/knowledge.ts apps/orbe-node/src/application/chat.ts
+          if ! git diff --cached --quiet; then
+            git commit -m 'style(orbe): apply project Prettier to recruiter evidence fixes'
+            git push origin HEAD:dev
+          fi
