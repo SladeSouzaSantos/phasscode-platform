@@ -11,7 +11,8 @@
     "software-development"
   ],
   "responsibilities": [
-    "Pedro Santos foi estagiário PROGRAMADOR DE SISTEMAS na ACRUX de fevereiro/2014 a janeiro/2015, trabalhando na implementação/finalização de funcionalidades de um software de acompanhamento de calhas em poços de petróleo. Stack documentada nessa experiência: Java, banco H2 e IDE NetBeans; contexto de equipe com Scrum. NÃO transferir para ACRUX Hibernate, JBoss, PostgreSQL, SIGAA ou módulo financeiro: tais tecnologias pertencem à experiência posterior na SIG Software/SIGAA, e nenhum módulo financeiro foi confirmado. A documentação não disponibiliza o código privado desse sistema; não apresentar produto profissional como repositório público pessoal. Nome Lithology não está inequivocamente atribuído a esse vínculo."
+    "Implementação e finalização de funcionalidades de software de acompanhamento de calhas em poços de petróleo.",
+    "Atuação em equipe com Java, H2 e NetBeans, em contexto de estágio e práticas Scrum."
   ],
   "stack": [
     {
