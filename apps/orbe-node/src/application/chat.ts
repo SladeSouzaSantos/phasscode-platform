@@ -109,7 +109,8 @@ export class ChatService {
           const ordered = chronologicalOverview
             ? [...experienceDocuments, ...retrieved]
             : [
-                ...retrieved.filter((doc) => doc.experiencePeriod),
+                // Durations must prioritize concise original employment records.
+                // Project evidence must not be discarded after enriched texts fill the budget.
                 ...experienceDocuments,
                 ...mixedRoleProject,
                 ...retrieved,
