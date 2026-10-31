@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "1.0",
+  "id": "experiencia-greencity",
+  "kind": "experience",
+  "organization": "Greencity Sustainable Energy",
+  "role": "Engenheiro de Projetos Fotovoltaicos / Desenvolvedor Web e Mobile",
+  "start": "2019-02",
+  "end": null,
+  "currentAsOf": "2026-10-21",
+  "areas": [
+    "software-development",
+    "engineering"
+  ],
+  "responsibilities": [
+    "Pedro Santos atua na Greencity Sustainable Energy desde fevereiro de 2019, como Engenheiro de Projetos Fotovoltaicos / Desenvolvedor Web e Mobile. Seu trabalho combina projetos de energia renovável, coordenação de equipes e processos e desenvolvimento de aplicações para engenharia. O histórico inclui aplicativo Android para dimensionamento fotovoltaico e propostas em PDF com Dart, Flutter e Firebase, além de Python e PHP no ecossistema. A atuação atual foi confirmada pelo proprietário em 21/10/2026. O período na empresa reúne engenharia e software; não equivale automaticamente a dedicação integral ao desenvolvimento nem a experiência com Java."
+  ],
+  "stack": [
+    {
+      "name": "Flutter",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Dart",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Firebase",
+      "kind": "database",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Python",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "PHP",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "projects": [
+    "greencity-sdgp"
+  ],
+  "competencies": [
+    {
+      "name": "Experiência profissional documentada",
+      "demonstrates": "Pedro Santos atua na Greencity Sustainable Energy desde fevereiro de 2019, como Engenheiro de Projetos Fotovoltaicos / Desenvolvedor Web e Mobile. Seu trabalho combina projetos de energia renovável, coordenação de equipes e processos e desenvolvimento de aplicações para engenharia. O histórico inclui aplicativo Android para dimensionamento fotovoltaico e propostas em PDF com Dart, Flutter e Firebase, além de Python e PHP no ecossistema. A atuação atual foi confirmada pelo proprietário em 21/10/2026. O período na empresa reúne engenharia e software; não equivale automaticamente a dedicação integral ao desenvolvimento nem a experiência com Java.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "Rastreabilidade do código profissional",
+      "status": "not_documented",
+      "description": "Atividades e tecnologias registradas no histórico profissional não implicam código público nem autoria exclusiva."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": "https://gbc.phasscode.com/#experiencia",
+      "path": "knowledge/portfolio.json",
+      "note": "Perfil profissional declarado e curado. Não tratar como commit do produto corporativo."
+    }
+  ],
+  "sync": {
+    "sourceRepository": null,
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:45:31.178Z",
+    "analyzedAt": "2026-10-31T19:45:31.178Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": false
+  }
+}
