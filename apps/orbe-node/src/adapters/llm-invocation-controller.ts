@@ -248,6 +248,7 @@ export class LlmInvocationTurn {
     let earliest: number | undefined;
     let attempted = false;
     let onlyTimeouts = true;
+    let onlyProviderLimits = true;
     try {
       this.signal.throwIfAborted();
       for (; this.cursor < this.controller.candidates.length; this.cursor++) {
@@ -289,6 +290,7 @@ export class LlmInvocationTurn {
             error instanceof AttemptTimeout ? 'timeout' : classifyLlmInvocationFailure(error);
           if (!failure) throw error;
           onlyTimeouts = onlyTimeouts && failure === 'timeout';
+          onlyProviderLimits = onlyProviderLimits && (failure === 'quota' || failure === 'rate_limit');
           const defaultDelay = ['quota', 'configuration'].includes(failure)
             ? this.controller.maxCooldownMs
             : this.controller.cooldownMs;
@@ -319,10 +321,22 @@ export class LlmInvocationTurn {
             504,
             'O assistente demorou para responder. Tente novamente.',
           );
+        if (onlyProviderLimits)
+          throw new AppError(
+            'LLM_PROVIDERS_LIMITED',
+            503,
+            'Todos os provedores de IA configurados atingiram limites temporários. Tente novamente depois da renovação das cotas.',
+            Math.max(1, Math.ceil((earliest ?? this.controller.cooldownMs) / 1000)),
+          );
         throw unavailable();
       }
-      throw unavailable(
+      // No provider was invoked: all are under cooldown or local quota.
+      // A cooldown may follow a quota, outage or timeout; do not claim it was
+      // definitely caused by billing/credits.
+      throw new AppError(
+        'LLM_PROVIDERS_LIMITED',
         503,
+        'Nenhum provedor de IA está disponível agora (limite de uso ou período de espera). Tente novamente mais tarde.',
         Math.max(1, Math.ceil((earliest ?? this.controller.cooldownMs) / 1000)),
       );
     } finally {
