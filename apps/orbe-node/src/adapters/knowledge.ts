@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { sourceSchema } from '../../../../packages/contracts/src/index.js';
 import type { KnowledgeDocument, KnowledgeRepository } from '../domain/ports.js';
-import { enrichProjectDocument, loadPpksCards } from './ppks.js';
+import { enrichProjectDocument, loadPpksCards, type TechnicalCard } from './ppks.js';
 import {
   knowledgePhrase,
   knowledgeTerms,
@@ -72,7 +72,7 @@ const recruiterOverviewIds = [
 export class JsonKnowledgeRepository implements KnowledgeRepository {
   constructor(
     private readonly documents: KnowledgeDocument[],
-    private readonly projectCards = new Map<string, Awaited<ReturnType<typeof loadPpksCards>> extends Map<string, infer T> ? T : never>(),
+    private readonly projectCards = new Map<string, TechnicalCard>(),
   ) {}
   private select(documents: KnowledgeDocument[], query: string): KnowledgeDocument[] {
     return documents.map((document) => enrichProjectDocument(document, query, this.projectCards));
@@ -90,7 +90,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       throw new Error('Relacionamento desconhecido na base de conhecimento.');
     const cards = path === 'knowledge/portfolio.json'
       ? await loadPpksCards()
-      : new Map<string, Awaited<ReturnType<typeof loadPpksCards>> extends Map<string, infer T> ? T : never>();
+      : new Map<string, TechnicalCard>();
     return new JsonKnowledgeRepository(documents, cards);
   }
   experienceDocuments(): KnowledgeDocument[] {
