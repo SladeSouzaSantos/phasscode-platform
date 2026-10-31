@@ -114,12 +114,12 @@ export class LangChainChatProvider implements ChatProvider {
       ),
       new HumanMessage(input.message),
     );
-    // O orçamento da aplicação estima conteúdo; aqui prompt e JSON escapado são medidos
-    // antes de qualquer reserva/invoke. Remova somente pares antigos completos do histórico.
+    // Preserve at least the most recent complete conversation pair when possible.
+    // A longer professional prompt must not erase all recruiter follow-up context.
     let historyMessages = input.history.length;
     while (
       contextSize() > this.maxContextChars &&
-      historyMessages >= 2 &&
+      historyMessages > 2 &&
       messages[2] instanceof HumanMessage &&
       messages[3] instanceof AIMessage
     ) {
@@ -130,8 +130,9 @@ export class LangChainChatProvider implements ChatProvider {
       documents.pop();
       messages[1] = reference();
     }
-    if (contextSize() > this.maxContextChars && documents[0]) {
-      const original = documents[0];
+    const original = documents[0];
+    const fitFirstDocument = () => {
+      if (contextSize() <= this.maxContextChars || !original) return;
       let low = 1;
       let high = original.content.length;
       let fitting = 0;
@@ -144,9 +145,20 @@ export class LangChainChatProvider implements ChatProvider {
           low = length + 1;
         } else high = length - 1;
       }
-      if (fitting === 0) throw contextLimit();
-      documents[0] = { ...original, content: original.content.slice(0, fitting) };
+      documents[0] = { ...original, content: original.content.slice(0, Math.max(1, fitting)) };
       messages[1] = reference();
+    };
+    fitFirstDocument();
+    // If even the smallest reference cannot fit with the latest pair, discard
+    // that pair as a last resort rather than exceeding the provider context cap.
+    if (
+      contextSize() > this.maxContextChars &&
+      historyMessages >= 2 &&
+      messages[2] instanceof HumanMessage &&
+      messages[3] instanceof AIMessage
+    ) {
+      messages.splice(2, 2);
+      fitFirstDocument();
     }
     if (contextSize() > this.maxContextChars) throw contextLimit();
     record(documents);
