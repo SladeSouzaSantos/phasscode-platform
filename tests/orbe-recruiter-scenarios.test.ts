@@ -23,7 +23,7 @@ async function createService() {
     generate,
     service: new ChatService(
       new MemoryConversationStore(),
-      { name: 'mock-recruiter', generate },
+      { name: 'mock', generate },
       knowledge,
       loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }),
       false,
