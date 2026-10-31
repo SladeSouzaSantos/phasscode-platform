@@ -76,15 +76,20 @@ export class ChatService {
         // Recruiters asking for the complete chronological career need every
         // verified employer, not just the 5 best lexical search matches.
         const chronologicalOverview =
-          /\b(?:trajetoria|historico profissional|experiencias profissionais|todas as experiencias|ordem cronologica|empresas em ordem|cada empresa)\b/.test(normalizedQuery);
+          /\b(?:trajetoria|historico profissional|experiencias profissionais|todas as experiencias|ordem cronologica|empresas em ordem|cada empresa)\b/.test(
+            normalizedQuery,
+          );
         const completeCourseCatalog =
-          /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(normalizedQuery);
+          /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(
+            normalizedQuery,
+          );
         const durationQuestion = isExperienceDurationQuestion(query);
-        const experienceDocuments = durationQuestion || chronologicalOverview
-          ? (this.knowledge.experienceDocuments?.() ?? []).sort((a, b) =>
-              (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''),
-            )
-          : [];
+        const experienceDocuments =
+          durationQuestion || chronologicalOverview
+            ? (this.knowledge.experienceDocuments?.() ?? []).sort((a, b) =>
+                (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''),
+              )
+            : [];
         if (experienceDocuments.length) {
           const broadProgrammingQuestion =
             mentionedTechnologies(query).size === 0 &&

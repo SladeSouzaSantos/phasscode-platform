@@ -77,12 +77,15 @@ export function selectSources(input: {
   const queryPhrase = knowledgePhrase(input.query);
   const employmentInquiry =
     /\b(?:sigaa|sig software|geowellex|acrux)\b/.test(queryPhrase) &&
-    /\b(?:atuou|atuacao|contribuicao|responsabilidades?|empresa|emprego|trabalh\w*|experienc\w*)\b/.test(queryPhrase);
+    /\b(?:atuou|atuacao|contribuicao|responsabilidades?|empresa|emprego|trabalh\w*|experienc\w*)\b/.test(
+      queryPhrase,
+    );
   const documents = [
     ...new Map(
       input.documents
-        .filter((document) =>
-          !employmentInquiry || (document.type !== 'project' && document.type !== 'platform'),
+        .filter(
+          (document) =>
+            !employmentInquiry || (document.type !== 'project' && document.type !== 'platform'),
         )
         .map((document) => [document.id, document]),
     ).values(),

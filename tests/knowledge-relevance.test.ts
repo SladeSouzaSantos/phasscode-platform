@@ -162,7 +162,8 @@ describe('proveniência de experiências de emprego', () => {
     const evidence = knowledge.search('SIGAA Java Hibernate Spring Boot');
     const selected = selectSources({
       query: 'Qual a contribuição profissional dele na empresa SIG Software para o SIGAA?',
-      answer: 'Na SIG Software ele desenvolveu e manteve o SIGAA em Java, Hibernate, JBoss e PostgreSQL.',
+      answer:
+        'Na SIG Software ele desenvolveu e manteve o SIGAA em Java, Hibernate, JBoss e PostgreSQL.',
       documents: [
         ...evidence,
         ...knowledge.search('PHASSCODE Platform Orbe'),
@@ -170,7 +171,9 @@ describe('proveniência de experiências de emprego', () => {
       ],
     });
     expect(selected.map((source) => source.id)).toContain('experiencia-sig');
-    expect(selected.every((source) => source.type !== 'project' && source.type !== 'platform')).toBe(true);
+    expect(
+      selected.every((source) => source.type !== 'project' && source.type !== 'platform'),
+    ).toBe(true);
   });
 });
 

@@ -290,7 +290,8 @@ export class LlmInvocationTurn {
             error instanceof AttemptTimeout ? 'timeout' : classifyLlmInvocationFailure(error);
           if (!failure) throw error;
           onlyTimeouts = onlyTimeouts && failure === 'timeout';
-          onlyProviderLimits = onlyProviderLimits && (failure === 'quota' || failure === 'rate_limit');
+          onlyProviderLimits =
+            onlyProviderLimits && (failure === 'quota' || failure === 'rate_limit');
           const defaultDelay = ['quota', 'configuration'].includes(failure)
             ? this.controller.maxCooldownMs
             : this.controller.cooldownMs;

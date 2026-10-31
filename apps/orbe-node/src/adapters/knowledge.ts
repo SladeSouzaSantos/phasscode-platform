@@ -97,7 +97,9 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     // An explicit request for the complete catalog needs the six study tracks,
     // not five ranked snippets that silently omit a track.
     const completeCourseCatalog =
-      /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(knowledgePhrase(query));
+      /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(
+        knowledgePhrase(query),
+      );
     if (completeCourseCatalog) {
       const ids = [
         'cursos-declarados',

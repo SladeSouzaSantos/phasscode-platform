@@ -132,7 +132,8 @@ describe('Academia Arcana / base profissional do Orbe DEV', () => {
   it('entrega ACRUX, SIGAA, Geowellex e Greencity em ordem cronológica sem perder vínculos', async () => {
     const { service, generate } = await createService();
     await service.execute({
-      message: 'Quais experiências profissionais ele teve em ordem cronológica, com datas e responsabilidades?',
+      message:
+        'Quais experiências profissionais ele teve em ordem cronológica, com datas e responsabilidades?',
     });
     expect(generate).toHaveBeenCalledOnce();
     const docs = generate.mock.calls[0]![0].documents;
