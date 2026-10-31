@@ -98,13 +98,16 @@ export class ChatService {
         if (experienceDocuments.length) {
           const broadProgrammingQuestion =
             mentionedTechnologies(query).size === 0 &&
-            /\b(?:programa\w*|desenvolv\w*|software)\b/i.test(query);
-          // Include one concrete product developed in a mixed engineering/software
-          // role. Structured tenure calculation still uses only verified periods.
+            /\b(?:programa\w*|desenvolv\w*|software)\b/.test(normalizedQuery);
+          // The SDGP is a canonical mixed-role project, not a ranked fallback.
+          // Keep this optional lookup compatible with test knowledge adapters.
+          const sdgp = this.knowledge.getDocument?.('greencity-sdgp');
           const mixedRoleProject = broadProgrammingQuestion
-            ? this.knowledge
-                .search('SDGP dimensionamento fotovoltaico')
-                .filter((doc) => doc.id === 'greencity-sdgp')
+            ? sdgp
+              ? [sdgp]
+              : this.knowledge
+                  .search('SDGP dimensionamento fotovoltaico')
+                  .filter((doc) => doc.id === 'greencity-sdgp')
             : [];
           const ordered = chronologicalOverview
             ? [...experienceDocuments, ...retrieved]
