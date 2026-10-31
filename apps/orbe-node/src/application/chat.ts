@@ -101,13 +101,7 @@ export class ChatService {
           // The SDGP is a canonical mixed-role project, not a ranked fallback.
           // Keep this optional lookup compatible with test knowledge adapters.
           const sdgp = this.knowledge.getDocument?.('greencity-sdgp');
-          const mixedRoleProject = broadProgrammingQuestion
-            ? sdgp
-              ? [sdgp]
-              : this.knowledge
-                  .search('SDGP dimensionamento fotovoltaico')
-                  .filter((doc) => doc.id === 'greencity-sdgp')
-            : [];
+          const mixedRoleProject = broadProgrammingQuestion && sdgp ? [sdgp] : [];
           const ordered = chronologicalOverview
             ? [...experienceDocuments, ...retrieved]
             : [
