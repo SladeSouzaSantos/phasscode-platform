@@ -19,7 +19,14 @@ import {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const permitted = ['--live', '--allow-remote', '--help'];
-  const valueOptions = ['--case=', '--category=', '--matrix=', '--output=', '--max-calls=', '--timeout-ms='];
+  const valueOptions = [
+    '--case=',
+    '--category=',
+    '--matrix=',
+    '--output=',
+    '--max-calls=',
+    '--timeout-ms=',
+  ];
   if (
     args.some((arg) => !permitted.includes(arg) && !valueOptions.some((key) => arg.startsWith(key)))
   ) {

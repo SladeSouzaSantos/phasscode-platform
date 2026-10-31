@@ -89,9 +89,10 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     const queryTerms = knowledgeTerms(query);
     const queryPhrase = ` ${knowledgePhrase(query)} `;
     const queryTechnologies = mentionedTechnologies(query);
-    const educationIntent = /\b(?:cursos?|certificados?|certificacoes?|capacitac\w*|treinament\w*|formacao|graduacao|pos graduacao)\b/.test(
-      knowledgePhrase(query),
-    );
+    const educationIntent =
+      /\b(?:cursos?|certificados?|certificacoes?|capacitac\w*|treinament\w*|formacao|graduacao|pos graduacao)\b/.test(
+        knowledgePhrase(query),
+      );
     if (!educationIntent && isTechnologyProjectQuestion(query)) {
       const projects = this.documents.filter(
         (document) =>
@@ -175,7 +176,9 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       }
       // Perguntas sobre cursos devem privilegiar trilhas de cursos concluídos;
       // vagas, projetos e experiência continuam usando suas evidências próprias.
-      const seekingCourses = /\b(?:cursos?|certificados?|capacitac\w*|treinament\w*)\b/.test(queryPhrase);
+      const seekingCourses = /\b(?:cursos?|certificados?|capacitac\w*|treinament\w*)\b/.test(
+        queryPhrase,
+      );
       if (seekingCourses && doc.id.startsWith('cursos-')) relevance += 16;
       return {
         doc,

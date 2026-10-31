@@ -70,5 +70,4 @@ O frontend do mesmo ambiente deve ser publicado depois do backend.
 A documentação anterior sobre a Fase 3 é **histórica**, não descreve
 as funcionalidades atuais do produto.
 
-
 A base Orbe DEV foi ampliada em 31/10/2026 para 48 registros, com 42 cursos livres concluídos e novos projetos. Ver [knowledge/README.md](knowledge/README.md) e [SOURCES.md](knowledge/SOURCES.md) para fontes, limites, status acadêmicos e testes de recrutamento. O conteúdo requer redeploy do backend; não é sincronizado automaticamente com o frontend.

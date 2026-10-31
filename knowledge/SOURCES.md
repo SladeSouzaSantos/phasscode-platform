@@ -274,7 +274,7 @@ proprietário, não equivale a disponibilidade imediata ou experiência sênior.
   Nivelamento 80h, Básico 64h, Fundamental 96h, especialização DevOps/DevSecOps
   80h; total 320h. Os arquivos privados não foram adicionados.
 - **Pós UNIPDS:** duas fichas `Java Applied Engineering` e `Engenharia de IA
-  Aplicada`, 2026–2027, como *em andamento*. Tópicos de ementa não conferem
+Aplicada`, 2026–2027, como _em andamento_. Tópicos de ementa não conferem
   conclusão, senioridade ou experiência profissional em cada framework.
 - **FacPrisma/UNISUL:** prevalecem as confirmações diretas documentadas em
   21/10/2026: somente Segurança da Informação/FacPrisma concluída e Ciência

@@ -15,33 +15,22 @@
           "message": "Sou recrutadora para vaga Java backend. Quais evidências práticas e quais projetos Java Pedro tem?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "webservice-springboot-jpa"
-            ],
+            "requiredSourceIds": ["webservice-springboot-jpa"],
             "concepts": [
               {
                 "label": "java",
-                "anyOf": [
-                  "Java"
-                ]
+                "anyOf": ["Java"]
               },
               {
                 "label": "sigaa",
-                "anyOf": [
-                  "SIGAA",
-                  "SIG"
-                ]
+                "anyOf": ["SIGAA", "SIG"]
               },
               {
                 "label": "spring",
-                "anyOf": [
-                  "Spring Boot"
-                ]
+                "anyOf": ["Spring Boot"]
               }
             ],
-            "forbiddenTerms": [
-              "certificação Java oficial"
-            ]
+            "forbiddenTerms": ["certificação Java oficial"]
           }
         }
       ]
@@ -59,23 +48,14 @@
           "message": "Quais cursos de programação Pedro já concluiu na Alura, DIO e Udemy?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "cursos-declarados"
-            ],
+            "requiredSourceIds": ["cursos-declarados"],
             "concepts": [
               {
                 "label": "trilhas",
-                "anyOf": [
-                  "Java",
-                  "IA",
-                  "dados",
-                  "Flutter"
-                ]
+                "anyOf": ["Java", "IA", "dados", "Flutter"]
               }
             ],
-            "forbiddenTerms": [
-              "todos os certificados estão publicados"
-            ]
+            "forbiddenTerms": ["todos os certificados estão publicados"]
           }
         }
       ]
@@ -93,28 +73,18 @@
           "message": "Ele terminou o Programa Hackers do Bem? Quantas horas fez e qual especialização?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "cursos-hackers-do-bem"
-            ],
+            "requiredSourceIds": ["cursos-hackers-do-bem"],
             "concepts": [
               {
                 "label": "total",
-                "anyOf": [
-                  "320"
-                ]
+                "anyOf": ["320"]
               },
               {
                 "label": "area",
-                "anyOf": [
-                  "DevSecOps",
-                  "DevOps"
-                ]
+                "anyOf": ["DevSecOps", "DevOps"]
               }
             ],
-            "forbiddenTerms": [
-              "AWS Certified",
-              "CKA"
-            ]
+            "forbiddenTerms": ["AWS Certified", "CKA"]
           }
         }
       ]
@@ -132,28 +102,18 @@
           "message": "A pós em Engenharia de IA Aplicada está concluída? Ele estuda RAG, LangGraph e MCP?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "formacao-unipds-ia"
-            ],
+            "requiredSourceIds": ["formacao-unipds-ia"],
             "concepts": [
               {
                 "label": "status",
-                "anyOf": [
-                  "em andamento",
-                  "cursando",
-                  "não concluída"
-                ]
+                "anyOf": ["em andamento", "cursando", "não concluída"]
               },
               {
                 "label": "rag",
-                "anyOf": [
-                  "RAG"
-                ]
+                "anyOf": ["RAG"]
               }
             ],
-            "forbiddenTerms": [
-              "pós concluída em IA Aplicada"
-            ]
+            "forbiddenTerms": ["pós concluída em IA Aplicada"]
           }
         }
       ]
@@ -171,26 +131,18 @@
           "message": "Pedro está fazendo Java Applied Engineering? Quais temas de backend ele estuda?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "formacao-unipds-java"
-            ],
+            "requiredSourceIds": ["formacao-unipds-java"],
             "concepts": [
               {
                 "label": "java",
-                "anyOf": [
-                  "Java"
-                ]
+                "anyOf": ["Java"]
               },
               {
                 "label": "instituicao",
-                "anyOf": [
-                  "UNIPDS"
-                ]
+                "anyOf": ["UNIPDS"]
               }
             ],
-            "forbiddenTerms": [
-              "pós concluída"
-            ]
+            "forbiddenTerms": ["pós concluída"]
           }
         }
       ]
@@ -208,21 +160,14 @@
           "message": "Pedro concluiu todas as cinco pós-graduações da FacPrisma?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "formacao-prisma"
-            ],
+            "requiredSourceIds": ["formacao-prisma"],
             "concepts": [
               {
                 "label": "seguranca",
-                "anyOf": [
-                  "Segurança da Informação"
-                ]
+                "anyOf": ["Segurança da Informação"]
               }
             ],
-            "forbiddenTerms": [
-              "concluiu todas as cinco",
-              "cinco pós concluídas"
-            ]
+            "forbiddenTerms": ["concluiu todas as cinco", "cinco pós concluídas"]
           }
         }
       ]
@@ -240,27 +185,18 @@
           "message": "Mostre um projeto Flutter dele que use inteligência artificial e leia datasheets.",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "greencity-os"
-            ],
+            "requiredSourceIds": ["greencity-os"],
             "concepts": [
               {
                 "label": "flutter",
-                "anyOf": [
-                  "Flutter"
-                ]
+                "anyOf": ["Flutter"]
               },
               {
                 "label": "datasheets",
-                "anyOf": [
-                  "datasheets",
-                  "fichas técnicas"
-                ]
+                "anyOf": ["datasheets", "fichas técnicas"]
               }
             ],
-            "forbiddenTerms": [
-              "o aplicativo Flutter está disponível no simulador HSP"
-            ]
+            "forbiddenTerms": ["o aplicativo Flutter está disponível no simulador HSP"]
           }
         }
       ]
@@ -278,21 +214,14 @@
           "message": "Há algum projeto de IA sobre defesa contra prompt injection e guardrails?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "guardrails-prompt-injection"
-            ],
+            "requiredSourceIds": ["guardrails-prompt-injection"],
             "concepts": [
               {
                 "label": "seguranca",
-                "anyOf": [
-                  "prompt injection",
-                  "guardrails"
-                ]
+                "anyOf": ["prompt injection", "guardrails"]
               }
             ],
-            "forbiddenTerms": [
-              "100% seguro"
-            ]
+            "forbiddenTerms": ["100% seguro"]
           }
         }
       ]
@@ -301,31 +230,21 @@
       "id": "devsecops-pratico",
       "category": "facts",
       "title": "Projeto Flask e observabilidade",
-      "humanReview": [
-        "Descrever prática registrada em README, sem inferir produção comercial."
-      ],
+      "humanReview": ["Descrever prática registrada em README, sem inferir produção comercial."],
       "turns": [
         {
           "message": "Qual projeto dele demonstra Flask, testes, Docker e observabilidade?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "task-manager-flask"
-            ],
+            "requiredSourceIds": ["task-manager-flask"],
             "concepts": [
               {
                 "label": "flask",
-                "anyOf": [
-                  "Flask"
-                ]
+                "anyOf": ["Flask"]
               },
               {
                 "label": "observabilidade",
-                "anyOf": [
-                  "Grafana",
-                  "Prometheus",
-                  "observabilidade"
-                ]
+                "anyOf": ["Grafana", "Prometheus", "observabilidade"]
               }
             ],
             "forbiddenTerms": []
@@ -350,16 +269,10 @@
             "concepts": [
               {
                 "label": "demo",
-                "anyOf": [
-                  "Número Secreto",
-                  "Teclado Sound",
-                  "minijogos"
-                ]
+                "anyOf": ["Número Secreto", "Teclado Sound", "minijogos"]
               }
             ],
-            "forbiddenTerms": [
-              "sistema empresarial"
-            ]
+            "forbiddenTerms": ["sistema empresarial"]
           }
         }
       ]
@@ -377,15 +290,11 @@
           "message": "Pode mostrar os projetos Java de Pedro?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "webservice-springboot-jpa"
-            ],
+            "requiredSourceIds": ["webservice-springboot-jpa"],
             "concepts": [
               {
                 "label": "spring",
-                "anyOf": [
-                  "Spring Boot"
-                ]
+                "anyOf": ["Spring Boot"]
               }
             ],
             "forbiddenTerms": []
@@ -395,17 +304,11 @@
           "message": "Tem o link?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": [
-              "webservice-springboot-jpa"
-            ],
+            "requiredSourceIds": ["webservice-springboot-jpa"],
             "concepts": [
               {
                 "label": "link",
-                "anyOf": [
-                  "github.com",
-                  "webservice",
-                  "Spring Boot"
-                ]
+                "anyOf": ["github.com", "webservice", "Spring Boot"]
               }
             ],
             "forbiddenTerms": []
@@ -441,10 +344,7 @@
                 "missing": "review"
               }
             ],
-            "forbiddenTerms": [
-              "possui certificação CKA",
-              "é certificado CKA"
-            ]
+            "forbiddenTerms": ["possui certificação CKA", "é certificado CKA"]
           }
         }
       ]
