@@ -55,6 +55,7 @@ function isTechnologyProjectQuestion(query: string): boolean {
   const phrase = knowledgePhrase(query);
   return (
     /\b(?:projetos?|repositorios?|exemplos?|codigo)\b/.test(phrase) &&
+    !/\b(?:experienc\w*|empreg\w*|trabalh\w*|profission\w*)\b/.test(phrase) &&
     mentionedTechnologies(query).size > 0
   );
 }
