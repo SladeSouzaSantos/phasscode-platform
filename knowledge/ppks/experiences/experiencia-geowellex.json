@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "1.0",
+  "id": "experiencia-geowellex",
+  "kind": "experience",
+  "organization": "Geowellex",
+  "role": "Mud Logging / Desenvolvedor de Sistemas",
+  "start": "2017-03",
+  "end": "2018-10",
+  "currentAsOf": null,
+  "areas": [
+    "software-development",
+    "engineering"
+  ],
+  "responsibilities": [
+    "Pedro Santos trabalhou na Geowellex de março de 2017 a outubro de 2018, como Mud Logging / Desenvolvedor de Sistemas. Desenvolveu sistema web de controle de estoque com HTML, CSS, JavaScript, PHP e MySQL, junto a atividades de coleta, análise e organização de dados geológicos em operações de perfuração. As fontes registram a experiência profissional, sem disponibilizar repositório desse sistema."
+  ],
+  "stack": [
+    {
+      "name": "HTML",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "CSS",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "JavaScript",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "PHP",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "MySQL",
+      "kind": "database",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "projects": [],
+  "competencies": [
+    {
+      "name": "Experiência profissional documentada",
+      "demonstrates": "Pedro Santos trabalhou na Geowellex de março de 2017 a outubro de 2018, como Mud Logging / Desenvolvedor de Sistemas. Desenvolveu sistema web de controle de estoque com HTML, CSS, JavaScript, PHP e MySQL, junto a atividades de coleta, análise e organização de dados geológicos em operações de perfuração. As fontes registram a experiência profissional, sem disponibilizar repositório desse sistema.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "Rastreabilidade do código profissional",
+      "status": "not_documented",
+      "description": "Atividades e tecnologias registradas no histórico profissional não implicam código público nem autoria exclusiva."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": "https://gbc.phasscode.com/#experiencia",
+      "path": "knowledge/portfolio.json",
+      "note": "Perfil profissional declarado e curado. Não tratar como commit do produto corporativo."
+    }
+  ],
+  "sync": {
+    "sourceRepository": null,
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:45:31.178Z",
+    "analyzedAt": "2026-10-31T19:45:31.178Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": false
+  }
+}
