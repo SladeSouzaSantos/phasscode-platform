@@ -19,7 +19,7 @@ import {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const permitted = ['--live', '--allow-remote', '--help'];
-  const valueOptions = ['--case=', '--category=', '--output=', '--max-calls=', '--timeout-ms='];
+  const valueOptions = ['--case=', '--category=', '--matrix=', '--output=', '--max-calls=', '--timeout-ms='];
   if (
     args.some((arg) => !permitted.includes(arg) && !valueOptions.some((key) => arg.startsWith(key)))
   ) {
@@ -27,7 +27,7 @@ async function main(): Promise<void> {
   }
   if (args.includes('--help')) {
     console.info(
-      'Uso: npm run eval:orbe -- --live [--case=id] [--category=nome] [--max-calls=24] [--timeout-ms=70000] [--output=evaluation/reports] [--allow-remote]\nSem --live, apenas lista o plano; nenhuma chamada é feita.',
+      'Uso: npm run eval:orbe -- --live [--matrix=evaluation/recruiter-cases.json] [--case=id] [--category=nome] [--max-calls=24] [--timeout-ms=70000] [--output=evaluation/reports] [--allow-remote]\nSem --live, apenas lista o plano; nenhuma chamada é feita.',
     );
     return;
   }
@@ -40,7 +40,10 @@ async function main(): Promise<void> {
     }
     return result;
   };
-  const matrix = matrixSchema.parse(JSON.parse(await readFile('evaluation/cases.json', 'utf8')));
+  const selectedMatrix = value('--matrix=') ?? 'evaluation/cases.json';
+  if (!['evaluation/cases.json', 'evaluation/recruiter-cases.json'].includes(selectedMatrix))
+    throw new Error('Matriz não permitida.');
+  const matrix = matrixSchema.parse(JSON.parse(await readFile(selectedMatrix, 'utf8')));
   if (new Set(matrix.cases.map(({ id }) => id)).size !== matrix.cases.length) {
     throw new Error('Matriz possui IDs duplicados.');
   }

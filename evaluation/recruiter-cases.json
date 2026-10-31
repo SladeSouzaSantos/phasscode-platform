@@ -1,0 +1,453 @@
+{
+  "version": "orbe-phase2-v3",
+  "description": "Entrevistas simuladas de recrutadores para Java, IA, portfólio e cursos; executar live apenas de forma opt-in após deploy DEV, com limite de chamadas.",
+  "cases": [
+    {
+      "id": "recrutador-java",
+      "category": "facts",
+      "title": "Vaga backend Java: experiência versus estudo",
+      "humanReview": [
+        "Distinguir SIGAA profissional de Spring Boot/JPA como repositório de estudo.",
+        "Não atribuir Java à Greencity ou prometer senioridade."
+      ],
+      "turns": [
+        {
+          "message": "Sou recrutadora para vaga Java backend. Quais evidências práticas e quais projetos Java Pedro tem?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "webservice-springboot-jpa"
+            ],
+            "concepts": [
+              {
+                "label": "java",
+                "anyOf": [
+                  "Java"
+                ]
+              },
+              {
+                "label": "sigaa",
+                "anyOf": [
+                  "SIGAA",
+                  "SIG"
+                ]
+              },
+              {
+                "label": "spring",
+                "anyOf": [
+                  "Spring Boot"
+                ]
+              }
+            ],
+            "forbiddenTerms": [
+              "certificação Java oficial"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cursos-concluidos",
+      "category": "facts",
+      "title": "42 cursos concluídos nas seis trilhas",
+      "humanReview": [
+        "Informar 42 cursos concluídos segundo o proprietário, sem inventar links para certificados.",
+        "Não confundir pós-graduação em andamento com curso livre concluído."
+      ],
+      "turns": [
+        {
+          "message": "Quais cursos de programação Pedro já concluiu na Alura, DIO e Udemy?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "cursos-declarados"
+            ],
+            "concepts": [
+              {
+                "label": "trilhas",
+                "anyOf": [
+                  "Java",
+                  "IA",
+                  "dados",
+                  "Flutter"
+                ]
+              }
+            ],
+            "forbiddenTerms": [
+              "todos os certificados estão publicados"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "hackers-do-bem",
+      "category": "facts",
+      "title": "Quatro cursos Hackers do Bem com 320 horas",
+      "humanReview": [
+        "Enumerar as quatro etapas e as cargas 80h, 64h, 96h, 80h.",
+        "Não atribuir credenciais oficiais Kubernetes/AWS."
+      ],
+      "turns": [
+        {
+          "message": "Ele terminou o Programa Hackers do Bem? Quantas horas fez e qual especialização?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "cursos-hackers-do-bem"
+            ],
+            "concepts": [
+              {
+                "label": "total",
+                "anyOf": [
+                  "320"
+                ]
+              },
+              {
+                "label": "area",
+                "anyOf": [
+                  "DevSecOps",
+                  "DevOps"
+                ]
+              }
+            ],
+            "forbiddenTerms": [
+              "AWS Certified",
+              "CKA"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pos-ia-aplicada",
+      "category": "facts",
+      "title": "Pós UNIPDS e tópicos de IA em estudo",
+      "humanReview": [
+        "Dizer que Engenharia de IA Aplicada está em andamento, não diploma concluído.",
+        "Separar projetos com LLMs dos temas de ementa."
+      ],
+      "turns": [
+        {
+          "message": "A pós em Engenharia de IA Aplicada está concluída? Ele estuda RAG, LangGraph e MCP?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "formacao-unipds-ia"
+            ],
+            "concepts": [
+              {
+                "label": "status",
+                "anyOf": [
+                  "em andamento",
+                  "cursando",
+                  "não concluída"
+                ]
+              },
+              {
+                "label": "rag",
+                "anyOf": [
+                  "RAG"
+                ]
+              }
+            ],
+            "forbiddenTerms": [
+              "pós concluída em IA Aplicada"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pos-java-applied",
+      "category": "facts",
+      "title": "Pós Java Applied Engineering",
+      "humanReview": [
+        "Citar UNIPDS 2026–2027 em andamento.",
+        "Não transformar ementa em experiência profissional com Quarkus."
+      ],
+      "turns": [
+        {
+          "message": "Pedro está fazendo Java Applied Engineering? Quais temas de backend ele estuda?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "formacao-unipds-java"
+            ],
+            "concepts": [
+              {
+                "label": "java",
+                "anyOf": [
+                  "Java"
+                ]
+              },
+              {
+                "label": "instituicao",
+                "anyOf": [
+                  "UNIPDS"
+                ]
+              }
+            ],
+            "forbiddenTerms": [
+              "pós concluída"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "facprisma-status",
+      "category": "facts",
+      "title": "Distinção das cinco especializações FacPrisma",
+      "humanReview": [
+        "Só Segurança da Informação com conclusão diretamente confirmada.",
+        "Não afirmar conclusão das cinco pós."
+      ],
+      "turns": [
+        {
+          "message": "Pedro concluiu todas as cinco pós-graduações da FacPrisma?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "formacao-prisma"
+            ],
+            "concepts": [
+              {
+                "label": "seguranca",
+                "anyOf": [
+                  "Segurança da Informação"
+                ]
+              }
+            ],
+            "forbiddenTerms": [
+              "concluiu todas as cinco",
+              "cinco pós concluídas"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "greencity-os",
+      "category": "facts",
+      "title": "Aplicativo mobile com IA e extração de datasheets",
+      "humanReview": [
+        "Citar o projeto Flutter GreenCity OS, extração e validação de equipamentos.",
+        "Não dizer que o simulador HSP web é o app Flutter."
+      ],
+      "turns": [
+        {
+          "message": "Mostre um projeto Flutter dele que use inteligência artificial e leia datasheets.",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "greencity-os"
+            ],
+            "concepts": [
+              {
+                "label": "flutter",
+                "anyOf": [
+                  "Flutter"
+                ]
+              },
+              {
+                "label": "datasheets",
+                "anyOf": [
+                  "datasheets",
+                  "fichas técnicas"
+                ]
+              }
+            ],
+            "forbiddenTerms": [
+              "o aplicativo Flutter está disponível no simulador HSP"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "guardrails",
+      "category": "facts",
+      "title": "Projeto de segurança contra prompt injection",
+      "humanReview": [
+        "Distinguir experimento de estudo de sistema de produção.",
+        "Mencionar controle de ferramentas e ataques simulados."
+      ],
+      "turns": [
+        {
+          "message": "Há algum projeto de IA sobre defesa contra prompt injection e guardrails?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "guardrails-prompt-injection"
+            ],
+            "concepts": [
+              {
+                "label": "seguranca",
+                "anyOf": [
+                  "prompt injection",
+                  "guardrails"
+                ]
+              }
+            ],
+            "forbiddenTerms": [
+              "100% seguro"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "devsecops-pratico",
+      "category": "facts",
+      "title": "Projeto Flask e observabilidade",
+      "humanReview": [
+        "Descrever prática registrada em README, sem inferir produção comercial."
+      ],
+      "turns": [
+        {
+          "message": "Qual projeto dele demonstra Flask, testes, Docker e observabilidade?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "task-manager-flask"
+            ],
+            "concepts": [
+              {
+                "label": "flask",
+                "anyOf": [
+                  "Flask"
+                ]
+              },
+              {
+                "label": "observabilidade",
+                "anyOf": [
+                  "Grafana",
+                  "Prometheus",
+                  "observabilidade"
+                ]
+              }
+            ],
+            "forbiddenTerms": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "minijogos",
+      "category": "facts",
+      "title": "Demonstrações web educacionais",
+      "humanReview": [
+        "Identificar estudos com links públicos e crédito de curso Alura.",
+        "Não classificar os minijogos como produtos empresariais."
+      ],
+      "turns": [
+        {
+          "message": "Tem projetos pequenos para eu testar no navegador, como Teclado Sound ou Número Secreto?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "demo",
+                "anyOf": [
+                  "Número Secreto",
+                  "Teclado Sound",
+                  "minijogos"
+                ]
+              }
+            ],
+            "forbiddenTerms": [
+              "sistema empresarial"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "continuidade-projeto-java",
+      "category": "continuity",
+      "title": "Recrutador pede repositório em continuação",
+      "humanReview": [
+        "Preservar contexto do projeto Java entre turnos e fornecer link público real.",
+        "Não confundir SIGAA com repositório próprio."
+      ],
+      "turns": [
+        {
+          "message": "Pode mostrar os projetos Java de Pedro?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "webservice-springboot-jpa"
+            ],
+            "concepts": [
+              {
+                "label": "spring",
+                "anyOf": [
+                  "Spring Boot"
+                ]
+              }
+            ],
+            "forbiddenTerms": []
+          }
+        },
+        {
+          "message": "Tem o link?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [
+              "webservice-springboot-jpa"
+            ],
+            "concepts": [
+              {
+                "label": "link",
+                "anyOf": [
+                  "github.com",
+                  "webservice",
+                  "Spring Boot"
+                ]
+              }
+            ],
+            "forbiddenTerms": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "kubernetes-nao-inferir",
+      "category": "missing-information",
+      "title": "Cursos não equivalem a certificações de provedores",
+      "humanReview": [
+        "Distinguir cursos livres concluídos de certificações oficiais como CKA/AWS.",
+        "Não afirmar posse de credencial sem documento."
+      ],
+      "turns": [
+        {
+          "message": "Já que concluiu 42 cursos, ele possui certificação oficial Kubernetes CKA?",
+          "expect": {
+            "sourcePolicy": "optional",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "incerteza",
+                "anyOf": [
+                  "não consta",
+                  "não confirmada",
+                  "não tenho",
+                  "não posso confirmar",
+                  "não há",
+                  "não está confirmada"
+                ],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "possui certificação CKA",
+              "é certificado CKA"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -89,7 +89,10 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     const queryTerms = knowledgeTerms(query);
     const queryPhrase = ` ${knowledgePhrase(query)} `;
     const queryTechnologies = mentionedTechnologies(query);
-    if (isTechnologyProjectQuestion(query)) {
+    const educationIntent = /\b(?:cursos?|certificados?|certificacoes?|capacitac\w*|treinament\w*|formacao|graduacao|pos graduacao)\b/.test(
+      knowledgePhrase(query),
+    );
+    if (!educationIntent && isTechnologyProjectQuestion(query)) {
       const projects = this.documents.filter(
         (document) =>
           (document.type === 'project' || document.type === 'platform') &&
@@ -102,7 +105,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       );
       if (projects.length > 0) return projects.slice(0, 5);
     }
-    if (queryTechnologies.size === 0 && isCareerOverview(query)) {
+    if (queryTechnologies.size === 0 && !educationIntent && isCareerOverview(query)) {
       const selected = recruiterOverviewIds.flatMap((id) => {
         const document = this.documents.find((item) => item.id === id);
         return document ? [document] : [];
@@ -111,6 +114,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       if (selected.length >= 3) return selected.slice(0, 5);
     }
     const credentialQuestion =
+      educationIntent ||
       /\b(?:certificad\w*|certificac\w*|diploma\w*|curso\w*|formac\w*|graduac\w*)\b/.test(
         knowledgePhrase(query),
       );
@@ -171,7 +175,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       }
       // Perguntas sobre cursos devem privilegiar trilhas de cursos concluídos;
       // vagas, projetos e experiência continuam usando suas evidências próprias.
-      const seekingCourses = /\\b(?:cursos?|certificados?|capacitac\\w*|treinament\\w*)\\b/.test(queryPhrase);
+      const seekingCourses = /\b(?:cursos?|certificados?|capacitac\w*|treinament\w*)\b/.test(queryPhrase);
       if (seekingCourses && doc.id.startsWith('cursos-')) relevance += 16;
       return {
         doc,
