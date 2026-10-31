@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import type { KnowledgeDocument } from '../domain/ports.js';
 import { knowledgePhrase } from '../knowledge-matching.js';
 
-interface TechnicalCard {
+export interface TechnicalCard {
   id: string;
   identity: { name: string; nature: string };
   classification: { applicationType: string };
