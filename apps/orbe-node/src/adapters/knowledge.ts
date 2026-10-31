@@ -94,6 +94,22 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         knowledgePhrase(query),
       );
     const courseIntent = /\b(?:cursos?|capacitac\w*|treinament\w*)\b/.test(queryPhrase);
+    // An explicit request for the complete catalog needs the six study tracks,
+    // not five ranked snippets that silently omit a track.
+    const completeCourseCatalog =
+      /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(knowledgePhrase(query));
+    if (completeCourseCatalog) {
+      const ids = [
+        'cursos-declarados',
+        'cursos-java-arquitetura',
+        'cursos-ia-dados',
+        'cursos-frontend-mobile',
+        'cursos-engenharia-software',
+        'cursos-bancos-dados',
+        'cursos-devops-qualidade',
+      ];
+      return ids.flatMap((id) => this.documents.filter((doc) => doc.id === id));
+    }
     const vendorCertificate =
       /\b(?:certificad\w*|certificac\w*)\b/.test(queryPhrase) &&
       queryTechnologies.size > 0 &&
