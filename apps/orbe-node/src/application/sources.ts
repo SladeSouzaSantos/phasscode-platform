@@ -32,6 +32,29 @@ function validUrl(value: string | undefined): string | undefined {
   }
 }
 
+/** Names provide provenance for specific named subjects; technology overlap alone does not. */
+function explicitSubject(document: KnowledgeDocument, normalizedAnswer: string): boolean {
+  const aliases: Record<string, string[]> = {
+    'experiencia-sig': ['sigaa', 'sig software'],
+    'experiencia-acrux': ['acrux'],
+    'experiencia-geowellex': ['geowellex'],
+    'experiencia-greencity': ['greencity sustainable energy'],
+    'phasscode-platform': ['phasscode platform', 'backend do orbe', 'plataforma phasscode'],
+    'web-portfolio-v2': ['portfolio phasscode', 'frontend phasscode'],
+    'greencity-os': ['greencity os'],
+    'hsp-simulator': ['hsp simulator'],
+    'webservice-springboot-jpa': ['webservice spring boot'],
+    'task-manager-flask': ['task manager'],
+    'formacao-gestao-ti': ['gestao da tecnologia da informacao', 'tecnologo em gestao'],
+    'formacao-computacao': ['ciencia da computacao', 'bacharelado em computacao'],
+  };
+  const phrases = aliases[document.id] ?? [document.title];
+  return phrases.some((phrase) => {
+    const normalized = knowledgePhrase(phrase);
+    return normalized.length >= 5 && normalizedAnswer.includes(` ${normalized} `);
+  });
+}
+
 /** Keep the existing HTTP DTO; cite public portfolio pages or public projects, not internal files. */
 export function documentSource(document: KnowledgeDocument): Source {
   const publicProject =
@@ -80,12 +103,20 @@ export function selectSources(input: {
     /\b(?:atuou|atuacao|contribuicao|responsabilidades?|empresa|emprego|trabalh\w*|experienc\w*)\b/.test(
       queryPhrase,
     );
+  // Mixed vacancy questions may mention employers AND personal projects.
+  // Restrict projects only for an exclusive inquiry about a third-party employer.
+  const exclusiveEmploymentInquiry =
+    employmentInquiry &&
+    !/\b(?:projet\w*|repositori\w*|portfoli\w*|greencity os|hsp simulator|phasscode platform|spring boot)\b/.test(
+      queryPhrase,
+    );
   const documents = [
     ...new Map(
       input.documents
         .filter(
           (document) =>
-            !employmentInquiry || (document.type !== 'project' && document.type !== 'platform'),
+            !exclusiveEmploymentInquiry ||
+            (document.type !== 'project' && document.type !== 'platform'),
         )
         .map((document) => [document.id, document]),
     ).values(),
@@ -112,7 +143,9 @@ export function selectSources(input: {
           answer.has(term) && (frequency(term) < documents.length || documents.length === 1),
       );
       const exactTitle = knowledgePhrase(document.title);
+      const explicitlyNamed = explicitSubject(document, answerPhrase);
       const named =
+        explicitlyNamed ||
         subjectHits.some((term) => !mentionedTechnologies(term).size) ||
         (exactTitle.length > 4 && answerPhrase.includes(` ${exactTitle} `));
       const queryOverlap = [...query].some((term) => facts.has(term));
@@ -121,16 +154,17 @@ export function selectSources(input: {
       const project = document.type === 'project' || document.type === 'platform';
       // A common technology alone cannot justify a generic record with no stated facts.
       const relevant =
-        overlap.size >= 2 &&
-        (named ||
-          queryOverlap ||
-          (technologyMatch && (requestedTechnology || queryTechnologies.size === 0)));
+        explicitlyNamed ||
+        (overlap.size >= 2 &&
+          (named ||
+            queryOverlap ||
+            (technologyMatch && (requestedTechnology || queryTechnologies.size === 0))));
       const score =
         [...overlap].reduce((total, term) => total + weight(term), 0) +
-        (named ? 8 : 0) +
+        (explicitlyNamed ? 24 : named ? 8 : 0) +
         (project && technologyMatch ? 4 : 0) +
         (document.category === 'professional' && technologyMatch ? 4 : 0);
-      return { document, overlap, relevant, named, score };
+      return { document, overlap, relevant, named, explicitlyNamed, score };
     })
     .filter((entry) => entry.relevant)
     .sort((left, right) => {
@@ -153,11 +187,15 @@ export function selectSources(input: {
   const urls = new Set<string>();
   for (const entry of ranked) {
     const source = documentSource(entry.document);
-    if (source.url && urls.has(source.url)) continue;
+    // Different employers often share the same public portfolio anchor.
+    // They remain distinct records even when their reference URL is identical.
+    if (source.url && urls.has(source.url) && entry.document.type !== 'profile') continue;
     const novel = [...entry.overlap].filter((term) => !covered.has(term));
     // Usually 1–3 sources suffice. Additional named records may support a longer answer.
-    if (selected.length > 0 && novel.length < (entry.named ? 1 : 2)) continue;
-    if (selected.length >= 3 && !entry.named && novel.length < 4) continue;
+    if (!entry.explicitlyNamed && selected.length > 0 && novel.length < (entry.named ? 1 : 2))
+      continue;
+    if (!entry.explicitlyNamed && selected.length >= 3 && !entry.named && novel.length < 4)
+      continue;
     selected.push(source);
     for (const term of entry.overlap) covered.add(term);
     if (source.url) urls.add(source.url);
