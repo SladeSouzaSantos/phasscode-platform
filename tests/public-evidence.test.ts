@@ -61,6 +61,26 @@ describe('leitura pública limitada para vagas e projetos', () => {
     );
   });
 
+  it('não consulta GitHub para pergunta comum respondida pelo índice curado', async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => {
+      throw new Error('Não deveria consultar a rede');
+    });
+    const reader = new RestrictedPublicEvidenceReader(fetcher);
+    const docs = await reader.read('Quais projetos com Java e React demonstram experiência?', [
+      {
+        id: 'web-portfolio-v2',
+        type: 'project',
+        title: 'Frontend',
+        keywords: ['react'],
+        content: 'React, TypeScript, Playwright e axe-core',
+        visibility: 'public',
+        repositoryUrl: 'https://github.com/SladeSouzaSantos/web-portfolio-v2',
+      },
+    ]);
+    expect(docs).toEqual([]);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it('usa somente README público de repositório de propriedade conhecida e limita o trecho', async () => {
     const fetcher = vi.fn<typeof fetch>(async () =>
       htmlResponse(
