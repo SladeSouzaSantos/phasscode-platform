@@ -172,7 +172,9 @@ export class LangChainChatProvider implements ChatProvider {
 
     const compactTo = (target: number): boolean => {
       // Keep the latest complete recruiter exchange when possible.
-      while (contextSize() > target && historyMessages > 2 && removeOldestHistoryPair()) {}
+      while (contextSize() > target && historyMessages > 2) {
+        if (!removeOldestHistoryPair()) break;
+      }
       while (contextSize() > target && documents.length > 1) {
         documents.pop();
         messages[1] = reference();
