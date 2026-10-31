@@ -120,11 +120,14 @@ describe('PPKS v1.2 — matriz de vagas e contexto', () => {
     const { readFile } = await import('node:fs/promises');
     const matrix = JSON.parse(await readFile('evaluation/vacancies-ppks-v12.json', 'utf8'));
     expect(matrix.cases).toHaveLength(9);
-    expect(matrix.cases.every((scenario: { turns: unknown[] }) => scenario.turns.length === 1)).toBe(true);
+    expect(
+      matrix.cases.every((scenario: { turns: unknown[] }) => scenario.turns.length === 1),
+    ).toBe(true);
   });
   it('preserva referências distintas sem estourar o contexto preliminar de entrevistas extensas', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
-    const query = 'Sou recrutador para vaga Java Node.js TypeScript React PostgreSQL Redis Python Docker CI/CD, formação em computação, SQL Server e Angular. Compare projetos profissionais e estudos.';
+    const query =
+      'Sou recrutador para vaga Java Node.js TypeScript React PostgreSQL Redis Python Docker CI/CD, formação em computação, SQL Server e Angular. Compare projetos profissionais e estudos.';
     const results = knowledge.search(query);
     expect(results.length).toBeLessThanOrEqual(5);
     expect(results.length).toBeGreaterThan(2);

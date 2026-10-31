@@ -48,7 +48,13 @@ async function main(): Promise<void> {
     return result;
   };
   const selectedMatrix = value('--matrix=') ?? 'evaluation/cases.json';
-  if (!['evaluation/cases.json', 'evaluation/recruiter-cases.json', 'evaluation/vacancies-ppks-v12.json'].includes(selectedMatrix))
+  if (
+    ![
+      'evaluation/cases.json',
+      'evaluation/recruiter-cases.json',
+      'evaluation/vacancies-ppks-v12.json',
+    ].includes(selectedMatrix)
+  )
     throw new Error('Matriz não permitida.');
   const matrix = matrixSchema.parse(JSON.parse(await readFile(selectedMatrix, 'utf8')));
   if (new Set(matrix.cases.map(({ id }) => id)).size !== matrix.cases.length) {
