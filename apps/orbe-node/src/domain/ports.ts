@@ -55,9 +55,10 @@ export interface TurnResult {
 }
 export interface ConversationStore {
   runTurn(
-    input: { id: string; tokenHash: string; isNew: boolean },
+    input: { id: string; tokenHash: string; isNew: boolean; analyticsConsent?: boolean },
     operation: (history: Message[]) => Promise<TurnResult>,
   ): Promise<ChatResponse>;
+  withdrawReport?(id: string, tokenHash: string): Promise<void>;
   ready(): Promise<void>;
   close(): Promise<void>;
 }
