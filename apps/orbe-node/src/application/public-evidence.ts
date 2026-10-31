@@ -128,11 +128,13 @@ export class RestrictedPublicEvidenceReader implements PublicEvidenceReader {
         url,
       });
     }
-    if (
-      /\b(?:projetos?|github|repositorio|readme|codigo|demonstra\w*|implementa\w*)\b/i.test(
-        question,
-      )
-    ) {
+    // Normal recruiting questions are answered from the curated index, with no network.
+    // Only explicit GitHub/README/source-code requests trigger bounded public fetches.
+    const evidenceIntent = question
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+    if (/\b(?:github|repositorio|readme|codigo(?: fonte)?|codigo-fonte|inspecion\w*|auditar)\b/.test(evidenceIntent)) {
       const candidates = documents.filter(
         (doc) =>
           (doc.type === 'project' || doc.type === 'platform') &&
