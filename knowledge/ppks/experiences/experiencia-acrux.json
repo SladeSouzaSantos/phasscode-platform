@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0",
+  "id": "experiencia-acrux",
+  "kind": "experience",
+  "organization": "ACRUX",
+  "role": "Estagiário Programador de Sistemas",
+  "start": "2014-02",
+  "end": "2015-01",
+  "currentAsOf": null,
+  "areas": [
+    "software-development"
+  ],
+  "responsibilities": [
+    "Pedro Santos foi estagiário PROGRAMADOR DE SISTEMAS na ACRUX de fevereiro/2014 a janeiro/2015, trabalhando na implementação/finalização de funcionalidades de um software de acompanhamento de calhas em poços de petróleo. Stack documentada nessa experiência: Java, banco H2 e IDE NetBeans; contexto de equipe com Scrum. NÃO transferir para ACRUX Hibernate, JBoss, PostgreSQL, SIGAA ou módulo financeiro: tais tecnologias pertencem à experiência posterior na SIG Software/SIGAA, e nenhum módulo financeiro foi confirmado. A documentação não disponibiliza o código privado desse sistema; não apresentar produto profissional como repositório público pessoal. Nome Lithology não está inequivocamente atribuído a esse vínculo."
+  ],
+  "stack": [
+    {
+      "name": "Java",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "H2",
+      "kind": "database",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "NetBeans",
+      "kind": "tool",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Scrum",
+      "kind": "tool",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "projects": [],
+  "competencies": [
+    {
+      "name": "Experiência profissional documentada",
+      "demonstrates": "Pedro Santos foi estagiário PROGRAMADOR DE SISTEMAS na ACRUX de fevereiro/2014 a janeiro/2015, trabalhando na implementação/finalização de funcionalidades de um software de acompanhamento de calhas em poços de petróleo. Stack documentada nessa experiência: Java, banco H2 e IDE NetBeans; contexto de equipe com Scrum. NÃO transferir para ACRUX Hibernate, JBoss, PostgreSQL, SIGAA ou módulo financeiro: tais tecnologias pertencem à experiência posterior na SIG Software/SIGAA, e nenhum módulo financeiro foi confirmado. A documentação não disponibiliza o código privado desse sistema; não apresentar produto profissional como repositório público pessoal. Nome Lithology não está inequivocamente atribuído a esse vínculo.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "Rastreabilidade do código profissional",
+      "status": "not_documented",
+      "description": "Atividades e tecnologias registradas no histórico profissional não implicam código público nem autoria exclusiva."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": "https://gbc.phasscode.com/#experiencia",
+      "path": "knowledge/portfolio.json",
+      "note": "Perfil profissional declarado e curado. Não tratar como commit do produto corporativo."
+    }
+  ],
+  "sync": {
+    "sourceRepository": null,
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:45:31.178Z",
+    "analyzedAt": "2026-10-31T19:45:31.178Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": false
+  }
+}
