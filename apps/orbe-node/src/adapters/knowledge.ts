@@ -254,29 +254,29 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     const anchors: string[] = [];
     const add = (...ids: string[]) => anchors.push(...ids);
     const phrase = knowledgePhrase(query);
-    const vacancy = /\\b(?:vaga|recrutad\\w*|experienc\\w*|profission\\w*|trabalh\\w*|candidat\\w*|qualific\\w*)\\b/.test(phrase);
+    const vacancy = /\b(?:vaga|recrutad\w*|experienc\w*|profission\w*|trabalh\w*|candidat\w*|qualific\w*)\b/.test(phrase);
     if (queryTechnologies.has('java') && vacancy) {
       add('experiencia-sig', 'webservice-springboot-jpa', 'experiencia-acrux');
     }
     if (queryTechnologies.has('react') || queryTechnologies.has('typescript')) {
       add('web-portfolio-v2');
     }
-    if (queryTechnologies.has('langchain') || /\\b(?:rag|llms?|agentes|guardrails)\\b/.test(phrase)) {
+    if (queryTechnologies.has('langchain') || /\b(?:rag|llms?|agentes|guardrails)\b/.test(phrase)) {
       add('phasscode-platform', 'embeddings-neo4j-rag', 'langchain-intro');
     }
-    if (queryTechnologies.has('python') || /\\b(?:engenharia de dados|analista de dados|etl|nasa power|pvlib)\\b/.test(phrase)) {
+    if (queryTechnologies.has('python') || /\b(?:engenharia de dados|analista de dados|etl|nasa power|pvlib)\b/.test(phrase)) {
       add('hsp-simulator');
     }
     if (queryTechnologies.has('flutter') || queryTechnologies.has('firebase')) {
       add('greencity-os', 'experiencia-greencity');
     }
-    if (/\\b(?:qa|testes? automatizad\\w*|qualidade de software|acessibilidade|playwright|wcag)\\b/.test(phrase)) {
+    if (/\b(?:qa|testes? automatizad\w*|qualidade de software|acessibilidade|playwright|wcag)\b/.test(phrase)) {
       add('web-portfolio-v2', 'phasscode-platform');
     }
-    if (/\\b(?:devops|sre|ci cd|github actions|pipeline|deploy)\\b/.test(phrase)) {
+    if (/\b(?:devops|sre|ci cd|github actions|pipeline|deploy)\b/.test(phrase)) {
       add('phasscode-platform', 'task-manager-flask');
     }
-    if (/\\b(?:energia|fotovoltaic\\w*|solar|utilities|petroleo)\\b/.test(phrase)) {
+    if (/\b(?:energia|fotovoltaic\w*|solar|utilities|petroleo)\b/.test(phrase)) {
       add('experiencia-greencity', 'hsp-simulator');
     }
 
