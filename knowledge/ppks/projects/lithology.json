@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "1.0",
+  "id": "lithology",
+  "kind": "project",
+  "identity": {
+    "name": "Lithology — registros e relatórios de perfuração",
+    "nature": "professional",
+    "role": "Papel não detalhado no catálogo",
+    "repositoryUrl": null,
+    "demoUrl": null,
+    "visibility": "private"
+  },
+  "classification": {
+    "applicationType": "unknown",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "Lithology é um software desktop registrado no currículo de Pedro Santos para registro e análise de dados de calhas em perfuração de poços, com relatórios técnicos em Excel e PDF. O currículo o associa à Geowellex, enquanto uma seção do site o associa à ACRUX; a empresa e a stack específicas precisam",
+    "technical": "Lithology é um software desktop registrado no currículo de Pedro Santos para registro e análise de dados de calhas em perfuração de poços, com relatórios técnicos em Excel e PDF. O currículo o associa à Geowellex, enquanto uma seção do site o associa à ACRUX; a empresa e a stack específicas precisam de esclarecimento. As fontes não estabelecem Java ou H2 como stack confirmada do projeto. Não há repositório ou demonstração pública identificados para Lithology.",
+    "problemSolved": null
+  },
+  "stack": [],
+  "architecture": {
+    "style": "unknown",
+    "components": [],
+    "patterns": [],
+    "dataFlow": null
+  },
+  "features": [],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Escopo do projeto documentado",
+      "demonstrates": "Competências descritas no catálogo de curadoria; detalhes técnicos requerem revisão específica.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "Arquitetura e padrões de projeto",
+      "status": "not_verified",
+      "description": "Os documentos existentes não comprovam uma implementação arquitetural específica."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Catálogo inicial: revisão do repositório/código pendente."
+    }
+  ],
+  "sync": {
+    "sourceRepository": null,
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:45:31.178Z",
+    "analyzedAt": "2026-10-31T19:45:31.178Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": false
+  }
+}
