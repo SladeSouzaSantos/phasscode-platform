@@ -20,7 +20,13 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": ["React", "TypeScript", "Vite", "React Router", "GSAP"],
+    "technologies": [
+      "React",
+      "TypeScript",
+      "Vite",
+      "React Router",
+      "GSAP"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/web-portfolio-v2"
   },
   {
@@ -55,11 +61,254 @@
     "repositoryUrl": "https://github.com/SladeSouzaSantos/phasscode-platform"
   },
   {
+    "type": "project",
+    "id": "greencity-os",
+    "title": "GREENCITY OS — projeto do portfólio",
+    "content": "GREENCITY OS: Aplicação Flutter para dimensionamento fotovoltaico, composição de arranjos e catálogo de módulos e inversores. Integra análise de datasheets em PDF com IA, revisão técnica e validações antes do cadastro dos equipamentos. Pontos implementados/documentados: Camadas de apresentação, domínio e dados com BLoC, contratos e casos de uso. Leitura de fichas técnicas por LLMs com fallback sequencial entre provedores configurados. Organização de arranjos por MPPT e estimativas de desempenho, incluindo cenários de orientação e sombra.. Tecnologias registradas neste projeto: Flutter, Dart, BLoC, Isar, Dio, LLMs. Projeto apresentado no portfólio como trabalho autoral de software. O site do HSP Simulator é um projeto relacionado e NÃO é uma demonstração web do app Flutter.",
+    "keywords": [
+      "greencity os",
+      "solar",
+      "datasheet",
+      "dimensionamento",
+      "flutter",
+      "dart",
+      "bloc",
+      "isar",
+      "dio",
+      "llms",
+      "projeto",
+      "projetos",
+      "github"
+    ],
+    "category": "personal",
+    "visibility": "public",
+    "technologies": [
+      "Flutter",
+      "Dart",
+      "BLoC",
+      "Isar",
+      "Dio",
+      "LLMs"
+    ],
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/greencity-os",
+    "url": "https://github.com/SladeSouzaSantos/greencity-os",
+    "demoUrl": "https://hsp.greencity.net.br/"
+  },
+  {
+    "type": "project",
+    "id": "guardrails-prompt-injection",
+    "title": "GUARDRAILS & IA — projeto de estudo",
+    "content": "GUARDRAILS & IA: Laboratório educacional que compara agentes de IA com e sem mecanismos de defesa contra prompt injection. Examina permissões de acesso, ataques de manipulação de instruções e validação por modelos de segurança. Pontos implementados/documentados: Modos seguro e inseguro para comparar o comportamento de agentes sob ataques simulados. Demonstração de controle de permissões para ferramentas e papéis distintos. Fluxos com LangChain/LangGraph e avaliação de prompts por modelo de safeguard.. Tecnologias registradas neste projeto: TypeScript, Node.js, LangChain, LangGraph, OpenRouter. Projeto ou exercício de estudo, não emprego nem produto comercial validado.",
+    "keywords": [
+      "guardrails & ia",
+      "guardrails prompt injection",
+      "guardrails",
+      "prompt injection",
+      "protecao",
+      "seguranca",
+      "llm",
+      "typescript",
+      "node.js",
+      "langchain",
+      "langgraph",
+      "openrouter",
+      "projeto",
+      "projetos",
+      "github"
+    ],
+    "category": "study",
+    "visibility": "public",
+    "technologies": [
+      "TypeScript",
+      "Node.js",
+      "LangChain",
+      "LangGraph",
+      "OpenRouter"
+    ],
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/main/safeguard-prompt-injection",
+    "url": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/main/safeguard-prompt-injection"
+  },
+  {
+    "type": "project",
+    "id": "task-manager-flask",
+    "title": "TASK MANAGER — projeto de estudo",
+    "content": "TASK MANAGER: Aplicação de gestão de tarefas com Flask, autenticação de usuários, persistência e testes. O repositório documenta uma infraestrutura de observabilidade e práticas de DevSecOps como estudo de caso. Pontos implementados/documentados: Separação de rotas, autenticação e persistência com Flask e SQLAlchemy. Testes automatizados e análise de segurança integrados à pipeline. Observabilidade com Prometheus, Grafana, Loki, Promtail e Alertmanager.. Tecnologias registradas neste projeto: Python, Flask, SQLAlchemy, pytest, Docker, Grafana. Projeto ou exercício de estudo, não emprego nem produto comercial validado.",
+    "keywords": [
+      "task manager",
+      "task manager flask",
+      "flask",
+      "devsecops",
+      "observabilidade",
+      "python",
+      "sqlalchemy",
+      "pytest",
+      "docker",
+      "grafana",
+      "projeto",
+      "projetos",
+      "github"
+    ],
+    "category": "study",
+    "visibility": "public",
+    "technologies": [
+      "Python",
+      "Flask",
+      "SQLAlchemy",
+      "pytest",
+      "Docker",
+      "Grafana"
+    ],
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/task-manager-using-flask",
+    "url": "https://github.com/SladeSouzaSantos/task-manager-using-flask"
+  },
+  {
+    "type": "project",
+    "id": "stranger-things-experience",
+    "title": "STRANGER THINGS — projeto de estudo",
+    "content": "STRANGER THINGS: Landing page temática produzida como prática de animações web, com transições cinematográficas, efeitos de rolagem e técnicas de composição com GSAP. Pontos implementados/documentados: Animações baseadas no scroll com ScrollTrigger e ScrollSmoother. Introdução animada e tratamento de tipografia com SplitText. Estudo de responsividade e performance em interfaces visuais.. Tecnologias registradas neste projeto: HTML, CSS, JavaScript, GSAP, ScrollTrigger. Projeto ou exercício de estudo, não emprego nem produto comercial validado. A temática e material de curso não implicam autoria das marcas ou obra cinematográfica.",
+    "keywords": [
+      "stranger things",
+      "stranger things experience",
+      "html",
+      "css",
+      "javascript",
+      "gsap",
+      "scrolltrigger",
+      "projeto",
+      "projetos",
+      "github"
+    ],
+    "category": "study",
+    "visibility": "public",
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "GSAP",
+      "ScrollTrigger"
+    ],
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/stranger-things-experience",
+    "url": "https://github.com/SladeSouzaSantos/stranger-things-experience"
+  },
+  {
+    "type": "project",
+    "id": "shadow-sim-pro",
+    "title": "SHADOW SIM PRO — projeto de estudo",
+    "content": "SHADOW SIM PRO: Ferramenta de estudo de sombreamento que calcula posições solares por localização e data, com visualizações de trajetória e relatórios horários. Pontos implementados/documentados: Cálculos astronômicos de azimute e altitude solar. Dashboard e gráficos interativos com Streamlit e Plotly. Pipeline de deploy com Docker Swarm, Tailscale e GitHub Actions descrita no README.. Tecnologias registradas neste projeto: Python, Streamlit, Plotly, Docker Swarm, GitHub Actions. Projeto ou exercício de estudo, não emprego nem produto comercial validado.",
+    "keywords": [
+      "shadow sim pro",
+      "python",
+      "streamlit",
+      "plotly",
+      "docker swarm",
+      "github actions",
+      "projeto",
+      "projetos",
+      "github"
+    ],
+    "category": "study",
+    "visibility": "public",
+    "technologies": [
+      "Python",
+      "Streamlit",
+      "Plotly",
+      "Docker Swarm",
+      "GitHub Actions"
+    ],
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/shadow_simulator",
+    "url": "https://github.com/SladeSouzaSantos/shadow_simulator"
+  },
+  {
+    "type": "project",
+    "id": "gemini-nano-browser",
+    "title": "GEMINI NANO — projeto de estudo",
+    "content": "GEMINI NANO: Experimento com modelos de linguagem locais via APIs do navegador, integrando interação textual, tradução e detecção de idioma. Pontos implementados/documentados: Uso experimental de Prompt API, Translation API e Language Detection API. Processamento no cliente em navegadores e versões compatíveis. Exploração de privacidade e latência em modelos pequenos executados localmente.. Tecnologias registradas neste projeto: JavaScript, HTML, CSS, Web AI APIs, Gemini Nano. Projeto ou exercício de estudo, não emprego nem produto comercial validado.",
+    "keywords": [
+      "gemini nano",
+      "gemini nano browser",
+      "javascript",
+      "html",
+      "css",
+      "web ai apis",
+      "projeto",
+      "projetos",
+      "github"
+    ],
+    "category": "study",
+    "visibility": "public",
+    "technologies": [
+      "JavaScript",
+      "HTML",
+      "CSS",
+      "Web AI APIs",
+      "Gemini Nano"
+    ],
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/web-ai-gemini-nano-browser",
+    "url": "https://github.com/SladeSouzaSantos/web-ai-gemini-nano-browser"
+  },
+  {
+    "type": "project",
+    "id": "teclado-sound",
+    "title": "TECLADO SOUND — projeto de estudo",
+    "content": "TECLADO SOUND: Teclado interativo com nove botões e efeitos de áudio, desenvolvido como prática de HTML, CSS e JavaScript da Alura. Pontos implementados/documentados: Seleção e manipulação de elementos do DOM. Eventos de clique, Enter e Espaço para acionar sons. Reprodução de arquivos de áudio por botões associados.. Tecnologias registradas neste projeto: HTML, CSS, JavaScript, DOM, Áudio. Projeto ou exercício de estudo, não emprego nem produto comercial validado.",
+    "keywords": [
+      "teclado sound",
+      "html",
+      "css",
+      "javascript",
+      "dom",
+      "áudio",
+      "projeto",
+      "projetos",
+      "github"
+    ],
+    "category": "study",
+    "visibility": "public",
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "DOM",
+      "Áudio"
+    ],
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/alura-teclado-som",
+    "url": "https://github.com/SladeSouzaSantos/alura-teclado-som",
+    "demoUrl": "https://projetos.phasscode.com/projetos/teclado_som/"
+  },
+  {
+    "type": "project",
+    "id": "numero-secreto",
+    "title": "NÚMERO SECRETO — projeto de estudo",
+    "content": "NÚMERO SECRETO: Jogo de adivinhação de números de 1 a 1000 com reconhecimento de voz, indicações de maior ou menor e opção de reiniciar. Pontos implementados/documentados: Integração com a Web Speech API para reconhecer números falados. Validação de palpites e feedback sobre o valor secreto. Tratamento de vitória e reinício; requer navegador compatível e acesso ao microfone.. Tecnologias registradas neste projeto: HTML, CSS, JavaScript, Web Speech API. Projeto ou exercício de estudo, não emprego nem produto comercial validado. A demonstração exige navegador compatível com Web Speech API e permissão de microfone.",
+    "keywords": [
+      "número secreto",
+      "numero secreto",
+      "html",
+      "css",
+      "javascript",
+      "web speech api",
+      "projeto",
+      "projetos",
+      "github"
+    ],
+    "category": "study",
+    "visibility": "public",
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "Web Speech API"
+    ],
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/n-secreto",
+    "url": "https://github.com/SladeSouzaSantos/n-secreto",
+    "demoUrl": "https://projetos.phasscode.com/projetos/n_secreto/"
+  },
+  {
     "type": "profile",
     "id": "pedro-santos",
     "title": "Pedro Santos — perfil profissional",
     "url": "https://gbc.phasscode.com/#sobre",
-    "content": "Pedro Santos é desenvolvedor backend e FullStack, com trajetória que relaciona software, engenharia e energias renováveis. Seu nome completo é Pedro Henrique Alves de Souza Santos; usa PHASSCODE e SladeSouzaSantos em seus perfis. O portfólio destaca Java, inteligência artificial e Flutter. Seus interesses incluem arquitetura de software e soluções para engenharia e dimensionamento solar. Atua na Greencity Sustainable Energy, conforme atualização direta do proprietário em 21/10/2026. O proprietário declarou interesse em oportunidades de trabalho como programador, especialmente com Java ou inteligência artificial; seu perfil reúne experiência profissional em software e projetos de engenharia, backend e integração de LLMs. Essas áreas refletem atuação e projetos distintos, não certificação de especialista em cada tecnologia.",
+    "content": "Pedro Santos é desenvolvedor de software, com experiência profissional na criação e manutenção de sistemas web, APIs e aplicativos móveis. Atuou com Java, Hibernate, JBoss e PostgreSQL no SIGAA/SIG Software e com soluções web na Geowellex, além de aplicativos e automações em Flutter, Python e PHP na Greencity. Seu foco de carreira atual é trabalhar como programador, principalmente com backend Java, arquitetura de software e Engenharia de IA. Projetos públicos incluem o portfólio PHASSCODE e Orbe, GreenCity OS, HSP Simulator e estudos de Java, APIs e segurança de LLMs. A experiência em energias renováveis e em petróleo e gás é contexto de domínio dos problemas resolvidos, não seu principal posicionamento profissional. Seu perfil separa experiência profissional de estudos e não declara senioridade definitiva nem domínio avançado de todas as tecnologias estudadas. Atua na Greencity conforme confirmação do proprietário em outubro de 2026.",
     "keywords": [
       "pedro",
       "santos",
@@ -82,7 +331,12 @@
       "recrutadora",
       "vaga",
       "contratacao",
-      "oportunidade"
+      "oportunidade",
+      "desenvolvimento de software",
+      "backend java",
+      "engenharia de ia",
+      "rag",
+      "recrutamento"
     ]
   },
   {
@@ -151,7 +405,7 @@
     "type": "profile",
     "id": "trajetoria-a-confirmar",
     "title": "Trajetória profissional e formação — panorama atualizado",
-    "content": "O histórico profissional de Pedro inclui estágio com Java na ACRUX de fevereiro de 2014 a janeiro de 2015; desenvolvimento e manutenção do SIGAA na SIG Software de junho de 2016 a fevereiro de 2017; trabalho com dados geológicos e sistema web na Geowellex de março de 2017 a outubro de 2018; e atuação na Greencity desde fevereiro de 2019, combinando engenharia fotovoltaica e desenvolvimento web/mobile. O vínculo atual com a Greencity foi confirmado pelo proprietário em 21/10/2026. Esses períodos mostram atuação em desenvolvimento em diferentes etapas, sem indicar dedicação exclusiva ou continuidade nos intervalos sem registros. O histórico com Java identifica dois períodos; não registra Java como stack da Greencity. Na formação, Gestão da Tecnologia da Informação/UNIBF e Segurança da Informação/FacPrisma estão concluídas; Ciência da Computação/UNISUL está trancada nas últimas disciplinas, com previsão de conclusão em dezembro de 2027.",
+    "content": "O histórico profissional de Pedro inclui estágio com Java na ACRUX de fevereiro de 2014 a janeiro de 2015; desenvolvimento e manutenção do SIGAA na SIG Software de junho de 2016 a fevereiro de 2017; trabalho com dados geológicos e sistema web na Geowellex de março de 2017 a outubro de 2018; e atuação na Greencity desde fevereiro de 2019, combinando engenharia fotovoltaica e desenvolvimento web/mobile. O vínculo atual com a Greencity foi confirmado pelo proprietário em 21/10/2026. Esses períodos mostram atuação em desenvolvimento em diferentes etapas, sem indicar dedicação exclusiva ou continuidade nos intervalos sem registros. O histórico com Java identifica dois períodos; não registra Java como stack da Greencity. Na formação, Gestão da Tecnologia da Informação/UNIBF e Segurança da Informação/FacPrisma estão concluídas; Ciência da Computação/UNISUL está trancada nas últimas disciplinas, com previsão de conclusão em dezembro de 2027. Além das formações já indicadas, a Academia Arcana relaciona as pós-graduações Java Applied Engineering e Engenharia de IA Aplicada (UNIPDS, 2026–2027) como em andamento, e 42 cursos livres concluídos conforme confirmação do proprietário; a conclusão dos cursos livres não altera o status das graduações e pós-graduações.",
     "keywords": [
       "experiencia",
       "experiencias",
@@ -196,7 +450,12 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": ["Node.js", "TypeScript", "Fastify", "OpenRouter"],
+    "technologies": [
+      "Node.js",
+      "TypeScript",
+      "Fastify",
+      "OpenRouter"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/98be28bd7d4f2d66a903aeaae68a0b6ac225ce0c/smart-model-router-gateway"
   },
   {
@@ -224,7 +483,14 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["Node.js", "TypeScript", "LangChain", "LangGraph", "Fastify", "Zod"],
+    "technologies": [
+      "Node.js",
+      "TypeScript",
+      "LangChain",
+      "LangGraph",
+      "Fastify",
+      "Zod"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/98be28bd7d4f2d66a903aeaae68a0b6ac225ce0c/langchain-intro"
   },
   {
@@ -249,7 +515,10 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": ["Flutter", "Dart"],
+    "technologies": [
+      "Flutter",
+      "Dart"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/reser_gas"
   },
   {
@@ -314,7 +583,13 @@
       "projetos"
     ],
     "visibility": "public",
-    "technologies": ["PHP", "Laravel", "DomPDF", "Blade", "Docker"],
+    "technologies": [
+      "PHP",
+      "Laravel",
+      "DomPDF",
+      "Blade",
+      "Docker"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/greencity-api-orcamento"
   },
   {
@@ -342,7 +617,12 @@
       "greencity"
     ],
     "visibility": "public",
-    "technologies": ["Python", "Django", "Django REST Framework", "Simple JWT"],
+    "technologies": [
+      "Python",
+      "Django",
+      "Django REST Framework",
+      "Simple JWT"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/sistema_gestao_empresarial_api"
   },
   {
@@ -367,7 +647,14 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["Java", "Spring Boot", "Spring Web", "Spring Data JPA", "JPA", "H2"],
+    "technologies": [
+      "Java",
+      "Spring Boot",
+      "Spring Web",
+      "Spring Data JPA",
+      "JPA",
+      "H2"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/webservice-springboot3-jpa"
   },
   {
@@ -396,7 +683,14 @@
     "category": "study",
     "visibility": "public",
     "role": "Laboratório de estudo com material creditado a erickwendel",
-    "technologies": ["Node.js", "TypeScript", "LangChain", "HuggingFace", "Neo4j", "OpenRouter"],
+    "technologies": [
+      "Node.js",
+      "TypeScript",
+      "LangChain",
+      "HuggingFace",
+      "Neo4j",
+      "OpenRouter"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/embeddings-neo4j-rag"
   },
   {
@@ -427,12 +721,23 @@
     "category": "professional",
     "visibility": "private",
     "role": "Engenheiro de Projetos Fotovoltaicos / Desenvolvedor Web e Mobile",
-    "technologies": ["Flutter", "Dart", "Firebase", "Python", "PHP"],
-    "relatedProjectIds": ["greencity-sdgp"],
+    "technologies": [
+      "Flutter",
+      "Dart",
+      "Firebase",
+      "Python",
+      "PHP"
+    ],
+    "relatedProjectIds": [
+      "greencity-sdgp"
+    ],
     "experiencePeriod": {
       "start": "2019-02",
       "currentAsOf": "2026-10-21",
-      "areas": ["software-development", "engineering"]
+      "areas": [
+        "software-development",
+        "engineering"
+      ]
     }
   },
   {
@@ -460,11 +765,20 @@
     "category": "professional",
     "visibility": "private",
     "role": "Mud Logging / Desenvolvedor de Sistemas",
-    "technologies": ["HTML", "CSS", "JavaScript", "PHP", "MySQL"],
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "PHP",
+      "MySQL"
+    ],
     "experiencePeriod": {
       "start": "2017-03",
       "end": "2018-10",
-      "areas": ["software-development", "engineering"]
+      "areas": [
+        "software-development",
+        "engineering"
+      ]
     }
   },
   {
@@ -494,11 +808,19 @@
     "category": "professional",
     "visibility": "third-party",
     "role": "Desenvolvedor de Sistemas — desenvolvimento e manutenção de funcionalidades do SIGAA",
-    "technologies": ["Java", "Hibernate", "JBoss", "PostgreSQL", "Scrum"],
+    "technologies": [
+      "Java",
+      "Hibernate",
+      "JBoss",
+      "PostgreSQL",
+      "Scrum"
+    ],
     "experiencePeriod": {
       "start": "2016-06",
       "end": "2017-02",
-      "areas": ["software-development"]
+      "areas": [
+        "software-development"
+      ]
     }
   },
   {
@@ -525,11 +847,18 @@
     "category": "professional",
     "visibility": "private",
     "role": "Estagiário Programador de Sistemas",
-    "technologies": ["Java", "H2", "NetBeans", "Scrum"],
+    "technologies": [
+      "Java",
+      "H2",
+      "NetBeans",
+      "Scrum"
+    ],
     "experiencePeriod": {
       "start": "2014-02",
       "end": "2015-01",
-      "areas": ["software-development"]
+      "areas": [
+        "software-development"
+      ]
     }
   },
   {
@@ -687,27 +1016,33 @@
   {
     "type": "profile",
     "id": "cursos-declarados",
-    "title": "Cursos e estudos complementares",
-    "content": "O currículo de Pedro Santos registra estudos complementares na Alura, DIO e Udemy. Na Alura: Java, Clean Architecture, DDD, SOLID, Design Patterns, TDD/JUnit, Dart/Flutter/Firebase, frontend, Docker, Git/HTTP, requisitos e interfaces. Na DIO: SQL Database Specialist, Python Fundamentals, Power BI Analyst, Cypress e Angular. Na Udemy: Java/POO, arquitetura e padrões, SQL Server/DBA, MongoDB/Neo4j, Python, estruturas de dados, redes neurais, R e Power BI. Esses registros são cursos e estudos; não há datas detalhadas nem credenciais profissionais de fornecedor registradas na base.",
+    "title": "42 cursos livres concluídos — Alura, Udemy, DIO e Hackers do Bem",
+    "content": "Pedro Santos confirmou a conclusão dos 42 cursos livres listados na Academia Arcana em 30/10/2026, sem afirmar possuir certificações oficiais de tecnologias ou provedores de nuvem. São seis trilhas: Java & Arquitetura (9); IA & Dados (5); Frontend & Mobile (7); Engenharia de Software (6); Bancos de Dados (4); DevOps & Qualidade (11). Instituições: Alura, Udemy, DIO e Programa Hackers do Bem. O Hackers do Bem compreende Nivelamento (80h), Básico (64h), Fundamental (96h) e Especialização em DevOps e DevSecOps (80h), totalizando 320 horas, cujos quatro certificados foram apresentados pelo proprietário; os PDFs não estão publicados. Os demais cursos são apresentados como concluídos por confirmação direta do proprietário, sem afirmar que cada comprovante está disponível no site. Pós-graduações e graduação têm estados independentes: não confundir conclusão de curso livre com conclusão de diploma acadêmico. Consulte os registros da respectiva trilha para nomes individuais.",
     "keywords": [
+      "curso",
       "cursos",
+      "formacao",
+      "trilhas",
       "estudos",
+      "42",
+      "concluido",
+      "concluidos",
       "alura",
-      "dio",
       "udemy",
-      "java",
-      "flutter",
-      "python",
-      "sql",
-      "power bi",
-      "cypress",
-      "angular",
-      "tdd",
-      "junit",
-      "certificacao",
+      "dio",
+      "hackers do bem",
+      "hackers",
+      "devsecops",
       "certificado",
-      "kubernetes"
-    ]
+      "certificacao",
+      "java",
+      "ia",
+      "dados",
+      "mobile",
+      "arquitetura",
+      "devops"
+    ],
+    "url": "https://gbc.phasscode.com/#academico"
   },
   {
     "type": "profile",
@@ -755,7 +1090,13 @@
     "category": "professional",
     "visibility": "private",
     "role": "Desenvolvimento de aplicativo para dimensionamento fotovoltaico e propostas",
-    "technologies": ["Flutter", "Dart", "Firebase", "Python", "PHP"]
+    "technologies": [
+      "Flutter",
+      "Dart",
+      "Firebase",
+      "Python",
+      "PHP"
+    ]
   },
   {
     "type": "project",
@@ -796,7 +1137,10 @@
       "projetos"
     ],
     "visibility": "public",
-    "technologies": ["WordPress", "PHP"]
+    "technologies": [
+      "WordPress",
+      "PHP"
+    ]
   },
   {
     "type": "project",
@@ -823,6 +1167,262 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["HTML", "CSS", "JavaScript"]
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript"
+    ]
+  },
+  {
+    "type": "profile",
+    "id": "cursos-java-arquitetura",
+    "title": "Cursos concluídos — Java & Arquitetura",
+    "url": "https://gbc.phasscode.com/#academico",
+    "content": "Trilha Java & Arquitetura: 9 cursos livres concluídos, informados pelo proprietário em 30/10/2026. Todos têm situação Concluído na Academia Arcana. O título e a instituição são registrados no catálogo do frontend; comprovantes individuais ainda não estão todos publicados. Esta lista não constitui certificação profissional oficial de fornecedores.\n1. Formação Java e Clean Architecture — Alura — concluído.\n2. Formação Java e Domain Driven Design — Alura — concluído.\n3. Formação SOLID com Java — Alura — concluído.\n4. Formação Design Patterns em Java — Alura — concluído.\n5. Formação TDD e Java — JUnit — Alura — concluído.\n6. Formação em Java: POO, DDD e APIs REST — Udemy — concluído.\n7. Java Completo — Programação Orientada a Objetos — Udemy — concluído.\n8. Clean Code na Prática — Udemy — concluído.\n9. Padrões de Projeto em Java — Udemy — concluído.\nEm aprofundamento: Spring Boot, Quarkus, integração com IA e arquitetura moderna de aplicações Java. Essas tecnologias em aprofundamento não são apresentadas automaticamente como experiência profissional prática.",
+    "keywords": [
+      "curso",
+      "cursos",
+      "concluido",
+      "concluidos",
+      "alura",
+      "udemy",
+      "dio",
+      "java",
+      "arquitetura",
+      "formação",
+      "clean",
+      "architecture",
+      "domain",
+      "driven",
+      "design",
+      "solid",
+      "patterns",
+      "junit",
+      "completo"
+    ]
+  },
+  {
+    "type": "profile",
+    "id": "cursos-ia-dados",
+    "title": "Cursos concluídos — IA & Dados",
+    "url": "https://gbc.phasscode.com/#academico",
+    "content": "Trilha IA & Dados: 5 cursos livres concluídos, informados pelo proprietário em 30/10/2026. Todos têm situação Concluído na Academia Arcana. O título e a instituição são registrados no catálogo do frontend; comprovantes individuais ainda não estão todos publicados. Esta lista não constitui certificação profissional oficial de fornecedores.\n1. Estruturas de Dados e Algoritmos em Python — Udemy — concluído.\n2. Redes Neurais Artificiais em Python — Udemy — concluído.\n3. Formação Python Fundamentals — DIO — concluído.\n4. Linguagem R para Análise de Dados — Udemy — concluído.\n5. Formação Power BI Analyst — DIO — concluído.\nEm aprofundamento: Engenharia de IA aplicada: RAG, embeddings, agentes, LangChain, LangGraph e MCP (pós-graduação). Essas tecnologias em aprofundamento não são apresentadas automaticamente como experiência profissional prática.",
+    "keywords": [
+      "curso",
+      "cursos",
+      "concluido",
+      "concluidos",
+      "alura",
+      "udemy",
+      "dio",
+      "dados",
+      "estruturas",
+      "algoritmos",
+      "python",
+      "redes",
+      "neurais",
+      "artificiais",
+      "formação",
+      "fundamentals",
+      "linguagem",
+      "análise",
+      "power"
+    ]
+  },
+  {
+    "type": "profile",
+    "id": "cursos-frontend-mobile",
+    "title": "Cursos concluídos — Frontend & Mobile",
+    "url": "https://gbc.phasscode.com/#academico",
+    "content": "Trilha Frontend & Mobile: 7 cursos livres concluídos, informados pelo proprietário em 30/10/2026. Todos têm situação Concluído na Academia Arcana. O título e a instituição são registrados no catálogo do frontend; comprovantes individuais ainda não estão todos publicados. Esta lista não constitui certificação profissional oficial de fornecedores.\n1. Formação HTML e CSS — responsividade e mobile-first — Alura — concluído.\n2. Formação JavaScript — DOM, formulários e APIs — Alura — concluído.\n3. Formação TypeScript — Alura — concluído.\n4. Formação Dart — Alura — concluído.\n5. Formação Flutter — estados, APIs e testes — Alura — concluído.\n6. Formação Firebase Authentication — Alura — concluído.\n7. Desenvolvimento Frontend com Angular — DIO — concluído.\nEm aprofundamento: Arquitetura de interfaces, React e integração de aplicativos com APIs. Essas tecnologias em aprofundamento não são apresentadas automaticamente como experiência profissional prática.",
+    "keywords": [
+      "curso",
+      "cursos",
+      "concluido",
+      "concluidos",
+      "alura",
+      "udemy",
+      "dio",
+      "frontend",
+      "mobile",
+      "formação",
+      "responsividade",
+      "first",
+      "javascript",
+      "formulários",
+      "typescript",
+      "flutter",
+      "estados",
+      "testes",
+      "firebase"
+    ]
+  },
+  {
+    "type": "profile",
+    "id": "cursos-engenharia-software",
+    "title": "Cursos concluídos — Engenharia de Software",
+    "url": "https://gbc.phasscode.com/#academico",
+    "content": "Trilha Engenharia de Software: 6 cursos livres concluídos, informados pelo proprietário em 30/10/2026. Todos têm situação Concluído na Academia Arcana. O título e a instituição são registrados no catálogo do frontend; comprovantes individuais ainda não estão todos publicados. Esta lista não constitui certificação profissional oficial de fornecedores.\n1. Formação Engenharia de Requisitos — Alura — concluído.\n2. Formação UML — modelagem e BPMN — Alura — concluído.\n3. Design Thinking — Alura — concluído.\n4. Formação UI Design — Alura — concluído.\n5. Figma — layouts de aplicativos mobile — Alura — concluído.\n6. Aprendendo Domain Driven Design (DDD) do Zero — Udemy — concluído.\nEm aprofundamento: Projetos de software orientados a domínio, arquitetura, manutenção e qualidade. Essas tecnologias em aprofundamento não são apresentadas automaticamente como experiência profissional prática.",
+    "keywords": [
+      "curso",
+      "cursos",
+      "concluido",
+      "concluidos",
+      "alura",
+      "udemy",
+      "dio",
+      "engenharia",
+      "software",
+      "formação",
+      "requisitos",
+      "modelagem",
+      "design",
+      "thinking",
+      "figma",
+      "layouts",
+      "aplicativos",
+      "mobile",
+      "aprendendo",
+      "domain",
+      "driven"
+    ]
+  },
+  {
+    "type": "profile",
+    "id": "cursos-bancos-dados",
+    "title": "Cursos concluídos — Bancos de Dados",
+    "url": "https://gbc.phasscode.com/#academico",
+    "content": "Trilha Bancos de Dados: 4 cursos livres concluídos, informados pelo proprietário em 30/10/2026. Todos têm situação Concluído na Academia Arcana. O título e a instituição são registrados no catálogo do frontend; comprovantes individuais ainda não estão todos publicados. Esta lista não constitui certificação profissional oficial de fornecedores.\n1. Formação SQL Database Specialist — DIO — concluído.\n2. SQL Server Completo — Formação DBA — Udemy — concluído.\n3. Curso NoSQL — MongoDB e Neo4j — Udemy — concluído.\n4. Formação Power BI + SQL Server — Udemy — concluído.\nEm aprofundamento: Modelagem, persistência, consultas e integração entre bases relacionais e NoSQL. Essas tecnologias em aprofundamento não são apresentadas automaticamente como experiência profissional prática.",
+    "keywords": [
+      "curso",
+      "cursos",
+      "concluido",
+      "concluidos",
+      "alura",
+      "udemy",
+      "dio",
+      "bancos",
+      "dados",
+      "formação",
+      "database",
+      "specialist",
+      "server",
+      "completo",
+      "nosql",
+      "mongodb",
+      "neo4j",
+      "power"
+    ]
+  },
+  {
+    "type": "profile",
+    "id": "cursos-devops-qualidade",
+    "title": "Cursos concluídos — DevOps & Qualidade",
+    "url": "https://gbc.phasscode.com/#academico",
+    "content": "Trilha DevOps & Qualidade: 11 cursos livres concluídos, informados pelo proprietário em 30/10/2026. Todos têm situação Concluído na Academia Arcana. O título e a instituição são registrados no catálogo do frontend; comprovantes individuais ainda não estão todos publicados. Esta lista não constitui certificação profissional oficial de fornecedores.\n1. Formação Docker — containers — Alura — concluído.\n2. Git e GitHub — controle de versão — Alura — concluído.\n3. Git e GitHub do Básico ao Avançado — Udemy — concluído.\n4. Formação Automação de Testes com Cypress — DIO — concluído.\n5. HTTP — entendendo a Web — Alura — concluído.\n6. Webpack — módulos em aplicações Web — Alura — concluído.\n7. Formação Performance Web — Alura — concluído.\n8. Hackers do Bem — Nivelamento — Programa Hackers do Bem (80h) — concluído.\n9. Hackers do Bem — Básico — Programa Hackers do Bem (64h) — concluído.\n10. Hackers do Bem — Fundamental — Programa Hackers do Bem (96h) — concluído.\n11. Hackers do Bem — Especialização em DevOps e DevSecOps — Programa Hackers do Bem (80h) — concluído.\nEm aprofundamento: CI/CD, testes automatizados, segurança de aplicações e observabilidade. Essas tecnologias em aprofundamento não são apresentadas automaticamente como experiência profissional prática.",
+    "keywords": [
+      "curso",
+      "cursos",
+      "concluido",
+      "concluidos",
+      "alura",
+      "udemy",
+      "dio",
+      "devops",
+      "qualidade",
+      "formação",
+      "docker",
+      "containers",
+      "github",
+      "controle",
+      "versão",
+      "básico",
+      "avançado",
+      "automação",
+      "testes",
+      "cypress",
+      "entendendo",
+      "webpack",
+      "módulos",
+      "hackers do bem",
+      "hackers",
+      "devsecops",
+      "seguranca",
+      "320h"
+    ]
+  },
+  {
+    "type": "profile",
+    "id": "cursos-hackers-do-bem",
+    "title": "Hackers do Bem — quatro etapas concluídas, 320 horas",
+    "url": "https://gbc.phasscode.com/#academico",
+    "content": "Pedro Santos concluiu quatro cursos do Programa Hackers do Bem, com certificados fornecidos pelo proprietário e ainda não publicados no portfólio: Nivelamento (80 horas), Básico (64 horas), Fundamental (96 horas) e Especialização em DevOps e DevSecOps (80 horas). Carga horária combinada: 320 horas. São cursos de formação em segurança e DevSecOps; isso não comprova certificação Kubernetes, AWS ou outra credencial profissional de fornecedor. As quatro etapas integram a trilha DevOps & Qualidade da Academia Arcana.",
+    "keywords": [
+      "hackers do bem",
+      "hackers",
+      "seguranca",
+      "segurança",
+      "devops",
+      "devsecops",
+      "nivelamento",
+      "basico",
+      "fundamental",
+      "certificado",
+      "curso",
+      "cursos",
+      "320 horas",
+      "320h",
+      "especializacao",
+      "concluido"
+    ]
+  },
+  {
+    "type": "profile",
+    "id": "formacao-unipds-java",
+    "title": "Pós-graduação em andamento — Java Applied Engineering, UNIPDS",
+    "url": "https://gbc.phasscode.com/#academico",
+    "content": "A Academia Arcana apresenta Java Applied Engineering pela UNIPDS, período 2026–2027, como pós-graduação em andamento, não concluída. Enfoque: ecossistema Java, arquiteturas de software, desenvolvimento backend, Spring Boot, Quarkus, JPA/Hibernate, construção e qualidade de software. O conteúdo estudado não deve ser confundido com experiência profissional remunerada em cada framework, nem com diploma já emitido.",
+    "keywords": [
+      "java applied engineering",
+      "unipds",
+      "java",
+      "pos",
+      "pós-graduação",
+      "formacao",
+      "arquitetura",
+      "spring boot",
+      "quarkus",
+      "hibernate",
+      "jpa",
+      "em andamento",
+      "2026",
+      "2027"
+    ]
+  },
+  {
+    "type": "profile",
+    "id": "formacao-unipds-ia",
+    "title": "Pós-graduação em andamento — Engenharia de IA Aplicada, UNIPDS",
+    "url": "https://gbc.phasscode.com/#academico",
+    "content": "A Academia Arcana apresenta Engenharia de IA Aplicada pela UNIPDS, período 2026–2027, como pós-graduação em andamento, não concluída. Enfoque de estudos: integração de modelos de linguagem, RAG, embeddings, bancos vetoriais, LangChain/LangGraph, agentes de IA, MCP e guardrails. Projetos de integração de LLMs e dados devem ser citados separadamente como evidência prática, sem declarar domínio profissional ou conclusão de diploma somente com base na ementa.",
+    "keywords": [
+      "engenharia de ia aplicada",
+      "engenharia de ia",
+      "unipds",
+      "inteligencia artificial",
+      "ia",
+      "pos",
+      "pós-graduação",
+      "rag",
+      "embeddings",
+      "langchain",
+      "langgraph",
+      "agentes",
+      "mcp",
+      "guardrails",
+      "em andamento",
+      "2026",
+      "2027"
+    ]
   }
 ]

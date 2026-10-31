@@ -169,6 +169,10 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         if (requestedExperience && doc.category === 'professional') relevance += 10;
         if (doc.category === 'study' && !project) relevance -= 5;
       }
+      // Perguntas sobre cursos devem privilegiar trilhas de cursos concluídos;
+      // vagas, projetos e experiência continuam usando suas evidências próprias.
+      const seekingCourses = /\\b(?:cursos?|certificados?|capacitac\\w*|treinament\\w*)\\b/.test(queryPhrase);
+      if (seekingCourses && doc.id.startsWith('cursos-')) relevance += 16;
       return {
         doc,
         eligible:

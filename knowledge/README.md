@@ -41,3 +41,29 @@ A busca pondera termos, tecnologias reais e intenção de experiência/projeto. 
 compara os registros fornecidos com a resposta final; não retorna automaticamente tudo que foi
 consultado. Não usa embeddings nem faz scraping.
 Uma futura porta de recuperação vetorial poderá usar PostgreSQL/pgvector após medir a necessidade.
+
+## Atualização do catálogo profissional (31/10/2026)
+
+O Orbe usa uma **curadoria versionada no backend**, não consome automaticamente
+o catálogo React da Academia Arcana. A sincronização editorial desta revisão
+foi baseada nas listas `src/data/formacoes.ts`, `projetos.ts` e
+`arquivoProjetos.ts` do frontend `web-portfolio-v2/dev` na revisão
+`6efb48ed1450e728fbacf1e9b0e378eb1b6dd113`.
+
+São **48 registros**: 31 anteriores preservados e 17 novos (oito projetos,
+seis trilhas de cursos, resumo Hackers do Bem e duas pós-graduações UNIPDS).
+Todos os **42 cursos livres** estão marcados como concluídos por confirmação
+do autor. Quatro certificados Hackers do Bem somam **320 horas** e não foram
+incluídos no repositório. Não há certificados de fabricantes inferidos.
+
+Cada resposta cita páginas públicas ou repositórios reais quando apropriado;
+JSON e caminhos de código locais não são apresentados como fontes externas.
+O conteúdo é estático até uma nova revisão/redeploy do **backend**. Mudanças no
+frontend não atualizam a base em tempo real. O Orbe não faz scraping contínuo.
+Para novos cursos e projetos, sincronize e revise a procedência antes de
+publicar novamente.
+
+A validação de comportamento de recrutadores usa
+`tests/orbe-recruiter-scenarios.test.ts`, e a avaliação HTTP opcional usa
+`evaluation/recruiter-cases.json` com `--matrix=`, sempre limitada e explícita.
+A execução de testes simulados não comprova respostas de um provedor LLM real.

@@ -259,3 +259,31 @@ Experiências em produtos de terceiros não recebem repositórios inventados. Pr
 estudo é apresentado como estudo; experiência profissional permanece distinta. O objetivo
 de carreira de Pedro (oportunidades em programação Java/IA) foi fornecido diretamente pelo
 proprietário, não equivale a disponibilidade imediata ou experiência sênior.
+
+## Atualização do catálogo da Academia Arcana e da Guilda — 31/10/2026
+
+- **Origem primária de curadoria:** `SladeSouzaSantos/web-portfolio-v2`,
+  branch `dev`, revisão `6efb48ed1450e728fbacf1e9b0e378eb1b6dd113`.
+  Dados de `src/data/formacoes.ts`, `src/data/projetos.ts` e
+  `src/data/arquivoProjetos.ts`, com URLs públicas de GitHub e demos.
+- **Cursos livres:** o proprietário confirmou expressamente que todos os 42
+  cursos são concluídos. As seis trilhas mantêm os nomes e instituições
+  publicados na Academia Arcana; ausência de PDFs de outros cursos não os
+  converte em cursos em andamento nem comprova uma certificação Kubernetes/AWS.
+- **Hackers do Bem:** quatro certificados enviados pelo proprietário:
+  Nivelamento 80h, Básico 64h, Fundamental 96h, especialização DevOps/DevSecOps
+  80h; total 320h. Os arquivos privados não foram adicionados.
+- **Pós UNIPDS:** duas fichas `Java Applied Engineering` e `Engenharia de IA
+  Aplicada`, 2026–2027, como *em andamento*. Tópicos de ementa não conferem
+  conclusão, senioridade ou experiência profissional em cada framework.
+- **FacPrisma/UNISUL:** prevalecem as confirmações diretas documentadas em
+  21/10/2026: somente Segurança da Informação/FacPrisma concluída e Ciência
+  da Computação/UNISUL trancada, previsão dez/2027. O medalhão agrupado
+  do frontend não é comprovação de cinco títulos concluídos.
+- **Novos projetos:** GreenCity OS, Guardrails Prompt Injection, Task Manager
+  Flask, Stranger Things Experience, Shadow Sim Pro, Gemini Nano Browser,
+  Teclado Sound e Número Secreto. Os links são os efetivamente publicados;
+  exercícios de cursos continuam categorizados como estudos.
+- **Limitação da sincronização:** base local curada e versionada, com carga
+  no início da aplicação, sem atualização automática do frontend. O backend
+  precisa de novo deploy para que a IA use as informações atualizadas.
