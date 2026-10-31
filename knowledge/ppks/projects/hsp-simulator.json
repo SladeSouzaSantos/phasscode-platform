@@ -1,0 +1,211 @@
+{
+  "schemaVersion": "1.0",
+  "id": "hsp-simulator",
+  "kind": "project",
+  "identity": {
+    "name": "HSP Simulator — API e simulação solar",
+    "nature": "unknown",
+    "role": "Papel não especificado no catálogo",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/hsp_simulator",
+    "demoUrl": "https://hsp.greencity.net.br/",
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "multi",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "HSP Simulator: projeto autoral Python/FastAPI/Pydantic com dashboard Streamlit, motores de transposição de irradiância via pvlib/pandas/NumPy, sombreamento e dados NASA POWER (horários), INPE/LABREN (referência horizontal mensal) e PVGIS.",
+    "technical": "HSP Simulator: projeto autoral Python/FastAPI/Pydantic com dashboard Streamlit, motores de transposição de irradiância via pvlib/pandas/NumPy, sombreamento e dados NASA POWER (horários), INPE/LABREN (referência horizontal mensal) e PVGIS. Endpoints documentados POST /calcular e /calcular-arranjo, testes pytest e benchmarks, Docker e demonstração pública. Demonstra ingestão, limpeza/normalização e cálculos de engenharia, competência TRANSFERÍVEL a engenharia de dados; NÃO comprova por si só um data warehouse, persistência de dados em banco, Airflow/dbt, pipelines ETL corporativos nem MLOps. O README da branch dev informa que valores físicos novos NÃO foram certificados por comparação independente com PVsyst. Documentação histórica reporta testes anteriores, não certificar o resultado atual sem executá-los. Fonte: https://github.com/SladeSouzaSantos/hsp_simulator (README e código).",
+    "problemSolved": "Simular irradiação em diferentes orientações/inclinações e comparar modelos de transposição."
+  },
+  "stack": [
+    {
+      "name": "Python",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "FastAPI",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Pydantic",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Streamlit",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "NumPy",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "pandas",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "SciPy",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "pvlib",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Plotly",
+      "kind": "tool",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Docker",
+      "kind": "infrastructure",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "multi",
+    "components": [
+      "FastAPI",
+      "Dashboard Streamlit",
+      "Motor pvlib",
+      "Camada de aquisição NASA POWER/PVGIS"
+    ],
+    "patterns": [],
+    "dataFlow": "Aquisição de séries meteorológicas -> normalização -> modelos solares -> endpoints e gráficos."
+  },
+  "features": [
+    {
+      "name": "Simulação de irradiação",
+      "description": "Modelo Perez e alternativas para diferentes orientações.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "API de cálculo",
+      "description": "Endpoints POST /calcular e /calcular-arranjo.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "engineering": {
+    "tests": [
+      {
+        "name": "pytest",
+        "scope": "Testes unitários, integração e módulos de benchmarks documentados.",
+        "evidenceIds": [
+          "tests"
+        ]
+      }
+    ],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [
+      "Docker e demo pública declarada"
+    ],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: multi",
+      "demonstrates": "Este projeto documenta competências em Python, FastAPI, Pydantic, Streamlit, NumPy, pandas; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "PVsyst independente",
+      "status": "not_verified",
+      "description": "Validação física externa independente não está certificada."
+    },
+    {
+      "topic": "Airflow e dbt",
+      "status": "not_implemented",
+      "description": "Não são comprovados neste projeto."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    },
+    {
+      "id": "tests",
+      "type": "test",
+      "url": "https://github.com/SladeSouzaSantos/hsp_simulator/blob/70896f32c5d9033aaf243c374de9ac3b5c716821/tests/unit/test_perez_engine.py",
+      "path": "tests/unit/test_perez_engine.py",
+      "note": null
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/hsp_simulator",
+    "sourcePath": null,
+    "sourceRef": "main",
+    "sourceCommit": "70896f32c5d9033aaf243c374de9ac3b5c716821",
+    "lastModifiedAt": "2026-10-22T21:27:57Z",
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": true
+  }
+}
