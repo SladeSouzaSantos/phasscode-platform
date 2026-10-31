@@ -1,0 +1,421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://phasscode.com/schemas/ppks/experience-v1.schema.json",
+  "title": "PHASSCODE Professional Experience Schema v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "kind",
+    "organization",
+    "role",
+    "start",
+    "end",
+    "currentAsOf",
+    "areas",
+    "responsibilities",
+    "stack",
+    "projects",
+    "competencies",
+    "limitations",
+    "evidence",
+    "sync"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 120
+    },
+    "kind": {
+      "const": "experience"
+    },
+    "organization": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 220
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 220
+    },
+    "start": {
+      "type": "string",
+      "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])$"
+    },
+    "end": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 7
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "currentAsOf": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "software-development",
+          "engineering"
+        ]
+      },
+      "maxItems": 2,
+      "uniqueItems": false
+    },
+    "responsibilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 700
+      },
+      "maxItems": 25,
+      "uniqueItems": true
+    },
+    "stack": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "kind",
+          "usage",
+          "evidenceLevel",
+          "evidenceIds"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "kind": {
+            "enum": [
+              "language",
+              "framework",
+              "library",
+              "database",
+              "tool",
+              "platform",
+              "infrastructure"
+            ]
+          },
+          "usage": {
+            "enum": [
+              "implemented",
+              "documented",
+              "planned",
+              "unconfirmed"
+            ]
+          },
+          "evidenceLevel": {
+            "enum": [
+              "verified",
+              "declared",
+              "inferred"
+            ]
+          },
+          "evidenceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "maxItems": 20,
+            "uniqueItems": true
+          }
+        }
+      },
+      "maxItems": 50,
+      "uniqueItems": false
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "maxItems": 30,
+      "uniqueItems": true
+    },
+    "competencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "demonstrates",
+          "evidenceLevel",
+          "evidenceIds"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "demonstrates": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "evidenceLevel": {
+            "enum": [
+              "verified",
+              "declared",
+              "inferred"
+            ]
+          },
+          "evidenceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "maxItems": 15,
+            "uniqueItems": true
+          }
+        }
+      },
+      "maxItems": 30,
+      "uniqueItems": false
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "topic",
+          "status",
+          "description"
+        ],
+        "properties": {
+          "topic": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "status": {
+            "enum": [
+              "not_implemented",
+              "not_documented",
+              "not_verified",
+              "planned",
+              "unknown"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1200
+          }
+        }
+      },
+      "maxItems": 30,
+      "uniqueItems": false
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "url",
+          "path",
+          "note"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "type": {
+            "enum": [
+              "source_code",
+              "test",
+              "workflow",
+              "configuration",
+              "documentation",
+              "portfolio_record",
+              "commit",
+              "demo"
+            ]
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "maxItems": 30,
+      "uniqueItems": false
+    },
+    "sync": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceRepository",
+        "sourcePath",
+        "sourceRef",
+        "sourceCommit",
+        "lastModifiedAt",
+        "checkedAt",
+        "analyzedAt",
+        "reviewedAt",
+        "verificationStatus",
+        "syncEligible"
+      ],
+      "properties": {
+        "sourceRepository": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourcePath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceRef": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceCommit": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lastModifiedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "checkedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "analyzedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reviewedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "enum": [
+            "catalog_only",
+            "code_reviewed",
+            "pending_review"
+          ]
+        },
+        "syncEligible": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
