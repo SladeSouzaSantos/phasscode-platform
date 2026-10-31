@@ -1,0 +1,36 @@
+name: Temporary Orbe context formatting
+on:
+  push:
+    branches: [dev]
+    paths: ['.github/workflows/temporary-orbe-context-format.yml']
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: git pull --ff-only origin dev
+      - run: npm ci --ignore-scripts
+      - name: Normalize updated files only
+        run: |
+          npx prettier --write apps/orbe-node/prompts/v4.md apps/orbe-node/src/adapters/langchain-provider.ts tests/orbe-context-regression.test.ts
+          git diff --check
+      - name: Commit formatting to dev
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- apps/orbe-node/prompts/v4.md apps/orbe-node/src/adapters/langchain-provider.ts tests/orbe-context-regression.test.ts
+          if ! git diff --cached --quiet; then
+            git commit -m 'style(orbe): normalize recruiter context safety changes'
+            git push origin HEAD:dev
+          fi
