@@ -250,6 +250,7 @@ export async function buildApp({
           '/health': openApiDocument.paths['/health'],
           '/ready': openApiDocument.paths['/ready'],
           '/api/v1/chat': openApiDocument.paths['/api/v1/chat'],
+          '/api/v1/chat/report-optout': openApiDocument.paths['/api/v1/chat/report-optout'],
           '/api/v1/openapi.json': openApiDocument.paths['/api/v1/openapi.json'],
         },
       }
