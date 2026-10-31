@@ -58,7 +58,12 @@ export class ChatService {
     const conversationId = request.conversationId ?? randomUUID();
     const conversationToken = isNew ? randomBytes(32).toString('base64url') : token!;
     return this.store.runTurn(
-      { id: conversationId, tokenHash: hashToken(conversationToken), isNew, ...(options.analyticsConsent ? { analyticsConsent: true } : {}) },
+      {
+        id: conversationId,
+        tokenHash: hashToken(conversationToken),
+        isNew,
+        ...(options.analyticsConsent ? { analyticsConsent: true } : {}),
+      },
       async (history) => {
         const eligible = eligibleHistory(history);
         const previous = [...eligible]

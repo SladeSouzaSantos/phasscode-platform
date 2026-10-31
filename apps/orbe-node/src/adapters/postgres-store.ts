@@ -53,7 +53,12 @@ export class PostgresConversationStore implements ConversationStore {
           input.id,
           input.tokenHash,
         ]);
-      const row = await client.query<{ token_hash: string; created_at: Date; reports_opt_in: boolean; reports_opted_out: boolean }>(
+      const row = await client.query<{
+        token_hash: string;
+        created_at: Date;
+        reports_opt_in: boolean;
+        reports_opted_out: boolean;
+      }>(
         "SELECT token_hash, created_at, reports_opt_in, reports_opted_out FROM conversations WHERE id = $1 AND token_hash = $3 AND updated_at >= now() - ($2::int * interval '1 day') FOR UPDATE NOWAIT",
         [input.id, this.retentionDays, input.tokenHash],
       );
@@ -76,16 +81,23 @@ export class PostgresConversationStore implements ConversationStore {
       await client.query('UPDATE conversations SET updated_at = now() WHERE id = $1', [input.id]);
       if (this.reportsEnabled) {
         const metadata = row.rows[0]!;
-        const optedIn = !metadata.reports_opted_out &&
+        const optedIn =
+          !metadata.reports_opted_out &&
           (metadata.reports_opt_in || (input.isNew && input.analyticsConsent === true));
         if (optedIn) {
           if (input.isNew && input.analyticsConsent)
-            await client.query('UPDATE conversations SET reports_opt_in = true WHERE id = $1', [input.id]);
-          const classification = classifyInteraction(result.messages.find(m => m.role === 'user')?.content ?? '');
+            await client.query('UPDATE conversations SET reports_opt_in = true WHERE id = $1', [
+              input.id,
+            ]);
+          const classification = classifyInteraction(
+            result.messages.find((m) => m.role === 'user')?.content ?? '',
+          );
           // Source identifiers come from the server's verified portfolio catalog.
           const projects = result.response.sources
-            .filter(source => source.type === 'project' || source.type === 'platform')
-            .map(source => source.id).filter(id => /^[a-z0-9_-]{1,70}$/.test(id)).slice(0, 10);
+            .filter((source) => source.type === 'project' || source.type === 'platform')
+            .map((source) => source.id)
+            .filter((id) => /^[a-z0-9_-]{1,70}$/.test(id))
+            .slice(0, 10);
           const firstAt = metadata.created_at.getTime();
           const index = Math.floor(Math.max(0, Date.now() - firstAt) / 86400000);
           const start = new Date(firstAt + index * 86400000);
@@ -131,7 +143,7 @@ export class PostgresConversationStore implements ConversationStore {
     try {
       await client.query('BEGIN');
       const row = await client.query<{ token_hash: string }>(
-        "SELECT token_hash FROM conversations WHERE id=$1 AND token_hash=$2 FOR UPDATE",
+        'SELECT token_hash FROM conversations WHERE id=$1 AND token_hash=$2 FOR UPDATE',
         [id, tokenHash],
       );
       if (!row.rows[0] || !equalHashes(row.rows[0].token_hash, tokenHash))

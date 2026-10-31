@@ -19,8 +19,9 @@ export function classifyInteraction(message: string): {
   topics: string[];
   intent: ReportIntent;
 } {
-  const topics = ORBE_TOPICS.filter(([, expression]) => expression.test(message))
-    .map(([label]) => label);
+  const topics = ORBE_TOPICS.filter(([, expression]) => expression.test(message)).map(
+    ([label]) => label,
+  );
   const intent = /recrutad|recrutam|\bvaga\b|entrevista|contrat|curr[ií]cul|\brh\b/i.test(message)
     ? 'recrutamento'
     : /\b(?:contato|email|e-mail|whatsapp|falar com|telefonar)\b/i.test(message)

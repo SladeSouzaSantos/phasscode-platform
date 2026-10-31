@@ -7,7 +7,8 @@ import {
 
 describe('relatórios anônimos de interação', () => {
   it('produz somente etiquetas permitidas e nunca guarda perguntas completas', () => {
-    const visitor = 'Sou recrutadora Java da empresa Exemplo. Meu email pessoal é teste@example.org e preciso falar sobre Spring Boot e a vaga.';
+    const visitor =
+      'Sou recrutadora Java da empresa Exemplo. Meu email pessoal é teste@example.org e preciso falar sobre Spring Boot e a vaga.';
     const result = classifyInteraction(visitor);
     expect(result.intent).toBe('recrutamento');
     expect(result.topics).toContain('java');

@@ -14,7 +14,10 @@ const dateTime = new Intl.DateTimeFormat('pt-BR', {
   timeStyle: 'short',
 });
 const safeList = (items: string[], max = 8) =>
-  items.filter((item) => /^[a-z0-9_-]{1,70}$/.test(item)).slice(0, max).join(', ') || 'não identificados';
+  items
+    .filter((item) => /^[a-z0-9_-]{1,70}$/.test(item))
+    .slice(0, max)
+    .join(', ') || 'não identificados';
 
 export function formatConversationReport(report: ConversationReportSummary): string {
   return [
@@ -28,7 +31,13 @@ export function formatConversationReport(report: ConversationReportSummary): str
     'Visitante anônimo · Sem transcrição ou dados pessoais.',
   ].join('\n');
 }
-export function formatDailyReport(day: string, conversations: number, turns: number, recruiting: number, topics: string[]): string {
+export function formatDailyReport(
+  day: string,
+  conversations: number,
+  turns: number,
+  recruiting: number,
+  topics: string[],
+): string {
   return [
     'PHASSCODE · Consolidado diário (opt-in)',
     `Dia: ${day} · Fuso: ${timezone}`,

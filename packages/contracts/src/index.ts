@@ -95,7 +95,8 @@ export const openApiDocument = {
             in: 'header',
             name: 'X-Orbe-Report-Consent',
             required: false,
-            description: 'Autorização opcional e explícita para relatório anônimo, somente na primeira mensagem.',
+            description:
+              'Autorização opcional e explícita para relatório anônimo, somente na primeira mensagem.',
             schema: { type: 'string', enum: ['yes'] },
           },
           {
@@ -120,12 +121,20 @@ export const openApiDocument = {
       post: {
         operationId: 'withdrawOrbeReport',
         summary: 'Revogar análise opcional de conversa',
-        description: 'Requer conversationId no corpo e X-Conversation-Token. Exclui os relatórios ainda armazenados; não recupera mensagens já enviadas pelo Telegram.',
-        parameters: [{
-          in: 'header', name: 'X-Conversation-Token', required: true,
-          schema: { type: 'string', minLength: 43, maxLength: 128 },
-        }],
-        requestBody: { required: true, content: json(z.strictObject({ conversationId: z.uuid() })) },
+        description:
+          'Requer conversationId no corpo e X-Conversation-Token. Exclui os relatórios ainda armazenados; não recupera mensagens já enviadas pelo Telegram.',
+        parameters: [
+          {
+            in: 'header',
+            name: 'X-Conversation-Token',
+            required: true,
+            schema: { type: 'string', minLength: 43, maxLength: 128 },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: json(z.strictObject({ conversationId: z.uuid() })),
+        },
         responses: { 200: { description: 'Revogação confirmada' }, ...errors },
       },
     },

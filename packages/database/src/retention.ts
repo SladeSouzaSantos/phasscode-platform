@@ -12,7 +12,9 @@ try {
   );
   console.info(`Conversas expiradas removidas: ${result.rowCount ?? 0}`);
   // The conversation table cascade removes all opt-in report windows after retention.
-  await pool.query("DELETE FROM orbe_daily_reports WHERE report_day < current_date - interval '30 days'");
+  await pool.query(
+    "DELETE FROM orbe_daily_reports WHERE report_day < current_date - interval '30 days'",
+  );
   const privateData = await retainPrivateData(pool, config.meetings.retentionDays);
   console.info({ event: 'private_retention', ...privateData });
 } catch {

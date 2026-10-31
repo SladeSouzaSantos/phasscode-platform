@@ -9,8 +9,7 @@ interface ReportConfig {
   pollMs: number;
 }
 function configFrom(env: NodeJS.ProcessEnv): ReportConfig {
-  if (env.ORBE_REPORTS_ENABLED !== 'true')
-    throw new Error('ORBE_REPORTS_DISABLED');
+  if (env.ORBE_REPORTS_ENABLED !== 'true') throw new Error('ORBE_REPORTS_DISABLED');
   if (!env.DATABASE_URL || !env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID)
     throw new Error('ORBE_REPORTS_CONFIG_MISSING');
   if (!/^-?[0-9]{3,20}$/.test(env.TELEGRAM_CHAT_ID))
@@ -101,14 +100,21 @@ async function claim(pool: pg.Pool, kind: ReportKind): Promise<ClaimedRow | unde
     client.release();
   }
 }
-async function mark(pool: pg.Pool, kind: ReportKind, row: ClaimedRow, success: boolean): Promise<void> {
+async function mark(
+  pool: pg.Pool,
+  kind: ReportKind,
+  row: ClaimedRow,
+  success: boolean,
+): Promise<void> {
   const table = tableFor(kind);
-  const idConditions = kind === 'individual'
-    ? 'conversation_id=$1 AND window_index=$2 AND claim_token=$3'
-    : 'report_day=$1 AND claim_token=$2';
-  const ids: unknown[] = kind === 'individual'
-    ? [row.conversation_id, row.window_index, row.claim_token]
-    : [row.report_day, row.claim_token];
+  const idConditions =
+    kind === 'individual'
+      ? 'conversation_id=$1 AND window_index=$2 AND claim_token=$3'
+      : 'report_day=$1 AND claim_token=$2';
+  const ids: unknown[] =
+    kind === 'individual'
+      ? [row.conversation_id, row.window_index, row.claim_token]
+      : [row.report_day, row.claim_token];
   const next = ids.length + 1;
   await pool.query(
     `UPDATE ${table} SET
@@ -141,8 +147,13 @@ async function dailyText(pool: pg.Pool, day: string): Promise<string> {
     [day],
   );
   const stats = result.rows[0]!;
-  return formatDailyReport(day, Number(stats.conversations), Number(stats.turns),
-    Number(stats.recruiting), stats.topics ?? []);
+  return formatDailyReport(
+    day,
+    Number(stats.conversations),
+    Number(stats.turns),
+    Number(stats.recruiting),
+    stats.topics ?? [],
+  );
 }
 async function deliverOne(pool: pg.Pool, config: ReportConfig, kind: ReportKind): Promise<boolean> {
   const row = await claim(pool, kind);
@@ -158,15 +169,18 @@ async function deliverOne(pool: pg.Pool, config: ReportConfig, kind: ReportKind)
         [row.conversation_id, row.window_index, row.claim_token],
       );
       if (!stillAllowed.rowCount) return true;
-      await notify(config, formatConversationReport({
-        windowIndex: row.window_index!,
-        windowStart: row.window_start!,
-        dueAt: row.due_at!,
-        turns: row.turns!,
-        topics: row.topics ?? [],
-        projects: row.projects ?? [],
-        intent: row.intent ?? 'geral',
-      }));
+      await notify(
+        config,
+        formatConversationReport({
+          windowIndex: row.window_index!,
+          windowStart: row.window_start!,
+          dueAt: row.due_at!,
+          turns: row.turns!,
+          topics: row.topics ?? [],
+          projects: row.projects ?? [],
+          intent: row.intent ?? 'geral',
+        }),
+      );
     } else {
       await notify(config, await dailyText(pool, row.report_day!));
     }
@@ -188,7 +202,9 @@ async function run(): Promise<void> {
   });
   let stopping = false;
   let running = false;
-  const onStop = () => { stopping = true; };
+  const onStop = () => {
+    stopping = true;
+  };
   process.once('SIGINT', onStop);
   process.once('SIGTERM', onStop);
   const tick = async () => {
@@ -216,7 +232,7 @@ async function run(): Promise<void> {
     await pool.query('SELECT 1 FROM orbe_conversation_reports LIMIT 0');
     await tick();
     while (!stopping) {
-      await new Promise<void>(resolve => setTimeout(resolve, config.pollMs));
+      await new Promise<void>((resolve) => setTimeout(resolve, config.pollMs));
       if (!stopping) await tick();
     }
   } finally {
