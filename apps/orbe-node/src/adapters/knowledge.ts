@@ -437,7 +437,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     }
     const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
     const indexedById = new Map(this.documents.map((doc) => [doc.id, doc]));
-    const priority = [...new Set([...recruiter, ...skillEvidence, ...anchors])].flatMap((id) => {
+    const priority = [...new Set([...recruiter, ...anchors, ...skillEvidence])].flatMap((id) => {
       const doc = indexedById.get(id);
       return doc ? [doc] : [];
     });
