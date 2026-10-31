@@ -1,4 +1,4 @@
-name: Temporary PPKS index generation and format # retry responsibility normalization
+name: Temporary PPKS index generation and format # retry evidence regression fixes
 on:
   push:
     branches: [dev]
@@ -22,7 +22,7 @@ jobs:
         run: |
           npm run ppks:index
           npm run ppks:check
-          npx prettier --write knowledge/ppks apps/orbe-node/src/adapters/knowledge.ts apps/orbe-node/src/adapters/ppks.ts scripts/ppks.mjs tests/ppks.test.ts package.json
+          npx prettier --write knowledge/ppks apps/orbe-node/src/adapters/knowledge.ts apps/orbe-node/src/adapters/ppks.ts scripts/ppks.mjs tests/ppks.test.ts tests/evaluation-context.test.ts package.json
           npm run ppks:check
           git diff --check
       - name: Verify TypeScript and unit tests
@@ -33,7 +33,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- knowledge/ppks apps/orbe-node/src/adapters/knowledge.ts apps/orbe-node/src/adapters/ppks.ts scripts/ppks.mjs tests/ppks.test.ts package.json
+          git add -- knowledge/ppks apps/orbe-node/src/adapters/knowledge.ts apps/orbe-node/src/adapters/ppks.ts scripts/ppks.mjs tests/ppks.test.ts tests/evaluation-context.test.ts package.json
           if ! git diff --cached --quiet; then
             git commit -m 'style(ppks): generate verified index and format technical cards'
             git push origin HEAD:dev
