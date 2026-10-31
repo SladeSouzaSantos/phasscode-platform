@@ -20,7 +20,13 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": ["React", "TypeScript", "Vite", "React Router", "GSAP"],
+    "technologies": [
+      "React",
+      "TypeScript",
+      "Vite",
+      "React Router",
+      "GSAP"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/web-portfolio-v2"
   },
   {
@@ -28,7 +34,7 @@
     "id": "phasscode-platform",
     "title": "PHASSCODE Platform — backend do Orbe Mágico",
     "url": "https://github.com/SladeSouzaSantos/phasscode-platform",
-    "content": "PHASSCODE Platform é o backend público do Orbe Mágico, representante virtual profissional de Pedro Santos. Implementado com Node.js, TypeScript, Fastify, LangChain, PostgreSQL, Redis e Docker. POST /api/v1/chat responde com fontes do portfólio e histórico protegido por token de conversa, pesquisando uma base de conhecimento JSON. Há fallback configurável de LLMs com limites de uso e cooldown. A experiência pública não possui login, área administrativa, reuniões, calendário, notificações nem envio de mensagens. Tecnologias experimentadas anteriormente no desenvolvimento não significam funcionalidades disponíveis no produto atual.",
+    "content": "PHASSCODE Platform é o backend público do Orbe Mágico, representante virtual profissional de Pedro Santos. Implementado como projeto autoral com Node.js, TypeScript, Fastify, LangChain, PostgreSQL, Redis e Docker, não Java. POST /api/v1/chat responde com fontes do portfólio e histórico protegido por token de conversa; recuperação usa catálogo JSON com busca por termos e contexto, não banco vetorial RAG comprovado no produto atual. Há fallback configurável de LLMs com cotas globais/por provedor e cooldown. Repositório público contém testes automatizados, GitHub Actions para qualidade, integração e testes de navegador, build Docker, SAST CodeQL, DAST ZAP, imagem GHCR e workflow de deploy manual em servidor Linux/macOS; isso demonstra CI/CD em projeto próprio, não certificações ou emprego formal como DevOps. A experiência pública não possui login, área administrativa, reuniões, calendário, notificações nem envio de mensagens. Tecnologias experimentadas anteriormente não significam funcionalidades disponíveis no produto atual.",
     "keywords": [
       "backend",
       "node",
@@ -76,10 +82,16 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": ["Flutter", "Dart", "BLoC", "Isar", "Dio", "LLMs"],
+    "technologies": [
+      "Flutter",
+      "Dart",
+      "BLoC",
+      "Isar",
+      "Dio",
+      "LLMs"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/greencity-os",
-    "url": "https://github.com/SladeSouzaSantos/greencity-os",
-    "demoUrl": "https://hsp.greencity.net.br/"
+    "url": "https://github.com/SladeSouzaSantos/greencity-os"
   },
   {
     "type": "project",
@@ -105,7 +117,13 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["TypeScript", "Node.js", "LangChain", "LangGraph", "OpenRouter"],
+    "technologies": [
+      "TypeScript",
+      "Node.js",
+      "LangChain",
+      "LangGraph",
+      "OpenRouter"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/main/safeguard-prompt-injection",
     "url": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/main/safeguard-prompt-injection"
   },
@@ -131,7 +149,14 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["Python", "Flask", "SQLAlchemy", "pytest", "Docker", "Grafana"],
+    "technologies": [
+      "Python",
+      "Flask",
+      "SQLAlchemy",
+      "pytest",
+      "Docker",
+      "Grafana"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/task-manager-using-flask",
     "url": "https://github.com/SladeSouzaSantos/task-manager-using-flask"
   },
@@ -154,7 +179,13 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["HTML", "CSS", "JavaScript", "GSAP", "ScrollTrigger"],
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "GSAP",
+      "ScrollTrigger"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/stranger-things-experience",
     "url": "https://github.com/SladeSouzaSantos/stranger-things-experience"
   },
@@ -176,7 +207,13 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["Python", "Streamlit", "Plotly", "Docker Swarm", "GitHub Actions"],
+    "technologies": [
+      "Python",
+      "Streamlit",
+      "Plotly",
+      "Docker Swarm",
+      "GitHub Actions"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/shadow_simulator",
     "url": "https://github.com/SladeSouzaSantos/shadow_simulator"
   },
@@ -198,7 +235,13 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["JavaScript", "HTML", "CSS", "Web AI APIs", "Gemini Nano"],
+    "technologies": [
+      "JavaScript",
+      "HTML",
+      "CSS",
+      "Web AI APIs",
+      "Gemini Nano"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/web-ai-gemini-nano-browser",
     "url": "https://github.com/SladeSouzaSantos/web-ai-gemini-nano-browser"
   },
@@ -220,7 +263,13 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["HTML", "CSS", "JavaScript", "DOM", "Áudio"],
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "DOM",
+      "Áudio"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/alura-teclado-som",
     "url": "https://github.com/SladeSouzaSantos/alura-teclado-som",
     "demoUrl": "https://projetos.phasscode.com/projetos/teclado_som/"
@@ -243,7 +292,12 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["HTML", "CSS", "JavaScript", "Web Speech API"],
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "Web Speech API"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/n-secreto",
     "url": "https://github.com/SladeSouzaSantos/n-secreto",
     "demoUrl": "https://projetos.phasscode.com/projetos/n_secreto/"
@@ -395,7 +449,12 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": ["Node.js", "TypeScript", "Fastify", "OpenRouter"],
+    "technologies": [
+      "Node.js",
+      "TypeScript",
+      "Fastify",
+      "OpenRouter"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/98be28bd7d4f2d66a903aeaae68a0b6ac225ce0c/smart-model-router-gateway"
   },
   {
@@ -423,7 +482,14 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["Node.js", "TypeScript", "LangChain", "LangGraph", "Fastify", "Zod"],
+    "technologies": [
+      "Node.js",
+      "TypeScript",
+      "LangChain",
+      "LangGraph",
+      "Fastify",
+      "Zod"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/98be28bd7d4f2d66a903aeaae68a0b6ac225ce0c/langchain-intro"
   },
   {
@@ -448,7 +514,10 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": ["Flutter", "Dart"],
+    "technologies": [
+      "Flutter",
+      "Dart"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/reser_gas"
   },
   {
@@ -513,7 +582,13 @@
       "projetos"
     ],
     "visibility": "public",
-    "technologies": ["PHP", "Laravel", "DomPDF", "Blade", "Docker"],
+    "technologies": [
+      "PHP",
+      "Laravel",
+      "DomPDF",
+      "Blade",
+      "Docker"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/greencity-api-orcamento"
   },
   {
@@ -541,7 +616,12 @@
       "greencity"
     ],
     "visibility": "public",
-    "technologies": ["Python", "Django", "Django REST Framework", "Simple JWT"],
+    "technologies": [
+      "Python",
+      "Django",
+      "Django REST Framework",
+      "Simple JWT"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/sistema_gestao_empresarial_api"
   },
   {
@@ -549,7 +629,7 @@
     "id": "webservice-springboot-jpa",
     "title": "Webservice Spring Boot e JPA — exemplo de estudo",
     "url": "https://github.com/SladeSouzaSantos/webservice-springboot3-jpa",
-    "content": "Webservice Spring Boot e JPA é um projeto público de estudo de backend Java. Usa Java 17, Spring Boot 3.2.3, Spring Web, Spring Data JPA e H2. Organiza entidades, repositórios, serviços e recursos HTTP; UserResource implementa GET /users e GET /users/{id}. É uma referência direta para apresentar os estudos de Pedro com Java e Spring Boot. Seu escopo é consulta de usuários em um exemplo em desenvolvimento, sem autenticação nem CRUD completo.",
+    "content": "Webservice Spring Boot e JPA é um projeto público de estudo de backend Java. O pom.xml define Java 17, Spring Boot 3.2.3, Spring Web, Spring Data JPA, H2 e spring-boot-starter-test. UserResource implementa apenas GET /users e GET /users/{id}, com camadas User, UserRepository (JpaRepository), UserService e UserResource. Há um teste básico JUnit 5 @SpringBootTest (contextLoads) que verifica inicialização do contexto, mas não há suíte documentada de testes unitários de serviços ou endpoints. UserService.findById usa Optional.get() sem tratamento explícito de entidade ausente; NÃO afirmar que GET /users/{id} retorna HTTP 404 quando não encontra o usuário. Não existem endpoints próprios de criação, atualização ou exclusão (POST/PUT/DELETE) neste exemplo, nem autenticação. Java/Spring Boot deste projeto é estudo, não tecnologia confirmada no emprego SIGAA.",
     "keywords": [
       "webservice",
       "spring",
@@ -566,7 +646,14 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["Java", "Spring Boot", "Spring Web", "Spring Data JPA", "JPA", "H2"],
+    "technologies": [
+      "Java",
+      "Spring Boot",
+      "Spring Web",
+      "Spring Data JPA",
+      "JPA",
+      "H2"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/webservice-springboot3-jpa"
   },
   {
@@ -595,7 +682,14 @@
     "category": "study",
     "visibility": "public",
     "role": "Laboratório de estudo com material creditado a erickwendel",
-    "technologies": ["Node.js", "TypeScript", "LangChain", "HuggingFace", "Neo4j", "OpenRouter"],
+    "technologies": [
+      "Node.js",
+      "TypeScript",
+      "LangChain",
+      "HuggingFace",
+      "Neo4j",
+      "OpenRouter"
+    ],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/embeddings-neo4j-rag"
   },
   {
@@ -626,12 +720,23 @@
     "category": "professional",
     "visibility": "private",
     "role": "Engenheiro de Projetos Fotovoltaicos / Desenvolvedor Web e Mobile",
-    "technologies": ["Flutter", "Dart", "Firebase", "Python", "PHP"],
-    "relatedProjectIds": ["greencity-sdgp"],
+    "technologies": [
+      "Flutter",
+      "Dart",
+      "Firebase",
+      "Python",
+      "PHP"
+    ],
+    "relatedProjectIds": [
+      "greencity-sdgp"
+    ],
     "experiencePeriod": {
       "start": "2019-02",
       "currentAsOf": "2026-10-21",
-      "areas": ["software-development", "engineering"]
+      "areas": [
+        "software-development",
+        "engineering"
+      ]
     }
   },
   {
@@ -659,11 +764,20 @@
     "category": "professional",
     "visibility": "private",
     "role": "Mud Logging / Desenvolvedor de Sistemas",
-    "technologies": ["HTML", "CSS", "JavaScript", "PHP", "MySQL"],
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "PHP",
+      "MySQL"
+    ],
     "experiencePeriod": {
       "start": "2017-03",
       "end": "2018-10",
-      "areas": ["software-development", "engineering"]
+      "areas": [
+        "software-development",
+        "engineering"
+      ]
     }
   },
   {
@@ -671,7 +785,7 @@
     "id": "experiencia-sig",
     "title": "Experiência profissional — SIG Software e SIGAA",
     "url": "https://gbc.phasscode.com/#experiencia",
-    "content": "Pedro Santos trabalhou como Desenvolvedor de Sistemas na SIG Software e Consultoria em TI de junho de 2016 a fevereiro de 2017. Atuou no desenvolvimento e na manutenção evolutiva de sistemas de gestão acadêmica, especialmente novas funcionalidades do SIGAA, com Java, Hibernate, JBoss e PostgreSQL. Trabalhou em equipe multidisciplinar com Scrum, revisão de código, testes funcionais/manuais e documentação técnica. O SIGAA é um sistema de terceiros: a participação registrada é desenvolvimento e manutenção de funcionalidades, sem autoria exclusiva, propriedade do produto ou código público pessoal identificado.",
+    "content": "Pedro Santos trabalhou como Desenvolvedor de Sistemas na SIG Software e Consultoria em TI de junho de 2016 a fevereiro de 2017. Atuou no desenvolvimento e na manutenção evolutiva de sistemas de gestão acadêmica, especialmente novas funcionalidades do SIGAA, com Java, Hibernate, JBoss e PostgreSQL. Trabalhou em equipe multidisciplinar com Scrum, revisão de código, testes funcionais/manuais e documentação técnica. O SIGAA é um sistema de terceiros: a participação registrada é desenvolvimento e manutenção de funcionalidades, sem autoria exclusiva, propriedade do produto ou código público pessoal identificado. A fonte disponível não identifica versões específicas de Java, nomes de módulos internos (como matrícula, boletos ou relatórios específicos), cerimônias Scrum realizadas, bugs críticos ou refatorações de consultas JPA; esses detalhes não devem ser afirmados sem evidência adicional. Hibernate no projeto não prova por si só uso explícito da API JPA.",
     "keywords": [
       "experiencia",
       "sig",
@@ -693,11 +807,19 @@
     "category": "professional",
     "visibility": "third-party",
     "role": "Desenvolvedor de Sistemas — desenvolvimento e manutenção de funcionalidades do SIGAA",
-    "technologies": ["Java", "Hibernate", "JBoss", "PostgreSQL", "Scrum"],
+    "technologies": [
+      "Java",
+      "Hibernate",
+      "JBoss",
+      "PostgreSQL",
+      "Scrum"
+    ],
     "experiencePeriod": {
       "start": "2016-06",
       "end": "2017-02",
-      "areas": ["software-development"]
+      "areas": [
+        "software-development"
+      ]
     }
   },
   {
@@ -724,11 +846,18 @@
     "category": "professional",
     "visibility": "private",
     "role": "Estagiário Programador de Sistemas",
-    "technologies": ["Java", "H2", "NetBeans", "Scrum"],
+    "technologies": [
+      "Java",
+      "H2",
+      "NetBeans",
+      "Scrum"
+    ],
     "experiencePeriod": {
       "start": "2014-02",
       "end": "2015-01",
-      "areas": ["software-development"]
+      "areas": [
+        "software-development"
+      ]
     }
   },
   {
@@ -960,7 +1089,13 @@
     "category": "professional",
     "visibility": "private",
     "role": "Desenvolvimento de aplicativo para dimensionamento fotovoltaico e propostas",
-    "technologies": ["Flutter", "Dart", "Firebase", "Python", "PHP"]
+    "technologies": [
+      "Flutter",
+      "Dart",
+      "Firebase",
+      "Python",
+      "PHP"
+    ]
   },
   {
     "type": "project",
@@ -1001,7 +1136,10 @@
       "projetos"
     ],
     "visibility": "public",
-    "technologies": ["WordPress", "PHP"]
+    "technologies": [
+      "WordPress",
+      "PHP"
+    ]
   },
   {
     "type": "project",
@@ -1028,7 +1166,11 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": ["HTML", "CSS", "JavaScript"]
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript"
+    ]
   },
   {
     "type": "profile",
