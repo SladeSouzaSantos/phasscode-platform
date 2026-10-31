@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { sourceSchema } from '../../../../packages/contracts/src/index.js';
 import type { KnowledgeDocument, KnowledgeRepository } from '../domain/ports.js';
 import { enrichProjectDocument, loadPpksCards, type TechnicalCard } from './ppks.js';
+import { enrichAcademicDocument, loadAcademicEvidence, type AcademicEvidence } from './academic.js';
 import {
   knowledgePhrase,
   knowledgeTerms,
@@ -73,9 +74,16 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
   constructor(
     private readonly documents: KnowledgeDocument[],
     private readonly projectCards = new Map<string, TechnicalCard>(),
+    private readonly academic: AcademicEvidence | null = null,
   ) {}
   private select(documents: KnowledgeDocument[], query: string): KnowledgeDocument[] {
-    return documents.map((document) => enrichProjectDocument(document, query, this.projectCards));
+    return documents.map((document) =>
+      enrichProjectDocument(
+        enrichAcademicDocument(document, query, this.academic),
+        query,
+        this.projectCards,
+      ),
+    );
   }
   static async load(path = 'knowledge/portfolio.json'): Promise<JsonKnowledgeRepository> {
     const documents = documentsSchema.parse(JSON.parse(await readFile(path, 'utf8')));
@@ -88,11 +96,11 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     );
     if (documents.some((document) => document.relatedProjectIds?.some((id) => !projects.has(id))))
       throw new Error('Relacionamento desconhecido na base de conhecimento.');
-    const cards =
+    const [cards, academic] =
       path === 'knowledge/portfolio.json'
-        ? await loadPpksCards()
-        : new Map<string, TechnicalCard>();
-    return new JsonKnowledgeRepository(documents, cards);
+        ? await Promise.all([loadPpksCards(), loadAcademicEvidence()])
+        : [new Map<string, TechnicalCard>(), null];
+    return new JsonKnowledgeRepository(documents, cards, academic);
   }
   experienceDocuments(): KnowledgeDocument[] {
     return this.documents.filter((document) => document.experiencePeriod !== undefined);
@@ -336,8 +344,39 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       add('experiencia-greencity', 'hsp-simulator');
     }
 
+    // Recruitment queries must balance work, projects and academic proof within
+    // the existing five-document context ceiling. Never equate a course with a job.
+    const recruiter: string[] = [];
+    if (vacancy) {
+      const relevant = (pattern: RegExp) => pattern.test(phrase);
+      const recommend = (...ids: string[]) => recruiter.push(...ids);
+      const java = relevant(/\b(?:java|spring|jpa|hibernate)\b/);
+      const fullstack = relevant(
+        /\b(?:node|nodejs|typescript|react|vue|angular|fullstack|full stack)\b/,
+      );
+      const research = relevant(
+        /\b(?:pesquisa|poc|pocs|prototip\w*|experimenta\w*|metricas|desempenho)\b/,
+      );
+      const devops = relevant(/\b(?:devops|ci cd|terraform|camunda|linux|infraestrutura)\b/);
+      const ai = relevant(/\b(?:rag|llms?|agentes|inteligencia artificial|ia aplicada|aws.*ia)\b/);
+      const sqlCourse = relevant(/\b(?:sql server|oracle|angular)\b/);
+      if (research) recommend('hsp-simulator', 'phasscode-platform');
+      if (java) recommend('experiencia-sig');
+      if (fullstack) recommend('phasscode-platform', 'web-portfolio-v2');
+      if (devops) recommend('phasscode-platform', 'task-manager-flask');
+      if (ai) recommend('phasscode-platform', 'greencity-os');
+      if (java && !sqlCourse) recommend('webservice-springboot-jpa');
+      if (relevant(/\b(?:formacao|graduacao|curso superior|computacao)\b/))
+        recommend('formacao-gestao-ti');
+      if (relevant(/\b(?:ingles|idioma|english)\b/)) recommend('idiomas-declarados');
+      if (sqlCourse) recommend('cursos-frontend-mobile', 'cursos-bancos-dados');
+      if (java && !sqlCourse && !research) recommend('experiencia-acrux');
+      if (devops && relevant(/\b(?:python|dados)\b/)) recommend('hsp-simulator');
+      if (devops && relevant(/\b(?:cursos|certificados|devsecops)\b/))
+        recommend('cursos-devops-qualidade');
+    }
     const indexedById = new Map(this.documents.map((doc) => [doc.id, doc]));
-    const priority = [...new Set(anchors)].flatMap((id) => {
+    const priority = [...new Set([...recruiter, ...anchors])].flatMap((id) => {
       const doc = indexedById.get(id);
       return doc ? [doc] : [];
     });

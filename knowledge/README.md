@@ -65,3 +65,7 @@ A validação de comportamento de recrutadores usa
 `tests/orbe-recruiter-scenarios.test.ts`, e a avaliação HTTP opcional usa
 `evaluation/recruiter-cases.json` com `--matrix=`, sempre limitada e explícita.
 A execução de testes simulados não comprova respostas de um provedor LLM real.
+
+## PPKS Acadêmico v1.1 (31/10/2026)
+
+Formações e cursos agora possuem catálogos versionados e esquemas próprios em `knowledge/ppks/academic/`. O curso de Ciência da Computação na UNISUL está incompleto por atividades de extensão presenciais pendentes; a conclusão estimada é entre o fim de 2027 e o início de 2028, sem garantia. O histórico de janeiro de 2026 indica 2.780/3.200 horas aprovadas; não reutilizar o registro histórico de matrícula ativa como status atual. Gestão da TI é graduação concluída em agosto de 2025 e o diploma apresentado é emitido pelo Centro Universitário ETEP, embora o currículo use UNIBF. Os 42 cursos livres permanecem concluídos por confirmação, sem certificações de fornecedor inferidas. PDFs e dados pessoais não são publicados.

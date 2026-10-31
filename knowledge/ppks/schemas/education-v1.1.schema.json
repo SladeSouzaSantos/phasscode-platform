@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PPKS Academic Education v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "educations"],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.1"
+    },
+    "educations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "level",
+          "institution",
+          "issuer",
+          "status",
+          "completedAt",
+          "awardedAt",
+          "expectedWindow",
+          "statusDetail",
+          "evidence",
+          "coursework",
+          "competencies",
+          "limitations"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "level": {
+            "enum": [
+              "bachelor",
+              "technologist",
+              "specialization",
+              "technical_specialization",
+              "technical"
+            ]
+          },
+          "institution": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "issuer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "status": {
+            "enum": ["completed", "in_progress", "pending_completion", "not_verified"]
+          },
+          "completedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "awardedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expectedWindow": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "statusDetail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "evidence": {
+            "enum": [
+              "academic_transcript_and_owner_update",
+              "diploma_and_academic_transcript",
+              "certificate_and_transcript",
+              "diploma_and_completion_record",
+              "owner_confirmed",
+              "owner_catalog"
+            ]
+          },
+          "coursework": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "status", "hours", "evidence"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                },
+                "status": {
+                  "enum": ["approved", "curriculum_topic"]
+                },
+                "hours": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "evidence": {
+                  "enum": ["academic_transcript", "owner_confirmed"]
+                }
+              }
+            }
+          },
+          "competencies": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          }
+        }
+      }
+    }
+  }
+}

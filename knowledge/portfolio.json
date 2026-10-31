@@ -379,7 +379,7 @@
     "type": "profile",
     "id": "trajetoria-a-confirmar",
     "title": "Trajetória profissional e formação — panorama atualizado",
-    "content": "O histórico profissional de Pedro inclui estágio com Java na ACRUX de fevereiro de 2014 a janeiro de 2015; desenvolvimento e manutenção do SIGAA na SIG Software de junho de 2016 a fevereiro de 2017; trabalho com dados geológicos e sistema web na Geowellex de março de 2017 a outubro de 2018; e atuação na Greencity desde fevereiro de 2019, combinando engenharia fotovoltaica e desenvolvimento web/mobile. O vínculo atual com a Greencity foi confirmado pelo proprietário em 21/10/2026. Esses períodos mostram atuação em desenvolvimento em diferentes etapas, sem indicar dedicação exclusiva ou continuidade nos intervalos sem registros. O histórico com Java identifica dois períodos; não registra Java como stack da Greencity. Na formação, Gestão da Tecnologia da Informação/UNIBF e Segurança da Informação/FacPrisma estão concluídas; Ciência da Computação/UNISUL está trancada nas últimas disciplinas, com previsão de conclusão em dezembro de 2027. Além das formações já indicadas, a Academia Arcana relaciona as pós-graduações Java Applied Engineering e Engenharia de IA Aplicada (UNIPDS, 2026–2027) como em andamento, e 42 cursos livres concluídos conforme confirmação do proprietário; a conclusão dos cursos livres não altera o status das graduações e pós-graduações.",
+    "content": "O histórico profissional de Pedro inclui estágio com Java na ACRUX de fevereiro de 2014 a janeiro de 2015; desenvolvimento e manutenção do SIGAA na SIG Software de junho de 2016 a fevereiro de 2017; trabalho com dados geológicos e sistema web na Geowellex de março de 2017 a outubro de 2018; e atuação na Greencity desde fevereiro de 2019, combinando engenharia fotovoltaica e desenvolvimento web/mobile. O vínculo atual com a Greencity foi confirmado pelo proprietário em 21/10/2026. Esses períodos mostram atuação em desenvolvimento em diferentes etapas, sem indicar dedicação exclusiva ou continuidade nos intervalos sem registros. O histórico com Java identifica dois períodos; não registra Java como stack da Greencity. Na formação, Gestão da Tecnologia da Informação/UNIBF e Segurança da Informação/FacPrisma estão concluídas; Ciência da Computação/UNISUL ainda não está concluída: disciplinas relevantes aprovadas e extensão curricular presencial pendente por falta de tempo; previsão indicativa para final de 2027/início de 2028, sem data garantida. Além das formações já indicadas, a Academia Arcana relaciona as pós-graduações Java Applied Engineering e Engenharia de IA Aplicada (UNIPDS, 2026–2027) como em andamento, e 42 cursos livres concluídos conforme confirmação do proprietário; a conclusão dos cursos livres não altera o status das graduações e pós-graduações.",
     "keywords": [
       "experiencia",
       "experiencias",
@@ -763,9 +763,9 @@
   {
     "type": "profile",
     "id": "formacao-computacao",
-    "title": "Formação — Ciência da Computação trancada, UNISUL",
+    "title": "Formação — Ciência da Computação com disciplinas aprovadas, conclusão pendente — UNISUL",
     "url": "https://gbc.phasscode.com/#academico",
-    "content": "O Bacharelado em Ciência da Computação de Pedro Santos na UNISUL está trancado nas últimas disciplinas, com previsão de conclusão em dezembro de 2027. Esse status foi atualizado diretamente pelo proprietário em 21/10/2026 e substitui a previsão antiga de dezembro de 2026. O histórico registra início em julho de 2023 e estudos de fundamentos de computação, desenvolvimento, sistemas distribuídos/mobile, inteligência artificial, modelagem e segurança. Trata-se de graduação ainda não concluída, com disciplinas finais pendentes.",
+    "content": "Bacharelado em Ciência da Computação pela UNISUL ainda NÃO concluído. O histórico oficial emitido em 20/01/2026 apresenta disciplinas aprovadas em programação, algoritmos, estruturas de dados, sistemas distribuídos/mobile, inteligência artificial, modelagem, testes/qualidade, segurança e Big Data; no documento constam 2.780h de 3.200h exigidas (86,88%). Extensão curricular (320h) e atividades complementares (100h) apareciam pendentes naquele histórico. Em atualização do proprietário de 31/10/2026, a principal pendência são atividades de extensão que exigem visitas a locais, adiadas por falta de tempo. Há apenas PREVISÃO não vinculante de conclusão no final de 2027 ou início de 2028; não afirmar graduação concluída, matrícula ativa no presente ou prazo garantido. O histórico emitido em janeiro registrava situação acadêmica ativa naquele momento, não no presente.",
     "keywords": [
       "formacao",
       "ciencia",
@@ -782,7 +782,14 @@
       "2027",
       "trancado",
       "trancamento",
-      "disciplinas"
+      "disciplinas",
+      "2028",
+      "extensao",
+      "atividades complementares",
+      "86,88%",
+      "aprovadas",
+      "conclusao pendente",
+      "2027/2028"
     ]
   },
   {
@@ -790,7 +797,7 @@
     "id": "formacao-gestao-ti",
     "title": "Formação concluída — Gestão da Tecnologia da Informação, UNIBF",
     "url": "https://gbc.phasscode.com/#academico",
-    "content": "Pedro Santos concluiu o Tecnólogo em Gestão da Tecnologia da Informação na UNIBF em agosto de 2025. O período registrado é abril de 2024 a agosto de 2025. A formação abrange bancos de dados, redes, sistemas operacionais, gestão de projetos, segurança, inteligência artificial, orientação a objetos e testes.",
+    "content": "Pedro Santos concluiu o Tecnólogo em Gestão da Tecnologia da Informação em 21/08/2025, com colação de grau em 29/08/2025, comprovadas por diploma e histórico. O currículo e o portfólio usam UNIBF como identificação, mas o diploma oficial é emitido pelo Centro Universitário ETEP; não inferir vínculo jurídico entre instituições. Disciplinas aprovadas incluem Algoritmos e Programação, Banco de Dados, Programação Orientada a Objetos, Programação para Internet, Inteligência Artificial, BI e Big Data, Segurança da Informação, Engenharia de Software, Design de Software e Testes e Homologação de Software. É graduação superior completa de tecnólogo na área de TI.",
     "keywords": [
       "formacao",
       "gestao",
@@ -873,7 +880,7 @@
     "id": "formacao-petroleo",
     "title": "Formação concluída — Engenharia de Petróleo e Gás, UnP",
     "url": "https://gbc.phasscode.com/#academico",
-    "content": "Pedro Santos concluiu o Bacharelado em Engenharia de Petróleo e Gás na Universidade Potiguar (UnP), com formação em geologia, reservatórios, poços e operações da indústria de óleo e gás. A data exata de conclusão permanece divergente: o currículo informa dezembro de 2014 e o site antigo fevereiro de 2015. A divergência é de data, e não de status de conclusão.",
+    "content": "Pedro Santos concluiu o Bacharelado em Engenharia de Petróleo e Gás na Universidade Potiguar (UnP), com formação em geologia, reservatórios, poços e operações da indústria de óleo e gás. O currículo registra conclusão curricular em dezembro de 2014; o diploma registra colação de grau em 05/02/2015. São marcos distintos e ambos podem ser informados sem tratá-los como conflito de conclusão.",
     "keywords": [
       "formacao",
       "unp",

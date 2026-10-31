@@ -59,6 +59,72 @@ async function loadCollection(folder, schemaName) {
   }
   return items;
 }
+
+async function validateAcademicCatalog(catalog) {
+  const rootAcademic = join(root, 'academic');
+  const entries = [
+    ['educations', 'education-v1.1.schema.json'],
+    ['tracks', 'courses-v1.1.schema.json'],
+    ['skills', 'skills-v1.1.schema.json'],
+  ];
+  const loaded = {};
+  for (const [name, schemaName] of entries) {
+    const payload = await json(join(rootAcademic, `${name}.json`));
+    const schema = await json(join(root, 'schemas', schemaName));
+    const validate = ajv.compile(schema);
+    if (!validate(payload))
+      throw new Error(`PPKS_ACADEMIC_SCHEMA_INVALID ${name}: ${ajv.errorsText(validate.errors)}`);
+    loaded[name] = payload;
+  }
+  const known = new Set(catalog.map((item) => item.id));
+  const degrees = loaded.educations.educations;
+  const tracks = loaded.tracks.tracks;
+  const courses = tracks.flatMap((t) => t.courses);
+  const unique = (items) => new Set(items).size === items.length;
+  if (
+    !unique(degrees.map((e) => e.id)) ||
+    !unique(tracks.map((t) => t.id)) ||
+    !unique(courses.map((c) => c.id)) ||
+    !unique(loaded.skills.skills.map((s) => s.skill))
+  )
+    throw new Error('PPKS_ACADEMIC_DUPLICATE');
+  if (degrees.some((e) => !known.has(e.id)) || tracks.some((t) => !known.has(t.id)))
+    throw new Error('PPKS_ACADEMIC_CATALOG_MISMATCH');
+  if (
+    courses.length !== 42 ||
+    tracks.length !== 6 ||
+    degrees.length !== 9 ||
+    courses.some((c) => c.status !== 'completed')
+  )
+    throw new Error('PPKS_ACADEMIC_COVERAGE_MISMATCH');
+  const completed = degrees.filter((e) => e.status === 'completed');
+  if (completed.some((e) => !e.completedAt && e.evidence !== 'owner_confirmed'))
+    throw new Error('PPKS_ACADEMIC_COMPLETION_UNVERIFIED');
+  const computerScience = degrees.find((e) => e.id === 'formacao-computacao');
+  if (
+    computerScience?.status !== 'pending_completion' ||
+    !/2027/.test(computerScience.expectedWindow) ||
+    !/2028/.test(computerScience.expectedWindow)
+  )
+    throw new Error('PPKS_UNISUL_COMPLETION_INVALID');
+  const projectIds = new Set(
+    catalog.filter((c) => ['project', 'platform'].includes(c.type)).map((c) => c.id),
+  );
+  const experienceIds = new Set(catalog.filter((c) => c.experiencePeriod).map((c) => c.id));
+  for (const skill of loaded.skills.skills) {
+    if (
+      skill.education.some((id) => !degrees.some((e) => e.id === id)) ||
+      skill.courseTracks.some((id) => !tracks.some((t) => t.id === id)) ||
+      skill.projects.some((id) => !projectIds.has(id)) ||
+      skill.professional.some((id) => !experienceIds.has(id))
+    )
+      throw new Error(`PPKS_SKILL_REFERENCE_INVALID ${skill.skill}`);
+  }
+  console.log(
+    `PPKS_ACADEMIC_OK: ${degrees.length} educations, ${tracks.length} tracks, ${courses.length} courses, ${loaded.skills.skills.length} skills`,
+  );
+}
+
 function buildIndex(projects, experiences, generatedAt) {
   return {
     schemaVersion: version,
@@ -101,6 +167,7 @@ async function main() {
   const unique = new Set([...projects, ...experiences].map((x) => x.id));
   if (unique.size !== projects.length + experiences.length) throw new Error('PPKS_DUPLICATE_IDS');
   const catalog = await json(resolve('knowledge/portfolio.json'));
+  await validateAcademicCatalog(catalog);
   const sourceIds = new Set(catalog.map((item) => item.id));
   const catalogProjects = catalog.filter((item) => ['project', 'platform'].includes(item.type));
   if (
