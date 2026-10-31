@@ -99,7 +99,25 @@ export class LangChainChatProvider implements ChatProvider {
         502,
         'Limite de contexto do assistente atingido. Envie uma mensagem mais curta.',
       );
-    const documents = [...input.documents];
+    // A full course listing includes seven records. Remove repeated editorial
+    // disclaimers from the six tracks while preserving every course title and
+    // institution; otherwise the provider's context cap drops entire tracks.
+    const completeCourseCatalog =
+      input.documents.length === 7 &&
+      input.documents.every((doc) => doc.id.startsWith('cursos-'));
+    const documents = completeCourseCatalog
+      ? input.documents.map((doc) =>
+          doc.id === 'cursos-declarados'
+            ? doc
+            : {
+                ...doc,
+                content: doc.content
+                  .split('\n')
+                  .filter((line) => /^\d+\./.test(line))
+                  .join('\n'),
+              },
+        )
+      : [...input.documents];
     const reference = () =>
       new HumanMessage(
         `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
