@@ -18,6 +18,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Integrate latest dev changes before formatting
+        run: git pull --ff-only origin dev
       - run: npm ci --ignore-scripts
       - name: Normalize audited files only
         run: |
