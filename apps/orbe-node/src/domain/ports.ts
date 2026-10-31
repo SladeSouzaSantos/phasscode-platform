@@ -29,6 +29,7 @@ export interface KnowledgeDocument extends Source {
 }
 export interface KnowledgeRepository {
   search(query: string): KnowledgeDocument[];
+  getDocument?(id: string): KnowledgeDocument | undefined;
   experienceDocuments?(): KnowledgeDocument[];
 }
 export interface GenerationInput {
