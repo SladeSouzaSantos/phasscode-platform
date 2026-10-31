@@ -1,0 +1,248 @@
+{
+  "schemaVersion": "1.0",
+  "id": "phasscode-platform",
+  "kind": "project",
+  "identity": {
+    "name": "PHASSCODE Platform — backend do Orbe Mágico",
+    "nature": "personal",
+    "role": "Autor do projeto",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/phasscode-platform",
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "backend",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "PHASSCODE Platform é o backend autoral do Orbe profissional, IMPLEMENTADO com Node.",
+    "technical": "PHASSCODE Platform é o backend autoral do Orbe profissional, IMPLEMENTADO com Node.js/TypeScript, Fastify, LangChain (pacote @langchain/openai e ChatOpenAI, com ferramentas para busca), PostgreSQL, Redis e Docker. Confirmação no código: apps/orbe-node/src/adapters/langchain-provider.ts importa e utiliza LangChain; NÃO declarar que a plataforma não usa LangChain. A recuperação da plataforma é um índice curado JSON com busca lexical e trechos de READMEs públicos sob demanda; NÃO é um RAG vetorial/embeddings em produção nem implementa banco vetorial neste chat. POST /api/v1/chat tem histórico com token de conversa, seleção de fontes, fallback entre LLMs, limites globais/por provedor e cooldown em Redis. Repositório contém testes automatizados, CI/CD GitHub Actions, imagem Docker, CodeQL (SAST), ZAP (DAST), integração e testes de navegador. Essas são entregas de projeto próprio, não comprovam emprego formal DevOps, AWS, Kubernetes ou treinamento de modelos de ML. A versão pública atual NÃO oferece login, admin, reuniões ou notificações. Java, Kafka e RabbitMQ em perfis futuros não são implementações de serviços Java/Kafka em produção.",
+    "problemSolved": "Responder perguntas de recrutamento sobre histórico, tecnologias e projetos, com evidências e controle de disponibilidade de LLMs."
+  },
+  "stack": [
+    {
+      "name": "Node.js",
+      "kind": "library",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "ports",
+        "knowledge-adapter",
+        "tests"
+      ]
+    },
+    {
+      "name": "TypeScript",
+      "kind": "language",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "ports",
+        "knowledge-adapter",
+        "tests"
+      ]
+    },
+    {
+      "name": "Fastify",
+      "kind": "framework",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "ports",
+        "knowledge-adapter",
+        "tests"
+      ]
+    },
+    {
+      "name": "LangChain",
+      "kind": "framework",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "ports",
+        "knowledge-adapter",
+        "tests"
+      ]
+    },
+    {
+      "name": "PostgreSQL",
+      "kind": "database",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "ports",
+        "knowledge-adapter",
+        "tests"
+      ]
+    },
+    {
+      "name": "Redis",
+      "kind": "database",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "ports",
+        "knowledge-adapter",
+        "tests"
+      ]
+    },
+    {
+      "name": "Docker",
+      "kind": "infrastructure",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "ports",
+        "knowledge-adapter",
+        "tests"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "layered",
+    "components": [
+      "Fastify HTTP API",
+      "ChatService",
+      "JsonKnowledgeRepository",
+      "LangChainChatProvider",
+      "PostgresConversationStore",
+      "Redis LLM Budget/Cooldown"
+    ],
+    "patterns": [
+      {
+        "name": "Ports and adapters",
+        "application": "Contratos de domínio separam orquestração do chat, provedores e repositório de conhecimento.",
+        "evidenceLevel": "verified",
+        "evidenceIds": [
+          "ports",
+          "knowledge-adapter"
+        ]
+      }
+    ],
+    "dataFlow": "Requisição HTTP -> serviço de chat -> recuperação de evidências -> provedor/fallback -> resposta com referências; PostgreSQL e Redis persistem estados distintos."
+  },
+  "features": [
+    {
+      "name": "Chat contextualizado com seleção de fontes",
+      "description": "Chat em POST /api/v1/chat, histórico e recuperação lexical de evidências.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Fallback LLMs com cotas",
+      "description": "Seleção entre provedores e cooldown persistido em Redis.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Relatórios opt-in",
+      "description": "Métricas anônimas e envio programado para Telegram com serviço separado.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "engineering": {
+    "tests": [
+      {
+        "name": "Vitest",
+        "scope": "Testes unitários e de integração com PostgreSQL/Redis.",
+        "evidenceIds": [
+          "tests"
+        ]
+      }
+    ],
+    "quality": [
+      "Lint, typecheck e testes de regressão"
+    ],
+    "ciCd": [
+      "GitHub Actions com validações e geração de imagem Docker"
+    ],
+    "deployment": [
+      "Docker Compose DEV"
+    ],
+    "security": [
+      "Testes SAST e DAST no CI"
+    ]
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: backend",
+      "demonstrates": "Este projeto documenta competências em Node.js, TypeScript, Fastify, LangChain, PostgreSQL, Redis; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "ports",
+        "knowledge-adapter",
+        "tests"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "RAG vetorial",
+      "status": "not_implemented",
+      "description": "O Orbe usa índice JSON e busca lexical; não foi comprovado banco vetorial no chat."
+    },
+    {
+      "topic": "Java em produção",
+      "status": "not_verified",
+      "description": "O backend autoral examinado usa Node.js/TypeScript; não comprova backend Java corporativo."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    },
+    {
+      "id": "ports",
+      "type": "source_code",
+      "url": "https://github.com/SladeSouzaSantos/phasscode-platform/blob/c208817c98b3fc4d40414fd656578cf8674219c8/apps/orbe-node/src/domain/ports.ts",
+      "path": "apps/orbe-node/src/domain/ports.ts",
+      "note": null
+    },
+    {
+      "id": "knowledge-adapter",
+      "type": "source_code",
+      "url": "https://github.com/SladeSouzaSantos/phasscode-platform/blob/c208817c98b3fc4d40414fd656578cf8674219c8/apps/orbe-node/src/adapters/knowledge.ts",
+      "path": "apps/orbe-node/src/adapters/knowledge.ts",
+      "note": null
+    },
+    {
+      "id": "tests",
+      "type": "test",
+      "url": "https://github.com/SladeSouzaSantos/phasscode-platform/blob/c208817c98b3fc4d40414fd656578cf8674219c8/tests/knowledge-relevance.test.ts",
+      "path": "tests/knowledge-relevance.test.ts",
+      "note": null
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/phasscode-platform",
+    "sourcePath": null,
+    "sourceRef": "dev",
+    "sourceCommit": "c208817c98b3fc4d40414fd656578cf8674219c8",
+    "lastModifiedAt": "2026-10-31T17:38:13Z",
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": "2026-10-31T19:43:18.186Z",
+    "verificationStatus": "code_reviewed",
+    "syncEligible": true
+  }
+}
