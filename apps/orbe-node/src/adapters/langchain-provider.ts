@@ -131,53 +131,59 @@ export class LangChainChatProvider implements ChatProvider {
       ),
       new HumanMessage(input.message),
     );
-    // Preserve at least the most recent complete conversation pair when possible.
-    // A longer professional prompt must not erase all recruiter follow-up context.
+    // Vendor wire JSON escapes the already serialized reference (and often adds
+    // tool metadata). Reserve headroom for that representation and tool replies.
+    // Limiting only the in-memory LangChain content was allowing HTTP 502 on
+    // otherwise valid recruiter questions with the 12k-character configuration.
+    const contextTarget =
+      this.maxContextChars - Math.min(2200, Math.floor(this.maxContextChars * 0.18));
     let historyMessages = input.history.length;
-    while (
-      contextSize() > this.maxContextChars &&
-      historyMessages > 2 &&
-      messages[2] instanceof HumanMessage &&
-      messages[3] instanceof AIMessage
-    ) {
+
+    const removeOldestHistoryPair = (): boolean => {
+      if (
+        historyMessages < 2 ||
+        !(messages[2] instanceof HumanMessage) ||
+        !(messages[3] instanceof AIMessage)
+      )
+        return false;
       messages.splice(2, 2);
       historyMessages -= 2;
-    }
-    while (contextSize() > this.maxContextChars && documents.length > 1) {
-      documents.pop();
-      messages[1] = reference();
-    }
-    const original = documents[0];
-    const fitFirstDocument = () => {
-      if (contextSize() <= this.maxContextChars || !original) return;
+      return true;
+    };
+
+    const trimFirstDocument = (target: number) => {
+      const first = documents[0];
+      if (!first || contextSize() <= target) return;
       let low = 1;
-      let high = original.content.length;
+      let high = first.content.length;
       let fitting = 0;
       while (low <= high) {
         const length = Math.floor((low + high) / 2);
-        documents[0] = { ...original, content: original.content.slice(0, length) };
+        documents[0] = { ...first, content: first.content.slice(0, length) };
         messages[1] = reference();
-        if (contextSize() <= this.maxContextChars) {
+        if (contextSize() <= target) {
           fitting = length;
           low = length + 1;
         } else high = length - 1;
       }
-      documents[0] = { ...original, content: original.content.slice(0, Math.max(1, fitting)) };
+      documents[0] = { ...first, content: first.content.slice(0, Math.max(1, fitting)) };
       messages[1] = reference();
     };
-    fitFirstDocument();
-    // If even the smallest reference cannot fit with the latest pair, discard
-    // that pair as a last resort rather than exceeding the provider context cap.
-    if (
-      contextSize() > this.maxContextChars &&
-      historyMessages >= 2 &&
-      messages[2] instanceof HumanMessage &&
-      messages[3] instanceof AIMessage
-    ) {
-      messages.splice(2, 2);
-      fitFirstDocument();
-    }
-    if (contextSize() > this.maxContextChars) throw contextLimit();
+
+    const compactTo = (target: number): boolean => {
+      // Keep the latest complete recruiter exchange when possible.
+      while (contextSize() > target && historyMessages > 2 && removeOldestHistoryPair()) {}
+      while (contextSize() > target && documents.length > 1) {
+        documents.pop();
+        messages[1] = reference();
+      }
+      trimFirstDocument(target);
+      // An oversized later tool call can force discarding the last pair.
+      if (contextSize() > target && removeOldestHistoryPair()) trimFirstDocument(target);
+      return contextSize() <= target;
+    };
+
+    if (!compactTo(contextTarget)) throw contextLimit();
     record(documents);
     let toolCallId = '';
     // Cada busca é limitada. A ferramenta não aceita URL, ID de usuário ou comandos.
@@ -191,7 +197,7 @@ export class LangChainChatProvider implements ChatProvider {
         const selected: GenerationInput['documents'] = [];
         const fits = (content: string) =>
           contextSize() + messageSize(new ToolMessage({ content, tool_call_id: toolCallId })) <=
-          this.maxContextChars;
+          contextTarget;
         if (!fits('[]')) throw contextLimit();
         for (const doc of docs) {
           const candidate = [...selected, doc];
@@ -301,7 +307,9 @@ export class LangChainChatProvider implements ChatProvider {
       )
         throw new AppError('LLM_TOOL_LIMIT', 502, 'Limite de ferramentas atingido.');
       messages.push(response);
-      if (contextSize() > this.maxContextChars) throw contextLimit();
+      // A tool call itself extends the transcript. Rebalance earlier evidence
+      // and history before appending its tool result instead of failing at once.
+      if (!compactTo(contextTarget)) throw contextLimit();
       for (const call of response.tool_calls) {
         const selectedTool = tools.find((candidate) => candidate.name === call.name);
         if (!selectedTool || !call.id)
@@ -325,7 +333,7 @@ export class LangChainChatProvider implements ChatProvider {
               : await prepare.invoke(meetingProposalInputSchema.parse(call.args));
         if (
           contextSize() + messageSize(new ToolMessage({ content, tool_call_id: call.id })) >
-          this.maxContextChars
+          contextTarget
         )
           throw contextLimit();
         messages.push(new ToolMessage({ content, tool_call_id: call.id }));
