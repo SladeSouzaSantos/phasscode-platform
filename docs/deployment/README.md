@@ -181,6 +181,11 @@ encaminhamento recebidos; uma cadeia com CDN precisa de configuração própria 
 
 ## Release automatizada e manual no GitHub
 
+Há três workflows ativos no código: `Backend CI` (PR e reutilização no Release),
+`Static security analysis` (PR e segunda-feira), e `Backend release` (push/manual).
+O teste isolado de conexão SSH/Tailscale foi retirado; o Release continua
+validando Tailscale, host key SSH e checks do servidor antes de aplicar alterações.
+
 [`deploy.yml`](../../.github/workflows/deploy.yml) dispara em `push` para `dev` e `main`,
 e também permite `workflow_dispatch`:
 
@@ -193,9 +198,10 @@ e também permite `workflow_dispatch`:
 3. ZAP lê OpenAPI com alvo sobrescrito para a API descartável, em mock e sem chave de LLM. Os
    relatórios duram 14 dias; falhas definidas em `.ci/zap-rules.conf` bloqueiam a release.
 4. Em execução manual, `apply_remote=false` publica/testa a imagem sem aplicar no servidor;
-   `apply_remote=true` permite deploy. Em push, o deploy é automático somente se
-   `ENABLE_REMOTE_DEPLOY=true` no environment GitHub correspondente. O deploy manual também exige
-   essa variável. Em `production`, configurar **Required reviewers** no GitHub Environment
+   `apply_remote=true` permite deploy. Em **push**, o workflow apenas qualifica e publica a imagem:
+   **não aplica automaticamente no Mac Mini**, mesmo se `ENABLE_REMOTE_DEPLOY=true`.
+   O deploy remoto exige `workflow_dispatch`, `apply_remote=true`, branch/target correspondentes
+   e `ENABLE_REMOTE_DEPLOY=true` no environment GitHub correspondente. Em `production`, configurar **Required reviewers** no GitHub Environment
    para exigir aprovação humana antes de iniciar o job. Apenas referenciar o environment no YAML
    não cria nem garante essa aprovação.
 5. Tailscale prefere OAuth completo; credencial parcial falha. A authkey é alternativa somente

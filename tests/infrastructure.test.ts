@@ -862,9 +862,21 @@ it('keeps public dev/main releases manual, branch-scoped, and safety gated', () 
   expect(Object.keys(workflow.on).sort()).toEqual(['push', 'workflow_dispatch']);
   expect(workflow.on.push.branches).toEqual(['dev', 'main']);
   const ci = parse(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8')) as {
-    on: { push: { branches: string[] } };
+    on: { pull_request: { branches: string[] }; workflow_call: unknown; push?: unknown };
   };
-  expect(ci.on.push.branches).toEqual(['dev', 'main']);
+  // PRs run CI directly, while the Release reuses it for both dev/main pushes.
+  // Independent push CI would duplicate the same expensive checks.
+  expect(Object.keys(ci.on).sort()).toEqual(['pull_request', 'workflow_call']);
+  expect(ci.on.pull_request.branches).toEqual(['dev', 'main']);
+  expect(ci.on).not.toHaveProperty('push');
+  expect(source).toContain('uses: ./.github/workflows/ci.yml');
+
+  const security = parse(readFileSync(join(root, '.github/workflows/security.yml'), 'utf8')) as {
+    on: { pull_request: { branches: string[] }; schedule: Array<{ cron: string }> };
+  };
+  expect(Object.keys(security.on).sort()).toEqual(['pull_request', 'schedule']);
+  expect(security.on.pull_request.branches).toEqual(['dev', 'main']);
+  expect(security.on.schedule).toHaveLength(1);
   expect(workflow.on.workflow_dispatch.inputs.apply_remote!.default).toBe(false);
   expect(workflow.jobs.deploy!.if).toContain("github.event_name == 'workflow_dispatch'");
   expect(workflow.jobs.deploy!.if).toContain("github.ref == 'refs/heads/dev'");
