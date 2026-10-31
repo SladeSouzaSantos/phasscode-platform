@@ -39,7 +39,9 @@ describe('public professional Orbe runtime', () => {
     });
     expect(response.statusCode).toBe(200);
     expect(response.json()).toHaveProperty('answer');
-    const optout = await app.inject({ method: 'POST', url: '/api/v1/chat/report-optout',
+    const optout = await app.inject({
+      method: 'POST',
+      url: '/api/v1/chat/report-optout',
       payload: { conversationId: response.json().conversationId },
     });
     expect(optout.statusCode).toBe(400);
