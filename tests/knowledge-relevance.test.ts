@@ -156,6 +156,24 @@ describe('recuperação de experiência e projetos por tecnologias reais', () =>
   });
 });
 
+describe('proveniência de experiências de emprego', () => {
+  it('não usa projetos autorais para comprovar tarefas específicas no SIGAA', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const evidence = knowledge.search('SIGAA Java Hibernate Spring Boot');
+    const selected = selectSources({
+      query: 'Qual a contribuição profissional dele na empresa SIG Software para o SIGAA?',
+      answer: 'Na SIG Software ele desenvolveu e manteve o SIGAA em Java, Hibernate, JBoss e PostgreSQL.',
+      documents: [
+        ...evidence,
+        ...knowledge.search('PHASSCODE Platform Orbe'),
+        ...knowledge.search('Webservice Spring Boot JPA'),
+      ],
+    });
+    expect(selected.map((source) => source.id)).toContain('experiencia-sig');
+    expect(selected.every((source) => source.type !== 'project' && source.type !== 'platform')).toBe(true);
+  });
+});
+
 describe('seleção determinística de fontes usadas na resposta', () => {
   it('cita experiência SIGAA e repositório Spring/JPA, excluindo perfil e cursos recuperados', () => {
     const sources = selectSources({
