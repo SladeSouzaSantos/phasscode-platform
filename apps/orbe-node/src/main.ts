@@ -36,6 +36,7 @@ try {
           pool!,
           config.CHAT_HISTORY_MESSAGES,
           config.CHAT_RETENTION_DAYS,
+          process.env.ORBE_REPORTS_ENABLED === 'true',
         );
   const redis = config.REDIS_URL
     ? new Redis(config.REDIS_URL, {
