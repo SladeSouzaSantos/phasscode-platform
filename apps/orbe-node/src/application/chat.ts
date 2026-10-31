@@ -33,7 +33,7 @@ import {
 import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
-import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
+import { knowledgePhrase } from '../knowledge-matching.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
 export class ChatService {
