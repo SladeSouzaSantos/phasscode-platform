@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "1.0",
+  "id": "greencity-sdgp",
+  "kind": "project",
+  "identity": {
+    "name": "SDGP e Greencity Solutions — dimensionamento fotovoltaico",
+    "nature": "professional",
+    "role": "Desenvolvimento em contexto profissional",
+    "repositoryUrl": null,
+    "demoUrl": null,
+    "visibility": "private"
+  },
+  "classification": {
+    "applicationType": "mobile",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "SDGP (Sistema de Dimensionamento e Geração de Proposta) é um aplicativo Android associado à atuação profissional de Pedro Santos na Greencity.",
+    "technical": "SDGP (Sistema de Dimensionamento e Geração de Proposta) é um aplicativo Android associado à atuação profissional de Pedro Santos na Greencity. O currículo descreve dimensionamento de sistemas fotovoltaicos e preparação de propostas/orçamentos em PDF, com Flutter, Dart, Firebase, Python e PHP. Não há repositório ou demonstração pública identificados para esse aplicativo. O catálogo antigo também apresenta Greencity Solutions com Flutter, Dart e SQL; a equivalência exata de nomes, versões e persistência entre os dois registros não está confirmada.",
+    "problemSolved": null
+  },
+  "stack": [
+    {
+      "name": "Flutter",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Dart",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Firebase",
+      "kind": "database",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Python",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "PHP",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "unknown",
+    "components": [],
+    "patterns": [],
+    "dataFlow": null
+  },
+  "features": [],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: mobile",
+      "demonstrates": "Este projeto documenta competências em Flutter, Dart, Firebase, Python, PHP; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    }
+  ],
+  "sync": {
+    "sourceRepository": null,
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": false
+  }
+}
