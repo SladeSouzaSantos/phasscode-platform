@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "1.0",
+  "id": "websites-institucionais",
+  "kind": "project",
+  "identity": {
+    "name": "Websites institucionais — Siberian e Greencity",
+    "nature": "unknown",
+    "role": "Papel não detalhado no catálogo",
+    "repositoryUrl": null,
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "multi",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "O portfólio de Pedro Santos registra website institucional para Siberian Web Solutions em WordPress, com responsividade, SEO e gestão de conteúdo; o endereço publicado é https://siberianwebsolutions.com. Também registra website da Greencity Sustainable Energy em WordPress/PHP, para apresentação inst",
+    "technical": "O portfólio de Pedro Santos registra website institucional para Siberian Web Solutions em WordPress, com responsividade, SEO e gestão de conteúdo; o endereço publicado é https://siberianwebsolutions.com. Também registra website da Greencity Sustainable Energy em WordPress/PHP, para apresentação institucional, contatos e orçamentos, sem URL específica no catálogo.",
+    "problemSolved": null
+  },
+  "stack": [
+    {
+      "name": "WordPress",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "PHP",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "unknown",
+    "components": [],
+    "patterns": [],
+    "dataFlow": null
+  },
+  "features": [],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Escopo do projeto documentado",
+      "demonstrates": "Competências descritas no catálogo de curadoria; detalhes técnicos requerem revisão específica.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "Arquitetura e padrões de projeto",
+      "status": "not_verified",
+      "description": "Os documentos existentes não comprovam uma implementação arquitetural específica."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Catálogo inicial: revisão do repositório/código pendente."
+    }
+  ],
+  "sync": {
+    "sourceRepository": null,
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:45:31.178Z",
+    "analyzedAt": "2026-10-31T19:45:31.178Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": false
+  }
+}
