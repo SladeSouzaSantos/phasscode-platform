@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0",
+  "id": "gestao-empresarial-api",
+  "kind": "project",
+  "identity": {
+    "name": "Sistema de Gestão Empresarial — API Django e JWT",
+    "nature": "unknown",
+    "role": "Papel não especificado no catálogo",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/sistema_gestao_empresarial_api",
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "backend",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "Sistema de Gestão Empresarial API é um projeto público em Python com Django, Django REST Framework e Simple JWT.",
+    "technical": "Sistema de Gestão Empresarial API é um projeto público em Python com Django, Django REST Framework e Simple JWT. O README descreve cadastro e login, consulta do usuário, empresas, funcionários, grupos, permissões e tarefas. O login usa RefreshToken.for_user para emitir access e refresh tokens; a autenticação usa os hashers do Django. O frontend é descrito como um projeto React/TypeScript separado. O catálogo antigo também cita um ERP Greencity sem URL, mas a equivalência com este repositório não está estabelecida. Esta API e seus tokens são independentes da autenticação da PHASSCODE Platform.",
+    "problemSolved": null
+  },
+  "stack": [
+    {
+      "name": "Python",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Django",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Django REST Framework",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Simple JWT",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "unknown",
+    "components": [],
+    "patterns": [],
+    "dataFlow": null
+  },
+  "features": [],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: backend",
+      "demonstrates": "Este projeto documenta competências em Python, Django, Django REST Framework, Simple JWT; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/sistema_gestao_empresarial_api",
+    "sourcePath": null,
+    "sourceRef": "main",
+    "sourceCommit": "a5f812365019855be2f57c9476963544593235db",
+    "lastModifiedAt": "2026-01-07T05:15:24Z",
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": true
+  }
+}
