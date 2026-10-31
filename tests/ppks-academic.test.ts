@@ -114,3 +114,20 @@ describe('PPKS v1.2: conexões de competências e experiência', () => {
     expect(java.map((d) => d.id)).toContain('idiomas-declarados');
   });
 });
+
+describe('PPKS v1.2 — matriz de vagas e contexto', () => {
+  it('possui seis vagas e três cenários acadêmicos com sessões independentes', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const matrix = JSON.parse(await readFile('evaluation/vacancies-ppks-v12.json', 'utf8'));
+    expect(matrix.cases).toHaveLength(9);
+    expect(matrix.cases.every((scenario: { turns: unknown[] }) => scenario.turns.length === 1)).toBe(true);
+  });
+  it('preserva referências distintas sem estourar o contexto preliminar de entrevistas extensas', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const query = 'Sou recrutador para vaga Java Node.js TypeScript React PostgreSQL Redis Python Docker CI/CD, formação em computação, SQL Server e Angular. Compare projetos profissionais e estudos.';
+    const results = knowledge.search(query);
+    expect(results.length).toBeLessThanOrEqual(5);
+    expect(results.length).toBeGreaterThan(2);
+    expect(results.reduce((total, doc) => total + doc.content.length, 0)).toBeLessThanOrEqual(8000);
+  });
+});

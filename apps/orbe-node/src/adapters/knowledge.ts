@@ -120,7 +120,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     private readonly experienceCards = new Map<string, ExperienceCard>(),
   ) {}
   private select(documents: KnowledgeDocument[], query: string): KnowledgeDocument[] {
-    return documents.map((document) =>
+    const enriched = documents.map((document) =>
       enrichProjectDocument(
         enrichExperienceDocument(
           enrichAcademicDocument(document, query, this.academic),
@@ -131,6 +131,19 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         this.projectCards,
       ),
     );
+    // Preserve five distinct cited sources while bounding evidence in long
+    // recruiter questions; the provider has a separate hard context ceiling.
+    const evidenceSize = enriched.reduce((total, document) => total + document.content.length, 0);
+    if (!isCareerOverview(query) || enriched.length < 4 || evidenceSize <= 8000) return enriched;
+    return enriched.map((document) => {
+      if (document.content.length <= 850) return document;
+      const base = document.content.slice(0, 550);
+      const finalEvidence = document.content.slice(-270);
+      return {
+        ...document,
+        content: `${base}\n[Resumo compacto; consultar a fonte para detalhes.]\n${finalEvidence}`,
+      };
+    });
   }
   static async load(path = 'knowledge/portfolio.json'): Promise<JsonKnowledgeRepository> {
     const documents = documentsSchema.parse(JSON.parse(await readFile(path, 'utf8')));
