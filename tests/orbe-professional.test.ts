@@ -127,8 +127,9 @@ describe('contexto profissional do Orbe v4', () => {
       .at(-1)![0]
       .documents.map((doc) => doc.content)
       .join(' ');
-    expect(text).toMatch(/trancad[ao]/i);
+    expect(text).toMatch(/não concluíd[oa]/i);
     expect(text).toContain('2027');
+    expect(text).toContain('2028');
     await service.execute({
       message: 'A pós-graduação Segurança da Informação da FacPrisma foi concluída?',
     });
