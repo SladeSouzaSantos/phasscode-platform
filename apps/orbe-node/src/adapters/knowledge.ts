@@ -93,6 +93,11 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       /\b(?:cursos?|certificados?|certificacoes?|capacitac\w*|treinament\w*|formacao|graduacao|pos graduacao)\b/.test(
         knowledgePhrase(query),
       );
+    const courseIntent = /\b(?:cursos?|capacitac\w*|treinament\w*)\b/.test(queryPhrase);
+    const vendorCertificate =
+      /\b(?:certificad\w*|certificac\w*)\b/.test(queryPhrase) &&
+      queryTechnologies.size > 0 &&
+      !courseIntent;
     if (!educationIntent && isTechnologyProjectQuestion(query)) {
       const projects = this.documents.filter(
         (document) =>
@@ -174,16 +179,28 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         if (requestedExperience && doc.category === 'professional') relevance += 10;
         if (doc.category === 'study' && !project) relevance -= 5;
       }
-      // Perguntas sobre cursos devem privilegiar trilhas de cursos concluídos;
-      // vagas, projetos e experiência continuam usando suas evidências próprias.
-      const seekingCourses = /\b(?:cursos?|certificados?|capacitac\w*|treinament\w*)\b/.test(
-        queryPhrase,
-      );
-      if (seekingCourses && doc.id.startsWith('cursos-')) relevance += 16;
+      // Trilhas de cursos não podem substituir experiência e projetos em buscas Java/IA.
+      // Certificações de fornecedores exigem evidência própria; cursos não a comprovam.
+      const courseRecord = doc.id.startsWith('cursos-');
+      const namedCourse = explicitSubject && courseRecord;
+      const genericCertificates =
+        /\b(?:certificad\w*|certificac\w*)\b/.test(queryPhrase) &&
+        queryTechnologies.size === 0;
+      const eligibleCourse =
+        courseIntent || namedCourse || (genericCertificates && doc.id === 'cursos-declarados');
+      if (courseRecord && eligibleCourse) relevance += courseIntent ? 16 : 6;
+      if (vendorCertificate && doc.id === 'trajetoria-a-confirmar') relevance += 35;
+      // For vacancies Java, the SIGAA work and public Spring/JPA study are
+      // complementary evidence; unrelated course tracks are not substitutes.
+      if (isCareerOverview(query) && queryTechnologies.has('java') && !educationIntent) {
+        if (doc.id === 'experiencia-sig') relevance += 30;
+        if (doc.id === 'webservice-springboot-jpa') relevance += 30;
+      }
       return {
         doc,
         eligible:
-          queryTechnologies.size === 0 || credentialQuestion || technologyMatch || explicitSubject,
+          (!courseRecord || eligibleCourse) &&
+          (queryTechnologies.size === 0 || credentialQuestion || technologyMatch || explicitSubject),
         score: [...queryTerms].reduce(
           (score, term) =>
             score +

@@ -80,8 +80,8 @@ describe('contexto profissional do Orbe v4', () => {
     const { service, generate } = await setup();
     await service.execute({ message: 'Pedro é qualificado? Qual a sua melhor habilidade?' });
     const relevantText = generate.mock.calls[0]![0].documents.map((doc) => doc.content).join(' ');
-    expect(relevantText).toContain('oportunidades de trabalho como programador');
-    expect(relevantText).toMatch(/Java ou inteligência artificial/);
+    expect(relevantText).toContain('foco de carreira atual é trabalhar como programador');
+    expect(relevantText).toMatch(/backend Java, arquitetura de software e Engenharia de IA/);
     const prompt = await readFile('apps/orbe-node/prompts/v4.md', 'utf8');
     expect(prompt).toContain('Sua audiência prioritária');
     expect(prompt).toMatch(/não sobre\s+sua função/);
