@@ -97,7 +97,6 @@ export class ChatService {
             : [];
         if (experienceDocuments.length) {
           const broadProgrammingQuestion =
-            mentionedTechnologies(query).size === 0 &&
             /\b(?:programa\w*|desenvolv\w*|software)\b/.test(normalizedQuery);
           // The SDGP is a canonical mixed-role project, not a ranked fallback.
           // Keep this optional lookup compatible with test knowledge adapters.
@@ -119,6 +118,14 @@ export class ChatService {
                 ...retrieved,
               ];
           retrieved = [...new Map(ordered.map((doc) => [doc.id, doc])).values()];
+          // Duration answers use structured periods, not long prose. Reserve
+          // room for all four employment records plus the mixed-role SDGP proof.
+          if (durationQuestion && broadProgrammingQuestion) {
+            retrieved = retrieved.map((doc) => ({
+              ...doc,
+              content: doc.content.slice(0, 550),
+            }));
+          }
         }
         // External pages are untrusted data, never instructions. Restrict retrieval to
         // public LinkedIn job postings and known public GitHub project READMEs.
