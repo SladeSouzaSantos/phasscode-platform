@@ -1,8 +1,6 @@
 Atualize `portfolio.json` com fontes profissionais autorizadas e fatos públicos rastreáveis. A
 curadoria ampliada de 21/10/2026 combina o briefing, a implementação local, o site antigo, GitHub e
-o currículo e as confirmações atuais do proprietário nesta sessão. São **31 documentos**: 17 registros de perfil, experiências,
-formação, cursos e idiomas; 13 registros de projetos; e um da plataforma. Os oito IDs originais
-foram preservados. Proveniência, arquivos/commits, páginas do CV e divergências estão em
+o currículo e as confirmações atuais do proprietário nesta sessão. O catálogo inicial continha **31 documentos** (17 de perfil, 13 de projetos e uma plataforma). Depois da expansão de 31/10/2026, são **48 registros**. Os 31 anteriores foram preservados. Proveniência, arquivos/commits, páginas do CV e divergências estão em
 [SOURCES.md](SOURCES.md).
 
 Informações profissionais registradas devem ser apresentadas diretamente. A proveniência fica em
