@@ -59,7 +59,8 @@ describe('matriz v3 contra recuperação e políticas reais, sem LLM', () => {
           ).toContain(id);
           if (captured) {
             const document = (captured as GenerationInput).documents.find((doc) => doc.id === id);
-            expect(document?.content, `${scenario.id}: ${id} completo`).toBe(
+            // PPKS appends technical facets without replacing the original catalog evidence.
+            expect(document?.content, `${scenario.id}: ${id} mantém fonte original`).toContain(
               catalog.find((doc) => doc.id === id)?.content,
             );
           }
