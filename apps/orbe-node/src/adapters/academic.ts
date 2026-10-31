@@ -91,8 +91,12 @@ export function enrichAcademicDocument(
   const track = evidence.tracks.get(document.id);
   const phrase = knowledgePhrase(query);
   // Preserve the complete seven-record course catalog without extra context.
-  if (track && /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(phrase))
-    return document;
+  const completeCourseRequest =
+    phrase.includes('42 cursos') ||
+    phrase.includes('todos os cursos') ||
+    phrase.includes('lista completa') ||
+    phrase.includes('cursos por trilha');
+  if (track && completeCourseRequest) return document;
   const lines: string[] = [];
   if (education) {
     lines.push(
