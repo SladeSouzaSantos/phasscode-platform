@@ -1,0 +1,586 @@
+{
+  "schemaVersion": "1.1",
+  "educations": [
+    {
+      "id": "formacao-computacao",
+      "title": "Bacharelado em Ciência da Computação",
+      "level": "bachelor",
+      "institution": "UNISUL",
+      "issuer": "UNISUL",
+      "status": "pending_completion",
+      "completedAt": null,
+      "awardedAt": null,
+      "expectedWindow": "final de 2027 ou início de 2028 (estimativa não vinculante)",
+      "statusDetail": "Disciplinas curriculares avançadas; atividades de extensão exigem visitas presenciais e continuam pendentes por indisponibilidade de tempo. O histórico de 20/01/2026 registrava também atividades complementares pendentes; situação administrativa atual não inferida.",
+      "evidence": "academic_transcript_and_owner_update",
+      "coursework": [
+        {
+          "name": "Algoritmos e Estruturas de Dados",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Computação Gráfica e Realidade Virtual",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Estruturas Matemáticas",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Inteligência Artificial",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Modelagem de Software",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Modelos, Métodos e Técnicas da Engenharia de Software",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Programação de Soluções Computacionais",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Sistemas Computacionais e Segurança",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Sistemas Distribuídos e Mobile",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Teoria da Computação e Compiladores",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Usabilidade, Desenvolvimento Web, Mobile e Jogos",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Estruturas de Dados e Análise de Algoritmos",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Gestão e Qualidade de Software",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Análise de Dados e Big Data",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Ambientes Computacionais e Conectividade",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Inovação, Sustentabilidade e Competitividade Empresarial",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Inglês Instrumental e Pensamento Digital",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Vida & Carreira",
+          "status": "approved",
+          "hours": 160,
+          "evidence": "academic_transcript"
+        }
+      ],
+      "competencies": [
+        "Algoritmos",
+        "Estruturas de Dados",
+        "Programação",
+        "Inteligência Artificial",
+        "Sistemas Distribuídos",
+        "Segurança",
+        "Engenharia de Software",
+        "Big Data"
+      ],
+      "limitations": [
+        "Não é bacharel formado em Ciência da Computação",
+        "Não há data definitiva de conclusão",
+        "Extensão de 320h e atividades complementares de 100h constavam pendentes no histórico de janeiro de 2026"
+      ]
+    },
+    {
+      "id": "formacao-gestao-ti",
+      "title": "Tecnólogo em Gestão da Tecnologia da Informação",
+      "level": "technologist",
+      "institution": "UNIBF (identificação usada no portfólio)",
+      "issuer": "Centro Universitário ETEP (emissor do diploma)",
+      "status": "completed",
+      "completedAt": "2025-08-21",
+      "awardedAt": "2025-08-29",
+      "expectedWindow": null,
+      "statusDetail": "Diploma de tecnólogo conferido em 29/08/2025; conservar separadas a identificação UNIBF usada no currículo e a instituição emissora ETEP.",
+      "evidence": "diploma_and_academic_transcript",
+      "coursework": [
+        {
+          "name": "Algoritmos e Programação",
+          "status": "approved",
+          "hours": 50,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Banco de Dados",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Programação Orientada a Objetos",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Programação para Internet",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Inteligência Artificial",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "BI e Big Data",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Gerenciamento Ágil de Projetos de Software",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Segurança da Informação",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Testes e Homologação de Software",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Engenharia de Software",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Design de Software",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Redes de Computadores",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Sistemas Operacionais",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Probabilidade e Estatística",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        }
+      ],
+      "competencies": [
+        "Programação",
+        "Algoritmos",
+        "POO",
+        "SQL",
+        "Bancos de Dados",
+        "Testes",
+        "Engenharia de Software",
+        "Segurança",
+        "Inteligência Artificial",
+        "Big Data"
+      ],
+      "limitations": [
+        "Disciplinas aprovadas não comprovam experiência comercial com frameworks específicos"
+      ]
+    },
+    {
+      "id": "formacao-petroleo",
+      "title": "Bacharelado em Engenharia de Petróleo e Gás",
+      "level": "bachelor",
+      "institution": "Universidade Potiguar (UnP)",
+      "issuer": "Universidade Potiguar",
+      "status": "completed",
+      "completedAt": "2014-12",
+      "awardedAt": "2015-02-05",
+      "expectedWindow": null,
+      "statusDetail": "Histórico e currículo indicam conclusão curricular em 2014; diploma registra colação em 05/02/2015.",
+      "evidence": "diploma_and_academic_transcript",
+      "coursework": [
+        {
+          "name": "Informática Aplicada às Exatas e Engenharias",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Programação Científica",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Álgebra Linear",
+          "status": "approved",
+          "hours": 80,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Estatística e Probabilidade",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Cálculo Numérico Computacional",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Gestão de Processos",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        }
+      ],
+      "competencies": [
+        "Matemática",
+        "Estatística",
+        "Programação Científica",
+        "Engenharia",
+        "Análise de Dados"
+      ],
+      "limitations": [
+        "Curso de engenharia não deve ser apresentado como diploma em Ciência da Computação"
+      ]
+    },
+    {
+      "id": "formacao-energia-eletrica",
+      "title": "Pós-graduação em Engenharia Elétrica e Sistemas de Energia",
+      "level": "specialization",
+      "institution": "Faculdade Unyleya",
+      "issuer": "Faculdade Unyleya",
+      "status": "completed",
+      "completedAt": "2020-09",
+      "awardedAt": null,
+      "expectedWindow": null,
+      "statusDetail": "Certificado de conclusão de pós-graduação lato sensu com 360 horas.",
+      "evidence": "certificate_and_transcript",
+      "coursework": [
+        {
+          "name": "Redes de Distribuição de Energia Elétrica",
+          "status": "approved",
+          "hours": 40,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Sistemas de Geração de Energia Elétrica",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Controle e Integração ao Sistema Elétrico",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Componentes de Baixa, Média e Alta Tensão",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Comunicação de Dispositivos em Subestação de Energia",
+          "status": "approved",
+          "hours": 60,
+          "evidence": "academic_transcript"
+        },
+        {
+          "name": "Elementos Compartilhados da Rede Elétrica",
+          "status": "approved",
+          "hours": 40,
+          "evidence": "academic_transcript"
+        }
+      ],
+      "competencies": [
+        "Engenharia Elétrica",
+        "Sistemas de Energia",
+        "Geração e Distribuição"
+      ],
+      "limitations": []
+    },
+    {
+      "id": "formacao-eolica",
+      "title": "Especialização Técnica em Energia Eólica",
+      "level": "technical_specialization",
+      "institution": "CTGAS-ER/SENAI",
+      "issuer": "SENAI RN",
+      "status": "completed",
+      "completedAt": "2017-09-14",
+      "awardedAt": null,
+      "expectedWindow": null,
+      "statusDetail": "Certificado de especialização técnica com 380 horas.",
+      "evidence": "certificate_and_transcript",
+      "coursework": [
+        {
+          "name": "Fundamentos da Geração Eólica",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Medição Anemométrica",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Aerodinâmica de Aerogeradores",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Automação de Aerogeradores",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Manutenção de Turbinas Eólicas",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        }
+      ],
+      "competencies": [
+        "Energia Eólica",
+        "Aerodinâmica",
+        "Automação",
+        "Manutenção"
+      ],
+      "limitations": []
+    },
+    {
+      "id": "formacao-eletrotecnica",
+      "title": "Técnico em Eletrotécnica",
+      "level": "technical",
+      "institution": "Escola Politécnica Brasileira",
+      "issuer": "Escola Politécnica Brasileira",
+      "status": "completed",
+      "completedAt": "2022-10-20",
+      "awardedAt": null,
+      "expectedWindow": null,
+      "statusDetail": "Registro de conclusão de técnico de nível médio em Eletrotécnica.",
+      "evidence": "diploma_and_completion_record",
+      "coursework": [
+        {
+          "name": "Instalações Elétricas",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Circuitos Elétricos",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Eletrotécnica",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Manutenção",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        }
+      ],
+      "competencies": [
+        "Eletrotécnica",
+        "Sistemas Elétricos"
+      ],
+      "limitations": []
+    },
+    {
+      "id": "formacao-prisma",
+      "title": "Pós-graduação em Segurança da Informação",
+      "level": "specialization",
+      "institution": "FacPrisma",
+      "issuer": "FacPrisma",
+      "status": "completed",
+      "completedAt": null,
+      "awardedAt": null,
+      "expectedWindow": null,
+      "statusDetail": "Conclusão confirmada pelo proprietário; data e certificado desta formação não foram conferidos nesta revisão.",
+      "evidence": "owner_confirmed",
+      "coursework": [],
+      "competencies": [
+        "Segurança da Informação"
+      ],
+      "limitations": [
+        "Outras quatro especializações da FacPrisma não têm conclusão individual documentalmente confirmada nesta base"
+      ]
+    },
+    {
+      "id": "formacao-unipds-java",
+      "title": "Pós-graduação Java Applied Engineering",
+      "level": "specialization",
+      "institution": "UNIPDS",
+      "issuer": "UNIPDS",
+      "status": "in_progress",
+      "completedAt": null,
+      "awardedAt": null,
+      "expectedWindow": "2026–2027 (planejamento divulgado na Academia Arcana)",
+      "statusDetail": "Situação registrada em andamento no catálogo; não há diploma de conclusão nesta revisão.",
+      "evidence": "owner_catalog",
+      "coursework": [
+        {
+          "name": "Spring Boot",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Quarkus",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "JPA/Hibernate",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Arquitetura de Software",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        }
+      ],
+      "competencies": [
+        "Java",
+        "Spring Boot",
+        "Arquitetura de Software"
+      ],
+      "limitations": [
+        "Conteúdo programático não comprova domínio profissional de Spring Boot ou Quarkus"
+      ]
+    },
+    {
+      "id": "formacao-unipds-ia",
+      "title": "Pós-graduação Engenharia de IA Aplicada",
+      "level": "specialization",
+      "institution": "UNIPDS",
+      "issuer": "UNIPDS",
+      "status": "in_progress",
+      "completedAt": null,
+      "awardedAt": null,
+      "expectedWindow": "2026–2027 (planejamento divulgado na Academia Arcana)",
+      "statusDetail": "Situação registrada em andamento no catálogo; não há diploma de conclusão nesta revisão.",
+      "evidence": "owner_catalog",
+      "coursework": [
+        {
+          "name": "RAG e embeddings",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "LangChain e LangGraph",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Agentes e MCP",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        },
+        {
+          "name": "Guardrails",
+          "status": "curriculum_topic",
+          "hours": null,
+          "evidence": "owner_confirmed"
+        }
+      ],
+      "competencies": [
+        "Engenharia de IA",
+        "RAG",
+        "Agentes",
+        "LLMs"
+      ],
+      "limitations": [
+        "Ementa da pós não equivale a uma implementação funcional de todos os temas"
+      ]
+    }
+  ]
+}

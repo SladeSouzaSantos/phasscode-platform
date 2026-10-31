@@ -1,0 +1,555 @@
+{
+  "schemaVersion": "1.1",
+  "tracks": [
+    {
+      "id": "cursos-java-arquitetura",
+      "name": "Java & Arquitetura",
+      "focus": "Java · POO · Clean Code · TDD",
+      "courses": [
+        {
+          "id": "curso-formacao-java-e-clean-architecture",
+          "title": "Formação Java e Clean Architecture",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Java",
+            "Arquitetura de Software"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-java-e-domain-driven-design",
+          "title": "Formação Java e Domain Driven Design",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Java"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-solid-com-java",
+          "title": "Formação SOLID com Java",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Java",
+            "Arquitetura de Software"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-design-patterns-em-java",
+          "title": "Formação Design Patterns em Java",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Java",
+            "Arquitetura de Software"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-tdd-e-java-junit",
+          "title": "Formação TDD e Java — JUnit",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Java",
+            "TDD/JUnit"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-em-java-poo-ddd-e-apis-rest",
+          "title": "Formação em Java: POO, DDD e APIs REST",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Java",
+            "Arquitetura de Software"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-java-completo-programacao-orientada-a-objetos",
+          "title": "Java Completo — Programação Orientada a Objetos",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Java"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-clean-code-na-pratica",
+          "title": "Clean Code na Prática",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Arquitetura de Software"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-padroes-de-projeto-em-java",
+          "title": "Padrões de Projeto em Java",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Java"
+          ],
+          "evidenceVisibility": "private"
+        }
+      ]
+    },
+    {
+      "id": "cursos-ia-dados",
+      "name": "IA & Dados",
+      "focus": "Python · Algoritmos · Redes Neurais",
+      "courses": [
+        {
+          "id": "curso-estruturas-de-dados-e-algoritmos-em-python",
+          "title": "Estruturas de Dados e Algoritmos em Python",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Python",
+            "IA/Dados"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-redes-neurais-artificiais-em-python",
+          "title": "Redes Neurais Artificiais em Python",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Python",
+            "IA/Dados"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-python-fundamentals",
+          "title": "Formação Python Fundamentals",
+          "provider": "DIO",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Python"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-linguagem-r-para-analise-de-dados",
+          "title": "Linguagem R para Análise de Dados",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "IA/Dados"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-power-bi-analyst",
+          "title": "Formação Power BI Analyst",
+          "provider": "DIO",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "IA/Dados"
+          ],
+          "evidenceVisibility": "private"
+        }
+      ]
+    },
+    {
+      "id": "cursos-frontend-mobile",
+      "name": "Frontend & Mobile",
+      "focus": "JavaScript · TypeScript · Flutter",
+      "courses": [
+        {
+          "id": "curso-formacao-html-e-css-responsividade-e-mobile-first",
+          "title": "Formação HTML e CSS — responsividade e mobile-first",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "HTML/CSS"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-javascript-dom-formularios-e-apis",
+          "title": "Formação JavaScript — DOM, formulários e APIs",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "JavaScript"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-typescript",
+          "title": "Formação TypeScript",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "TypeScript"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-dart",
+          "title": "Formação Dart",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Flutter/Dart"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-flutter-estados-apis-e-testes",
+          "title": "Formação Flutter — estados, APIs e testes",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Flutter/Dart",
+            "Testes/Qualidade"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-firebase-authentication",
+          "title": "Formação Firebase Authentication",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Firebase"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-desenvolvimento-frontend-com-angular",
+          "title": "Desenvolvimento Frontend com Angular",
+          "provider": "DIO",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Angular"
+          ],
+          "evidenceVisibility": "private"
+        }
+      ]
+    },
+    {
+      "id": "cursos-engenharia-software",
+      "name": "Engenharia de Software",
+      "focus": "Requisitos · UML · Modelagem · UX",
+      "courses": [
+        {
+          "id": "curso-formacao-engenharia-de-requisitos",
+          "title": "Formação Engenharia de Requisitos",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-uml-modelagem-e-bpmn",
+          "title": "Formação UML — modelagem e BPMN",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-design-thinking",
+          "title": "Design Thinking",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "UX/UI"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-ui-design",
+          "title": "Formação UI Design",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "UX/UI"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-figma-layouts-de-aplicativos-mobile",
+          "title": "Figma — layouts de aplicativos mobile",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "UX/UI"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-aprendendo-domain-driven-design-ddd-do-zero",
+          "title": "Aprendendo Domain Driven Design (DDD) do Zero",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Arquitetura de Software"
+          ],
+          "evidenceVisibility": "private"
+        }
+      ]
+    },
+    {
+      "id": "cursos-bancos-dados",
+      "name": "Bancos de Dados",
+      "focus": "SQL · NoSQL · MongoDB · SQL Server",
+      "courses": [
+        {
+          "id": "curso-formacao-sql-database-specialist",
+          "title": "Formação SQL Database Specialist",
+          "provider": "DIO",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "SQL"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-sql-server-completo-formacao-dba",
+          "title": "SQL Server Completo — Formação DBA",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "SQL",
+            "SQL Server"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-curso-nosql-mongodb-e-neo4j",
+          "title": "Curso NoSQL — MongoDB e Neo4j",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "NoSQL"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-power-bi-sql-server",
+          "title": "Formação Power BI + SQL Server",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "SQL",
+            "SQL Server",
+            "IA/Dados"
+          ],
+          "evidenceVisibility": "private"
+        }
+      ]
+    },
+    {
+      "id": "cursos-devops-qualidade",
+      "name": "DevOps & Qualidade",
+      "focus": "Docker · Git · DevSecOps · Segurança",
+      "courses": [
+        {
+          "id": "curso-formacao-docker-containers",
+          "title": "Formação Docker — containers",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Docker"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-git-e-github-controle-de-versao",
+          "title": "Git e GitHub — controle de versão",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Git/GitHub"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-git-e-github-do-basico-ao-avancado",
+          "title": "Git e GitHub do Básico ao Avançado",
+          "provider": "Udemy",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Git/GitHub"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-automacao-de-testes-com-cypress",
+          "title": "Formação Automação de Testes com Cypress",
+          "provider": "DIO",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Testes/Qualidade"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-http-entendendo-a-web",
+          "title": "HTTP — entendendo a Web",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-webpack-modulos-em-aplicacoes-web",
+          "title": "Webpack — módulos em aplicações Web",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-formacao-performance-web",
+          "title": "Formação Performance Web",
+          "provider": "Alura",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": null,
+          "skills": [
+            "Testes/Qualidade"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-hackers-do-bem-nivelamento",
+          "title": "Hackers do Bem — Nivelamento",
+          "provider": "Programa Hackers do Bem",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": 80,
+          "skills": [
+            "Segurança"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-hackers-do-bem-basico",
+          "title": "Hackers do Bem — Básico",
+          "provider": "Programa Hackers do Bem",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": 64,
+          "skills": [
+            "Segurança"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-hackers-do-bem-fundamental",
+          "title": "Hackers do Bem — Fundamental",
+          "provider": "Programa Hackers do Bem",
+          "status": "completed",
+          "verification": "owner_confirmed",
+          "hours": 96,
+          "skills": [
+            "Segurança"
+          ],
+          "evidenceVisibility": "private"
+        },
+        {
+          "id": "curso-hackers-do-bem-especializacao-em-devops-e-devsecops",
+          "title": "Hackers do Bem — Especialização em DevOps e DevSecOps",
+          "provider": "Programa Hackers do Bem",
+          "status": "completed",
+          "verification": "document_verified",
+          "hours": 80,
+          "skills": [
+            "DevOps/DevSecOps",
+            "Segurança"
+          ],
+          "evidenceVisibility": "private"
+        }
+      ]
+    }
+  ]
+}
