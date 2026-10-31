@@ -1,4 +1,4 @@
-name: Temporary PPKS index generation and format
+name: Temporary PPKS index generation and format # retry responsibility normalization
 on:
   push:
     branches: [dev]
