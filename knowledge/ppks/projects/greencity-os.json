@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "1.0",
+  "id": "greencity-os",
+  "kind": "project",
+  "identity": {
+    "name": "GREENCITY OS — projeto do portfólio",
+    "nature": "personal",
+    "role": "Autor do projeto",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/greencity-os",
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "mobile",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "Greencity OS é um aplicativo autoral em Flutter/Dart de engenharia fotovoltaica em desenvolvimento: dimensionamento, simulação HSP/sombreamento, catálogos locais de inversores/módulos com Isar, arquitetura em camadas (BLoC, domínio, dados), Dio e importação de datasheets PDF por IA com revisão técnica antes de salvar.",
+    "technical": "Greencity OS é um aplicativo autoral em Flutter/Dart de engenharia fotovoltaica em desenvolvimento: dimensionamento, simulação HSP/sombreamento, catálogos locais de inversores/módulos com Isar, arquitetura em camadas (BLoC, domínio, dados), Dio e importação de datasheets PDF por IA com revisão técnica antes de salvar. Fallback LLM documentado: Gemini, OpenRouter, Groq, Mistral, Cloudflare e Cohere quando configurados. É projeto próprio com código público; não afirmar release comercial homologada, implantação em larga escala nem resultados medidos sem fonte. Firebase está associado ao aplicativo Android de dimensionamento da experiência profissional na Greencity (SDGP), NÃO presumir Firebase no Greencity OS, que documenta Isar. HSP Simulator é projeto relacionado, não demonstração web do aplicativo Flutter.",
+    "problemSolved": "Apoiar tarefas de engenharia fotovoltaica com dimensionamento e catálogos locais de equipamentos."
+  },
+  "stack": [
+    {
+      "name": "Flutter",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Dart",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "BLoC",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Isar",
+      "kind": "database",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Dio",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "LLMs",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "layered",
+    "components": [
+      "Flutter UI",
+      "BLoC",
+      "Domínio",
+      "Dados Isar",
+      "Dio"
+    ],
+    "patterns": [],
+    "dataFlow": "Entrada de dados fotovoltaicos -> validação técnica -> dimensionamento e catálogos; PDF importado passa por revisão."
+  },
+  "features": [
+    {
+      "name": "Dimensionamento FV",
+      "description": "Ferramentas para projeto fotovoltaico.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Extração de datasheets por IA",
+      "description": "Pré-preenchimento e validação antes de salvar catálogo.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: mobile",
+      "demonstrates": "Este projeto documenta competências em Flutter, Dart, BLoC, Isar, Dio, LLMs; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "Firebase como banco do Greencity OS",
+      "status": "not_verified",
+      "description": "Firebase está associado ao SDGP da atuação profissional; catálogo Greencity OS usa Isar."
+    },
+    {
+      "topic": "Lançamento comercial",
+      "status": "not_verified",
+      "description": "Projeto em desenvolvimento, sem comprovação de release comercial."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/greencity-os",
+    "sourcePath": null,
+    "sourceRef": "main",
+    "sourceCommit": "dc97e5821f67e99dbcb57dfa456635de28cf9f37",
+    "lastModifiedAt": "2026-10-24T01:30:04Z",
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": true
+  }
+}
