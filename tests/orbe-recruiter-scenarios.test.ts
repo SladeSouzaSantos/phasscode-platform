@@ -38,7 +38,7 @@ describe('Academia Arcana / base profissional do Orbe DEV', () => {
     const tr = docs.filter((d:{id:string})=>/^cursos-(java-arquitetura|ia-dados|frontend-mobile|engenharia-software|bancos-dados|devops-qualidade)$/.test(d.id));
     expect(tr).toHaveLength(6);
     const expected=[9,5,7,6,4,11];
-    for (const [index,entry] of tr.sort((a:{id:string},b:{id:string})=>a.id.localeCompare(b.id)).entries()) {
+    for (const entry of tr) {
       expect(entry.content).toContain('concluído');
       expect(entry.url).toContain('#academico');
       expect(entry.content).not.toContain('em andamento por curso');
