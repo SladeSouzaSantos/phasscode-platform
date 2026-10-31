@@ -22,6 +22,38 @@ O Orbe não finge ser Pedro e não inventa disponibilidade profissional.
 Caso o visitante queira conversar diretamente, aponta os canais
 profissionais públicos que constam na base de conhecimento.
 
+## Relatórios opcionais do Orbe (opt-in)
+
+O Orbe pode registrar **somente métricas agregadas e etiquetas controladas**, sem
+armazenar transcrições no sistema de relatórios. O visitante precisa marcar
+explicitamente a autorização antes de iniciar a conversa; a autorização pode
+ser revogada durante a sessão pelo chat. O histórico normal do Orbe continua
+sujeito a `CHAT_RETENTION_DAYS=7` e ao máximo de 12 mensagens.
+
+Com autorização, cada conversa produz um relatório após 24h da primeira pergunta
+e outro para cada janela subsequente de 24h em que haja novas perguntas. Um
+consolidado diário do dia anterior é disparado a partir das **09h no fuso
+America/Fortaleza**, usando apenas conversas autorizadas. São registrados
+somente contadores, intenções prováveis, categorias de assunto e IDs de projetos
+públicos, sem texto livre, nome, e-mail, IP ou histórico da conversa. Os relatórios
+não fazem chamadas de LLM.
+
+O envio utiliza um processo **separado do worker legado de reuniões**, com
+consulta periódica ao PostgreSQL, tentativas limitadas, leases para concorrência
+e mensagens privadas no Telegram. Não há garantia de exatamente uma entrega:
+uma interrupção entre o Telegram aceitar a mensagem e a confirmação no banco
+pode causar uma duplicação rara. A revogação impede novos envios sempre que
+ainda não tenham sido transmitidos; não pode apagar mensagens já recebidas
+no Telegram.
+
+No backend (nunca no frontend), configure `ORBE_REPORTS_ENABLED=true`,
+`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` e, opcionalmente,
+`ORBE_REPORTS_POLL_MS=60000`. O Compose executa apenas a API por padrão.
+Após as migrations, habilite explicitamente o serviço `reports` com o
+perfil `reports` no mesmo projeto. O arquivo `.env` do Mac Mini deve ter
+suas credenciais protegidas e jamais deve ser versionado. Não reative
+`WORKER_ENABLED` para utilizar esta funcionalidade.
+
 ## Execução e validação
 
 Requer Node.js 24, npm, PostgreSQL/Redis quando configurados:
