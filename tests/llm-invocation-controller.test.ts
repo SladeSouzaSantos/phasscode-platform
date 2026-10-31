@@ -265,7 +265,7 @@ describe('fallback por invocação e limites do turno', () => {
     const invoke = vi.fn(async () => 'never');
     await expect(
       controller.createTurn(new AbortController().signal).run({ beforeAttempt, invoke }),
-    ).rejects.toMatchObject({ code: 'LLM_UNAVAILABLE', status: 503, retryAfterSeconds: 2 });
+    ).rejects.toMatchObject({ code: 'LLM_PROVIDERS_LIMITED', status: 503, retryAfterSeconds: 2 });
     expect(beforeAttempt).not.toHaveBeenCalled();
     expect(invoke).not.toHaveBeenCalled();
   });
@@ -275,7 +275,7 @@ describe('fallback por invocação e limites do turno', () => {
     const invoke = vi.fn(async () => 'never');
     await expect(
       controller.createTurn(new AbortController().signal).run({ beforeAttempt, invoke }),
-    ).rejects.toMatchObject({ status: 503, retryAfterSeconds: 3 });
+    ).rejects.toMatchObject({ code: 'LLM_PROVIDERS_LIMITED', status: 503, retryAfterSeconds: 3 });
     expect(invoke).not.toHaveBeenCalled();
   });
   it.each([400, 403, 422])('HTTP %s não tenta outra rota', async (status) => {
