@@ -151,7 +151,10 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
 
   it('mantém títulos dos 42 cursos em seis trilhas no contexto real da LLM', async () => {
     const stub = await llmServer(() =>
-      completion({ role: 'assistant', content: 'Os 42 cursos livres estão organizados em seis trilhas.' }),
+      completion({
+        role: 'assistant',
+        content: 'Os 42 cursos livres estão organizados em seis trilhas.',
+      }),
     );
     const config = loadConfig({
       LLM_PROVIDER: 'openai-compatible',

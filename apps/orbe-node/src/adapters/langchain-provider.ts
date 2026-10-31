@@ -103,8 +103,7 @@ export class LangChainChatProvider implements ChatProvider {
     // disclaimers from the six tracks while preserving every course title and
     // institution; otherwise the provider's context cap drops entire tracks.
     const completeCourseCatalog =
-      input.documents.length === 7 &&
-      input.documents.every((doc) => doc.id.startsWith('cursos-'));
+      input.documents.length === 7 && input.documents.every((doc) => doc.id.startsWith('cursos-'));
     const documents = completeCourseCatalog
       ? input.documents.map((doc) =>
           doc.id === 'cursos-declarados'
