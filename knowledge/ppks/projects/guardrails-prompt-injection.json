@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "1.0",
+  "id": "guardrails-prompt-injection",
+  "kind": "project",
+  "identity": {
+    "name": "GUARDRAILS & IA — projeto de estudo",
+    "nature": "study",
+    "role": "Desenvolvimento para estudo",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/main/safeguard-prompt-injection",
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "ai",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "GUARDRAILS & IA: Laboratório educacional que compara agentes de IA com e sem mecanismos de defesa contra prompt injection.",
+    "technical": "GUARDRAILS & IA: Laboratório educacional que compara agentes de IA com e sem mecanismos de defesa contra prompt injection. Examina permissões de acesso, ataques de manipulação de instruções e validação por modelos de segurança. Pontos implementados/documentados: Modos seguro e inseguro para comparar o comportamento de agentes sob ataques simulados. Demonstração de controle de permissões para ferramentas e papéis distintos. Fluxos com LangChain/LangGraph e avaliação de prompts por modelo de safeguard.. Tecnologias registradas neste projeto: TypeScript, Node.js, LangChain, LangGraph, OpenRouter. Projeto ou exercício de estudo, não emprego nem produto comercial validado.",
+    "problemSolved": null
+  },
+  "stack": [
+    {
+      "name": "TypeScript",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Node.js",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "LangChain",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "LangGraph",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "OpenRouter",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "unknown",
+    "components": [],
+    "patterns": [],
+    "dataFlow": null
+  },
+  "features": [],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: ai",
+      "demonstrates": "Este projeto documenta competências em TypeScript, Node.js, LangChain, LangGraph, OpenRouter; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/integracao_apis_llms",
+    "sourcePath": null,
+    "sourceRef": null,
+    "sourceCommit": null,
+    "lastModifiedAt": null,
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": true
+  }
+}
