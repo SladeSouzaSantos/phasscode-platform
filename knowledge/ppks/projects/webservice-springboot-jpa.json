@@ -1,0 +1,236 @@
+{
+  "schemaVersion": "1.0",
+  "id": "webservice-springboot-jpa",
+  "kind": "project",
+  "identity": {
+    "name": "Webservice Spring Boot e JPA — exemplo de estudo",
+    "nature": "study",
+    "role": "Desenvolvimento para estudo",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/webservice-springboot3-jpa",
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "backend",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "Webservice Spring Boot e JPA é um projeto público de estudo de backend Java.",
+    "technical": "Webservice Spring Boot e JPA é um projeto público de estudo de backend Java. O pom.xml define Java 17, Spring Boot 3.2.3, Spring Web, Spring Data JPA, H2 e spring-boot-starter-test. UserResource implementa apenas GET /users e GET /users/{id}, com camadas User, UserRepository (JpaRepository), UserService e UserResource. Há um teste básico JUnit 5 @SpringBootTest (contextLoads) que verifica inicialização do contexto, mas não há suíte documentada de testes unitários de serviços ou endpoints. UserService.findById usa Optional.get() sem tratamento explícito de entidade ausente; NÃO afirmar que GET /users/{id} retorna HTTP 404 quando não encontra o usuário. Não existem endpoints próprios de criação, atualização ou exclusão (POST/PUT/DELETE) neste exemplo, nem autenticação. Java/Spring Boot deste projeto é estudo, não tecnologia confirmada no emprego SIGAA.",
+    "problemSolved": "Aprender organização de endpoints de consulta e persistência ORM de usuários."
+  },
+  "stack": [
+    {
+      "name": "Java",
+      "kind": "language",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "repo",
+        "resource",
+        "service",
+        "test"
+      ]
+    },
+    {
+      "name": "Spring Boot",
+      "kind": "framework",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "repo",
+        "resource",
+        "service",
+        "test"
+      ]
+    },
+    {
+      "name": "Spring Web",
+      "kind": "framework",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "repo",
+        "resource",
+        "service",
+        "test"
+      ]
+    },
+    {
+      "name": "Spring Data JPA",
+      "kind": "framework",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "repo",
+        "resource",
+        "service",
+        "test"
+      ]
+    },
+    {
+      "name": "JPA",
+      "kind": "library",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "repo",
+        "resource",
+        "service",
+        "test"
+      ]
+    },
+    {
+      "name": "H2",
+      "kind": "database",
+      "usage": "implemented",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "repo",
+        "resource",
+        "service",
+        "test"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "layered",
+    "components": [
+      "UserResource",
+      "UserService",
+      "UserRepository",
+      "User"
+    ],
+    "patterns": [
+      {
+        "name": "Repository",
+        "application": "UserRepository estende JpaRepository<User,Long>.",
+        "evidenceLevel": "verified",
+        "evidenceIds": [
+          "repo"
+        ]
+      }
+    ],
+    "dataFlow": "GET /users ou GET /users/{id} -> UserResource -> UserService -> UserRepository -> H2."
+  },
+  "features": [
+    {
+      "name": "Listagem de usuários",
+      "description": "GET /users retorna coleção.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Busca de usuário por ID",
+      "description": "GET /users/{id} usa Optional.get, sem 404 explícito.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "engineering": {
+    "tests": [
+      {
+        "name": "JUnit 5 contextLoads",
+        "scope": "Verifica inicialização do contexto Spring Boot, não comportamento de endpoints.",
+        "evidenceIds": [
+          "test"
+        ]
+      }
+    ],
+    "quality": [],
+    "ciCd": [],
+    "deployment": [],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: backend",
+      "demonstrates": "Este projeto documenta competências em Java, Spring Boot, Spring Web, Spring Data JPA, JPA, H2; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "verified",
+      "evidenceIds": [
+        "catalog",
+        "repo",
+        "resource",
+        "service",
+        "test"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "CRUD completo",
+      "status": "not_implemented",
+      "description": "Não contém endpoints POST, PUT ou DELETE próprios."
+    },
+    {
+      "topic": "Resposta 404",
+      "status": "not_implemented",
+      "description": "UserService chama Optional.get() sem fluxo explícito 404 para usuário ausente."
+    },
+    {
+      "topic": "Testes de endpoints",
+      "status": "not_documented",
+      "description": "O teste observado apenas inicializa contexto."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    },
+    {
+      "id": "repo",
+      "type": "source_code",
+      "url": "https://github.com/SladeSouzaSantos/webservice-springboot3-jpa/blob/bec22f975ca798d0472f539eea2193c3bdccb0ec/src/main/java/com/greencity/software/development/webservice/repositories/UserRepository.java",
+      "path": "src/main/java/com/greencity/software/development/webservice/repositories/UserRepository.java",
+      "note": null
+    },
+    {
+      "id": "resource",
+      "type": "source_code",
+      "url": "https://github.com/SladeSouzaSantos/webservice-springboot3-jpa/blob/bec22f975ca798d0472f539eea2193c3bdccb0ec/src/main/java/com/greencity/software/development/webservice/resources/UserResource.java",
+      "path": "src/main/java/com/greencity/software/development/webservice/resources/UserResource.java",
+      "note": null
+    },
+    {
+      "id": "service",
+      "type": "source_code",
+      "url": "https://github.com/SladeSouzaSantos/webservice-springboot3-jpa/blob/bec22f975ca798d0472f539eea2193c3bdccb0ec/src/main/java/com/greencity/software/development/webservice/services/UserService.java",
+      "path": "src/main/java/com/greencity/software/development/webservice/services/UserService.java",
+      "note": null
+    },
+    {
+      "id": "test",
+      "type": "test",
+      "url": "https://github.com/SladeSouzaSantos/webservice-springboot3-jpa/blob/bec22f975ca798d0472f539eea2193c3bdccb0ec/src/test/java/com/greencity/software/development/webservice/WebserviceApplicationTests.java",
+      "path": "src/test/java/com/greencity/software/development/webservice/WebserviceApplicationTests.java",
+      "note": null
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/webservice-springboot3-jpa",
+    "sourcePath": null,
+    "sourceRef": "main",
+    "sourceCommit": "bec22f975ca798d0472f539eea2193c3bdccb0ec",
+    "lastModifiedAt": "2024-04-21T01:51:56Z",
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": "2026-10-31T19:43:18.186Z",
+    "verificationStatus": "code_reviewed",
+    "syncEligible": true
+  }
+}
