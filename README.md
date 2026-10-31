@@ -51,13 +51,18 @@ Perguntas pessoais, credenciais e tentativas de injeção não são atendidas.
 | `dev`  | `devapi.phasscode.com` | `/opt/projects/phasscode-platform-dev` |
 | `main` | `api.phasscode.com`    | `/opt/projects/phasscode-platform`     |
 
-O GitHub Actions valida testes, SAST, imagem GHCR e DAST descartável.
+O GitHub Actions utiliza três workflows essenciais: `Backend CI` (PR e gate interno),
+`Static security analysis` (PR e verificação semanal) e `Backend release`
+(push para qualificar/publicar imagem, dispatch manual para aplicar no Mac Mini).
+O Release valida testes, SAST, imagem GHCR e DAST descartável; somente o
+`workflow_dispatch` com `apply_remote=true` pode iniciar o deploy remoto.
 A publicação remota é manual: selecione a branch no workflow
 `.github/workflows/deploy.yml`, informe `development` para `dev` ou
 `production` para `main` e escolha `apply_remote=true`.
 O environment correspondente exige `ENABLE_REMOTE_DEPLOY=true`.
 
-**O bloqueio operacional R3/R4 do DEV não foi retirado.**
+**O bloqueio R3/R4 agora é condicional e fail-closed.**
+Se houver worker legado ou estado operacional não reconciliado, o deploy é recusado.
 A primeira parada do worker legado precisa de um procedimento
 supervisionado, com auditoria do estado de outbox e backups.
 Não contorne o bloqueio apagando arquivos de estado ou volumes.
