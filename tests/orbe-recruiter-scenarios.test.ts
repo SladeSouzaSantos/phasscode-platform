@@ -144,6 +144,19 @@ describe('Academia Arcana / base profissional do Orbe DEV', () => {
     ]);
   });
 
+  it('envia todas as seis trilhas e o resumo dos 42 cursos sem truncar registros', async () => {
+    const { service, generate, knowledge } = await createService();
+    const query = 'Liste todos os 42 cursos concluídos por trilha.';
+    await service.execute({ message: query });
+    const sent = generate.mock.calls[0]![0].documents;
+    const catalog = knowledge.search(query);
+    expect(sent.map((doc) => doc.id)).toEqual(catalog.map((doc) => doc.id));
+    expect(sent).toHaveLength(7);
+    for (const document of sent) {
+      expect(document.content).toBe(catalog.find((doc) => doc.id === document.id)?.content);
+    }
+  });
+
   it('fundamenta JUnit básico e pipelines autorais sem garantir 404 nem módulos do SIGAA', async () => {
     const docs = JSON.parse(await readFile('knowledge/portfolio.json', 'utf8'));
     const byId = (id: string) => docs.find((doc: { id: string }) => doc.id === id);
