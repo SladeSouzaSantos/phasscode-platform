@@ -165,6 +165,9 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
   experienceDocuments(): KnowledgeDocument[] {
     return this.documents.filter((document) => document.experiencePeriod !== undefined);
   }
+  getDocument(id: string): KnowledgeDocument | undefined {
+    return this.documents.find((document) => document.id === id);
+  }
   search(query: string): KnowledgeDocument[] {
     const queryTerms = knowledgeTerms(query);
     const queryPhrase = ` ${knowledgePhrase(query)} `;
