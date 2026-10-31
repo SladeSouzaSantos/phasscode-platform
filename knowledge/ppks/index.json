@@ -1,0 +1,328 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-31T19:55:51.752Z",
+  "projects": [
+    {
+      "id": "embeddings-neo4j-rag",
+      "path": "projects/embeddings-neo4j-rag.json",
+      "name": "Embeddings e Neo4j — laboratório RAG",
+      "applicationType": "ai",
+      "technologies": ["Node.js", "TypeScript", "LangChain", "HuggingFace", "Neo4j", "OpenRouter"],
+      "skills": ["Experiência demonstrada: ai"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "gemini-nano-browser",
+      "path": "projects/gemini-nano-browser.json",
+      "name": "GEMINI NANO — projeto de estudo",
+      "applicationType": "ai",
+      "technologies": ["JavaScript", "HTML", "CSS", "Web AI APIs", "Gemini Nano"],
+      "skills": ["Experiência demonstrada: ai"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "gestao-empresarial-api",
+      "path": "projects/gestao-empresarial-api.json",
+      "name": "Sistema de Gestão Empresarial — API Django e JWT",
+      "applicationType": "backend",
+      "technologies": ["Python", "Django", "Django REST Framework", "Simple JWT"],
+      "skills": ["Experiência demonstrada: backend"],
+      "nature": "unknown",
+      "sourceCommit": "a5f812365019855be2f57c9476963544593235db",
+      "lastModifiedAt": "2026-01-07T05:15:24Z",
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "greencity-api-orcamento",
+      "path": "projects/greencity-api-orcamento.json",
+      "name": "Greencity API Orçamento — propostas fotovoltaicas em PDF",
+      "applicationType": "backend",
+      "technologies": ["PHP", "Laravel", "DomPDF", "Blade", "Docker"],
+      "skills": ["Experiência demonstrada: backend"],
+      "nature": "unknown",
+      "sourceCommit": "984af242d75fc85868519f5cc01a12d77a992745",
+      "lastModifiedAt": "2026-02-23T17:10:26Z",
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "greencity-os",
+      "path": "projects/greencity-os.json",
+      "name": "GREENCITY OS — projeto do portfólio",
+      "applicationType": "mobile",
+      "technologies": ["Flutter", "Dart", "BLoC", "Isar", "Dio", "LLMs"],
+      "skills": ["Experiência demonstrada: mobile"],
+      "nature": "personal",
+      "sourceCommit": "dc97e5821f67e99dbcb57dfa456635de28cf9f37",
+      "lastModifiedAt": "2026-10-24T01:30:04Z",
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "greencity-sdgp",
+      "path": "projects/greencity-sdgp.json",
+      "name": "SDGP e Greencity Solutions — dimensionamento fotovoltaico",
+      "applicationType": "mobile",
+      "technologies": ["Flutter", "Dart", "Firebase", "Python", "PHP"],
+      "skills": ["Experiência demonstrada: mobile"],
+      "nature": "professional",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "guardrails-prompt-injection",
+      "path": "projects/guardrails-prompt-injection.json",
+      "name": "GUARDRAILS & IA — projeto de estudo",
+      "applicationType": "ai",
+      "technologies": ["TypeScript", "Node.js", "LangChain", "LangGraph", "OpenRouter"],
+      "skills": ["Experiência demonstrada: ai"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "hsp-simulator",
+      "path": "projects/hsp-simulator.json",
+      "name": "HSP Simulator — API e simulação solar",
+      "applicationType": "multi",
+      "technologies": [
+        "Python",
+        "FastAPI",
+        "Pydantic",
+        "Streamlit",
+        "NumPy",
+        "pandas",
+        "SciPy",
+        "pvlib",
+        "Plotly",
+        "Docker"
+      ],
+      "skills": ["Experiência demonstrada: multi"],
+      "nature": "unknown",
+      "sourceCommit": "70896f32c5d9033aaf243c374de9ac3b5c716821",
+      "lastModifiedAt": "2026-10-22T21:27:57Z",
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "laboratorios-frontend",
+      "path": "projects/laboratorios-frontend.json",
+      "name": "Laboratórios HTML/CSS/JavaScript — formulários, armazenamento e áudio",
+      "applicationType": "frontend",
+      "technologies": ["HTML", "CSS", "JavaScript"],
+      "skills": ["Escopo do projeto documentado"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "langchain-intro",
+      "path": "projects/langchain-intro.json",
+      "name": "LangChain Intro — laboratório público de grafos e agentes",
+      "applicationType": "ai",
+      "technologies": ["Node.js", "TypeScript", "LangChain", "LangGraph", "Fastify", "Zod"],
+      "skills": ["Experiência demonstrada: ai"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "lithology",
+      "path": "projects/lithology.json",
+      "name": "Lithology — registros e relatórios de perfuração",
+      "applicationType": "unknown",
+      "technologies": [],
+      "skills": ["Escopo do projeto documentado"],
+      "nature": "professional",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "numero-secreto",
+      "path": "projects/numero-secreto.json",
+      "name": "NÚMERO SECRETO — projeto de estudo",
+      "applicationType": "frontend",
+      "technologies": ["HTML", "CSS", "JavaScript", "Web Speech API"],
+      "skills": ["Experiência demonstrada: frontend"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "phasscode-platform",
+      "path": "projects/phasscode-platform.json",
+      "name": "PHASSCODE Platform — backend do Orbe Mágico",
+      "applicationType": "backend",
+      "technologies": [
+        "Node.js",
+        "TypeScript",
+        "Fastify",
+        "LangChain",
+        "PostgreSQL",
+        "Redis",
+        "Docker"
+      ],
+      "skills": ["Experiência demonstrada: backend"],
+      "nature": "personal",
+      "sourceCommit": "c208817c98b3fc4d40414fd656578cf8674219c8",
+      "lastModifiedAt": "2026-10-31T17:38:13Z",
+      "verificationStatus": "code_reviewed"
+    },
+    {
+      "id": "resergas",
+      "path": "projects/resergas.json",
+      "name": "ReserGas — propriedades de gás de reservatório",
+      "applicationType": "mobile",
+      "technologies": ["Flutter", "Dart"],
+      "skills": ["Experiência demonstrada: mobile"],
+      "nature": "personal",
+      "sourceCommit": "2a0f2c8e791a8541b905808b66d97e373340e5b7",
+      "lastModifiedAt": "2025-10-20T21:10:59Z",
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "shadow-sim-pro",
+      "path": "projects/shadow-sim-pro.json",
+      "name": "SHADOW SIM PRO — projeto de estudo",
+      "applicationType": "data",
+      "technologies": ["Python", "Streamlit", "Plotly", "Docker Swarm", "GitHub Actions"],
+      "skills": ["Experiência demonstrada: data"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "smart-model-router",
+      "path": "projects/smart-model-router.json",
+      "name": "Smart Model Router Gateway — integração experimental de LLMs",
+      "applicationType": "ai",
+      "technologies": ["Node.js", "TypeScript", "Fastify", "OpenRouter"],
+      "skills": ["Experiência demonstrada: ai"],
+      "nature": "personal",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "stranger-things-experience",
+      "path": "projects/stranger-things-experience.json",
+      "name": "STRANGER THINGS — projeto de estudo",
+      "applicationType": "frontend",
+      "technologies": ["HTML", "CSS", "JavaScript", "GSAP", "ScrollTrigger"],
+      "skills": ["Experiência demonstrada: frontend"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "task-manager-flask",
+      "path": "projects/task-manager-flask.json",
+      "name": "TASK MANAGER — projeto de estudo",
+      "applicationType": "fullstack",
+      "technologies": ["Python", "Flask", "SQLAlchemy", "pytest", "Docker", "Grafana"],
+      "skills": ["Experiência demonstrada: fullstack"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "teclado-sound",
+      "path": "projects/teclado-sound.json",
+      "name": "TECLADO SOUND — projeto de estudo",
+      "applicationType": "frontend",
+      "technologies": ["HTML", "CSS", "JavaScript", "DOM", "Áudio"],
+      "skills": ["Experiência demonstrada: frontend"],
+      "nature": "study",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    },
+    {
+      "id": "web-portfolio-v2",
+      "path": "projects/web-portfolio-v2.json",
+      "name": "Portfólio PHASSCODE",
+      "applicationType": "frontend",
+      "technologies": [
+        "React",
+        "TypeScript",
+        "Vite",
+        "React Router",
+        "GSAP",
+        "Playwright",
+        "axe-core",
+        "GitHub Actions"
+      ],
+      "skills": ["Experiência demonstrada: frontend"],
+      "nature": "personal",
+      "sourceCommit": "9b34a987ad2e41ae9d7520fc10348f518e0d989f",
+      "lastModifiedAt": "2026-10-31T18:42:45Z",
+      "verificationStatus": "code_reviewed"
+    },
+    {
+      "id": "webservice-springboot-jpa",
+      "path": "projects/webservice-springboot-jpa.json",
+      "name": "Webservice Spring Boot e JPA — exemplo de estudo",
+      "applicationType": "backend",
+      "technologies": ["Java", "Spring Boot", "Spring Web", "Spring Data JPA", "JPA", "H2"],
+      "skills": ["Experiência demonstrada: backend"],
+      "nature": "study",
+      "sourceCommit": "bec22f975ca798d0472f539eea2193c3bdccb0ec",
+      "lastModifiedAt": "2024-04-21T01:51:56Z",
+      "verificationStatus": "code_reviewed"
+    },
+    {
+      "id": "websites-institucionais",
+      "path": "projects/websites-institucionais.json",
+      "name": "Websites institucionais — Siberian e Greencity",
+      "applicationType": "multi",
+      "technologies": ["WordPress", "PHP"],
+      "skills": ["Escopo do projeto documentado"],
+      "nature": "unknown",
+      "sourceCommit": null,
+      "lastModifiedAt": null,
+      "verificationStatus": "catalog_only"
+    }
+  ],
+  "experiences": [
+    {
+      "id": "experiencia-acrux",
+      "path": "experiences/experiencia-acrux.json",
+      "organization": "ACRUX",
+      "role": "Estagiário Programador de Sistemas",
+      "technologies": ["Java", "H2", "NetBeans", "Scrum"]
+    },
+    {
+      "id": "experiencia-geowellex",
+      "path": "experiences/experiencia-geowellex.json",
+      "organization": "Geowellex",
+      "role": "Mud Logging / Desenvolvedor de Sistemas",
+      "technologies": ["HTML", "CSS", "JavaScript", "PHP", "MySQL"]
+    },
+    {
+      "id": "experiencia-greencity",
+      "path": "experiences/experiencia-greencity.json",
+      "organization": "Greencity Sustainable Energy",
+      "role": "Engenheiro de Projetos Fotovoltaicos / Desenvolvedor Web e Mobile",
+      "technologies": ["Flutter", "Dart", "Firebase", "Python", "PHP"]
+    },
+    {
+      "id": "experiencia-sig",
+      "path": "experiences/experiencia-sig.json",
+      "organization": "SIG Software e Consultoria em TI",
+      "role": "Desenvolvedor de Sistemas — desenvolvimento e manutenção de funcionalidades do SIGAA",
+      "technologies": ["Java", "Hibernate", "JBoss", "PostgreSQL", "Scrum"]
+    }
+  ]
+}

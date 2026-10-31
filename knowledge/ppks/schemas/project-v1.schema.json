@@ -30,21 +30,12 @@
       "maxLength": 120
     },
     "kind": {
-      "enum": [
-        "project"
-      ]
+      "enum": ["project"]
     },
     "identity": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "name",
-        "nature",
-        "role",
-        "repositoryUrl",
-        "demoUrl",
-        "visibility"
-      ],
+      "required": ["name", "nature", "role", "repositoryUrl", "demoUrl", "visibility"],
       "properties": {
         "name": {
           "type": "string",
@@ -52,13 +43,7 @@
           "maxLength": 220
         },
         "nature": {
-          "enum": [
-            "personal",
-            "professional",
-            "study",
-            "contribution",
-            "unknown"
-          ]
+          "enum": ["personal", "professional", "study", "contribution", "unknown"]
         },
         "role": {
           "type": "string",
@@ -90,23 +75,14 @@
           ]
         },
         "visibility": {
-          "enum": [
-            "public",
-            "private",
-            "third-party",
-            "unknown"
-          ]
+          "enum": ["public", "private", "third-party", "unknown"]
         }
       }
     },
     "classification": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "applicationType",
-        "domains",
-        "engineeringAreas"
-      ],
+      "required": ["applicationType", "domains", "engineeringAreas"],
       "properties": {
         "applicationType": {
           "enum": [
@@ -147,11 +123,7 @@
     "summary": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "functional",
-        "technical",
-        "problemSolved"
-      ],
+      "required": ["functional", "technical", "problemSolved"],
       "properties": {
         "functional": {
           "type": "string",
@@ -182,13 +154,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "kind",
-          "usage",
-          "evidenceLevel",
-          "evidenceIds"
-        ],
+        "required": ["name", "kind", "usage", "evidenceLevel", "evidenceIds"],
         "properties": {
           "name": {
             "type": "string",
@@ -207,19 +173,10 @@
             ]
           },
           "usage": {
-            "enum": [
-              "implemented",
-              "documented",
-              "planned",
-              "unconfirmed"
-            ]
+            "enum": ["implemented", "documented", "planned", "unconfirmed"]
           },
           "evidenceLevel": {
-            "enum": [
-              "verified",
-              "declared",
-              "inferred"
-            ]
+            "enum": ["verified", "declared", "inferred"]
           },
           "evidenceIds": {
             "type": "array",
@@ -239,12 +196,7 @@
     "architecture": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "style",
-        "components",
-        "patterns",
-        "dataFlow"
-      ],
+      "required": ["style", "components", "patterns", "dataFlow"],
       "properties": {
         "style": {
           "enum": [
@@ -274,12 +226,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "name",
-              "application",
-              "evidenceLevel",
-              "evidenceIds"
-            ],
+            "required": ["name", "application", "evidenceLevel", "evidenceIds"],
             "properties": {
               "name": {
                 "type": "string",
@@ -292,11 +239,7 @@
                 "maxLength": 1000
               },
               "evidenceLevel": {
-                "enum": [
-                  "verified",
-                  "declared",
-                  "inferred"
-                ]
+                "enum": ["verified", "declared", "inferred"]
               },
               "evidenceIds": {
                 "type": "array",
@@ -332,12 +275,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "description",
-          "status",
-          "evidenceIds"
-        ],
+        "required": ["name", "description", "status", "evidenceIds"],
         "properties": {
           "name": {
             "type": "string",
@@ -350,12 +288,7 @@
             "maxLength": 1400
           },
           "status": {
-            "enum": [
-              "implemented",
-              "documented",
-              "planned",
-              "unconfirmed"
-            ]
+            "enum": ["implemented", "documented", "planned", "unconfirmed"]
           },
           "evidenceIds": {
             "type": "array",
@@ -375,24 +308,14 @@
     "engineering": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "tests",
-        "quality",
-        "ciCd",
-        "deployment",
-        "security"
-      ],
+      "required": ["tests", "quality", "ciCd", "deployment", "security"],
       "properties": {
         "tests": {
           "type": "array",
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "name",
-              "scope",
-              "evidenceIds"
-            ],
+            "required": ["name", "scope", "evidenceIds"],
             "properties": {
               "name": {
                 "type": "string",
@@ -466,12 +389,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "demonstrates",
-          "evidenceLevel",
-          "evidenceIds"
-        ],
+        "required": ["name", "demonstrates", "evidenceLevel", "evidenceIds"],
         "properties": {
           "name": {
             "type": "string",
@@ -484,11 +402,7 @@
             "maxLength": 1000
           },
           "evidenceLevel": {
-            "enum": [
-              "verified",
-              "declared",
-              "inferred"
-            ]
+            "enum": ["verified", "declared", "inferred"]
           },
           "evidenceIds": {
             "type": "array",
@@ -510,11 +424,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "topic",
-          "status",
-          "description"
-        ],
+        "required": ["topic", "status", "description"],
         "properties": {
           "topic": {
             "type": "string",
@@ -522,13 +432,7 @@
             "maxLength": 200
           },
           "status": {
-            "enum": [
-              "not_implemented",
-              "not_documented",
-              "not_verified",
-              "planned",
-              "unknown"
-            ]
+            "enum": ["not_implemented", "not_documented", "not_verified", "planned", "unknown"]
           },
           "description": {
             "type": "string",
@@ -545,13 +449,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "type",
-          "url",
-          "path",
-          "note"
-        ],
+        "required": ["id", "type", "url", "path", "note"],
         "properties": {
           "id": {
             "type": "string",
@@ -705,11 +603,7 @@
           ]
         },
         "verificationStatus": {
-          "enum": [
-            "catalog_only",
-            "code_reviewed",
-            "pending_review"
-          ]
+          "enum": ["catalog_only", "code_reviewed", "pending_review"]
         },
         "syncEligible": {
           "type": "boolean"

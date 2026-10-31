@@ -26,18 +26,14 @@
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "PHP",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "architecture": {
@@ -59,9 +55,7 @@
       "name": "Escopo do projeto documentado",
       "demonstrates": "Competências descritas no catálogo de curadoria; detalhes técnicos requerem revisão específica.",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "limitations": [

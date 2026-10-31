@@ -26,45 +26,35 @@
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "HTML",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "CSS",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Web AI APIs",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Gemini Nano",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "architecture": {
@@ -86,9 +76,7 @@
       "name": "Experiência demonstrada: ai",
       "demonstrates": "Este projeto documenta competências em JavaScript, HTML, CSS, Web AI APIs, Gemini Nano; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "limitations": [],

@@ -7,10 +7,7 @@
   "start": "2017-03",
   "end": "2018-10",
   "currentAsOf": null,
-  "areas": [
-    "software-development",
-    "engineering"
-  ],
+  "areas": ["software-development", "engineering"],
   "responsibilities": [
     "Desenvolvimento de sistema web de controle de estoque com HTML, CSS, JavaScript, PHP e MySQL.",
     "Trabalho simultâneo de Mud Logging e análise de dados geológicos."
@@ -21,45 +18,35 @@
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "CSS",
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "JavaScript",
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "PHP",
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "MySQL",
       "kind": "database",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "projects": [],
@@ -68,9 +55,7 @@
       "name": "Experiência profissional documentada",
       "demonstrates": "Pedro Santos trabalhou na Geowellex de março de 2017 a outubro de 2018, como Mud Logging / Desenvolvedor de Sistemas. Desenvolveu sistema web de controle de estoque com HTML, CSS, JavaScript, PHP e MySQL, junto a atividades de coleta, análise e organização de dados geológicos em operações de perfuração. As fontes registram a experiência profissional, sem disponibilizar repositório desse sistema.",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "limitations": [

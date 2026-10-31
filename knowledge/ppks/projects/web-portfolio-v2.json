@@ -26,98 +26,61 @@
       "kind": "framework",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "tests",
-        "chat-ui"
-      ]
+      "evidenceIds": ["catalog", "tests", "chat-ui"]
     },
     {
       "name": "TypeScript",
       "kind": "language",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "tests",
-        "chat-ui"
-      ]
+      "evidenceIds": ["catalog", "tests", "chat-ui"]
     },
     {
       "name": "Vite",
       "kind": "tool",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "tests",
-        "chat-ui"
-      ]
+      "evidenceIds": ["catalog", "tests", "chat-ui"]
     },
     {
       "name": "React Router",
       "kind": "framework",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "tests",
-        "chat-ui"
-      ]
+      "evidenceIds": ["catalog", "tests", "chat-ui"]
     },
     {
       "name": "GSAP",
       "kind": "library",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "tests",
-        "chat-ui"
-      ]
+      "evidenceIds": ["catalog", "tests", "chat-ui"]
     },
     {
       "name": "Playwright",
       "kind": "tool",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "tests",
-        "chat-ui"
-      ]
+      "evidenceIds": ["catalog", "tests", "chat-ui"]
     },
     {
       "name": "axe-core",
       "kind": "library",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "tests",
-        "chat-ui"
-      ]
+      "evidenceIds": ["catalog", "tests", "chat-ui"]
     },
     {
       "name": "GitHub Actions",
       "kind": "infrastructure",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "tests",
-        "chat-ui"
-      ]
+      "evidenceIds": ["catalog", "tests", "chat-ui"]
     }
   ],
   "architecture": {
     "style": "component",
-    "components": [
-      "React UI",
-      "OrbeClient",
-      "useOrbeChat",
-      "Painéis e modais"
-    ],
+    "components": ["React UI", "OrbeClient", "useOrbeChat", "Painéis e modais"],
     "patterns": [],
     "dataFlow": "Frontend React consulta API do Orbe via cliente HTTP com token de conversa privado mantido em memória."
   },
@@ -126,25 +89,19 @@
       "name": "Chat Orbe",
       "description": "Interface de perguntas e respostas com histórico local na sessão.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Consentimento de relatório",
       "description": "Opt-in explícito antes da primeira mensagem e possibilidade de revogação.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Navegação pixel art",
       "description": "Seções e galeria de projetos com interações de interface.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "engineering": {
@@ -152,41 +109,25 @@
       {
         "name": "Playwright",
         "scope": "Navegação, responsividade, chat e interações.",
-        "evidenceIds": [
-          "tests"
-        ]
+        "evidenceIds": ["tests"]
       },
       {
         "name": "axe-core",
         "scope": "Auditoria automatizada de acessibilidade na suíte de navegador; não é certificação WCAG.",
-        "evidenceIds": [
-          "tests"
-        ]
+        "evidenceIds": ["tests"]
       }
     ],
-    "quality": [
-      "TypeScript e verificações de acessibilidade"
-    ],
-    "ciCd": [
-      "GitHub Actions"
-    ],
-    "deployment": [
-      "Ambiente DEV hospedado na web"
-    ],
-    "security": [
-      "Validação de URLs e separação de tokens do chat no cliente"
-    ]
+    "quality": ["TypeScript e verificações de acessibilidade"],
+    "ciCd": ["GitHub Actions"],
+    "deployment": ["Ambiente DEV hospedado na web"],
+    "security": ["Validação de URLs e separação de tokens do chat no cliente"]
   },
   "competencies": [
     {
       "name": "Experiência demonstrada: frontend",
       "demonstrates": "Este projeto documenta competências em React, TypeScript, Vite, React Router, GSAP, Playwright; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "tests",
-        "chat-ui"
-      ]
+      "evidenceIds": ["catalog", "tests", "chat-ui"]
     }
   ],
   "limitations": [

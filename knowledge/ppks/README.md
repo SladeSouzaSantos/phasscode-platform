@@ -24,18 +24,18 @@ apresentar como pública uma base de código corporativa.
 
 A ficha registra campos distintos:
 
-| Campo | Interpretação |
-| --- | --- |
-| `sync.sourceRepository` | Repo `owner/repo`, quando identificado |
-| `sync.sourcePath` | Subdiretório de origem, se for monorepo |
-| `sync.sourceRef` | Branch ou referência consultada |
-| `sync.sourceCommit` | SHA exato do commit da referência consultada |
-| `sync.lastModifiedAt` | Data UTC do commit do **ref consultado**, não `repo.updated_at` |
-| `sync.checkedAt` | Quando o GitHub/catálogo foi consultado |
-| `sync.analyzedAt` | Quando a ficha técnica foi gerada/atualizada |
-| `sync.reviewedAt` | Quando as evidências foram revisadas editorialmente |
-| `sync.verificationStatus` | `catalog_only`, `code_reviewed`, `pending_review` |
-| `sync.syncEligible` | Se o registro tem repo apto à futura sincronização |
+| Campo                     | Interpretação                                                   |
+| ------------------------- | --------------------------------------------------------------- |
+| `sync.sourceRepository`   | Repo `owner/repo`, quando identificado                          |
+| `sync.sourcePath`         | Subdiretório de origem, se for monorepo                         |
+| `sync.sourceRef`          | Branch ou referência consultada                                 |
+| `sync.sourceCommit`       | SHA exato do commit da referência consultada                    |
+| `sync.lastModifiedAt`     | Data UTC do commit do **ref consultado**, não `repo.updated_at` |
+| `sync.checkedAt`          | Quando o GitHub/catálogo foi consultado                         |
+| `sync.analyzedAt`         | Quando a ficha técnica foi gerada/atualizada                    |
+| `sync.reviewedAt`         | Quando as evidências foram revisadas editorialmente             |
+| `sync.verificationStatus` | `catalog_only`, `code_reviewed`, `pending_review`               |
+| `sync.syncEligible`       | Se o registro tem repo apto à futura sincronização              |
 
 O `sourceCommit` é o principal identificador de mudança; a data auxilia
 exibição e auditoria. Para projetos dentro de monorepos, o sincronizador
@@ -46,6 +46,7 @@ configuração do repositório como prova de alteração de código.
 ### Fluxo planejado (não habilitado)
 
 Futuro comando `npm run ppks:sync -- --dry-run`:
+
 1. Listar repositórios e projetos novos da conta GitHub com paginação e limites.
 2. Comparar SHA remoto por branch/path com `sourceCommit` local.
 3. Sinalizar `new`, `changed`, `unchanged`, `deleted_or_private` e
@@ -74,6 +75,7 @@ consistência do índice. `npm run check` também executa `ppks:check`.
 
 O Orbe pode escolher fichas usando o índice pequeno e recuperar as seções
 técnicas relevantes dos projetos encontrados, sempre preservando:
+
 - experiência profissional versus projeto pessoal e estudo;
 - arquitetura implementada versus sugerida;
 - evidências concretas versus declarações;

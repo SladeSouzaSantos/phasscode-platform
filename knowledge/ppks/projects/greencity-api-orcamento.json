@@ -26,55 +26,40 @@
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Laravel",
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "DomPDF",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Blade",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Docker",
       "kind": "infrastructure",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "architecture": {
     "style": "layered",
-    "components": [
-      "OrcamentoController",
-      "OrcamentoService",
-      "Template Blade",
-      "DomPDF"
-    ],
+    "components": ["OrcamentoController", "OrcamentoService", "Template Blade", "DomPDF"],
     "patterns": [],
     "dataFlow": "POST /gerar-orcamento -> controller -> serviço -> view Blade -> DomPDF."
   },
@@ -83,20 +68,14 @@
       "name": "Geração PDF",
       "description": "Gera proposta fotovoltaica baseada em dados técnicos e comerciais.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "engineering": {
     "tests": [],
     "quality": [],
-    "ciCd": [
-      "Configurações GitHub Actions presentes, sem inferir execução"
-    ],
-    "deployment": [
-      "Docker documentado"
-    ],
+    "ciCd": ["Configurações GitHub Actions presentes, sem inferir execução"],
+    "deployment": ["Docker documentado"],
     "security": []
   },
   "competencies": [
@@ -104,9 +83,7 @@
       "name": "Experiência demonstrada: backend",
       "demonstrates": "Este projeto documenta competências em PHP, Laravel, DomPDF, Blade, Docker; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "limitations": [

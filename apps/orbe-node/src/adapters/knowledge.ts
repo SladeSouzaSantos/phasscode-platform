@@ -88,9 +88,10 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     );
     if (documents.some((document) => document.relatedProjectIds?.some((id) => !projects.has(id))))
       throw new Error('Relacionamento desconhecido na base de conhecimento.');
-    const cards = path === 'knowledge/portfolio.json'
-      ? await loadPpksCards()
-      : new Map<string, TechnicalCard>();
+    const cards =
+      path === 'knowledge/portfolio.json'
+        ? await loadPpksCards()
+        : new Map<string, TechnicalCard>();
     return new JsonKnowledgeRepository(documents, cards);
   }
   experienceDocuments(): KnowledgeDocument[] {
@@ -121,7 +122,10 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         'cursos-bancos-dados',
         'cursos-devops-qualidade',
       ];
-      return this.select(ids.flatMap((id) => this.documents.filter((doc) => doc.id === id)), query);
+      return this.select(
+        ids.flatMap((id) => this.documents.filter((doc) => doc.id === id)),
+        query,
+      );
     }
     const vendorCertificate =
       /\b(?:certificad\w*|certificac\w*)\b/.test(queryPhrase) &&
@@ -282,11 +286,25 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       add('experiencia-sig', 'webservice-springboot-jpa', 'experiencia-acrux');
     }
     // Cross-project questions must distinguish banks used at work from study databases.
-    if (!educationIntent && /\b(?:banco|bancos|persistencia|relacional|relacionais|sql|mysql|postgresql|postgres|h2|indice|indices|migrac\w*)\b/.test(phrase)) {
-      add('experiencia-sig', 'experiencia-geowellex', 'experiencia-acrux',
-        'webservice-springboot-jpa', 'phasscode-platform');
+    if (
+      !educationIntent &&
+      /\b(?:banco|bancos|persistencia|relacional|relacionais|sql|mysql|postgresql|postgres|h2|indice|indices|migrac\w*)\b/.test(
+        phrase,
+      )
+    ) {
+      add(
+        'experiencia-sig',
+        'experiencia-geowellex',
+        'experiencia-acrux',
+        'webservice-springboot-jpa',
+        'phasscode-platform',
+      );
     }
-    if (/\b(?:git|pull request|pull requests|prs|branches|merge|colaborac\w*|revisao de codigo)\b/.test(phrase)) {
+    if (
+      /\b(?:git|pull request|pull requests|prs|branches|merge|colaborac\w*|revisao de codigo)\b/.test(
+        phrase,
+      )
+    ) {
       add('phasscode-platform', 'web-portfolio-v2', 'experiencia-sig');
     }
     if (queryTechnologies.has('react') || queryTechnologies.has('typescript')) {

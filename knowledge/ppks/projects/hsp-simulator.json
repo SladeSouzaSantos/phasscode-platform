@@ -26,90 +26,70 @@
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "FastAPI",
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Pydantic",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Streamlit",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "NumPy",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "pandas",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "SciPy",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "pvlib",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Plotly",
       "kind": "tool",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Docker",
       "kind": "infrastructure",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "architecture": {
@@ -128,17 +108,13 @@
       "name": "Simulação de irradiação",
       "description": "Modelo Perez e alternativas para diferentes orientações.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "API de cálculo",
       "description": "Endpoints POST /calcular e /calcular-arranjo.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "engineering": {
@@ -146,16 +122,12 @@
       {
         "name": "pytest",
         "scope": "Testes unitários, integração e módulos de benchmarks documentados.",
-        "evidenceIds": [
-          "tests"
-        ]
+        "evidenceIds": ["tests"]
       }
     ],
     "quality": [],
     "ciCd": [],
-    "deployment": [
-      "Docker e demo pública declarada"
-    ],
+    "deployment": ["Docker e demo pública declarada"],
     "security": []
   },
   "competencies": [
@@ -163,9 +135,7 @@
       "name": "Experiência demonstrada: multi",
       "demonstrates": "Este projeto documenta competências em Python, FastAPI, Pydantic, Streamlit, NumPy, pandas; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "limitations": [

@@ -26,96 +26,53 @@
       "kind": "language",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "repo",
-        "resource",
-        "service",
-        "test"
-      ]
+      "evidenceIds": ["catalog", "repo", "resource", "service", "test"]
     },
     {
       "name": "Spring Boot",
       "kind": "framework",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "repo",
-        "resource",
-        "service",
-        "test"
-      ]
+      "evidenceIds": ["catalog", "repo", "resource", "service", "test"]
     },
     {
       "name": "Spring Web",
       "kind": "framework",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "repo",
-        "resource",
-        "service",
-        "test"
-      ]
+      "evidenceIds": ["catalog", "repo", "resource", "service", "test"]
     },
     {
       "name": "Spring Data JPA",
       "kind": "framework",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "repo",
-        "resource",
-        "service",
-        "test"
-      ]
+      "evidenceIds": ["catalog", "repo", "resource", "service", "test"]
     },
     {
       "name": "JPA",
       "kind": "library",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "repo",
-        "resource",
-        "service",
-        "test"
-      ]
+      "evidenceIds": ["catalog", "repo", "resource", "service", "test"]
     },
     {
       "name": "H2",
       "kind": "database",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "repo",
-        "resource",
-        "service",
-        "test"
-      ]
+      "evidenceIds": ["catalog", "repo", "resource", "service", "test"]
     }
   ],
   "architecture": {
     "style": "layered",
-    "components": [
-      "UserResource",
-      "UserService",
-      "UserRepository",
-      "User"
-    ],
+    "components": ["UserResource", "UserService", "UserRepository", "User"],
     "patterns": [
       {
         "name": "Repository",
         "application": "UserRepository estende JpaRepository<User,Long>.",
         "evidenceLevel": "verified",
-        "evidenceIds": [
-          "repo"
-        ]
+        "evidenceIds": ["repo"]
       }
     ],
     "dataFlow": "GET /users ou GET /users/{id} -> UserResource -> UserService -> UserRepository -> H2."
@@ -125,17 +82,13 @@
       "name": "Listagem de usuários",
       "description": "GET /users retorna coleção.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Busca de usuário por ID",
       "description": "GET /users/{id} usa Optional.get, sem 404 explícito.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "engineering": {
@@ -143,9 +96,7 @@
       {
         "name": "JUnit 5 contextLoads",
         "scope": "Verifica inicialização do contexto Spring Boot, não comportamento de endpoints.",
-        "evidenceIds": [
-          "test"
-        ]
+        "evidenceIds": ["test"]
       }
     ],
     "quality": [],
@@ -158,13 +109,7 @@
       "name": "Experiência demonstrada: backend",
       "demonstrates": "Este projeto documenta competências em Java, Spring Boot, Spring Web, Spring Data JPA, JPA, H2; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "repo",
-        "resource",
-        "service",
-        "test"
-      ]
+      "evidenceIds": ["catalog", "repo", "resource", "service", "test"]
     }
   ],
   "limitations": [

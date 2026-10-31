@@ -26,65 +26,47 @@
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Dart",
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "BLoC",
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Isar",
       "kind": "database",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Dio",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "LLMs",
       "kind": "library",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "architecture": {
     "style": "layered",
-    "components": [
-      "Flutter UI",
-      "BLoC",
-      "Domínio",
-      "Dados Isar",
-      "Dio"
-    ],
+    "components": ["Flutter UI", "BLoC", "Domínio", "Dados Isar", "Dio"],
     "patterns": [],
     "dataFlow": "Entrada de dados fotovoltaicos -> validação técnica -> dimensionamento e catálogos; PDF importado passa por revisão."
   },
@@ -93,17 +75,13 @@
       "name": "Dimensionamento FV",
       "description": "Ferramentas para projeto fotovoltaico.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Extração de datasheets por IA",
       "description": "Pré-preenchimento e validação antes de salvar catálogo.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "engineering": {
@@ -118,9 +96,7 @@
       "name": "Experiência demonstrada: mobile",
       "demonstrates": "Este projeto documenta competências em Flutter, Dart, BLoC, Isar, Dio, LLMs; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "limitations": [

@@ -26,84 +26,49 @@
       "kind": "library",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "ports",
-        "knowledge-adapter",
-        "tests"
-      ]
+      "evidenceIds": ["catalog", "ports", "knowledge-adapter", "tests"]
     },
     {
       "name": "TypeScript",
       "kind": "language",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "ports",
-        "knowledge-adapter",
-        "tests"
-      ]
+      "evidenceIds": ["catalog", "ports", "knowledge-adapter", "tests"]
     },
     {
       "name": "Fastify",
       "kind": "framework",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "ports",
-        "knowledge-adapter",
-        "tests"
-      ]
+      "evidenceIds": ["catalog", "ports", "knowledge-adapter", "tests"]
     },
     {
       "name": "LangChain",
       "kind": "framework",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "ports",
-        "knowledge-adapter",
-        "tests"
-      ]
+      "evidenceIds": ["catalog", "ports", "knowledge-adapter", "tests"]
     },
     {
       "name": "PostgreSQL",
       "kind": "database",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "ports",
-        "knowledge-adapter",
-        "tests"
-      ]
+      "evidenceIds": ["catalog", "ports", "knowledge-adapter", "tests"]
     },
     {
       "name": "Redis",
       "kind": "database",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "ports",
-        "knowledge-adapter",
-        "tests"
-      ]
+      "evidenceIds": ["catalog", "ports", "knowledge-adapter", "tests"]
     },
     {
       "name": "Docker",
       "kind": "infrastructure",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "ports",
-        "knowledge-adapter",
-        "tests"
-      ]
+      "evidenceIds": ["catalog", "ports", "knowledge-adapter", "tests"]
     }
   ],
   "architecture": {
@@ -121,10 +86,7 @@
         "name": "Ports and adapters",
         "application": "Contratos de domínio separam orquestração do chat, provedores e repositório de conhecimento.",
         "evidenceLevel": "verified",
-        "evidenceIds": [
-          "ports",
-          "knowledge-adapter"
-        ]
+        "evidenceIds": ["ports", "knowledge-adapter"]
       }
     ],
     "dataFlow": "Requisição HTTP -> serviço de chat -> recuperação de evidências -> provedor/fallback -> resposta com referências; PostgreSQL e Redis persistem estados distintos."
@@ -134,25 +96,19 @@
       "name": "Chat contextualizado com seleção de fontes",
       "description": "Chat em POST /api/v1/chat, histórico e recuperação lexical de evidências.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Fallback LLMs com cotas",
       "description": "Seleção entre provedores e cooldown persistido em Redis.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Relatórios opt-in",
       "description": "Métricas anônimas e envio programado para Telegram com serviço separado.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "engineering": {
@@ -160,35 +116,20 @@
       {
         "name": "Vitest",
         "scope": "Testes unitários e de integração com PostgreSQL/Redis.",
-        "evidenceIds": [
-          "tests"
-        ]
+        "evidenceIds": ["tests"]
       }
     ],
-    "quality": [
-      "Lint, typecheck e testes de regressão"
-    ],
-    "ciCd": [
-      "GitHub Actions com validações e geração de imagem Docker"
-    ],
-    "deployment": [
-      "Docker Compose DEV"
-    ],
-    "security": [
-      "Testes SAST e DAST no CI"
-    ]
+    "quality": ["Lint, typecheck e testes de regressão"],
+    "ciCd": ["GitHub Actions com validações e geração de imagem Docker"],
+    "deployment": ["Docker Compose DEV"],
+    "security": ["Testes SAST e DAST no CI"]
   },
   "competencies": [
     {
       "name": "Experiência demonstrada: backend",
       "demonstrates": "Este projeto documenta competências em Node.js, TypeScript, Fastify, LangChain, PostgreSQL, Redis; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
       "evidenceLevel": "verified",
-      "evidenceIds": [
-        "catalog",
-        "ports",
-        "knowledge-adapter",
-        "tests"
-      ]
+      "evidenceIds": ["catalog", "ports", "knowledge-adapter", "tests"]
     }
   ],
   "limitations": [

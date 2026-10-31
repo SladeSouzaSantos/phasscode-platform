@@ -17,12 +17,15 @@ async function loadCollection(folder, schemaName) {
   for (const filename of paths) {
     const card = await json(join(root, folder, filename));
     if (!validate(card)) {
-      throw new Error(`PPKS_SCHEMA_INVALID ${folder}/${filename}: ${ajv.errorsText(validate.errors)}`);
+      throw new Error(
+        `PPKS_SCHEMA_INVALID ${folder}/${filename}: ${ajv.errorsText(validate.errors)}`,
+      );
     }
     if (`${card.id}.json` !== filename) throw new Error(`PPKS_FILENAME_MISMATCH ${filename}`);
     if (card.schemaVersion !== version) throw new Error(`PPKS_VERSION_INVALID ${filename}`);
     const evidenceIds = new Set(card.evidence.map((entry) => entry.id));
-    if (evidenceIds.size !== card.evidence.length) throw new Error(`PPKS_DUPLICATE_EVIDENCE ${filename}`);
+    if (evidenceIds.size !== card.evidence.length)
+      throw new Error(`PPKS_DUPLICATE_EVIDENCE ${filename}`);
     for (const entry of [
       ...card.stack,
       ...card.competencies,
@@ -33,10 +36,17 @@ async function loadCollection(folder, schemaName) {
       for (const id of entry.evidenceIds ?? []) {
         if (!evidenceIds.has(id)) throw new Error(`PPKS_BROKEN_EVIDENCE ${filename}: ${id}`);
       }
-      if (entry.evidenceLevel === 'verified' &&
-        !(entry.evidenceIds ?? []).some((id) => card.evidence.some(
-          (proof) => proof.id === id && ['source_code', 'test', 'workflow', 'configuration', 'commit'].includes(proof.type) && proof.path,
-        )))
+      if (
+        entry.evidenceLevel === 'verified' &&
+        !(entry.evidenceIds ?? []).some((id) =>
+          card.evidence.some(
+            (proof) =>
+              proof.id === id &&
+              ['source_code', 'test', 'workflow', 'configuration', 'commit'].includes(proof.type) &&
+              proof.path,
+          ),
+        )
+      )
         throw new Error(`PPKS_UNSUPPORTED_VERIFICATION ${filename}: ${entry.name}`);
     }
     if (card.sync.sourceCommit && !card.sync.lastModifiedAt)
@@ -61,7 +71,9 @@ function buildIndex(projects, experiences, generatedAt) {
       technologies: card.stack
         .filter((entry) => ['implemented', 'documented'].includes(entry.usage))
         .map((entry) => entry.name),
-      skills: card.competencies.filter((entry) => entry.evidenceLevel !== 'inferred').map((entry) => entry.name),
+      skills: card.competencies
+        .filter((entry) => entry.evidenceLevel !== 'inferred')
+        .map((entry) => entry.name),
       nature: card.identity.nature,
       sourceCommit: card.sync.sourceCommit,
       lastModifiedAt: card.sync.lastModifiedAt,
@@ -72,7 +84,9 @@ function buildIndex(projects, experiences, generatedAt) {
       path: `experiences/${card.id}.json`,
       organization: card.organization,
       role: card.role,
-      technologies: card.stack.filter((entry) => ['implemented', 'documented'].includes(entry.usage)).map((entry) => entry.name),
+      technologies: card.stack
+        .filter((entry) => ['implemented', 'documented'].includes(entry.usage))
+        .map((entry) => entry.name),
     })),
   };
 }
@@ -89,29 +103,41 @@ async function main() {
   const catalog = await json(resolve('knowledge/portfolio.json'));
   const sourceIds = new Set(catalog.map((item) => item.id));
   const catalogProjects = catalog.filter((item) => ['project', 'platform'].includes(item.type));
-  if (projects.length !== catalogProjects.length ||
-    catalogProjects.some((item) => !projects.some((card) => card.id === item.id)))
+  if (
+    projects.length !== catalogProjects.length ||
+    catalogProjects.some((item) => !projects.some((card) => card.id === item.id))
+  )
     throw new Error('PPKS_PROJECT_COVERAGE_MISMATCH');
   const catalogExperiences = catalog.filter((item) => item.experiencePeriod);
-  if (experiences.length !== catalogExperiences.length ||
-    catalogExperiences.some((item) => !experiences.some((card) => card.id === item.id)))
+  if (
+    experiences.length !== catalogExperiences.length ||
+    catalogExperiences.some((item) => !experiences.some((card) => card.id === item.id))
+  )
     throw new Error('PPKS_EXPERIENCE_COVERAGE_MISMATCH');
   for (const card of experiences) {
     const ref = catalog.find((item) => item.id === card.id);
-    if (ref.experiencePeriod.start !== card.start ||
-      (ref.experiencePeriod.end ?? null) !== card.end)
+    if (
+      ref.experiencePeriod.start !== card.start ||
+      (ref.experiencePeriod.end ?? null) !== card.end
+    )
       throw new Error(`PPKS_EXPERIENCE_PERIOD_MISMATCH ${card.id}`);
-    for (const id of card.projects) if (!sourceIds.has(id)) throw new Error(`PPKS_PROJECT_REFERENCE_INVALID ${card.id}: ${id}`);
+    for (const id of card.projects)
+      if (!sourceIds.has(id)) throw new Error(`PPKS_PROJECT_REFERENCE_INVALID ${card.id}: ${id}`);
   }
   const indexPath = join(root, 'index.json');
   const current = await json(indexPath).catch((error) => {
     if (command === 'index' && error.code === 'ENOENT') return null;
     throw error;
   });
-  const expected = buildIndex(projects, experiences, current?.generatedAt ?? new Date().toISOString());
+  const expected = buildIndex(
+    projects,
+    experiences,
+    current?.generatedAt ?? new Date().toISOString(),
+  );
   const indexSchema = await json(join(root, 'schemas', 'index-v1.schema.json'));
   const validateIndex = ajv.compile(indexSchema);
-  if (!validateIndex(expected)) throw new Error(`PPKS_INDEX_SCHEMA_INVALID: ${ajv.errorsText(validateIndex.errors)}`);
+  if (!validateIndex(expected))
+    throw new Error(`PPKS_INDEX_SCHEMA_INVALID: ${ajv.errorsText(validateIndex.errors)}`);
   if (command === 'index') {
     // Only update generatedAt when the index material actually changed.
     if (current && JSON.stringify(current) !== JSON.stringify(expected))
@@ -120,7 +146,8 @@ async function main() {
     console.log(`PPKS_INDEX_OK: ${projects.length} projects, ${experiences.length} experiences`);
     return;
   }
-  if (!validateIndex(current)) throw new Error(`PPKS_INDEX_INVALID: ${ajv.errorsText(validateIndex.errors)}`);
+  if (!validateIndex(current))
+    throw new Error(`PPKS_INDEX_INVALID: ${ajv.errorsText(validateIndex.errors)}`);
   if (JSON.stringify(current) !== JSON.stringify(expected))
     throw new Error('PPKS_INDEX_STALE: run npm run ppks:index');
   console.log(`PPKS_CHECK_OK: ${projects.length} projects, ${experiences.length} experiences`);

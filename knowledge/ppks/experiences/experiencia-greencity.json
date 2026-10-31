@@ -7,10 +7,7 @@
   "start": "2019-02",
   "end": null,
   "currentAsOf": "2026-10-21",
-  "areas": [
-    "software-development",
-    "engineering"
-  ],
+  "areas": ["software-development", "engineering"],
   "responsibilities": [
     "Projetos de energia fotovoltaica, gestão técnica e desenvolvimento de aplicações web/mobile.",
     "Aplicativo Android para dimensionamento fotovoltaico e propostas PDF com Flutter/Dart/Firebase; atuação mista em engenharia e software."
@@ -21,58 +18,44 @@
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Dart",
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Firebase",
       "kind": "database",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Python",
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "PHP",
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
-  "projects": [
-    "greencity-sdgp"
-  ],
+  "projects": ["greencity-sdgp"],
   "competencies": [
     {
       "name": "Experiência profissional documentada",
       "demonstrates": "Pedro Santos atua na Greencity Sustainable Energy desde fevereiro de 2019, como Engenheiro de Projetos Fotovoltaicos / Desenvolvedor Web e Mobile. Seu trabalho combina projetos de energia renovável, coordenação de equipes e processos e desenvolvimento de aplicações para engenharia. O histórico inclui aplicativo Android para dimensionamento fotovoltaico e propostas em PDF com Dart, Flutter e Firebase, além de Python e PHP no ecossistema. A atuação atual foi confirmada pelo proprietário em 21/10/2026. O período na empresa reúne engenharia e software; não equivale automaticamente a dedicação integral ao desenvolvimento nem a experiência com Java.",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "limitations": [

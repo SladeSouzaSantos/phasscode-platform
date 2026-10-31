@@ -22,7 +22,9 @@ describe('PPKS v1.0 — catálogo técnico e proveniência', () => {
 
   it('responde pergunta arquitetural usando PPKS sem afirmar CRUD completo no estudo Java', async () => {
     const repository = await JsonKnowledgeRepository.load();
-    const results = repository.search('Explique a arquitetura e os padrões de projeto do webservice Spring Boot JPA');
+    const results = repository.search(
+      'Explique a arquitetura e os padrões de projeto do webservice Spring Boot JPA',
+    );
     const java = results.find((x) => x.id === 'webservice-springboot-jpa');
     expect(java?.content).toContain('PPKS v1.0');
     expect(java?.content).toContain('UserRepository');
@@ -33,7 +35,9 @@ describe('PPKS v1.0 — catálogo técnico e proveniência', () => {
 
   it('prioriza experiências com PostgreSQL e MySQL em perguntas sobre bancos profissionais', async () => {
     const repository = await JsonKnowledgeRepository.load();
-    const results = repository.search('Quais bancos relacionais e SQL foram usados profissionalmente?');
+    const results = repository.search(
+      'Quais bancos relacionais e SQL foram usados profissionalmente?',
+    );
     expect(results.map((x) => x.id)).toContain('experiencia-sig');
     expect(results.map((x) => x.id)).toContain('experiencia-geowellex');
     expect(results).toHaveLength(5);
@@ -41,7 +45,13 @@ describe('PPKS v1.0 — catálogo técnico e proveniência', () => {
 
   it('não injeta fichas PPKS em repositórios de teste isolados', () => {
     const repository = new JsonKnowledgeRepository([
-      { type: 'project', id: 'webservice-springboot-jpa', title: 'fixture', content: 'Teste', keywords: ['java'] },
+      {
+        type: 'project',
+        id: 'webservice-springboot-jpa',
+        title: 'fixture',
+        content: 'Teste',
+        keywords: ['java'],
+      },
     ]);
     expect(repository.search('Java')[0]?.content).toBe('Teste');
   });

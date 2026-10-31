@@ -26,27 +26,19 @@
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Dart",
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "architecture": {
     "style": "clean",
-    "components": [
-      "Telas Flutter",
-      "Modelos de domínio",
-      "Casos de uso"
-    ],
+    "components": ["Telas Flutter", "Modelos de domínio", "Casos de uso"],
     "patterns": [],
     "dataFlow": "Entradas por composição/densidade/massa molecular -> cálculo de propriedades -> resultados na UI."
   },
@@ -55,9 +47,7 @@
       "name": "Cálculo de propriedades de gás",
       "description": "Viscosidade, compressibilidade, pseudocríticas e propriedades de reservatório.",
       "status": "documented",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "engineering": {
@@ -65,9 +55,7 @@
       {
         "name": "Testes Dart",
         "scope": "Testes presentes no repositório, sem resultados de execução atuais.",
-        "evidenceIds": [
-          "catalog"
-        ]
+        "evidenceIds": ["catalog"]
       }
     ],
     "quality": [],
@@ -80,9 +68,7 @@
       "name": "Experiência demonstrada: mobile",
       "demonstrates": "Este projeto documenta competências em Flutter, Dart; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "limitations": [

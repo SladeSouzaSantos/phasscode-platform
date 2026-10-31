@@ -7,9 +7,7 @@
   "start": "2016-06",
   "end": "2017-02",
   "currentAsOf": null,
-  "areas": [
-    "software-development"
-  ],
+  "areas": ["software-development"],
   "responsibilities": [
     "Desenvolvimento e manutenção de funcionalidades do SIGAA, sistema acadêmico de terceiros.",
     "Trabalho em equipe com Java, Hibernate, JBoss e PostgreSQL; revisão de código e testes funcionais/manuais documentados."
@@ -20,45 +18,35 @@
       "kind": "language",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Hibernate",
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "JBoss",
       "kind": "framework",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "PostgreSQL",
       "kind": "database",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     },
     {
       "name": "Scrum",
       "kind": "tool",
       "usage": "documented",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "projects": [],
@@ -67,9 +55,7 @@
       "name": "Experiência profissional documentada",
       "demonstrates": "Pedro Santos trabalhou como Desenvolvedor de Sistemas na SIG Software e Consultoria em TI de junho de 2016 a fevereiro de 2017, desenvolvendo e mantendo funcionalidades do SIGAA, sistema acadêmico de terceiros. Tecnologias documentadas DESTA experiência: Java, Hibernate, JBoss e PostgreSQL; colaboração, revisão de código e testes funcionais/manuais. NÃO atribuir essa stack à ACRUX (onde Java+H2+NetBeans estão documentados). A fonte disponível não identifica versões específicas de Java, nomes de módulos internos nem funções financeiras. Não afirmar autenticação, Git, JPA explícito, bugs específicos, autoria exclusiva ou módulos específicos sem comprovação. Código do SIGAA não está no GitHub pessoal, e ausência desse repositório não nega a experiência profissional.",
       "evidenceLevel": "declared",
-      "evidenceIds": [
-        "catalog"
-      ]
+      "evidenceIds": ["catalog"]
     }
   ],
   "limitations": [

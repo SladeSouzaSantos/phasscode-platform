@@ -75,10 +75,7 @@
     "areas": {
       "type": "array",
       "items": {
-        "enum": [
-          "software-development",
-          "engineering"
-        ]
+        "enum": ["software-development", "engineering"]
       },
       "maxItems": 2,
       "uniqueItems": false
@@ -98,13 +95,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "kind",
-          "usage",
-          "evidenceLevel",
-          "evidenceIds"
-        ],
+        "required": ["name", "kind", "usage", "evidenceLevel", "evidenceIds"],
         "properties": {
           "name": {
             "type": "string",
@@ -123,19 +114,10 @@
             ]
           },
           "usage": {
-            "enum": [
-              "implemented",
-              "documented",
-              "planned",
-              "unconfirmed"
-            ]
+            "enum": ["implemented", "documented", "planned", "unconfirmed"]
           },
           "evidenceLevel": {
-            "enum": [
-              "verified",
-              "declared",
-              "inferred"
-            ]
+            "enum": ["verified", "declared", "inferred"]
           },
           "evidenceIds": {
             "type": "array",
@@ -167,12 +149,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "demonstrates",
-          "evidenceLevel",
-          "evidenceIds"
-        ],
+        "required": ["name", "demonstrates", "evidenceLevel", "evidenceIds"],
         "properties": {
           "name": {
             "type": "string",
@@ -185,11 +162,7 @@
             "maxLength": 1000
           },
           "evidenceLevel": {
-            "enum": [
-              "verified",
-              "declared",
-              "inferred"
-            ]
+            "enum": ["verified", "declared", "inferred"]
           },
           "evidenceIds": {
             "type": "array",
@@ -211,11 +184,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "topic",
-          "status",
-          "description"
-        ],
+        "required": ["topic", "status", "description"],
         "properties": {
           "topic": {
             "type": "string",
@@ -223,13 +192,7 @@
             "maxLength": 200
           },
           "status": {
-            "enum": [
-              "not_implemented",
-              "not_documented",
-              "not_verified",
-              "planned",
-              "unknown"
-            ]
+            "enum": ["not_implemented", "not_documented", "not_verified", "planned", "unknown"]
           },
           "description": {
             "type": "string",
@@ -246,13 +209,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "type",
-          "url",
-          "path",
-          "note"
-        ],
+        "required": ["id", "type", "url", "path", "note"],
         "properties": {
           "id": {
             "type": "string",
@@ -406,11 +363,7 @@
           ]
         },
         "verificationStatus": {
-          "enum": [
-            "catalog_only",
-            "code_reviewed",
-            "pending_review"
-          ]
+          "enum": ["catalog_only", "code_reviewed", "pending_review"]
         },
         "syncEligible": {
           "type": "boolean"

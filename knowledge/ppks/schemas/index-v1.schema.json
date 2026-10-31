@@ -4,12 +4,7 @@
   "title": "PHASSCODE Project Knowledge Index v1.0",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "generatedAt",
-    "projects",
-    "experiences"
-  ],
+  "required": ["schemaVersion", "generatedAt", "projects", "experiences"],
   "properties": {
     "schemaVersion": {
       "const": "1.0"
@@ -86,13 +81,7 @@
             "uniqueItems": true
           },
           "nature": {
-            "enum": [
-              "personal",
-              "professional",
-              "study",
-              "contribution",
-              "unknown"
-            ]
+            "enum": ["personal", "professional", "study", "contribution", "unknown"]
           },
           "sourceCommit": {
             "anyOf": [
@@ -117,11 +106,7 @@
             ]
           },
           "verificationStatus": {
-            "enum": [
-              "catalog_only",
-              "code_reviewed",
-              "pending_review"
-            ]
+            "enum": ["catalog_only", "code_reviewed", "pending_review"]
           }
         }
       },
@@ -133,13 +118,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "path",
-          "organization",
-          "role",
-          "technologies"
-        ],
+        "required": ["id", "path", "organization", "role", "technologies"],
         "properties": {
           "id": {
             "type": "string",
