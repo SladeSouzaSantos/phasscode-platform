@@ -196,7 +196,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       if (namedHackers) relevance += 30;
       if (vendorCertificate && doc.id === 'trajetoria-a-confirmar') relevance += 35;
       if (
-        /\\b(?:competenc\\w*|habilidad\\w*)\\b/.test(queryPhrase) &&
+        /\b(?:competenc\w*|habilidad\w*)\b/.test(queryPhrase) &&
         doc.id === 'competencias-publicas'
       )
         relevance += 35;
