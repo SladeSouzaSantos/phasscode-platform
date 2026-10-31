@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "1.0",
+  "id": "greencity-api-orcamento",
+  "kind": "project",
+  "identity": {
+    "name": "Greencity API Orçamento — propostas fotovoltaicas em PDF",
+    "nature": "unknown",
+    "role": "Papel não especificado no catálogo",
+    "repositoryUrl": "https://github.com/SladeSouzaSantos/greencity-api-orcamento",
+    "demoUrl": null,
+    "visibility": "public"
+  },
+  "classification": {
+    "applicationType": "backend",
+    "domains": [],
+    "engineeringAreas": []
+  },
+  "summary": {
+    "functional": "Greencity API Orçamento é um projeto público associado à Greencity Sustainable Energy para cálculo e geração de propostas comerciais de sistemas fotovoltaicos em PDF.",
+    "technical": "Greencity API Orçamento é um projeto público associado à Greencity Sustainable Energy para cálculo e geração de propostas comerciais de sistemas fotovoltaicos em PDF. Usa PHP, Laravel, DomPDF e templates Blade. POST /gerar-orcamento valida dados técnicos e comerciais, invoca OrcamentoService e gera PDF pela view pdf.orcamento. O repositório contém configurações Docker e CI. As versões PHP informadas no README e no composer.json divergem; confirme os requisitos nesses arquivos antes de executar.",
+    "problemSolved": "Automatizar cálculo e produção de propostas comerciais fotovoltaicas em PDF."
+  },
+  "stack": [
+    {
+      "name": "PHP",
+      "kind": "language",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Laravel",
+      "kind": "framework",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "DomPDF",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Blade",
+      "kind": "library",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    },
+    {
+      "name": "Docker",
+      "kind": "infrastructure",
+      "usage": "documented",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "architecture": {
+    "style": "layered",
+    "components": [
+      "OrcamentoController",
+      "OrcamentoService",
+      "Template Blade",
+      "DomPDF"
+    ],
+    "patterns": [],
+    "dataFlow": "POST /gerar-orcamento -> controller -> serviço -> view Blade -> DomPDF."
+  },
+  "features": [
+    {
+      "name": "Geração PDF",
+      "description": "Gera proposta fotovoltaica baseada em dados técnicos e comerciais.",
+      "status": "documented",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "engineering": {
+    "tests": [],
+    "quality": [],
+    "ciCd": [
+      "Configurações GitHub Actions presentes, sem inferir execução"
+    ],
+    "deployment": [
+      "Docker documentado"
+    ],
+    "security": []
+  },
+  "competencies": [
+    {
+      "name": "Experiência demonstrada: backend",
+      "demonstrates": "Este projeto documenta competências em PHP, Laravel, DomPDF, Blade, Docker; diferenciar código efetivamente revisto de tecnologias apenas declaradas.",
+      "evidenceLevel": "declared",
+      "evidenceIds": [
+        "catalog"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "topic": "Versão PHP exata",
+      "status": "not_verified",
+      "description": "README e composer.json possuem requisitos divergentes, exigindo confirmação."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "catalog",
+      "type": "portfolio_record",
+      "url": null,
+      "path": "knowledge/portfolio.json",
+      "note": "Curadoria do catálogo profissional: conferir a fonte externa antes de elevar o nível de comprovação."
+    },
+    {
+      "id": "service",
+      "type": "source_code",
+      "url": "https://github.com/SladeSouzaSantos/greencity-api-orcamento/blob/984af242d75fc85868519f5cc01a12d77a992745/app/Services/OrcamentoService.php",
+      "path": "app/Services/OrcamentoService.php",
+      "note": null
+    }
+  ],
+  "sync": {
+    "sourceRepository": "SladeSouzaSantos/greencity-api-orcamento",
+    "sourcePath": null,
+    "sourceRef": "main",
+    "sourceCommit": "984af242d75fc85868519f5cc01a12d77a992745",
+    "lastModifiedAt": "2026-02-23T17:10:26Z",
+    "checkedAt": "2026-10-31T19:43:18.186Z",
+    "analyzedAt": "2026-10-31T19:43:18.186Z",
+    "reviewedAt": null,
+    "verificationStatus": "catalog_only",
+    "syncEligible": true
+  }
+}
