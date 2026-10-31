@@ -1,0 +1,49 @@
+name: Temporary Orbe Prettier normalization
+on:
+  push:
+    branches: [dev]
+    paths: ['.github/workflows/temporary-orbe-format.yml']
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Format only the seven changed backend sources and tests
+        run: |
+          npx prettier --write \
+            apps/orbe-node/src/adapters/knowledge.ts \
+            apps/orbe-node/src/adapters/llm-invocation-controller.ts \
+            apps/orbe-node/src/application/chat.ts \
+            apps/orbe-node/src/application/sources.ts \
+            knowledge/portfolio.json \
+            tests/knowledge-relevance.test.ts \
+            tests/orbe-recruiter-scenarios.test.ts
+          git diff --check
+      - name: Commit formatting to dev (no other files)
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- \
+            apps/orbe-node/src/adapters/knowledge.ts \
+            apps/orbe-node/src/adapters/llm-invocation-controller.ts \
+            apps/orbe-node/src/application/chat.ts \
+            apps/orbe-node/src/application/sources.ts \
+            knowledge/portfolio.json \
+            tests/knowledge-relevance.test.ts \
+            tests/orbe-recruiter-scenarios.test.ts
+          if ! git diff --cached --quiet; then
+            git commit -m 'style(orbe): apply repository Prettier formatting'
+            git push origin HEAD:dev
+          fi
