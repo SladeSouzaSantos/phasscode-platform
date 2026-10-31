@@ -83,3 +83,15 @@ técnicas relevantes dos projetos encontrados, sempre preservando:
 - limites existentes de contexto e máximo de documentos por busca.
 
 Não expor ao visitante caminho interno como URL de fonte externa.
+
+## Evidência acadêmica e cursos — v1.1
+
+- `academic/educations.json`: 9 formações com situação, competências, disciplinas, emissor e lastro documental qualificado; UNISUL pendente de extensão, previsão indicativa 2027/2028.
+- `academic/tracks.json`: 42 cursos individualizados em seis trilhas, conclusão declarada pelo proprietário; curso livre não comprova experiência comercial.
+- `academic/skills.json`: mapa explícito de competências para IDs de experiências, projetos, formações e trilhas. Referências verificadas em `ppks:check`.
+- `schemas/*-v1.1.schema.json`: esquemas AJV estritos para os três registros.
+- `apps/orbe-node/src/adapters/academic.ts`: enriquece registros já curados, mantendo limite de contexto.
+
+**Privacidade:** não comitar diplomas, históricos, RG/CPF, matrícula, notas, hashes de autenticação nem nomes de arquivos privados. Usar somente informações profissionais mínimas e classe de evidência (`owner_confirmed`, `academic_transcript`, `document_verified`).
+
+**Situações:** `completed`, `in_progress`, `pending_completion` e `not_verified` não são intercambiáveis. Atualizar somente por evidência; histórico acadêmico antigo não comprova matrícula ativa hoje. Acompanhamento da previsão da UNISUL é não vinculante.
