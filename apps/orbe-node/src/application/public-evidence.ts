@@ -134,7 +134,11 @@ export class RestrictedPublicEvidenceReader implements PublicEvidenceReader {
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase();
-    if (/\b(?:github|repositorio|readme|codigo(?: fonte)?|codigo-fonte|inspecion\w*|auditar)\b/.test(evidenceIntent)) {
+    if (
+      /\b(?:github|repositorio|readme|codigo(?: fonte)?|codigo-fonte|inspecion\w*|auditar)\b/.test(
+        evidenceIntent,
+      )
+    ) {
       const candidates = documents.filter(
         (doc) =>
           (doc.type === 'project' || doc.type === 'platform') &&

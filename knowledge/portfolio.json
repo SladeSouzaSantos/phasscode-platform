@@ -106,14 +106,7 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": [
-      "Flutter",
-      "Dart",
-      "BLoC",
-      "Isar",
-      "Dio",
-      "LLMs"
-    ],
+    "technologies": ["Flutter", "Dart", "BLoC", "Isar", "Dio", "LLMs"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/greencity-os",
     "url": "https://github.com/SladeSouzaSantos/greencity-os"
   },
@@ -141,13 +134,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "TypeScript",
-      "Node.js",
-      "LangChain",
-      "LangGraph",
-      "OpenRouter"
-    ],
+    "technologies": ["TypeScript", "Node.js", "LangChain", "LangGraph", "OpenRouter"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/main/safeguard-prompt-injection",
     "url": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/main/safeguard-prompt-injection"
   },
@@ -173,14 +160,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "Python",
-      "Flask",
-      "SQLAlchemy",
-      "pytest",
-      "Docker",
-      "Grafana"
-    ],
+    "technologies": ["Python", "Flask", "SQLAlchemy", "pytest", "Docker", "Grafana"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/task-manager-using-flask",
     "url": "https://github.com/SladeSouzaSantos/task-manager-using-flask"
   },
@@ -203,13 +183,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "HTML",
-      "CSS",
-      "JavaScript",
-      "GSAP",
-      "ScrollTrigger"
-    ],
+    "technologies": ["HTML", "CSS", "JavaScript", "GSAP", "ScrollTrigger"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/stranger-things-experience",
     "url": "https://github.com/SladeSouzaSantos/stranger-things-experience"
   },
@@ -231,13 +205,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "Python",
-      "Streamlit",
-      "Plotly",
-      "Docker Swarm",
-      "GitHub Actions"
-    ],
+    "technologies": ["Python", "Streamlit", "Plotly", "Docker Swarm", "GitHub Actions"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/shadow_simulator",
     "url": "https://github.com/SladeSouzaSantos/shadow_simulator"
   },
@@ -259,13 +227,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "JavaScript",
-      "HTML",
-      "CSS",
-      "Web AI APIs",
-      "Gemini Nano"
-    ],
+    "technologies": ["JavaScript", "HTML", "CSS", "Web AI APIs", "Gemini Nano"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/web-ai-gemini-nano-browser",
     "url": "https://github.com/SladeSouzaSantos/web-ai-gemini-nano-browser"
   },
@@ -287,13 +249,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "HTML",
-      "CSS",
-      "JavaScript",
-      "DOM",
-      "Áudio"
-    ],
+    "technologies": ["HTML", "CSS", "JavaScript", "DOM", "Áudio"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/alura-teclado-som",
     "url": "https://github.com/SladeSouzaSantos/alura-teclado-som",
     "demoUrl": "https://projetos.phasscode.com/projetos/teclado_som/"
@@ -316,12 +272,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "HTML",
-      "CSS",
-      "JavaScript",
-      "Web Speech API"
-    ],
+    "technologies": ["HTML", "CSS", "JavaScript", "Web Speech API"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/n-secreto",
     "url": "https://github.com/SladeSouzaSantos/n-secreto",
     "demoUrl": "https://projetos.phasscode.com/projetos/n_secreto/"
@@ -473,12 +424,7 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": [
-      "Node.js",
-      "TypeScript",
-      "Fastify",
-      "OpenRouter"
-    ],
+    "technologies": ["Node.js", "TypeScript", "Fastify", "OpenRouter"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/98be28bd7d4f2d66a903aeaae68a0b6ac225ce0c/smart-model-router-gateway"
   },
   {
@@ -506,14 +452,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "Node.js",
-      "TypeScript",
-      "LangChain",
-      "LangGraph",
-      "Fastify",
-      "Zod"
-    ],
+    "technologies": ["Node.js", "TypeScript", "LangChain", "LangGraph", "Fastify", "Zod"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/integracao_apis_llms/tree/98be28bd7d4f2d66a903aeaae68a0b6ac225ce0c/langchain-intro"
   },
   {
@@ -538,10 +477,7 @@
     ],
     "category": "personal",
     "visibility": "public",
-    "technologies": [
-      "Flutter",
-      "Dart"
-    ],
+    "technologies": ["Flutter", "Dart"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/reser_gas"
   },
   {
@@ -606,13 +542,7 @@
       "projetos"
     ],
     "visibility": "public",
-    "technologies": [
-      "PHP",
-      "Laravel",
-      "DomPDF",
-      "Blade",
-      "Docker"
-    ],
+    "technologies": ["PHP", "Laravel", "DomPDF", "Blade", "Docker"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/greencity-api-orcamento"
   },
   {
@@ -640,12 +570,7 @@
       "greencity"
     ],
     "visibility": "public",
-    "technologies": [
-      "Python",
-      "Django",
-      "Django REST Framework",
-      "Simple JWT"
-    ],
+    "technologies": ["Python", "Django", "Django REST Framework", "Simple JWT"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/sistema_gestao_empresarial_api"
   },
   {
@@ -670,14 +595,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "Java",
-      "Spring Boot",
-      "Spring Web",
-      "Spring Data JPA",
-      "JPA",
-      "H2"
-    ],
+    "technologies": ["Java", "Spring Boot", "Spring Web", "Spring Data JPA", "JPA", "H2"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/webservice-springboot3-jpa"
   },
   {
@@ -706,14 +624,7 @@
     "category": "study",
     "visibility": "public",
     "role": "Laboratório de estudo com material creditado a erickwendel",
-    "technologies": [
-      "Node.js",
-      "TypeScript",
-      "LangChain",
-      "HuggingFace",
-      "Neo4j",
-      "OpenRouter"
-    ],
+    "technologies": ["Node.js", "TypeScript", "LangChain", "HuggingFace", "Neo4j", "OpenRouter"],
     "repositoryUrl": "https://github.com/SladeSouzaSantos/embeddings-neo4j-rag"
   },
   {
@@ -744,23 +655,12 @@
     "category": "professional",
     "visibility": "private",
     "role": "Engenheiro de Projetos Fotovoltaicos / Desenvolvedor Web e Mobile",
-    "technologies": [
-      "Flutter",
-      "Dart",
-      "Firebase",
-      "Python",
-      "PHP"
-    ],
-    "relatedProjectIds": [
-      "greencity-sdgp"
-    ],
+    "technologies": ["Flutter", "Dart", "Firebase", "Python", "PHP"],
+    "relatedProjectIds": ["greencity-sdgp"],
     "experiencePeriod": {
       "start": "2019-02",
       "currentAsOf": "2026-10-21",
-      "areas": [
-        "software-development",
-        "engineering"
-      ]
+      "areas": ["software-development", "engineering"]
     }
   },
   {
@@ -788,20 +688,11 @@
     "category": "professional",
     "visibility": "private",
     "role": "Mud Logging / Desenvolvedor de Sistemas",
-    "technologies": [
-      "HTML",
-      "CSS",
-      "JavaScript",
-      "PHP",
-      "MySQL"
-    ],
+    "technologies": ["HTML", "CSS", "JavaScript", "PHP", "MySQL"],
     "experiencePeriod": {
       "start": "2017-03",
       "end": "2018-10",
-      "areas": [
-        "software-development",
-        "engineering"
-      ]
+      "areas": ["software-development", "engineering"]
     }
   },
   {
@@ -831,19 +722,11 @@
     "category": "professional",
     "visibility": "third-party",
     "role": "Desenvolvedor de Sistemas — desenvolvimento e manutenção de funcionalidades do SIGAA",
-    "technologies": [
-      "Java",
-      "Hibernate",
-      "JBoss",
-      "PostgreSQL",
-      "Scrum"
-    ],
+    "technologies": ["Java", "Hibernate", "JBoss", "PostgreSQL", "Scrum"],
     "experiencePeriod": {
       "start": "2016-06",
       "end": "2017-02",
-      "areas": [
-        "software-development"
-      ]
+      "areas": ["software-development"]
     }
   },
   {
@@ -870,18 +753,11 @@
     "category": "professional",
     "visibility": "private",
     "role": "Estagiário Programador de Sistemas",
-    "technologies": [
-      "Java",
-      "H2",
-      "NetBeans",
-      "Scrum"
-    ],
+    "technologies": ["Java", "H2", "NetBeans", "Scrum"],
     "experiencePeriod": {
       "start": "2014-02",
       "end": "2015-01",
-      "areas": [
-        "software-development"
-      ]
+      "areas": ["software-development"]
     }
   },
   {
@@ -1113,13 +989,7 @@
     "category": "professional",
     "visibility": "private",
     "role": "Desenvolvimento de aplicativo para dimensionamento fotovoltaico e propostas",
-    "technologies": [
-      "Flutter",
-      "Dart",
-      "Firebase",
-      "Python",
-      "PHP"
-    ]
+    "technologies": ["Flutter", "Dart", "Firebase", "Python", "PHP"]
   },
   {
     "type": "project",
@@ -1160,10 +1030,7 @@
       "projetos"
     ],
     "visibility": "public",
-    "technologies": [
-      "WordPress",
-      "PHP"
-    ]
+    "technologies": ["WordPress", "PHP"]
   },
   {
     "type": "project",
@@ -1190,11 +1057,7 @@
     ],
     "category": "study",
     "visibility": "public",
-    "technologies": [
-      "HTML",
-      "CSS",
-      "JavaScript"
-    ]
+    "technologies": ["HTML", "CSS", "JavaScript"]
   },
   {
     "type": "profile",

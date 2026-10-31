@@ -211,16 +211,19 @@ describe('Academia Arcana / base profissional do Orbe DEV', () => {
       'Vaga para utilities e energia fotovoltaica: projetos e experiência na Greencity?',
       ['experiencia-greencity', 'hsp-simulator'],
     ],
-  ])('prioriza evidências em %s sem carregar código integral', async (_title, query, requiredIds) => {
-    const { knowledge } = await createService();
-    const results = knowledge.search(query as string);
-    expect(results.length).toBeGreaterThan(0);
-    expect(results.length).toBeLessThanOrEqual(5);
-    for (const id of requiredIds as string[]) {
-      expect(results.map((doc) => doc.id)).toContain(id);
-    }
-    expect(results.every((doc) => doc.content.length <= 6000)).toBe(true);
-  });
+  ])(
+    'prioriza evidências em %s sem carregar código integral',
+    async (_title, query, requiredIds) => {
+      const { knowledge } = await createService();
+      const results = knowledge.search(query as string);
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.length).toBeLessThanOrEqual(5);
+      for (const id of requiredIds as string[]) {
+        expect(results.map((doc) => doc.id)).toContain(id);
+      }
+      expect(results.every((doc) => doc.content.length <= 6000)).toBe(true);
+    },
+  );
 
   it('a base não troca stacks entre empregadores, ignora falsos negativos em testes e distingue RAG', async () => {
     const docs = JSON.parse(await readFile('knowledge/portfolio.json', 'utf8'));
