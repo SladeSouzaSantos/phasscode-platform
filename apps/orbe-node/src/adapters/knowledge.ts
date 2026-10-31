@@ -130,7 +130,16 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       );
       if (projects.length > 0) return projects.slice(0, 5);
     }
-    if (queryTechnologies.size === 0 && !educationIntent && isCareerOverview(query)) {
+    const specialistIntent =
+      /\b(?:qa|testes?|acessibilidade|devops|sre|energia|fotovoltaic\w*|solar|utilities|petroleo|dados)\b/.test(
+        knowledgePhrase(query),
+      );
+    if (
+      queryTechnologies.size === 0 &&
+      !educationIntent &&
+      !specialistIntent &&
+      isCareerOverview(query)
+    ) {
       const selected = recruiterOverviewIds.flatMap((id) => {
         const document = this.documents.find((item) => item.id === id);
         return document ? [document] : [];
