@@ -40,7 +40,7 @@ interface Track {
   focus: string;
   courses: Course[];
 }
-interface Skill {
+export interface Skill {
   skill: string;
   professional: string[];
   projects: string[];

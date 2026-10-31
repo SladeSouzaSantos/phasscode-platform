@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { JsonKnowledgeRepository } from '../apps/orbe-node/src/adapters/knowledge.js';
+import { JsonKnowledgeRepository, competencyEvidenceIds } from '../apps/orbe-node/src/adapters/knowledge.js';
+import { loadPpksExperienceCards, enrichExperienceDocument } from '../apps/orbe-node/src/adapters/ppks.js';
 import { loadAcademicEvidence } from '../apps/orbe-node/src/adapters/academic.js';
 
 describe('PPKS acadêmico v1.1 e avaliação por vagas', () => {
@@ -67,5 +68,33 @@ describe('PPKS acadêmico v1.1 e avaliação por vagas', () => {
     const k = await JsonKnowledgeRepository.load();
     const ids = k.search(question).map((x) => x.id);
     for (const id of required) expect(ids).toContain(id);
+  });
+});
+
+describe('PPKS v1.2: conexões de competências e experiência', () => {
+  it('carrega as quatro fichas profissionais sem promover informações declaradas a código auditado', async () => {
+    const cards = await loadPpksExperienceCards();
+    expect(cards.size).toBe(4);
+    const knowledge = await JsonKnowledgeRepository.load();
+    const document = knowledge.experienceDocuments().find((d) => d.id === 'experiencia-sig')!;
+    const enriched = enrichExperienceDocument(document, 'Recrutador Java: experiência profissional', cards);
+    expect(enriched.content).toContain('PPKS experiência:');
+    expect(enriched.content).toContain('Hibernate');
+    expect(enriched.content).not.toContain('code_reviewed');
+    expect(enriched.content.length).toBeLessThanOrEqual(6000);
+  });
+  it('pontua os vínculos entre competências, sem inferir AWS ou Terraform', async () => {
+    const academic = await loadAcademicEvidence();
+    expect(competencyEvidenceIds('Sou recrutador Java e React TypeScript', academic)).toContain('experiencia-sig');
+    expect(competencyEvidenceIds('Vaga Angular SQL Server', academic)).toContain('cursos-frontend-mobile');
+    expect(competencyEvidenceIds('Vaga AWS Terraform', academic)).toEqual([]);
+  });
+  it('recupera competências explicitamente sem substituir diploma nem idiomas', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const docs = knowledge.search('Sou recrutador para vaga de React TypeScript, qual projeto comprova?');
+    expect(docs.map((d) => d.id)).toContain('web-portfolio-v2');
+    const java = knowledge.search('Sou recrutador Java com graduação e inglês para leitura');
+    expect(java.map(d => d.id)).toContain('formacao-gestao-ti');
+    expect(java.map(d => d.id)).toContain('idiomas-declarados');
   });
 });

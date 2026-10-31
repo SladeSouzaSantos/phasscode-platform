@@ -2,7 +2,14 @@ import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { sourceSchema } from '../../../../packages/contracts/src/index.js';
 import type { KnowledgeDocument, KnowledgeRepository } from '../domain/ports.js';
-import { enrichProjectDocument, loadPpksCards, type TechnicalCard } from './ppks.js';
+import {
+  enrichProjectDocument,
+  enrichExperienceDocument,
+  loadPpksCards,
+  loadPpksExperienceCards,
+  type TechnicalCard,
+  type ExperienceCard,
+} from './ppks.js';
 import { enrichAcademicDocument, loadAcademicEvidence, type AcademicEvidence } from './academic.js';
 import {
   knowledgePhrase,
@@ -70,16 +77,51 @@ const recruiterOverviewIds = [
   'competencias-publicas',
 ] as const;
 
+/** Resolve skill-to-source relationships without interpreting a course as paid employment. */
+export function competencyEvidenceIds(
+  query: string,
+  academic: AcademicEvidence | null,
+): string[] {
+  if (!academic) return [];
+  const phrase = ` ${knowledgePhrase(query)} `;
+  const aliases: Record<string, string[]> = {
+    'Node.js/TypeScript': ['node', 'nodejs', 'node js', 'typescript'],
+    'Docker/CI-CD': ['docker', 'ci cd', 'devops', 'pipeline'],
+    'Inteligência Artificial/LLMs': ['inteligencia artificial', 'ia aplicada', 'llm', 'llms', 'agentes', 'rag'],
+    'Segurança/Testes': ['seguranca', 'qualidade', 'testes', 'testes automatizados', 'qa'],
+    'Terraform/Camunda': ['terraform', 'camunda'],
+  };
+  const scores = new Map<string, number>();
+  const update = (id: string, weight: number) => scores.set(id, (scores.get(id) ?? 0) + weight);
+  const relevant = academic.skills.filter((record) => {
+    const terms = aliases[record.skill] ?? [record.skill];
+    return terms.some((term) => phrase.includes(` ${knowledgePhrase(term)} `));
+  });
+  const asksEducation = /\b(?:cursos?|graduacao|formacao|academica|estud|certific|disciplinas?)\b/.test(phrase);
+  for (const record of relevant) {
+    for (const id of record.professional) update(id, 10);
+    for (const id of record.projects) update(id, 8);
+    for (const id of record.education) update(id, asksEducation ? 7 : 2);
+    for (const id of record.courseTracks) update(id, asksEducation ? 6 : 1);
+  }
+  return [...scores].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([id]) => id);
+}
+
 export class JsonKnowledgeRepository implements KnowledgeRepository {
   constructor(
     private readonly documents: KnowledgeDocument[],
     private readonly projectCards = new Map<string, TechnicalCard>(),
     private readonly academic: AcademicEvidence | null = null,
+    private readonly experienceCards = new Map<string, ExperienceCard>(),
   ) {}
   private select(documents: KnowledgeDocument[], query: string): KnowledgeDocument[] {
     return documents.map((document) =>
       enrichProjectDocument(
-        enrichAcademicDocument(document, query, this.academic),
+        enrichExperienceDocument(
+          enrichAcademicDocument(document, query, this.academic),
+          query,
+          this.experienceCards,
+        ),
         query,
         this.projectCards,
       ),
@@ -96,11 +138,15 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     );
     if (documents.some((document) => document.relatedProjectIds?.some((id) => !projects.has(id))))
       throw new Error('Relacionamento desconhecido na base de conhecimento.');
-    const [cards, academic] =
+    const [cards, academic, experienceCards] =
       path === 'knowledge/portfolio.json'
-        ? await Promise.all([loadPpksCards(), loadAcademicEvidence()])
-        : [new Map<string, TechnicalCard>(), null];
-    return new JsonKnowledgeRepository(documents, cards, academic);
+        ? await Promise.all([loadPpksCards(), loadAcademicEvidence(), loadPpksExperienceCards()])
+        : [
+            new Map<string, TechnicalCard>(),
+            null,
+            new Map<string, ExperienceCard>(),
+          ];
+    return new JsonKnowledgeRepository(documents, cards, academic, experienceCards);
   }
   experienceDocuments(): KnowledgeDocument[] {
     return this.documents.filter((document) => document.experiencePeriod !== undefined);
@@ -375,8 +421,9 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       if (devops && relevant(/\b(?:cursos|certificados|devsecops)\b/))
         recommend('cursos-devops-qualidade');
     }
+    const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
     const indexedById = new Map(this.documents.map((doc) => [doc.id, doc]));
-    const priority = [...new Set([...recruiter, ...anchors])].flatMap((id) => {
+    const priority = [...new Set([...recruiter, ...skillEvidence, ...anchors])].flatMap((id) => {
       const doc = indexedById.get(id);
       return doc ? [doc] : [];
     });

@@ -95,3 +95,11 @@ Não expor ao visitante caminho interno como URL de fonte externa.
 **Privacidade:** não comitar diplomas, históricos, RG/CPF, matrícula, notas, hashes de autenticação nem nomes de arquivos privados. Usar somente informações profissionais mínimas e classe de evidência (`owner_confirmed`, `academic_transcript`, `document_verified`).
 
 **Situações:** `completed`, `in_progress`, `pending_completion` e `not_verified` não são intercambiáveis. Atualizar somente por evidência; histórico acadêmico antigo não comprova matrícula ativa hoje. Acompanhamento da previsão da UNISUL é não vinculante.
+
+## PPKS v1.2 — recuperação por competências e experiência (DEV)
+
+`apps/orbe-node/src/adapters/knowledge.ts` usa o mapa `academic/skills.json` para selecionar evidências verificáveis em perguntas de recrutamento. As ponderações distinguem experiência profissional, código de projeto, formação e cursos livres. Regras determinísticas existentes continuam ativas para preservar compatibilidade.
+
+`apps/orbe-node/src/adapters/ppks.ts` também carrega `index.experiences`, enriquece a descrição das quatro experiências e preserva suas ressalvas e o nível `declared`. Nenhuma consulta GitHub é feita na requisição de chat. O limite de cinco documentos para perguntas comuns permanece e a lista integral de 42 cursos mantém a exceção de sete registros.
+
+A integração de dados acadêmicos no frontend utiliza um snapshot público versionado e um script de sincronização; documentos originais privados não são publicados.

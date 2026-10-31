@@ -27,6 +27,61 @@ export interface TechnicalCard {
 }
 interface Index {
   projects: { id: string; path: string }[];
+  experiences: { id: string; path: string }[];
+}
+export interface ExperienceCard {
+  id: string;
+  kind: 'experience';
+  organization: string;
+  role: string;
+  start: string;
+  end: string | null;
+  areas: string[];
+  responsibilities: string[];
+  stack: { name: string; usage: string; evidenceLevel: string }[];
+  competencies: { name: string; demonstrates: string; evidenceLevel: string }[];
+  limitations: { topic: string; status: string; description: string }[];
+  sync: { verificationStatus: string };
+}
+
+export async function loadPpksExperienceCards(
+  root = 'knowledge/ppks',
+): Promise<Map<string, ExperienceCard>> {
+  const index = JSON.parse(await readFile(join(root, 'index.json'), 'utf8')) as Index;
+  const entries = await Promise.all(index.experiences.map(async ({ id, path }) => {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || path !== `experiences/${id}.json`)
+      throw new Error('PPKS_EXPERIENCE_INVALID_PATH');
+    const card = JSON.parse(await readFile(join(root, path), 'utf8')) as ExperienceCard;
+    if (card.id !== id || card.kind !== 'experience') throw new Error('PPKS_EXPERIENCE_INVALID_CARD');
+    return [id, card] as const;
+  }));
+  if (new Set(entries.map(([id]) => id)).size !== entries.length)
+    throw new Error('PPKS_EXPERIENCE_DUPLICATE');
+  return new Map(entries);
+}
+
+/** Structured professional evidence remains declared unless independently code-verified. */
+export function enrichExperienceDocument(
+  document: KnowledgeDocument,
+  query: string,
+  cards: ReadonlyMap<string, ExperienceCard>,
+): KnowledgeDocument {
+  if (!document.experiencePeriod) return document;
+  const card = cards.get(document.id);
+  if (!card) return document;
+  const phrase = knowledgePhrase(query);
+  const professional = /vaga|recrut|experien|profission|trabalh|contrat|cargo|responsab|stack|tecnolog/i.test(phrase);
+  const lines = [
+    `PPKS experiência: ${card.organization}, ${card.role}; período ${card.start} a ${card.end ?? 'atual conforme registro'}; fonte ${card.sync.verificationStatus}.`,
+    `Tecnologias neste vínculo (não transferir para outros empregadores): ${card.stack.map(s => `${s.name} [${s.evidenceLevel}]`).join(', ')}.`,
+  ];
+  if (professional) {
+    lines.push(`Responsabilidades registradas: ${card.responsibilities.slice(0, 2).join('; ')}.`);
+    lines.push(`Limitações: ${card.limitations.slice(0, 2).map(l => l.description).join('; ') || 'sem detalhes adicionais'}.`);
+  }
+  const allowance = Math.min(850, Math.max(0, 6000 - document.content.length - 1));
+  if (!allowance) return document;
+  return { ...document, content: `${document.content}\n${lines.join('\n').slice(0, allowance)}` };
 }
 
 /** Read curated PPKS cards at startup; never fetch GitHub on a live chat request. */
