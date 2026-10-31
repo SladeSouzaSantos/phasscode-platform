@@ -78,16 +78,20 @@ const recruiterOverviewIds = [
 ] as const;
 
 /** Resolve skill-to-source relationships without interpreting a course as paid employment. */
-export function competencyEvidenceIds(
-  query: string,
-  academic: AcademicEvidence | null,
-): string[] {
+export function competencyEvidenceIds(query: string, academic: AcademicEvidence | null): string[] {
   if (!academic) return [];
   const phrase = ` ${knowledgePhrase(query)} `;
   const aliases: Record<string, string[]> = {
     'Node.js/TypeScript': ['node', 'nodejs', 'node js', 'typescript'],
     'Docker/CI-CD': ['docker', 'ci cd', 'devops', 'pipeline'],
-    'Inteligência Artificial/LLMs': ['inteligencia artificial', 'ia aplicada', 'llm', 'llms', 'agentes', 'rag'],
+    'Inteligência Artificial/LLMs': [
+      'inteligencia artificial',
+      'ia aplicada',
+      'llm',
+      'llms',
+      'agentes',
+      'rag',
+    ],
     'Segurança/Testes': ['seguranca', 'qualidade', 'testes', 'testes automatizados', 'qa'],
     'Terraform/Camunda': ['terraform', 'camunda'],
   };
@@ -97,7 +101,8 @@ export function competencyEvidenceIds(
     const terms = aliases[record.skill] ?? [record.skill];
     return terms.some((term) => phrase.includes(` ${knowledgePhrase(term)} `));
   });
-  const asksEducation = /\b(?:cursos?|graduacao|formacao|academica|estud|certific|disciplinas?)\b/.test(phrase);
+  const asksEducation =
+    /\b(?:cursos?|graduacao|formacao|academica|estud|certific|disciplinas?)\b/.test(phrase);
   for (const record of relevant) {
     for (const id of record.professional) update(id, 10);
     for (const id of record.projects) update(id, 8);
@@ -141,11 +146,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     const [cards, academic, experienceCards] =
       path === 'knowledge/portfolio.json'
         ? await Promise.all([loadPpksCards(), loadAcademicEvidence(), loadPpksExperienceCards()])
-        : [
-            new Map<string, TechnicalCard>(),
-            null,
-            new Map<string, ExperienceCard>(),
-          ];
+        : [new Map<string, TechnicalCard>(), null, new Map<string, ExperienceCard>()];
     return new JsonKnowledgeRepository(documents, cards, academic, experienceCards);
   }
   experienceDocuments(): KnowledgeDocument[] {
