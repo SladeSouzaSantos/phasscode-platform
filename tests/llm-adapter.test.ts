@@ -149,6 +149,42 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     ]);
   });
 
+  it('mantém títulos dos 42 cursos em seis trilhas no contexto real da LLM', async () => {
+    const stub = await llmServer(() =>
+      completion({ role: 'assistant', content: 'Os 42 cursos livres estão organizados em seis trilhas.' }),
+    );
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      CHAT_CONTEXT_CHARS: '12000',
+    });
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = new LangChainChatProvider(
+      config,
+      knowledge,
+      await readFile('apps/orbe-node/prompts/v4.md', 'utf8'),
+      allowTestBudget,
+    );
+    const service = new ChatService(new MemoryConversationStore(), provider, knowledge, config);
+    await service.execute({ message: 'Liste todos os 42 cursos concluídos por trilha.' });
+    expect(stub.requests).toHaveLength(1);
+    const transmitted = JSON.stringify(stub.requests[0]!.messages);
+    for (const phrase of [
+      'Formação Java e Clean Architecture',
+      'Formação Power BI Analyst',
+      'Formação Firebase Authentication',
+      'Formação Engenharia de Requisitos',
+      'Formação SQL Database Specialist',
+      'Hackers do Bem',
+    ]) {
+      expect(transmitted).toContain(phrase);
+    }
+    expect(messageCharacters(stub.requests[0]!)).toBeLessThanOrEqual(12000);
+  });
+
   it('remove documentos menos prioritários antes do invoke e não os atribui como fontes', async () => {
     const stub = await llmServer(() =>
       completion({
