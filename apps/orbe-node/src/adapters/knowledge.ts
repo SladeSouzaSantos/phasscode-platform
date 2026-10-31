@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { sourceSchema } from '../../../../packages/contracts/src/index.js';
 import type { KnowledgeDocument, KnowledgeRepository } from '../domain/ports.js';
+import { enrichProjectDocument, loadPpksCards } from './ppks.js';
 import {
   knowledgePhrase,
   knowledgeTerms,
@@ -69,7 +70,13 @@ const recruiterOverviewIds = [
 ] as const;
 
 export class JsonKnowledgeRepository implements KnowledgeRepository {
-  constructor(private readonly documents: KnowledgeDocument[]) {}
+  constructor(
+    private readonly documents: KnowledgeDocument[],
+    private readonly projectCards = new Map<string, Awaited<ReturnType<typeof loadPpksCards>> extends Map<string, infer T> ? T : never>(),
+  ) {}
+  private select(documents: KnowledgeDocument[], query: string): KnowledgeDocument[] {
+    return documents.map((document) => enrichProjectDocument(document, query, this.projectCards));
+  }
   static async load(path = 'knowledge/portfolio.json'): Promise<JsonKnowledgeRepository> {
     const documents = documentsSchema.parse(JSON.parse(await readFile(path, 'utf8')));
     if (new Set(documents.map((doc) => doc.id)).size !== documents.length)
@@ -81,7 +88,10 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     );
     if (documents.some((document) => document.relatedProjectIds?.some((id) => !projects.has(id))))
       throw new Error('Relacionamento desconhecido na base de conhecimento.');
-    return new JsonKnowledgeRepository(documents);
+    const cards = path === 'knowledge/portfolio.json'
+      ? await loadPpksCards()
+      : new Map<string, Awaited<ReturnType<typeof loadPpksCards>> extends Map<string, infer T> ? T : never>();
+    return new JsonKnowledgeRepository(documents, cards);
   }
   experienceDocuments(): KnowledgeDocument[] {
     return this.documents.filter((document) => document.experiencePeriod !== undefined);
@@ -111,7 +121,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         'cursos-bancos-dados',
         'cursos-devops-qualidade',
       ];
-      return ids.flatMap((id) => this.documents.filter((doc) => doc.id === id));
+      return this.select(ids.flatMap((id) => this.documents.filter((doc) => doc.id === id)), query);
     }
     const vendorCertificate =
       /\b(?:certificad\w*|certificac\w*)\b/.test(queryPhrase) &&
@@ -128,7 +138,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
             mentionedTechnologies(document.technologies?.join(' ') ?? ''),
           ),
       );
-      if (projects.length > 0) return projects.slice(0, 5);
+      if (projects.length > 0) return this.select(projects.slice(0, 5), query);
     }
     const specialistIntent =
       /\b(?:qa|testes?|acessibilidade|devops|sre|energia|fotovoltaic\w*|solar|utilities|petroleo|dados)\b/.test(
@@ -145,7 +155,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         return document ? [document] : [];
       });
       // Custom repositories in tests may not contain the curated records.
-      if (selected.length >= 3) return selected.slice(0, 5);
+      if (selected.length >= 3) return this.select(selected.slice(0, 5), query);
     }
     const credentialQuestion =
       educationIntent ||
@@ -271,6 +281,14 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     if (queryTechnologies.has('java') && vacancy) {
       add('experiencia-sig', 'webservice-springboot-jpa', 'experiencia-acrux');
     }
+    // Cross-project questions must distinguish banks used at work from study databases.
+    if (/\b(?:banco|bancos|persistencia|relacional|relacionais|sql|mysql|postgresql|postgres|h2|indice|indices|migrac\w*)\b/.test(phrase)) {
+      add('experiencia-sig', 'experiencia-geowellex', 'experiencia-acrux',
+        'webservice-springboot-jpa', 'phasscode-platform');
+    }
+    if (/\b(?:git|pull request|pull requests|prs|branches|merge|colaborac\w*|revisao de codigo)\b/.test(phrase)) {
+      add('phasscode-platform', 'web-portfolio-v2', 'experiencia-sig');
+    }
     if (queryTechnologies.has('react') || queryTechnologies.has('typescript')) {
       add('web-portfolio-v2');
     }
@@ -305,6 +323,9 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       const doc = indexedById.get(id);
       return doc ? [doc] : [];
     });
-    return [...new Map([...priority, ...matches].map((doc) => [doc.id, doc])).values()].slice(0, 5);
+    return this.select(
+      [...new Map([...priority, ...matches].map((doc) => [doc.id, doc])).values()].slice(0, 5),
+      query,
+    );
   }
 }
