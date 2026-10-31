@@ -282,7 +282,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       add('experiencia-sig', 'webservice-springboot-jpa', 'experiencia-acrux');
     }
     // Cross-project questions must distinguish banks used at work from study databases.
-    if (/\b(?:banco|bancos|persistencia|relacional|relacionais|sql|mysql|postgresql|postgres|h2|indice|indices|migrac\w*)\b/.test(phrase)) {
+    if (!educationIntent && /\b(?:banco|bancos|persistencia|relacional|relacionais|sql|mysql|postgresql|postgres|h2|indice|indices|migrac\w*)\b/.test(phrase)) {
       add('experiencia-sig', 'experiencia-geowellex', 'experiencia-acrux',
         'webservice-springboot-jpa', 'phasscode-platform');
     }
