@@ -1,5 +1,6 @@
 -- Opt-in reporting; never store visitor chat text in analytics tables.
 ALTER TABLE conversations
+  ADD COLUMN reports_opt_in boolean NOT NULL DEFAULT false,
   ADD COLUMN reports_opted_out boolean NOT NULL DEFAULT false;
 
 CREATE TABLE orbe_conversation_reports (
