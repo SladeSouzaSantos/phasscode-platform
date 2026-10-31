@@ -243,10 +243,51 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         ),
       };
     });
-    return ranked
+    const matches = ranked
       .filter(({ score, eligible }) => eligible && score > 0)
       .sort((a, b) => b.score - a.score || a.doc.id.localeCompare(b.doc.id))
-      .slice(0, 5)
       .map(({ doc }) => doc);
+
+    // Pre-curated evidence anchors keep the right employer/project in a recruiter's
+    // bounded context. No live GitHub/MCP request, no additional LLM tokens beyond
+    // the existing five-document ceiling. Missing IDs are ignored for test fixtures.
+    const anchors: string[] = [];
+    const add = (...ids: string[]) => anchors.push(...ids);
+    const phrase = knowledgePhrase(query);
+    const vacancy = /\\b(?:vaga|recrutad\\w*|experienc\\w*|profission\\w*|trabalh\\w*|candidat\\w*|qualific\\w*)\\b/.test(phrase);
+    if (queryTechnologies.has('java') && vacancy) {
+      add('experiencia-sig', 'webservice-springboot-jpa', 'experiencia-acrux');
+    }
+    if (queryTechnologies.has('react') || queryTechnologies.has('typescript')) {
+      add('web-portfolio-v2');
+    }
+    if (queryTechnologies.has('langchain') || /\\b(?:rag|llms?|agentes|guardrails)\\b/.test(phrase)) {
+      add('phasscode-platform', 'embeddings-neo4j-rag', 'langchain-intro');
+    }
+    if (queryTechnologies.has('python') || /\\b(?:engenharia de dados|analista de dados|etl|nasa power|pvlib)\\b/.test(phrase)) {
+      add('hsp-simulator');
+    }
+    if (queryTechnologies.has('flutter') || queryTechnologies.has('firebase')) {
+      add('greencity-os', 'experiencia-greencity');
+    }
+    if (/\\b(?:qa|testes? automatizad\\w*|qualidade de software|acessibilidade|playwright|wcag)\\b/.test(phrase)) {
+      add('web-portfolio-v2', 'phasscode-platform');
+    }
+    if (/\\b(?:devops|sre|ci cd|github actions|pipeline|deploy)\\b/.test(phrase)) {
+      add('phasscode-platform', 'task-manager-flask');
+    }
+    if (/\\b(?:energia|fotovoltaic\\w*|solar|utilities|petroleo)\\b/.test(phrase)) {
+      add('experiencia-greencity', 'hsp-simulator');
+    }
+
+    const indexedById = new Map(this.documents.map((doc) => [doc.id, doc]));
+    const priority = [...new Set(anchors)].flatMap((id) => {
+      const doc = indexedById.get(id);
+      return doc ? [doc] : [];
+    });
+    return [...new Map([...priority, ...matches].map((doc) => [doc.id, doc])).values()].slice(
+      0,
+      5,
+    );
   }
 }
