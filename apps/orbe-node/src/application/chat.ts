@@ -96,8 +96,9 @@ export class ChatService {
               )
             : [];
         if (experienceDocuments.length) {
-          const broadProgrammingQuestion =
-            /\b(?:programa\w*|desenvolv\w*|software)\b/.test(normalizedQuery);
+          const broadProgrammingQuestion = /\b(?:programa\w*|desenvolv\w*|software)\b/.test(
+            normalizedQuery,
+          );
           // The SDGP is a canonical mixed-role project, not a ranked fallback.
           // Keep this optional lookup compatible with test knowledge adapters.
           const sdgp = this.knowledge.getDocument?.('greencity-sdgp');
