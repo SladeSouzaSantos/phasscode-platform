@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { hashToken } from '../domain/security.js';
 import { resolve } from 'node:path';
 import Fastify, { LogController } from 'fastify';
 import cors from '@fastify/cors';
@@ -109,6 +110,7 @@ export async function buildApp({
       'Idempotency-Key',
       'Authorization',
       'X-Orbe-Capabilities',
+      'X-Orbe-Report-Consent',
     ],
     exposedHeaders: ['X-Correlation-Id', 'Retry-After'],
     credentials: config.auth.enabled,
@@ -289,9 +291,35 @@ export async function buildApp({
       const capabilities = request.headers['x-orbe-capabilities'];
       if (capabilities !== undefined && capabilities !== 'meetings-v1')
         throw new AppError('INVALID_REQUEST', 400, 'Capacidade do cliente não suportada.');
-      return service.execute(body.data, token, { meetingActions: capabilities === 'meetings-v1' });
+      const reportConsent = request.headers['x-orbe-report-consent'];
+      if (reportConsent !== undefined && reportConsent !== 'yes')
+        throw new AppError('INVALID_REQUEST', 400, 'Autorização de relatório inválida.');
+      if (reportConsent === 'yes' && body.data.conversationId !== undefined)
+        throw new AppError('INVALID_REQUEST', 400, 'Autorização deve ocorrer no início da conversa.');
+      return service.execute(body.data, token, {
+        meetingActions: capabilities === 'meetings-v1',
+        analyticsConsent: reportConsent === 'yes',
+      });
     },
   );
+  // Explicit withdrawal invalidates all unsent report summaries for this conversation.
+  app.post('/api/v1/chat/report-optout', { onRequest: async (request, reply) => {
+    await limitChat.call(app, request, reply);
+  } }, async (request) => {
+    const body = request.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body) ||
+      Object.keys(body).length !== 1 || !('conversationId' in body) ||
+      typeof body.conversationId !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(body.conversationId))
+      throw new AppError('INVALID_REQUEST', 400, 'Identificador inválido.');
+    const token = request.headers['x-conversation-token'];
+    if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token))
+      throw new AppError('INVALID_REQUEST', 400, 'Token inválido.');
+    if (!store.withdrawReport)
+      throw new AppError('REPORTS_DISABLED', 503, 'Revogação indisponível neste ambiente.');
+    await store.withdrawReport(body.conversationId, hashToken(token));
+    return { withdrawn: true };
+  });
   app.addHook('onClose', async () => {
     await store.close();
     if (redis) await redis.quit().catch(() => redis.disconnect());
