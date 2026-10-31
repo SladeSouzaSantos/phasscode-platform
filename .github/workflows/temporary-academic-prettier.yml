@@ -1,0 +1,32 @@
+name: Temporary PPKS academic format
+on:
+  push:
+    branches: [feat/ppks-academic-evidence-v1]
+    paths: [.github/workflows/temporary-academic-prettier.yml]
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Format academic change set
+        run: |
+          npx prettier --write apps/orbe-node/src/adapters/academic.ts apps/orbe-node/src/adapters/knowledge.ts scripts/ppks.mjs tests/ppks-academic.test.ts knowledge/portfolio.json knowledge/ppks/academic/*.json knowledge/ppks/schemas/*-v1.1.schema.json apps/orbe-node/prompts/v4.md knowledge/README.md knowledge/ppks/README.md
+      - name: Commit formatted files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/orbe-node/src/adapters/academic.ts apps/orbe-node/src/adapters/knowledge.ts scripts/ppks.mjs tests/ppks-academic.test.ts knowledge/portfolio.json knowledge/ppks/academic knowledge/ppks/schemas apps/orbe-node/prompts/v4.md knowledge/README.md knowledge/ppks/README.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'style(ppks): format academic records and retrieval'
+            git push origin HEAD:feat/ppks-academic-evidence-v1
+          fi
