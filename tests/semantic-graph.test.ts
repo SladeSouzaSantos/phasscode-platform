@@ -3,6 +3,38 @@ import { JsonKnowledgeRepository } from '../apps/orbe-node/src/adapters/knowledg
 import { SemanticKnowledgeGraph } from '../apps/orbe-node/src/adapters/semantic-graph.js';
 import { loadAcademicEvidence } from '../apps/orbe-node/src/adapters/academic.js';
 
+describe('PPKS phase 3: graph-directed evidence planning', () => {
+  it('proposes React project and Java professional evidence without equating the two', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const docs = knowledge.search(
+      'Sou recrutador para vaga React e TypeScript, com base transferível Java e POO.',
+    );
+    const ids = docs.map((doc) => doc.id);
+    expect(ids).toContain('web-portfolio-v2');
+    expect(ids).toContain('experiencia-sig');
+    const graph = await SemanticKnowledgeGraph.load((await loadAcademicEvidence()).skills);
+    const graphIds = graph.evidenceIds('React TypeScript Java POO');
+    expect(graphIds[0]).toBe('web-portfolio-v2');
+    expect(graphIds).toContain('experiencia-sig');
+  });
+
+  it('connects generic SQL to both professional databases without fabricated Firestore use', async () => {
+    const graph = await SemanticKnowledgeGraph.load((await loadAcademicEvidence()).skills);
+    const ids = graph.evidenceIds('Experiência com SQL em bancos relacionais');
+    expect(ids).toContain('experiencia-geowellex');
+    expect(ids).toContain('experiencia-sig');
+    expect(graph.evidenceIds('Cloud Firestore')).toEqual([]);
+  });
+
+  it('does not infer professional employment from a technology relationship', async () => {
+    const graph = await SemanticKnowledgeGraph.load((await loadAcademicEvidence()).skills);
+    const ids = graph.evidenceIds('React');
+    expect(ids).toContain('web-portfolio-v2');
+    expect(ids).not.toContain('experiencia-sig');
+    expect(ids).not.toContain('experiencia-geowellex');
+  });
+});
+
 describe('PPKS: grafo semântico de competências com proveniência', () => {
   it('usa apenas documentos retidos para fundamentar React e Java', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
