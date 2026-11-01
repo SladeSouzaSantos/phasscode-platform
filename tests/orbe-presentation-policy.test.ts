@@ -96,9 +96,7 @@ describe('Apresentação profissional positiva e honesta', () => {
     expect(revised).toContain(
       'PostgreSQL documentado na experiência profissional com Java/Hibernate/JBoss na SIG Software/SIGAA',
     );
-    expect(revised).toContain(
-      'além de Docker, CI/CD e APIs no projeto autoral PHASSCODE Platform',
-    );
+    expect(revised).toContain('além de Docker, CI/CD e APIs no projeto autoral PHASSCODE Platform');
     expect(revised).not.toContain('PostgreSQL e Docker documentados na experiência profissional');
     // A project-only statement without SIGAA remains untouched.
     const projectOnly = 'Docker está documentado no projeto autoral PHASSCODE Platform.';
