@@ -32,18 +32,22 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     expect(packet.retainedChars).toBeLessThanOrEqual(1200);
     for (const document of packet.documents) {
       expect(document.content.length).toBeGreaterThanOrEqual(96);
-      expect(document.content).toBe(originals.find((item) => item.id === document.id)!.content.slice(0, document.content.length));
+      expect(document.content).toBe(
+        originals
+          .find((item) => item.id === document.id)!
+          .content.slice(0, document.content.length),
+      );
     }
     expect(originals[0]!.content.length).toBeGreaterThan(1200);
   });
 
   it('fails closed rather than dropping React on an impossible budget', () => {
-    const records = [
-      doc('java', 'Java '.repeat(300)),
-      doc('react', 'React '.repeat(300)),
-    ];
+    const records = [doc('java', 'Java '.repeat(300)), doc('react', 'React '.repeat(300))];
     expect(buildEvidencePacket(records, 191)).toBeNull();
-    expect(buildEvidencePacket(records, 192)?.documents.map(({ id }) => id)).toEqual(['java', 'react']);
+    expect(buildEvidencePacket(records, 192)?.documents.map(({ id }) => id)).toEqual([
+      'java',
+      'react',
+    ]);
   });
 
   it('records only source IDs and lengths with explicit opt-in', () => {
@@ -84,7 +88,8 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     await service.execute({ message: query });
     expect(received).toBeDefined();
     expect(received!.documents.map(({ id }) => id)).toContain('web-portfolio-v2');
-    expect(received!.documents.find((item) => item.id === 'web-portfolio-v2')!.content)
-      .toContain('React');
+    expect(received!.documents.find((item) => item.id === 'web-portfolio-v2')!.content).toContain(
+      'React',
+    );
   });
 });

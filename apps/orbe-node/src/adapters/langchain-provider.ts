@@ -184,10 +184,7 @@ export class LangChainChatProvider implements ChatProvider {
       if (contextSize() <= target) return true;
       if (documents.length === 0 || completeCourseCatalog) return false;
       const original = [...documents];
-      const minimum = original.reduce(
-        (sum, doc) => sum + Math.min(doc.content.length, 96),
-        0,
-      );
+      const minimum = original.reduce((sum, doc) => sum + Math.min(doc.content.length, 96), 0);
       const maximum = original.reduce((sum, doc) => sum + doc.content.length, 0);
       let lower = minimum;
       let upper = maximum;

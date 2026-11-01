@@ -20,8 +20,7 @@ export function buildEvidencePacket(
   totalContentChars: number,
 ): EvidencePacket | null {
   if (!Number.isFinite(totalContentChars) || totalContentChars < 0) return null;
-  if (!documents.length)
-    return { documents: [], originalChars: 0, retainedChars: 0 };
+  if (!documents.length) return { documents: [], originalChars: 0, retainedChars: 0 };
 
   const budget = Math.floor(totalContentChars);
   const minimum = documents.map((document) =>
@@ -35,7 +34,9 @@ export function buildEvidencePacket(
   let remaining = budget - lengths.reduce((sum, n) => sum + n, 0);
   for (let phase = 0; phase < 2 && remaining > 0; phase++) {
     const ceilings = phase === 0 ? caps : documents.map((doc) => doc.content.length);
-    let active = lengths.map((n, index) => index).filter((index) => lengths[index]! < ceilings[index]!);
+    let active = lengths
+      .map((n, index) => index)
+      .filter((index) => lengths[index]! < ceilings[index]!);
     while (active.length > 0 && remaining > 0) {
       const share = Math.max(1, Math.floor(remaining / active.length));
       let used = 0;
@@ -63,11 +64,7 @@ export function buildEvidencePacket(
 }
 
 export type EvidenceTraceStage =
-  | 'retrieved'
-  | 'chat_bounded'
-  | 'provider_initial'
-  | 'provider_compacted'
-  | 'response_sources';
+  'retrieved' | 'chat_bounded' | 'provider_initial' | 'provider_compacted' | 'response_sources';
 
 /** Opt-in operational trace: IDs and lengths only, never raw messages, text, tokens or URLs. */
 export function traceEvidence(
@@ -77,15 +74,17 @@ export function traceEvidence(
   traceId?: string,
 ): void {
   if (process.env.ORBE_EVIDENCE_TRACE !== 'true') return;
-  console.info(JSON.stringify({
-    event: 'orbe_evidence_trace',
-    stage,
-    ...(traceId ? { traceId } : {}),
-    ...(reason ? { reason } : {}),
-    documentCount: documents.length,
-    sources: documents.map((document) => ({
-      id: document.id.slice(0, 120),
-      chars: document.content.length,
-    })),
-  }));
+  console.info(
+    JSON.stringify({
+      event: 'orbe_evidence_trace',
+      stage,
+      ...(traceId ? { traceId } : {}),
+      ...(reason ? { reason } : {}),
+      documentCount: documents.length,
+      sources: documents.map((document) => ({
+        id: document.id.slice(0, 120),
+        chars: document.content.length,
+      })),
+    }),
+  );
 }
