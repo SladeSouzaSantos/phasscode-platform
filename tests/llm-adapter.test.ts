@@ -228,6 +228,63 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     expect(documents).toHaveLength(3);
   });
 
+  it('preserves CodeQL, OWASP ZAP and Docker Swarm over a compacted LLM wire', async () => {
+    const stub = await llmServer(() =>
+      completion({ role: 'assistant', content: 'PHASSCODE Platform usa CodeQL e OWASP ZAP; SHADOW SIM PRO usa Docker Swarm.' }),
+    );
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      CHAT_CONTEXT_CHARS: '5000',
+    });
+    const platform = {
+      ...document(
+        'phasscode-platform',
+        'Backend autoral PHASSCODE com Node.js, Redis e Docker. '.repeat(35) +
+          'O workflow executa CodeQL (SAST) e OWASP ZAP (DAST).',
+      ),
+      type: 'platform' as const,
+      category: 'personal' as const,
+      technologies: ['Node.js', 'Docker', 'CodeQL', 'OWASP ZAP', 'SAST', 'DAST'],
+    };
+    const swarm = {
+      ...document(
+        'shadow-sim-pro',
+        'SHADOW SIM PRO utiliza Python para estudos de sombreamento. '.repeat(30) +
+          'O deploy usa Docker Swarm.',
+      ),
+      category: 'study' as const,
+      technologies: ['Python', 'Docker Swarm'],
+    };
+    const provider = new LangChainChatProvider(
+      config,
+      new JsonKnowledgeRepository([platform, swarm]),
+      'Diretrizes de recrutamento: fundamentar toda evidência, diferenciar projeto e emprego. '.repeat(
+        27,
+      ),
+      allowTestBudget,
+    );
+    await provider.generate({
+      message: 'Vaga com CodeQL, OWASP ZAP, SAST, DAST e Docker Swarm. Onde são usados?',
+      history: [],
+      documents: [platform, swarm],
+      signal: new AbortController().signal,
+    });
+    const wire = stub.requests[0]!;
+    expect(messageCharacters(wire)).toBeLessThanOrEqual(5000);
+    const reference = (wire.messages as { content: string }[])[1]!.content;
+    expect(reference).toContain('phasscode-platform');
+    expect(reference).toContain('shadow-sim-pro');
+    expect(reference).toContain('CodeQL');
+    expect(reference).toContain('OWASP ZAP');
+    expect(reference).toContain('SAST');
+    expect(reference).toContain('DAST');
+    expect(reference).toContain('Docker Swarm');
+  });
+
   it('reduz o primeiro documento usando JSON escapado, sem esvaziar ou modificar o original', async () => {
     const stub = await llmServer(() =>
       completion({ role: 'assistant', content: 'O projeto aspas apresenta um fato público.' }),
