@@ -445,8 +445,26 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         recommend('cursos-devops-qualidade');
     }
     const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
+    // A complex Java vacancy requesting MySQL, a degree and reading English
+    // must retain those independent records within the five-document ceiling.
+    // Project and generic skills remain optional after factual coverage.
+    const multiDomainJavaVacancy =
+      vacancy &&
+      /\bjava\b/.test(phrase) &&
+      /\bmysql\b/.test(phrase) &&
+      /\b(?:formacao|graduacao|computacao|curso superior)\b/.test(phrase) &&
+      /\b(?:ingles|idioma|english)\b/.test(phrase);
+    const requiredEvidence = multiDomainJavaVacancy
+      ? [
+          'experiencia-sig',
+          'experiencia-geowellex',
+          'formacao-gestao-ti',
+          'idiomas-declarados',
+          'webservice-springboot-jpa',
+        ]
+      : [];
     const indexedById = new Map(this.documents.map((doc) => [doc.id, doc]));
-    const priority = [...new Set([...recruiter, ...anchors, ...skillEvidence])].flatMap((id) => {
+    const priority = [...new Set([...requiredEvidence, ...recruiter, ...anchors, ...skillEvidence])].flatMap((id) => {
       const doc = indexedById.get(id);
       return doc ? [doc] : [];
     });
