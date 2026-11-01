@@ -108,6 +108,7 @@ const technologyPatterns: Record<string, RegExp> = {
   'sql-server': /\bsql server\b/,
   sql: /\bsql\b/,
   'github-actions': /\bgithub actions\b/,
+  'ci-cd': /\bci cd\b|\bcontinuous integration(?: and| &)? (?:continuous deployment|continuous delivery)\b/,
 };
 
 export function mentionedTechnologies(text: string): Set<string> {
