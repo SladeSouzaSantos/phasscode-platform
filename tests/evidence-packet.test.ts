@@ -279,7 +279,9 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     expect(platform.content).toContain('testes de integração');
     const packet = buildEvidencePacket(documents, 2500, mentionedTechnologies(query))!;
     expect(packet.documents).toHaveLength(documents.length);
-    expect(packet.documents.find(({ id }) => id === 'phasscode-platform')?.content).toContain('Git');
+    expect(packet.documents.find(({ id }) => id === 'phasscode-platform')?.content).toContain(
+      'Git',
+    );
   });
 
   it('repairs Docker gaps and JPA overclaims without inventing employment', async () => {
