@@ -275,8 +275,11 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     const platform = documents.find(({ id }) => id === 'phasscode-platform')!;
     expect(platform.technologies).toContain('Git');
     expect(platform.technologies).toContain('Vitest');
-    expect(platform.content).toContain('histórico público de commits');
-    expect(platform.content).toContain('testes de integração');
+    // Search summaries may be compacted; facts are grounded in the canonical
+    // source and requested skills must survive the evidence packet.
+    const canonical = knowledge.getDocument('phasscode-platform')!;
+    expect(canonical.content).toContain('histórico público de commits');
+    expect(canonical.content).toContain('testes de integração');
     const packet = buildEvidencePacket(documents, 2500, mentionedTechnologies(query))!;
     expect(packet.documents).toHaveLength(documents.length);
     expect(packet.documents.find(({ id }) => id === 'phasscode-platform')?.content).toContain(
