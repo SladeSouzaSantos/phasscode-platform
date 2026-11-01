@@ -134,8 +134,12 @@ describe('PPKS v1.2 — matriz de vagas e contexto', () => {
     const query =
       'Sou recrutador para vaga Java Node.js TypeScript React PostgreSQL Redis Python Docker CI/CD, formação em computação, SQL Server e Angular. Compare projetos profissionais e estudos.';
     const results = knowledge.search(query);
-    expect(results.length).toBeLessThanOrEqual(5);
-    expect(results.length).toBeGreaterThan(2);
+    // A recruiter may list many independent stacks. Preserve distinct
+    // professional/project evidence instead of a historical five-source cap.
+    expect(results.length).toBeGreaterThan(5);
+    expect(results.map((doc) => doc.id)).toContain('experiencia-sig');
+    expect(results.map((doc) => doc.id)).toContain('phasscode-platform');
+    expect(results.map((doc) => doc.id)).toContain('web-portfolio-v2');
     expect(results.reduce((total, doc) => total + doc.content.length, 0)).toBeLessThanOrEqual(8000);
   });
 });
