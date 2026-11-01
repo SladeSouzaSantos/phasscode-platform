@@ -75,11 +75,39 @@ export function buildEvidencePacket(
     // Under severe pressure, a factual stack signature carries more useful
     // evidence than an arbitrary prefix of the prose description. Preserve
     // exact technologies from the curated source; never infer new technologies.
-    const stack = signatures[index] || document.technologies?.slice(0, 8).join(', ') || '';
-    const content =
-      limit < 180 && stack && document.content.length > limit
-        ? ('Stack: ' + stack + '. ' + document.content).slice(0, limit)
-        : document.content.slice(0, limit);
+    const requestedStack = signatures[index]!;
+    const stack = requestedStack || document.technologies?.slice(0, 8).join(', ') || '';
+    // Even when the source begins with generic prose, keep the exact requested
+    // facts from its curated technologies and nearby original text. Never
+    // confuse a verified study/project stack with paid employment.
+    const excerpts = requestedStack
+      ? (document.technologies ?? [])
+          .filter((label) =>
+            [...mentionedTechnologies(label)].some((technology) =>
+              requestedTechnologies.has(technology),
+            ),
+          )
+          .flatMap((label) => {
+            const lower = document.content.toLowerCase();
+            const full = label.toLowerCase();
+            let at = lower.indexOf(full);
+            if (at < 0) at = lower.indexOf(full.split(/\s+/).at(-1) ?? full);
+            if (at < 0) return [];
+            return [
+              document.content
+                .slice(Math.max(0, at - 38), Math.min(document.content.length, at + label.length + 52))
+                .replace(/\s+/g, ' ')
+                .trim(),
+            ];
+          })
+      : [];
+    const compactEvidence =
+      requestedStack && document.content.length > limit
+        ? ['Stack: ' + requestedStack + '.', ...new Set(excerpts), document.content].join(' ')
+        : limit < 180 && stack && document.content.length > limit
+          ? 'Stack: ' + stack + '. ' + document.content
+          : document.content;
+    const content = compactEvidence.slice(0, limit);
     return { ...document, content };
   });
   return {
