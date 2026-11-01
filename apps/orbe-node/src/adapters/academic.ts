@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { z } from 'zod';
 import type { KnowledgeDocument } from '../domain/ports.js';
 import { knowledgePhrase } from '../knowledge-matching.js';
 
@@ -25,21 +26,28 @@ interface Education {
   competencies: string[];
   limitations: string[];
 }
-interface Course {
-  id: string;
-  title: string;
-  provider: string;
-  status: string;
-  verification: string;
-  hours: number | null;
-  skills: string[];
-}
-interface Track {
-  id: string;
-  name: string;
-  focus: string;
-  courses: Course[];
-}
+// Individual courses are canonical records, not prose inferred from a track.
+const courseSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  provider: z.string().min(1),
+  status: z.enum(['completed', 'in_progress']),
+  verification: z.enum(['owner_confirmed', 'document_verified']),
+  hours: z.number().nonnegative().nullable(),
+  skills: z.array(z.string().min(1)).min(1),
+  evidenceVisibility: z.enum(['private', 'public']),
+});
+const tracksSchema = z.object({
+  schemaVersion: z.literal('1.1'),
+  tracks: z.array(z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    focus: z.string().min(1),
+    courses: z.array(courseSchema),
+  })),
+});
+type Course = z.infer<typeof courseSchema>;
+type Track = z.infer<typeof tracksSchema>['tracks'][number];
 export interface Skill {
   skill: string;
   professional: string[];
@@ -64,7 +72,7 @@ export async function loadAcademicEvidence(
     readFile(join(root, 'skills.json'), 'utf8'),
   ]);
   const educations = JSON.parse(e) as { schemaVersion: string; educations: Education[] };
-  const tracks = JSON.parse(t) as { schemaVersion: string; tracks: Track[] };
+  const tracks = tracksSchema.parse(JSON.parse(t));
   const skills = JSON.parse(s) as { schemaVersion: string; skills: Skill[] };
   if (
     [educations.schemaVersion, tracks.schemaVersion, skills.schemaVersion].some((v) => v !== '1.1')
@@ -72,9 +80,11 @@ export async function loadAcademicEvidence(
     throw new Error('PPKS_ACADEMIC_VERSION_INVALID');
   const educationIndex = new Map(educations.educations.map((item) => [item.id, item]));
   const trackIndex = new Map(tracks.tracks.map((item) => [item.id, item]));
+  const courseIds = tracks.tracks.flatMap((track) => track.courses.map((course) => course.id));
   if (
     educationIndex.size !== educations.educations.length ||
-    trackIndex.size !== tracks.tracks.length
+    trackIndex.size !== tracks.tracks.length ||
+    new Set(courseIds).size !== courseIds.length
   )
     throw new Error('PPKS_ACADEMIC_DUPLICATE_ID');
   return { educations: educationIndex, tracks: trackIndex, skills: skills.skills };
@@ -97,6 +107,40 @@ export function enrichAcademicDocument(
     phrase.includes('lista completa') ||
     phrase.includes('cursos por trilha');
   if (track && completeCourseRequest) return document;
+  // Select individual structured courses before any context truncation.
+  // SQL Server does not imply every course whose only skill is generic SQL.
+  if (track) {
+    const requested = new Set(knowledgePhrase(query).split(' ').filter(Boolean));
+    const normalized = knowledgePhrase(query);
+    const requestedSqlServer = /\bsql server\b/.test(normalized);
+    const explicitGenericSql = /\bsql\b/.test(normalized.replace(/\bsql server\b/g, ''));
+    const matchCourse = (course: Course) => {
+      const labels = course.skills.map(knowledgePhrase);
+      if (requestedSqlServer && labels.includes('sql server')) return true;
+      if (requestedSqlServer && !explicitGenericSql && labels.includes('sql')) return false;
+      return labels.some((label) => {
+        if (label === 'sql') return requested.has('sql');
+        if (!label) return false;
+        return normalized.includes(label);
+      }) || (normalized.includes(knowledgePhrase(course.title)) &&
+        knowledgePhrase(course.title).length > 8);
+    };
+    const matched = track.courses.filter(matchCourse);
+    if (matched.length) {
+      // Emit complete, individually attributable records. Never cut a course
+      // title in half or equate a private proof with a public certificate.
+      const heading = `Cursos da trilha ${track.name}: ${matched.length} correspondência(s) exata(s); estudo livre, não emprego. Evidência declarada pelo titular, comprovante não necessariamente público.`;
+      const lines = matched.map((course) =>
+        `Curso [${course.id}]: ${course.title} — ${course.provider}; status ${course.status}; comprovação ${course.verification}; competências ${course.skills.join(', ')}.`,
+      );
+      const selected = [heading];
+      for (const line of lines) {
+        if (selected.join('\n').length + line.length + 1 > 6000) break;
+        selected.push(line);
+      }
+      return { ...document, content: selected.join('\n') };
+    }
+  }
   const lines: string[] = [];
   if (education) {
     lines.push(
