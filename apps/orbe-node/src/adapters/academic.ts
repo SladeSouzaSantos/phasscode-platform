@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import type { KnowledgeDocument } from '../domain/ports.js';
-import { knowledgePhrase } from '../knowledge-matching.js';
+import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 
 interface Coursework {
   name: string;
@@ -105,10 +105,11 @@ export function enrichAcademicDocument(
   const phrase = knowledgePhrase(query);
   // Preserve the complete seven-record course catalog without extra context.
   const completeCourseRequest =
-    phrase.includes('42 cursos') ||
-    phrase.includes('todos os cursos') ||
-    phrase.includes('lista completa') ||
-    phrase.includes('cursos por trilha');
+    mentionedTechnologies(query).size === 0 &&
+    (phrase.includes('42 cursos') ||
+      phrase.includes('todos os cursos') ||
+      phrase.includes('lista completa') ||
+      phrase.includes('cursos por trilha'));
   if (track && completeCourseRequest) return document;
   // Select individual structured courses before any context truncation.
   // SQL Server does not imply every course whose only skill is generic SQL.
