@@ -14,7 +14,7 @@ import {
   assertLlmPrivacyEnvironment,
   type Config,
 } from '../../../../packages/shared-config/src/index.js';
-import { reconcileDocumentedClaims, selectSources } from '../application/sources.js';
+import { completeRecruiterEvidence, reconcileDocumentedClaims, selectSources } from '../application/sources.js';
 import {
   experienceContext,
   reconcileExperienceAttribution,
@@ -296,7 +296,11 @@ export class LangChainChatProvider implements ChatProvider {
         const safeAnswer = actions.length
           ? 'Confira os dados e confirme a proposta no formulário. A solicitação ainda não foi registrada e o horário não está reservado; depois da confirmação, ela ficará pendente de aprovação.'
           : reconcileExperienceAttribution(
-              reconcileDocumentedClaims(answer, [...used.values()]),
+              completeRecruiterEvidence(
+                reconcileDocumentedClaims(answer, [...used.values()]),
+                input.message,
+                [...used.values()],
+              ),
               [...used.values()],
               input.asOf ?? new Date(),
             );
