@@ -93,7 +93,6 @@ export async function loadAcademicEvidence(
   return { educations: educationIndex, tracks: trackIndex, skills: skills.skills };
 }
 
-
 export interface CompleteAcademicCourseListing {
   trackId: string;
   trackName: string;
@@ -109,7 +108,11 @@ export function requestedCompleteJavaCourses(
   const phrase = knowledgePhrase(query);
   if (!/\b(?:java|java e arquitetura)\b/.test(phrase)) return undefined;
   if (!/\b(?:cursos?|formacoes? livres?|treinamentos?)\b/.test(phrase)) return undefined;
-  if (!/\b(?:quais|liste|listar|lista|todos|titulos?|nomes?|cite|citando|concluidos?|realizou|fez|concluiu)\b/.test(phrase))
+  if (
+    !/\b(?:quais|liste|listar|lista|todos|titulos?|nomes?|cite|citando|concluidos?|realizou|fez|concluiu)\b/.test(
+      phrase,
+    )
+  )
     return undefined;
   const track = evidence.tracks.get('cursos-java-arquitetura');
   if (!track) return undefined;
@@ -117,7 +120,11 @@ export function requestedCompleteJavaCourses(
     trackId: track.id,
     trackName: track.name,
     courses: track.courses.map(({ id, title, provider, status, verification }) => ({
-      id, title, provider, status, verification,
+      id,
+      title,
+      provider,
+      status,
+      verification,
     })),
   };
 }

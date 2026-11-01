@@ -418,10 +418,7 @@ export function reconcileDocumentedClaims(
   // A bold heading combining a professional Java role with REST may wrongly
   // imply that SIGAA implemented REST endpoints. REST belongs to separately
   // scoped project/study evidence unless the SIGAA stack explicitly says REST.
-  if (
-    java &&
-    !mentionedTechnologies(sigaa?.technologies?.join(' ') ?? '').has('rest')
-  ) {
+  if (java && !mentionedTechnologies(sigaa?.technologies?.join(' ') ?? '').has('rest')) {
     result = result.replace(
       /\*\*Java\s+e\s+APIs?\s+REST\*\*(?=\s*[–—-]\s*Na\s+SIG\s+Software)/gi,
       '**Java profissional no SIGAA**',

@@ -388,15 +388,15 @@ export class LangChainChatProvider implements ChatProvider {
           : removeInternalCitationIds(
               auditRecruiterMatrix(
                 reconcileExperienceAttribution(
-                completeRecruiterEvidence(
-                  reconcileDocumentedClaims(answer, [...used.values()]),
-                  input.message,
+                  completeRecruiterEvidence(
+                    reconcileDocumentedClaims(answer, [...used.values()]),
+                    input.message,
+                    [...used.values()],
+                  ),
                   [...used.values()],
+                  input.asOf ?? new Date(),
                 ),
                 [...used.values()],
-                input.asOf ?? new Date(),
-              ),
-              [...used.values()],
               ),
             );
         return {

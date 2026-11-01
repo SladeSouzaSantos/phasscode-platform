@@ -1,7 +1,4 @@
-import type {
-  AcademicCourseListing,
-  KnowledgeDocument,
-} from '../domain/ports.js';
+import type { AcademicCourseListing, KnowledgeDocument } from '../domain/ports.js';
 import type { Source } from '../../../../packages/contracts/src/index.js';
 import { knowledgePhrase } from '../knowledge-matching.js';
 import { documentSource } from './sources.js';
@@ -21,21 +18,24 @@ export function buildCompleteAcademicResponse(
   };
   const work = /\b(?:experienc\w*|profission\w*|trabalh\w*|empreg\w*|vincul\w*)\b/.test(phrase);
   const project = /\b(?:projet\w*|webservice|spring boot|jpa)\b/.test(phrase);
-  const postgraduate = /\b(?:pos graduacao|pos|unipds|andamento|java applied engineering)\b/.test(phrase);
+  const postgraduate = /\b(?:pos graduacao|pos|unipds|andamento|java applied engineering)\b/.test(
+    phrase,
+  );
   const graduation = /\b(?:graduacao|tecnologo|diploma)\b/.test(phrase) && !postgraduate;
   if (work) {
-    const jobs = ['experiencia-acrux', 'experiencia-sig'].map(byId).filter(
-      (doc): doc is KnowledgeDocument => doc !== undefined && doc.category === 'professional',
-    );
+    const jobs = ['experiencia-acrux', 'experiencia-sig']
+      .map(byId)
+      .filter(
+        (doc): doc is KnowledgeDocument => doc !== undefined && doc.category === 'professional',
+      );
     if (jobs.length) {
       blocks.push('**Experiência profissional com Java**');
       blocks.push(
         ...jobs.map((doc) => {
           addSource(doc);
           const role = doc.role ? ` — ${doc.role}` : '';
-          const technologies = doc.technologies?.filter(
-            (tech) => tech !== 'Scrum',
-          ).join(', ') ?? 'Java';
+          const technologies =
+            doc.technologies?.filter((tech) => tech !== 'Scrum').join(', ') ?? 'Java';
           return `- **${doc.title}**${role}: ${technologies}.`;
         }),
       );

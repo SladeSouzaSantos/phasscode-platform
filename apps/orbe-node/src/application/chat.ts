@@ -187,8 +187,7 @@ export class ChatService {
           // Exact enumeration: don't let a model count nine canonical courses
           // as eight or replace courses with degree coursework.
           result = verifiedAcademic;
-        }
-        else if (verifiedMatrix) {
+        } else if (verifiedMatrix) {
           // Structured comparison: deterministic evidence, no additional LLM
           // calls or output-token truncation. Every requested row is present.
           result = {
