@@ -197,7 +197,17 @@ export class ChatService {
           }
           // Maintain coverage across distinct requirements. An overflowing early
           // record may never consume the entire budget and hide React/MySQL later.
-          const selected = retrieved.slice(0, completeCourseCatalog ? 7 : 5);
+          // Vacancy requirements are not limited to five documents. Preserve the
+          // entire requirement-aware retrieval set; the packet/provider enforce
+          // the actual context budget and fail closed if it cannot fit.
+          const vacancy = /\b(?:vaga|recrutad\w*|experienc\w*|profission\w*|trabalh\w*|candidat\w*|qualific\w*|contrat\w*)\b/.test(
+            normalizedQuery,
+          );
+          const selected = completeCourseCatalog
+            ? retrieved.slice(0, 7)
+            : vacancy
+              ? retrieved
+              : retrieved.slice(0, 5);
           // Unused history headroom belongs to evidence, not an artificial gap.
           // Actual retained history is already bounded above by historyBudget.
           const contentBudget = Math.max(0, dataBudget - chars);
