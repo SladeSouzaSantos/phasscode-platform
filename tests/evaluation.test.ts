@@ -396,6 +396,52 @@ describe('runner sequencial sem serviços externos', () => {
     expect(JSON.stringify(report)).not.toContain(upstreamSecret);
   });
 
+  it.each(['LLM_PROVIDERS_LIMITED', 'LLM_BUDGET_UNAVAILABLE', 'RATE_LIMIT_UNAVAILABLE'])(
+    'interrompe após HTTP 503 operacional %s, sem retries nem vazamento de dados',
+    async (code) => {
+      const transport = vi.fn<typeof fetch>().mockResolvedValue(
+        Response.json(
+          {
+            error: {
+              code,
+              message: 'secret_provider_payload_never_persist',
+              correlationId: 'private_trace_never_persist',
+            },
+          },
+          { status: 503 },
+        ),
+      );
+      const report = await runEvaluation(matrix(), [source], options, transport);
+      expect(transport).toHaveBeenCalledTimes(1);
+      expect(report.summary).toMatchObject({
+        calls: 1,
+        stoppedEarly: true,
+        review: 1,
+        fail: 0,
+      });
+      expect(report.cases[0]?.turns[0]).toMatchObject({
+        errorCode: code,
+        status: 'review',
+        httpStatus: 503,
+      });
+      expect(JSON.stringify(report)).not.toContain('secret_provider_payload');
+      expect(JSON.stringify(report)).not.toContain('private_trace');
+    },
+  );
+
+  it('não confunde um HTTP 503 desconhecido com cooldown comprovado', async () => {
+    const transport = vi.fn<typeof fetch>().mockResolvedValue(
+      Response.json(
+        { error: { code: 'OTHER_OUTAGE', message: 'opaque', correlationId: 'trace' } },
+        { status: 503 },
+      ),
+    );
+    const report = await runEvaluation(matrix(), [source], options, transport);
+    expect(report.cases[0]?.turns[0]?.status).toBe('fail');
+    expect(report.summary.stoppedEarly).toBe(false);
+    expect(report.cases[0]?.turns[0]?.errorCode).toBeUndefined();
+  });
+
   it('respeita teto de chamadas e marca cenário incompleto para revisão', async () => {
     const transport = vi.fn<typeof fetch>().mockResolvedValue(Response.json(response()));
     const report = await runEvaluation(matrix(), [source], { ...options, maxCalls: 1 }, transport);
