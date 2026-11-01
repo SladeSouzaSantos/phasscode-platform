@@ -53,6 +53,7 @@ export type EvaluationStatus = 'pass' | 'fail' | 'review';
 export const publicErrorCodeSchema = z.enum([
   'LLM_TIMEOUT',
   'LLM_UNAVAILABLE',
+  'LLM_PROVIDERS_LIMITED',
   'LLM_CONTEXT_LIMIT',
   'LLM_INVALID_RESPONSE',
   'LLM_INVALID_TOOL',
