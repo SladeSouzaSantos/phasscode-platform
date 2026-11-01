@@ -39,7 +39,25 @@ export interface AcademicCourseListing {
   }[];
 }
 
+/** Snapshot of structured PPKS facts, never generated from an LLM response. */
+export interface CanonicalAcademicFacts {
+  educations: readonly {
+    id: string;
+    title: string;
+    institution: string;
+    status: 'completed' | 'in_progress' | 'pending_completion' | 'not_verified';
+  }[];
+  tracks: readonly {
+    id: string;
+    name: string;
+    completedCount: number;
+    totalCount: number;
+  }[];
+}
+
 export interface KnowledgeRepository {
+  /** Optional for test adapters that do not load the curated academic PPKS. */
+  canonicalAcademicFacts?(): CanonicalAcademicFacts | undefined;
   search(query: string): KnowledgeDocument[];
   getDocument?(id: string): KnowledgeDocument | undefined;
   /** Canonical records for explicit complete-course requests, not LLM summaries. */

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { sourceSchema } from '../../../../packages/contracts/src/index.js';
 import type {
   AcademicCourseListing,
+  CanonicalAcademicFacts,
   KnowledgeDocument,
   KnowledgeRepository,
 } from '../domain/ports.js';
@@ -185,6 +186,20 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
   }
   academicCourseListing(query: string): AcademicCourseListing | undefined {
     return requestedCompleteJavaCourses(query, this.academic);
+  }
+  canonicalAcademicFacts(): CanonicalAcademicFacts | undefined {
+    if (!this.academic) return undefined;
+    return {
+      educations: [...this.academic.educations.values()].map(
+        ({ id, title, institution, status }) => ({ id, title, institution, status }),
+      ),
+      tracks: [...this.academic.tracks.values()].map(({ id, name, courses }) => ({
+        id,
+        name,
+        completedCount: courses.filter((course) => course.status === 'completed').length,
+        totalCount: courses.length,
+      })),
+    };
   }
   getDocument(id: string): KnowledgeDocument | undefined {
     return this.documents.find((document) => document.id === id);

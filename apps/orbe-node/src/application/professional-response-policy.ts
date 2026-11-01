@@ -11,7 +11,7 @@ export function professionalResponsePolicy(question: string): string {
       phrase,
     );
   if (vacancy) {
-    return 'APRESENTAÇÃO PARA VAGA: Comece pelas correspondências documentadas e sua origem (emprego, projeto ou curso). Informe com objetividade as lacunas RELEVANTES aos requisitos efetivamente pedidos, inclusive obrigatórios; evidência transferível não substitui experiência direta. Separe as tecnologias por vínculo: cada emprego ou projeto deve ter stack própria; não atribua Docker do PHASSCODE ao SIGAA. Nunca maquie incompatibilidades ou invente percentual. Não liste ausências de tecnologias que não constam da vaga.';
+    return 'APRESENTAÇÃO PARA VAGA: Comece pelas correspondências documentadas e sua origem (emprego, projeto ou curso). Informe com objetividade as lacunas RELEVANTES aos requisitos efetivamente pedidos, inclusive obrigatórios; evidência transferível não substitui experiência direta. Separe as tecnologias por vínculo: cada emprego ou projeto deve ter stack própria; não atribua Docker do PHASSCODE ao SIGAA. Nunca maquie incompatibilidades ou invente percentual. Não liste ausências de tecnologias que não constam da vaga. Evite inserir formações e contagens de cursos não solicitadas, salvo quando forem diretamente relevantes a um requisito da vaga.';
   }
   const directAssessment =
     /\b(?:fluente|fluencia|avancad[oa]|nivel de|certificad[oa]|domina|sabe|conhece|experiencia com|experiencia em|ja trabalhou com|tem experiencia)\b/.test(

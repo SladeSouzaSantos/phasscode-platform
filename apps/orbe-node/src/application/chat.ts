@@ -39,6 +39,7 @@ import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
 import { buildCompleteAcademicResponse } from './academic-response.js';
 import { buildDirectGoExperienceResponse } from './go-experience-response.js';
+import { reconcileCanonicalAcademicClaims } from './canonical-claims.js';
 import { documentSource } from './sources.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
@@ -292,6 +293,38 @@ export class ChatService {
             );
           } finally {
             if (timer) clearTimeout(timer);
+          }
+        }
+        // The model can invent incidental academic details even when the
+        // structured course and recruiter routes are already correct. Reconcile
+        // only unambiguous, documented academic claims before saving the turn.
+        if (!verifiedGo && !verifiedAcademic && !verifiedMatrix && !result.actions?.length) {
+          const canonical = reconcileCanonicalAcademicClaims(
+            result.answer,
+            this.knowledge.canonicalAcademicFacts?.(),
+          );
+          if (canonical.rules.length) {
+            const canonicalSources = canonical.sourceIds
+              .map((id) => this.knowledge.getDocument?.(id))
+              .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined)
+              .map(documentSource);
+            result = {
+              ...result,
+              answer: canonical.answer,
+              sources: [
+                ...new Map(
+                  [...canonicalSources, ...result.sources].map((source) => [source.id, source]),
+                ).values(),
+              ].slice(0, 10),
+            };
+            console.info(
+              JSON.stringify({
+                event: 'orbe_canonical_claims',
+                traceId: evidenceTraceId,
+                rules: canonical.rules,
+                sourceIds: canonical.sourceIds,
+              }),
+            );
           }
         }
         traceEvidence(
