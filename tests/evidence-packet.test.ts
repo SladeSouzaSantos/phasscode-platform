@@ -8,7 +8,7 @@ import { MemoryConversationStore } from '../apps/orbe-node/src/adapters/memory-s
 import { JsonKnowledgeRepository } from '../apps/orbe-node/src/adapters/knowledge.js';
 import type { GenerationInput, KnowledgeDocument } from '../apps/orbe-node/src/domain/ports.js';
 import { loadConfig } from '../packages/shared-config/src/index.js';
-import { reconcileDocumentedClaims } from '../apps/orbe-node/src/application/sources.js';
+import { auditRecruiterMatrix, reconcileDocumentedClaims } from '../apps/orbe-node/src/application/sources.js';
 import { mentionedTechnologies } from '../apps/orbe-node/src/knowledge-matching.js';
 
 const doc = (id: string, content: string): KnowledgeDocument => ({
@@ -19,6 +19,56 @@ const doc = (id: string, content: string): KnowledgeDocument => ({
   content,
 });
 afterEach(() => vi.restoreAllMocks());
+
+describe('Orbe recruiter claims audit: source-scoped technology matrix', () => {
+  it('repairs unsupported PHASSCODE MySQL, Flutter and Firebase claims without fabricating evidence', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const documents = [
+      'phasscode-platform',
+      'experiencia-geowellex',
+      'greencity-sdgp',
+      'experiencia-sig',
+    ].map((id) => knowledge.getDocument(id)!);
+    const draft = [
+      'Pedro possui 23 dos 29 requisitos; seis não comprovados.',
+      '| Requisito | Classificação | Origem concreta | URL pública |',
+      '|---|---|---|---|',
+      '| MySQL | Projeto autoral | PHASSCODE Platform | https://github.com/SladeSouzaSantos/phasscode-platform |',
+      '| Flutter | Projeto autoral | PHASSCODE Platform e Greencity | https://github.com/SladeSouzaSantos/phasscode-platform |',
+      '| Firebase | Projeto autoral | PHASSCODE Platform | https://github.com/SladeSouzaSantos/phasscode-platform |',
+      '| SQL | Projeto autoral | PHASSCODE Platform (PostgreSQL e MySQL demonstrados) | https://github.com/SladeSouzaSantos/phasscode-platform |',
+      '| PostgreSQL | Projeto autoral | PHASSCODE Platform | https://github.com/SladeSouzaSantos/phasscode-platform |',
+      'Requisitos sem comprovação pública identificados: nenhum dos 29.',
+    ].join('\n');
+    const audited = auditRecruiterMatrix(draft, documents);
+    const row = (name: string) => audited.split('\n').find((line) => line.startsWith('| ' + name + ' |'))!;
+    expect(row('MySQL')).toContain('Geowellex');
+    expect(row('Flutter')).toContain('SDGP');
+    expect(row('Firebase')).toContain('SDGP');
+    expect(row('SQL')).not.toContain('MySQL demonstrados');
+    expect(row('PostgreSQL')).toContain('PHASSCODE Platform');
+    expect(audited).not.toContain('23 dos 29');
+    expect(audited).not.toContain('nenhum dos 29');
+    expect(audited).toContain('não foi calculado um total');
+  });
+
+  it('preserves valid project attributions and does not invent proof when absent', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const platform = knowledge.getDocument('phasscode-platform')!;
+    const answer = [
+      '| Requisito | Categoria | Origem concreta | URL pública |',
+      '|---|---|---|---|',
+      '| Firebase | Projeto autoral | PHASSCODE Platform | https://github.com/SladeSouzaSantos/phasscode-platform |',
+      '| Redis | Projeto autoral | PHASSCODE Platform | https://github.com/SladeSouzaSantos/phasscode-platform |',
+    ].join('\n');
+    const audited = auditRecruiterMatrix(answer, [platform]);
+    expect(audited).toContain('| Firebase | Evidência insuficiente | Associação ao projeto não comprovada | — |');
+    expect(audited).toContain('| Redis | Projeto autoral | PHASSCODE Platform');
+    expect(auditRecruiterMatrix('Um resumo livre de portfólio.', [platform])).toBe(
+      'Um resumo livre de portfólio.',
+    );
+  });
+});
 
 describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
   it('preserves each source and allocates a minimum before additional characters', () => {
