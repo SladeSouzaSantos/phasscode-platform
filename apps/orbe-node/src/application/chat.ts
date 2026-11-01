@@ -33,7 +33,7 @@ import {
 import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
-import { knowledgePhrase } from '../knowledge-matching.js';
+import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
@@ -213,7 +213,7 @@ export class ChatService {
           const contentBudget = Math.max(0, dataBudget - chars);
           const packet = completeCourseCatalog
             ? selected
-            : buildEvidencePacket(selected, contentBudget)?.documents;
+            : buildEvidencePacket(selected, contentBudget, mentionedTechnologies(query))?.documents;
           const documents = packet ?? [];
           traceEvidence('chat_bounded', documents, 'context_budget', evidenceTraceId);
           if (documents.length === 0)
