@@ -217,6 +217,40 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     expect(largerSignature).toBeNull();
   });
 
+  it('distinguishes Docker from Docker Swarm and extracts security tools', async () => {
+    const requested = mentionedTechnologies('Docker Swarm, CodeQL, OWASP ZAP, SAST, DAST');
+    expect(requested.has('docker-swarm')).toBe(true);
+    expect(requested.has('codeql')).toBe(true);
+    expect(requested.has('owasp-zap')).toBe(true);
+    expect(mentionedTechnologies('Docker Compose').has('docker-swarm')).toBe(false);
+    expect(mentionedTechnologies('SQL e PostgreSQL').has('docker-swarm')).toBe(false);
+
+    const repository = await JsonKnowledgeRepository.load();
+    const platform = repository.getDocument('phasscode-platform')!;
+    const swarm = repository.getDocument('shadow-sim-pro')!;
+    expect(platform.technologies).toContain('CodeQL');
+    expect(platform.technologies).toContain('OWASP ZAP');
+    expect(swarm.technologies).toContain('Docker Swarm');
+    const packet = buildEvidencePacket([platform, swarm], 200, requested)!;
+    expect(packet.documents).toHaveLength(2);
+    expect(packet.documents[0]!.content).toContain('CodeQL');
+    expect(packet.documents[0]!.content).toContain('OWASP ZAP');
+    expect(packet.documents[0]!.content).toContain('SAST');
+    expect(packet.documents[0]!.content).toContain('DAST');
+    expect(packet.documents[1]!.content).toContain('Docker Swarm');
+  });
+
+  it('recovers security and swarm evidence for an extensive vacancy', async () => {
+    const repository = await JsonKnowledgeRepository.load();
+    const vacancy =
+      'Vaga: Java, Spring Boot, JPA, React, TypeScript, PostgreSQL, MySQL, Python, Docker, Docker Swarm, CodeQL, OWASP ZAP, SAST, DAST, GitHub Actions, testes automatizados, inglês e formação superior.';
+    const ids = repository.search(vacancy).map((document) => document.id);
+    expect(ids).toContain('phasscode-platform');
+    expect(ids).toContain('shadow-sim-pro');
+    expect(ids).toContain('experiencia-sig');
+    expect(ids).toContain('experiencia-geowellex');
+  });
+
   it('repairs Docker gaps and JPA overclaims without inventing employment', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const sources = [
