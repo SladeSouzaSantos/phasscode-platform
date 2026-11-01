@@ -250,7 +250,6 @@ export class LangChainChatProvider implements ChatProvider {
       ({ query }) => {
         const docs = this.knowledge
           .search(query)
-          .slice(0, 3)
           .map((doc) => ({ ...doc, content: doc.content.slice(0, 2000) }));
         // Compartilha o mesmo orçamento em TODAS as rodadas; não acumula contexto sem limite.
         const selected: GenerationInput['documents'] = [];
