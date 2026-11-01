@@ -307,6 +307,38 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     expect(knowledge.getDocument('greencity-os')?.technologies).not.toContain('Firebase');
   });
 
+  it('passes every compared source into the LLM for a non-vacancy follow-up', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const question =
+      'Reexamine MySQL, PostgreSQL, SQL Server e Firebase. Quais cursos específicos de SQL Server existem?';
+    let received: GenerationInput | undefined;
+    const service = new ChatService(
+      new MemoryConversationStore(),
+      {
+        name: 'mock',
+        generate: async (input: GenerationInput) => {
+          received = input;
+          return { answer: 'Somente evidências documentadas.', sources: [] };
+        },
+      },
+      knowledge,
+      loadConfig({ NODE_ENV: 'test', CHAT_CONTEXT_CHARS: '12000' }),
+    );
+    await service.execute({ message: question });
+    expect(received).toBeDefined();
+    const ids = received!.documents.map(({ id }) => id);
+    for (const id of [
+      'cursos-bancos-dados',
+      'experiencia-geowellex',
+      'experiencia-sig',
+      'greencity-sdgp',
+    ])
+      expect(ids).toContain(id);
+    expect(received!.documents.find(({ id }) => id === 'cursos-bancos-dados')?.content).toContain(
+      'SQL Server Completo',
+    );
+  });
+
   it('retains exact course titles under 277-character compression per source', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const requested = mentionedTechnologies('SQL Server e Angular');
