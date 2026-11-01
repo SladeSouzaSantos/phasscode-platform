@@ -204,9 +204,17 @@ export class ChatService {
             /\b(?:vaga|recrutad\w*|experienc\w*|profission\w*|trabalh\w*|candidat\w*|qualific\w*|contrat\w*)\b/.test(
               normalizedQuery,
             );
+          // Comparison follow-ups may not say "vaga", but still require
+          // professional evidence, private-code-safe summaries and courses
+          // together. The actual context budget, not a five-record cap, bounds them.
+          const multiSourceComparison =
+            mentionedTechnologies(query).has('sql-server') &&
+            /\b(?:cursos?|mysql|firebase|angular|compar|reexamin|evidenc)\b/.test(
+              normalizedQuery,
+            );
           const selected = completeCourseCatalog
             ? retrieved.slice(0, 7)
-            : vacancy
+            : vacancy || multiSourceComparison
               ? retrieved
               : retrieved.slice(0, 5);
           // Unused history headroom belongs to evidence, not an artificial gap.
