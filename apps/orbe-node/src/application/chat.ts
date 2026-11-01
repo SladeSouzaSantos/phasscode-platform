@@ -198,7 +198,9 @@ export class ChatService {
           // Maintain coverage across distinct requirements. An overflowing early
           // record may never consume the entire budget and hide React/MySQL later.
           const selected = retrieved.slice(0, completeCourseCatalog ? 7 : 5);
-          const contentBudget = Math.max(0, dataBudget - historyBudget);
+          // Unused history headroom belongs to evidence, not an artificial gap.
+          // Actual retained history is already bounded above by historyBudget.
+          const contentBudget = Math.max(0, dataBudget - chars);
           const packet = completeCourseCatalog
             ? selected
             : buildEvidencePacket(selected, contentBudget)?.documents;
