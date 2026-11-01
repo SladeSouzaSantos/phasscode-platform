@@ -36,6 +36,7 @@ import type { PublicEvidenceReader } from './public-evidence.js';
 import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
+import { buildCompleteAcademicResponse } from './academic-response.js';
 import { documentSource } from './sources.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
@@ -153,6 +154,10 @@ export class ChatService {
           });
         traceEvidence('retrieved', retrieved, 'initial', evidenceTraceId);
         const verifiedMatrix = buildVerifiedRecruiterMatrix(query, retrieved);
+        const academicListing = this.knowledge.academicCourseListing?.(query);
+        const verifiedAcademic = academicListing
+          ? buildCompleteAcademicResponse(query, academicListing, retrieved)
+          : undefined;
         let result;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
@@ -178,6 +183,11 @@ export class ChatService {
         )
           result = { answer: scopeRefusal, sources: [] };
         else if (retrieved.length === 0) result = { answer: unknownAnswer, sources: [] };
+        else if (verifiedAcademic) {
+          // Exact enumeration: don't let a model count nine canonical courses
+          // as eight or replace courses with degree coursework.
+          result = verifiedAcademic;
+        }
         else if (verifiedMatrix) {
           // Structured comparison: deterministic evidence, no additional LLM
           // calls or output-token truncation. Every requested row is present.
@@ -297,7 +307,7 @@ export class ChatService {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
             promptVersion: PROMPT_VERSION,
-            ...(verifiedMatrix ? { deterministic: true } : {}),
+            ...(verifiedMatrix || verifiedAcademic ? { deterministic: true } : {}),
           },
         });
         return {
