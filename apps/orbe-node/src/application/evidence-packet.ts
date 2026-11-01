@@ -74,11 +74,13 @@ export function traceEvidence(
   stage: EvidenceTraceStage,
   documents: readonly Pick<KnowledgeDocument, 'id' | 'content'>[],
   reason?: 'context_budget' | 'initial' | 'model_tool',
+  traceId?: string,
 ): void {
   if (process.env.ORBE_EVIDENCE_TRACE !== 'true') return;
   console.info(JSON.stringify({
     event: 'orbe_evidence_trace',
     stage,
+    ...(traceId ? { traceId } : {}),
     ...(reason ? { reason } : {}),
     documentCount: documents.length,
     sources: documents.map((document) => ({
