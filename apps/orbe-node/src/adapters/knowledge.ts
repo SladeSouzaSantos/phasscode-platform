@@ -507,6 +507,17 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
           .sort((a, b) => confidence(b) - confidence(a) || a.id.localeCompare(b.id))[0];
         if (best) include(best.id);
       }
+      // Evidence of a skill in a personal project does not replace proof that
+      // the same skill was used in a documented professional engagement.
+      if (
+        queryTechnologies.has('java') ||
+        queryTechnologies.has('hibernate') ||
+        queryTechnologies.has('jboss') ||
+        queryTechnologies.has('postgresql')
+      )
+        include('experiencia-sig');
+      if (queryTechnologies.has('mysql') || queryTechnologies.has('php'))
+        include('experiencia-geowellex');
       // Non-language requirements need the same independent coverage as stacks.
       if (/\b(?:git|github|versionamento|ci cd|devops|docker|pipeline|deploy)\b/.test(phrase))
         include('phasscode-platform');
