@@ -31,6 +31,8 @@ export interface KnowledgeRepository {
   search(query: string): KnowledgeDocument[];
   getDocument?(id: string): KnowledgeDocument | undefined;
   experienceDocuments?(): KnowledgeDocument[];
+  /** Bounded, provenance-aware semantic relationships for retained documents. */
+  semanticContext?(query: string, documents: readonly KnowledgeDocument[]): string;
 }
 export interface GenerationInput {
   message: string;
