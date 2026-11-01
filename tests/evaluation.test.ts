@@ -309,6 +309,14 @@ describe('avaliador determinístico', () => {
 
   it.each([
     ['Não verifiquei MySQL, nem APIs REST comerciais.', 'consistency:professional-mysql'],
+    [
+      'Não há evidência de atuação com C++ ou C#, nem de uso de MySQL.',
+      'consistency:mysql-denial-paraphrase',
+    ],
+    [
+      'Geowellex implementou controle de estoque. O código está disponível publicamente no repositório citado acima.',
+      'consistency:private-geowellex-code',
+    ],
     ['Não verifiquei Java em produção nem experiência profissional.', 'consistency:java-work'],
     [
       'Pedro possui 19 meses de vínculo exclusivamente no desenvolvimento de software, entre junho de 2016 e fevereiro de 2017 na SIG Software.',
