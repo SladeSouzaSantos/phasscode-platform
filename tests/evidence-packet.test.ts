@@ -287,6 +287,45 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     );
   });
 
+  it('recovers exact SQL Server courses and private-code-safe SDGP evidence in comparisons', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const question =
+      'Reexamine MySQL, PostgreSQL, SQL Server e Firebase. Quais cursos de SQL Server existem? Em que aplicativo há Firebase?';
+    const ids = knowledge.search(question).map((document) => document.id);
+    for (const id of [
+      'cursos-bancos-dados',
+      'experiencia-geowellex',
+      'experiencia-sig',
+      'greencity-sdgp',
+    ])
+      expect(ids).toContain(id);
+    expect(ids).not.toContain('greencity-os-no-firebase');
+    const sdgp = knowledge.getDocument('greencity-sdgp')!;
+    expect(sdgp.visibility).toBe('private');
+    expect(sdgp.category).toBe('professional');
+    expect(sdgp.technologies).toContain('Firebase');
+    expect(knowledge.getDocument('greencity-os')?.technologies).not.toContain('Firebase');
+  });
+
+  it('retains exact course titles under 277-character compression per source', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const requested = mentionedTechnologies('SQL Server e Angular');
+    const courses = [
+      knowledge.getDocument('cursos-bancos-dados')!,
+      knowledge.getDocument('cursos-frontend-mobile')!,
+    ];
+    const packet = buildEvidencePacket(courses, 554, requested)!;
+    expect(packet.documents).toHaveLength(2);
+    const database = packet.documents[0]!.content;
+    expect(database).toContain('SQL Server Completo');
+    expect(database).toContain('Formação Power BI + SQL Server');
+    expect(database).toContain('Udemy');
+    expect(database).toContain('não emprego');
+    expect(packet.documents[1]!.content).toContain('Desenvolvimento Frontend com Angular');
+    expect(packet.documents[1]!.content).toContain('DIO');
+    expect(packet.retainedChars).toBeLessThanOrEqual(554);
+  });
+
   it('repairs Docker gaps and JPA overclaims without inventing employment', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const sources = [
