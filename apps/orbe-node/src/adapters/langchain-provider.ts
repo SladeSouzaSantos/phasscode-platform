@@ -16,6 +16,7 @@ import {
   type Config,
 } from '../../../../packages/shared-config/src/index.js';
 import {
+  auditRecruiterMatrix,
   completeRecruiterEvidence,
   documentSource,
   reconcileDocumentedClaims,
@@ -376,14 +377,17 @@ export class LangChainChatProvider implements ChatProvider {
           );
         const safeAnswer = actions.length
           ? 'Confira os dados e confirme a proposta no formulário. A solicitação ainda não foi registrada e o horário não está reservado; depois da confirmação, ela ficará pendente de aprovação.'
-          : reconcileExperienceAttribution(
-              completeRecruiterEvidence(
-                reconcileDocumentedClaims(answer, [...used.values()]),
-                input.message,
+          : auditRecruiterMatrix(
+              reconcileExperienceAttribution(
+                completeRecruiterEvidence(
+                  reconcileDocumentedClaims(answer, [...used.values()]),
+                  input.message,
+                  [...used.values()],
+                ),
                 [...used.values()],
+                input.asOf ?? new Date(),
               ),
               [...used.values()],
-              input.asOf ?? new Date(),
             );
         return {
           answer: safeAnswer,
