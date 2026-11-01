@@ -493,13 +493,15 @@ export function auditRecruiterMatrix(
     // source code is never linked as if it were publicly accessible.
     return matched.sort((a, b) => {
       const priority = (document: KnowledgeDocument) =>
-        document.category === 'professional'
-          ? 3
-          : document.category === 'personal'
-            ? 2
-            : document.category === 'study'
-              ? 1
-              : 0;
+        document.category === 'professional' && document.type === 'project'
+          ? 4
+          : document.category === 'professional'
+            ? 3
+            : document.category === 'personal'
+              ? 2
+              : document.category === 'study'
+                ? 1
+                : 0;
       return priority(b) - priority(a);
     });
   };
