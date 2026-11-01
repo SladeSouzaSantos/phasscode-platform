@@ -27,6 +27,10 @@ describe('Recruiter evidence matrix: 29 independent requirements', () => {
     expect(bySkill('Flutter')).toContain('SDGP');
     expect(bySkill('Git')).toContain('Projeto autoral');
     expect(bySkill('TypeScript')).toContain('Projeto autoral');
+    expect(bySkill('Node.js')).toContain('Projeto autoral');
+    expect(bySkill('Node.js')).toContain('PHASSCODE Platform');
+    expect(bySkill('CI/CD')).toContain('Projeto autoral');
+    expect(bySkill('CI/CD')).toContain('PHASSCODE Platform');
     expect(bySkill('Graduação')).toContain('Formação concluída');
     expect(bySkill('Inglês')).toContain('inglês básico');
     expect(bySkill('OWASP ZAP')).toContain('PHASSCODE');
@@ -51,6 +55,21 @@ describe('Recruiter evidence matrix: 29 independent requirements', () => {
     expect(response.answer).not.toContain('LLM SHOULD NOT BE CALLED');
     expect(response.sources.length).toBeGreaterThan(0);
     expect(response.sources.length).toBeLessThanOrEqual(10);
+  });
+
+  it('only claims CI/CD when indexed explicitly, never solely from GitHub Actions', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const project = knowledge.getDocument('phasscode-platform')!;
+    const withoutCiCd = {
+      ...project,
+      technologies: project.technologies?.filter((name) => name !== 'CI/CD'),
+    };
+    const query =
+      'Monte uma matriz de requisitos: Node.js, CI/CD, GitHub Actions, Redis, Docker, Vitest, TypeScript.';
+    const matrix = buildVerifiedRecruiterMatrix(query, [withoutCiCd])!;
+    expect(matrix.answer).toContain('| Node.js | Projeto autoral |');
+    expect(matrix.answer).toContain('| CI/CD | Sem evidência suficiente | — | — |');
+    expect(matrix.answer).toContain('| GitHub Actions | Projeto autoral |');
   });
 
   it('does not replace a normal free-form recruiter question with a table', async () => {
