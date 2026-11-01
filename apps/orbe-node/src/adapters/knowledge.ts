@@ -474,9 +474,10 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     const priority = [
       ...new Set([
         ...requiredEvidence,
-        ...recruiter.slice(0, 3),
+        // Explicit vacancy requirements and proven curated anchors win over
+        // graph expansions; relationship discovery only fills remaining slots.
+        ...recruiter,
         ...graphEvidence,
-        ...recruiter.slice(3),
         ...anchors,
         ...skillEvidence,
       ]),
