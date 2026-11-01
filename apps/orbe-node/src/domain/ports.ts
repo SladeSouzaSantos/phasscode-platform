@@ -27,9 +27,23 @@ export interface KnowledgeDocument extends Source {
       }
     | undefined;
 }
+export interface AcademicCourseListing {
+  trackId: string;
+  trackName: string;
+  courses: readonly {
+    id: string;
+    title: string;
+    provider: string;
+    status: 'completed' | 'in_progress';
+    verification: 'owner_confirmed' | 'document_verified';
+  }[];
+}
+
 export interface KnowledgeRepository {
   search(query: string): KnowledgeDocument[];
   getDocument?(id: string): KnowledgeDocument | undefined;
+  /** Canonical records for explicit complete-course requests, not LLM summaries. */
+  academicCourseListing?(query: string): AcademicCourseListing | undefined;
   experienceDocuments?(): KnowledgeDocument[];
   /** Bounded, provenance-aware semantic relationships for retained documents. */
   semanticContext?(query: string, documents: readonly KnowledgeDocument[]): string;
