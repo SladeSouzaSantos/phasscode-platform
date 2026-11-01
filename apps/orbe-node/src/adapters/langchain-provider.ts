@@ -32,7 +32,11 @@ import type {
 } from '../domain/ports.js';
 import { AppError } from '../domain/errors.js';
 import type { LlmCallBudget } from '../domain/llm-budget.js';
-import { buildEvidencePacket, MIN_SOURCE_CONTENT, traceEvidence } from '../application/evidence-packet.js';
+import {
+  buildEvidencePacket,
+  MIN_SOURCE_CONTENT,
+  traceEvidence,
+} from '../application/evidence-packet.js';
 import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
 import {
   MAX_MODEL_CALLS_PER_TURN,
@@ -184,7 +188,10 @@ export class LangChainChatProvider implements ChatProvider {
       if (contextSize() <= target) return true;
       if (documents.length === 0 || completeCourseCatalog) return false;
       const original = [...documents];
-      const minimum = original.reduce((sum, doc) => sum + Math.min(doc.content.length, MIN_SOURCE_CONTENT), 0);
+      const minimum = original.reduce(
+        (sum, doc) => sum + Math.min(doc.content.length, MIN_SOURCE_CONTENT),
+        0,
+      );
       const maximum = original.reduce((sum, doc) => sum + doc.content.length, 0);
       let lower = minimum;
       let upper = maximum;
