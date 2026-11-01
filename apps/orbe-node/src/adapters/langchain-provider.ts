@@ -85,22 +85,31 @@ export class LangChainChatProvider implements ChatProvider {
   async generate(input: GenerationInput): Promise<GenerationResult> {
     const actions: NonNullable<GenerationResult['actions']> = [];
     const used = new Map<string, KnowledgeDocument>();
+    let compactReference = false;
     // The model only needs citeable facts, not search-ranking metadata.
     // Smaller records leave room for every evidence source in the same prompt.
     const serialize = (docs: GenerationInput['documents']) =>
       JSON.stringify(
-        docs.map((document) => ({
-          id: document.id,
-          type: document.type,
-          title: document.title,
-          content: document.content,
-          ...(document.category ? { category: document.category } : {}),
-          ...(document.visibility ? { visibility: document.visibility } : {}),
-          ...(document.technologies?.length ? { technologies: document.technologies } : {}),
-          ...(document.experiencePeriod ? { experiencePeriod: document.experiencePeriod } : {}),
-          ...(document.url ? { url: document.url } : {}),
-          ...(document.repositoryUrl ? { repositoryUrl: document.repositoryUrl } : {}),
-        })),
+        docs.map((document) =>
+          compactReference
+            ? {
+                id: document.id,
+                kind: document.category ?? document.type,
+                content: document.content,
+              }
+            : {
+                id: document.id,
+                type: document.type,
+                title: document.title,
+                content: document.content,
+                ...(document.category ? { category: document.category } : {}),
+                ...(document.visibility ? { visibility: document.visibility } : {}),
+                ...(document.technologies?.length ? { technologies: document.technologies } : {}),
+                ...(document.experiencePeriod ? { experiencePeriod: document.experiencePeriod } : {}),
+                ...(document.url ? { url: document.url } : {}),
+                ...(document.repositoryUrl ? { repositoryUrl: document.repositoryUrl } : {}),
+              },
+        ),
       );
     const record = (docs: GenerationInput['documents']) => {
       for (const document of docs) {
@@ -211,7 +220,10 @@ export class LangChainChatProvider implements ChatProvider {
             middle,
             mentionedTechnologies(input.message),
           );
-          if (!packet) return false;
+          if (!packet) {
+            lower = middle + 1;
+            continue;
+          }
           documents.splice(0, documents.length, ...packet.documents);
           messages[1] = reference();
           if (contextSize() <= target) {
@@ -227,14 +239,20 @@ export class LangChainChatProvider implements ChatProvider {
         return contextSize() <= target;
       };
 
-      if (tryFit()) return true;
-      // Optional graph hints may go, never the source records themselves.
+      // Remove optional graph hints and duplicated metadata BEFORE shortening
+      // sources. The source IDs, trust categories and grounded evidence remain.
       if (includeSemanticContext) {
         includeSemanticContext = false;
-        documents.splice(0, documents.length, ...original);
         messages[1] = reference();
-        if (contextSize() <= target || tryFit()) return true;
+        if (contextSize() <= target) return true;
       }
+      if (!compactReference) {
+        compactReference = true;
+        messages[1] = reference();
+        if (contextSize() <= target) return true;
+      }
+      if (tryFit()) return true;
+      // Optional graph hints may go, never the source records themselves.
       // An older user/assistant pair may be dropped when a tool call
       // increases the transcript; this remains a bounded source-preserving path.
       if (removeOldestHistoryPair()) {
