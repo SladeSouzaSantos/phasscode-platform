@@ -139,7 +139,7 @@ export function buildEvidencePacket(
           mentionedTechnologies(line).has('angular'),
       )
       .map((line) => {
-        const record = /^Curso \[[^\]]+\]: (.+?) — ([^;]+);/.exec(line);
+        const record = /^Curso \[[^\]]+\]: (.+) — ([^;—]+);/.exec(line);
         if (record) return `${record[1]} (${record[2]})`;
         const legacy = /^\d+\. (.+?) — (Alura|Udemy|DIO|Programa Hackers do Bem) —/.exec(line);
         if (legacy) return `${legacy[1]} (${legacy[2]})`;
