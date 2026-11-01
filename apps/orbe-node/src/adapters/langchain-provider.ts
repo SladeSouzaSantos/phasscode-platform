@@ -145,9 +145,10 @@ export class LangChainChatProvider implements ChatProvider {
         )
       : [...input.documents];
     traceEvidence('provider_initial', documents, 'initial', input.evidenceTraceId);
+    let includeSemanticContext = true;
     const reference = () =>
       new HumanMessage(
-        `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${this.knowledge.semanticContext?.(input.message, documents) ?? ''}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
+        `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${includeSemanticContext ? (this.knowledge.semanticContext?.(input.message, documents) ?? '') : ''}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
       );
     messages.push(
       new SystemMessage(this.prompt),
@@ -180,8 +181,7 @@ export class LangChainChatProvider implements ChatProvider {
     };
 
     const compactTo = (target: number): boolean => {
-      // Old conversation pairs may be removed; evidence sources are never
-      // dropped in order to let a larger earlier record monopolize context.
+      // Remove older conversation pairs before reducing reference evidence.
       while (contextSize() > target && historyMessages > 2) {
         if (!removeOldestHistoryPair()) break;
       }
@@ -193,28 +193,46 @@ export class LangChainChatProvider implements ChatProvider {
         0,
       );
       const maximum = original.reduce((sum, doc) => sum + doc.content.length, 0);
-      let lower = minimum;
-      let upper = maximum;
-      let best: GenerationInput['documents'] | null = null;
-      // Find the largest balanced evidence packet that fits the actual serialized
-      // LangChain transcript, including the graph metadata and JSON escaping.
-      while (lower <= upper) {
-        const middle = Math.floor((lower + upper) / 2);
-        const packet = buildEvidencePacket(original, middle);
-        if (!packet) return false;
-        documents.splice(0, documents.length, ...packet.documents);
-        messages[1] = reference();
-        if (contextSize() <= target) {
-          best = packet.documents;
-          lower = middle + 1;
-        } else {
-          upper = middle - 1;
+
+      const tryFit = (): boolean => {
+        let lower = minimum;
+        let upper = maximum;
+        let best: GenerationInput['documents'] | null = null;
+        while (lower <= upper) {
+          const middle = Math.floor((lower + upper) / 2);
+          const packet = buildEvidencePacket(original, middle);
+          if (!packet) return false;
+          documents.splice(0, documents.length, ...packet.documents);
+          messages[1] = reference();
+          if (contextSize() <= target) {
+            best = packet.documents;
+            lower = middle + 1;
+          } else {
+            upper = middle - 1;
+          }
         }
+        if (!best) return false;
+        documents.splice(0, documents.length, ...best);
+        messages[1] = reference();
+        return contextSize() <= target;
+      };
+
+      if (tryFit()) return true;
+      // Optional graph hints may go, never the source records themselves.
+      if (includeSemanticContext) {
+        includeSemanticContext = false;
+        documents.splice(0, documents.length, ...original);
+        messages[1] = reference();
+        if (contextSize() <= target || tryFit()) return true;
       }
-      if (!best) return false;
-      documents.splice(0, documents.length, ...best);
-      messages[1] = reference();
-      return contextSize() <= target;
+      // An older user/assistant pair may be dropped when a tool call
+      // increases the transcript; this remains a bounded source-preserving path.
+      if (removeOldestHistoryPair()) {
+        documents.splice(0, documents.length, ...original);
+        messages[1] = reference();
+        if (contextSize() <= target || tryFit()) return true;
+      }
+      return false;
     };
 
     if (!compactTo(contextTarget)) throw contextLimit();
