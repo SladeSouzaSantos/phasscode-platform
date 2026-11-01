@@ -140,10 +140,21 @@ export function evaluateTurn(
   // Deterministic checks for broad false negatives contradicted by the
   // canonical professional and project catalog; lexical match is intentionally strict.
   const knownContradictions = [
-    { id: 'professional-mysql', pattern: /mysql profissional nao foi verificado/ },
+    {
+      id: 'professional-mysql',
+      pattern: /(?:mysql profissional nao foi verificado|nao verifiquei (?:o uso (?:profissional )?de )?mysql\b(?!\s+(?:no sigaa|na acrux)))/,
+    },
     {
       id: 'java-corporate',
       pattern: /java em ambiente corporativo nao est(?:a|ao) verificados?/,
+    },
+    {
+      id: 'java-work',
+      pattern: /nao verifiquei java em producao nem experiencia profissional/,
+    },
+    {
+      id: 'single-employer-duration',
+      pattern: /19 meses? de vinculo[^.!?\n]{0,120}entre junho de 2016 e fevereiro de 2017/,
     },
     {
       id: 'documented-ci',
