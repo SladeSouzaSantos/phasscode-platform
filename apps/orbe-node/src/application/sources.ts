@@ -240,6 +240,7 @@ export function reconcileDocumentedClaims(
     );
   const mysql = verified('experiencia-geowellex', /\bgeowellex\b[\s\S]*\bmysql\b/);
   const java = verified('experiencia-sig', /\bsigaa\b[\s\S]*\bjava\b/);
+  const react = verified('web-portfolio-v2', /\breact\b[\s\S]*\btypescript\b/);
   const versioning = verified('phasscode-platform', /\b(?:git|github actions|ci cd)\b/);
   const ci = verified('phasscode-platform', /\b(?:github actions|ci cd)\b/);
   let result = answer;
@@ -259,6 +260,14 @@ export function reconcileDocumentedClaims(
       /\bo banco relacional comprovado é PostgreSQL\b/gi,
       'os bancos relacionais documentados incluem PostgreSQL no SIGAA e MySQL na Geowellex',
     );
+    result = result.replace(
+      /\bFalta de experiência com MySQL\b/gi,
+      'MySQL profissional declarado na Geowellex',
+    );
+    result = result.replace(
+      /\bS[oó] PostgreSQL est[aá] documentado\b/gi,
+      'PostgreSQL no SIGAA e MySQL na Geowellex estão documentados',
+    );
     // Preserve the scope of remaining gaps after correcting MySQL.
     result = result.replace(
       /\bnão verifiquei MySQL,\s*nem\s+/gi,
@@ -272,6 +281,18 @@ export function reconcileDocumentedClaims(
       /\bMySQL profissional não foi verificado\b/gi,
       'MySQL é documentado na experiência profissional declarada da Geowellex',
     );
+  }
+  if (react) {
+    const projectDenial =
+      /\b(?:não|nao)\s+(?:verifiquei|encontrei|há|ha|existem?|possui|consta)\b[^.!?\n]{0,280}\b(?:projetos?|reposit[oó]rios?)\b[^.!?\n]{0,280}\bReact\b[^.!?\n]*[.!?]?/gi;
+    result = result.replace(projectDenial, (sentence) => {
+      const normalized = knowledgePhrase(sentence);
+      // "No commercial React project verified" may be true: personal
+      // projects do not imply employment or corporate deliveries.
+      if (/\bcomercial\b/.test(normalized) && !/\b(?:autoral|pessoal)\b/.test(normalized))
+        return sentence;
+      return 'O projeto autoral PHASSCODE (web-portfolio-v2) documenta frontend com React e TypeScript; isso não comprova vínculo empregatício específico com React.';
+    });
   }
   if (java) {
     result = result.replace(
