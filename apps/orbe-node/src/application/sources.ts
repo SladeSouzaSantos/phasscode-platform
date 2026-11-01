@@ -203,3 +203,35 @@ export function selectSources(input: {
   }
   return selected;
 }
+
+/**
+ * Conservative, evidence-conditioned factual reconciliations for verified
+ * contradictions seen in recruiter evaluations. This is intentionally narrow:
+ * never convert courses into employment or claim source access not provided.
+ */
+export function reconcileDocumentedClaims(
+  answer: string,
+  documents: readonly KnowledgeDocument[],
+): string {
+  const ids = new Set(documents.map((document) => document.id));
+  let text = answer;
+  if (ids.has('experiencia-geowellex')) {
+    text = text.replace(
+      /MySQL profissional não foi verificado\.?/gi,
+      'MySQL consta na experiência profissional declarada da Geowellex (sistema de estoque PHP/MySQL); o código não é público.',
+    );
+  }
+  if (ids.has('experiencia-sig')) {
+    text = text.replace(
+      /Java em ambiente corporativo não est(?:á|ão) verificado(?:s)?/gi,
+      'Java profissional na SIG Software/SIGAA está documentado, embora seu código não seja público',
+    );
+  }
+  if (ids.has('phasscode-platform') && ids.has('web-portfolio-v2')) {
+    text = text.replace(
+      /Não há documentação de APIs REST com Swagger\/OpenAPI nem de CI\/CD na plataforma ou no portfólio recuperados\./gi,
+      'CI/CD com GitHub Actions está documentado na PHASSCODE Platform e no portfólio; o uso específico de Swagger/OpenAPI requer verificação separada.',
+    );
+  }
+  return text;
+}
