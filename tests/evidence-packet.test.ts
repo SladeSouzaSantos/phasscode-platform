@@ -395,6 +395,19 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     );
   });
 
+  it('retains both SQL Server course names and providers under 194-character evidence budget', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const question = 'Quais são todos os cursos específicos de SQL Server?';
+    const course = knowledge.search(question).find((document) => document.id === 'cursos-bancos-dados')!;
+    const packet = buildEvidencePacket([course], 194, mentionedTechnologies(question))!;
+    const content = packet.documents[0]!.content;
+    expect(content).toContain('SQL Server Completo — Formação DBA (Udemy)');
+    expect(content).toContain('Formação Power BI + SQL Server (Udemy)');
+    expect(content).not.toContain('Formação SQL Database Specialist');
+    expect(content).toContain('não emprego');
+    expect(content.length).toBeLessThanOrEqual(194);
+  });
+
   it('retains exact course titles under 277-character compression per source', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const requested = mentionedTechnologies('SQL Server e Angular');
