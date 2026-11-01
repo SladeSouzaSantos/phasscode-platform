@@ -7,7 +7,7 @@ import {
   loadPpksExperienceCards,
   enrichExperienceDocument,
 } from '../apps/orbe-node/src/adapters/ppks.js';
-import { loadAcademicEvidence } from '../apps/orbe-node/src/adapters/academic.js';
+import { loadAcademicEvidence, enrichAcademicDocument } from '../apps/orbe-node/src/adapters/academic.js';
 import {
   reconcileDocumentedClaims,
   selectSources,
@@ -30,6 +30,60 @@ describe('PPKS acadêmico v1.1 e avaliação por vagas', () => {
     expect(angular?.verification).toBe('owner_confirmed');
     expect(angular?.status).toBe('completed');
   });
+  it('projects exact individually structured SQL Server courses, excluding generic SQL', async () => {
+    const evidence = await loadAcademicEvidence();
+    const docs = await JsonKnowledgeRepository.load();
+    const source = docs.getDocument('cursos-bancos-dados')!;
+    const projected = enrichAcademicDocument(
+      source,
+      'Quais são todos os cursos específicos de SQL Server?',
+      evidence,
+    );
+    expect(projected.content).toContain('curso-sql-server-completo-formacao-dba');
+    expect(projected.content).toContain('SQL Server Completo — Formação DBA — Udemy');
+    expect(projected.content).toContain('Formação Power BI + SQL Server — Udemy');
+    expect(projected.content).toContain('2 correspondência(s)');
+    expect(projected.content).not.toContain('Formação SQL Database Specialist');
+    expect(projected.content).toContain('comprovação owner_confirmed');
+    expect(projected.content).toContain('não emprego');
+    expect(projected.url).toBe('https://gbc.phasscode.com/#academico');
+  });
+
+  it('preserves distinct Angular and SQL Server course records under mixed queries', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const selected = knowledge.search(
+      'Quais cursos de SQL Server e Angular Pedro concluiu? Informe cada título e instituição.',
+    );
+    const sql = selected.find((doc) => doc.id === 'cursos-bancos-dados')!;
+    const angular = selected.find((doc) => doc.id === 'cursos-frontend-mobile')!;
+    expect(sql.content).toContain('Formação Power BI + SQL Server');
+    expect(sql.content).toContain('SQL Server Completo');
+    expect(sql.content).not.toContain('Formação SQL Database Specialist');
+    expect(angular.content).toContain('Desenvolvimento Frontend com Angular — DIO');
+  });
+
+  it('rejects a duplicated or invalid structured course before serving evidence', async () => {
+    const { mkdtemp, readFile, writeFile, rm, copyFile } = await import('node:fs/promises');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const folder = await mkdtemp(join(tmpdir(), 'orbe-academic-'));
+    try {
+      for (const name of ['educations.json', 'tracks.json', 'skills.json'])
+        await copyFile('knowledge/ppks/academic/' + name, join(folder, name));
+      const original = JSON.parse(await readFile(join(folder, 'tracks.json'), 'utf8'));
+      const duplicate = structuredClone(original);
+      duplicate.tracks[1].courses[0].id = duplicate.tracks[0].courses[0].id;
+      await writeFile(join(folder, 'tracks.json'), JSON.stringify(duplicate));
+      await expect(loadAcademicEvidence(folder)).rejects.toThrow('PPKS_ACADEMIC_DUPLICATE_ID');
+      const invalid = structuredClone(original);
+      invalid.tracks[0].courses[0].provider = '';
+      await writeFile(join(folder, 'tracks.json'), JSON.stringify(invalid));
+      await expect(loadAcademicEvidence(folder)).rejects.toThrow();
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+    }
+  });
+
   it('recupera diploma superior completo e inglês básico numa vaga Java', async () => {
     const k = await JsonKnowledgeRepository.load();
     const docs = k.search(
