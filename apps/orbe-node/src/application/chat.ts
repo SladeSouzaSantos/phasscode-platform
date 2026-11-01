@@ -34,6 +34,7 @@ import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
 import { knowledgePhrase } from '../knowledge-matching.js';
+import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
 export class ChatService {
@@ -147,6 +148,7 @@ export class ChatService {
             content:
               'Consulte horários somente com get_meeting_availability. prepare_meeting_request prepara dados para o formulário de confirmação do visitante. Não cria solicitação nem reserva horário. Somente após confirmação HTTP há pedido PENDING; administração aprova e Calendar confirma. Nunca diga que uma proposta já foi registrada ou aprovada.',
           });
+        traceEvidence('retrieved', retrieved, 'initial');
         let result;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
@@ -192,14 +194,15 @@ export class ChatService {
             chars += pairChars;
             bounded.unshift(...pair);
           }
-          // Recuperação tem orçamento independente para manter toda chamada limitada.
-          let remaining = dataBudget - historyBudget;
-          const documents = retrieved.slice(0, completeCourseCatalog ? 7 : 5).flatMap((doc) => {
-            if (remaining <= 0) return [];
-            const content = doc.content.slice(0, remaining);
-            remaining -= content.length;
-            return [{ ...doc, content }];
-          });
+          // Maintain coverage across distinct requirements. An overflowing early
+          // record may never consume the entire budget and hide React/MySQL later.
+          const selected = retrieved.slice(0, completeCourseCatalog ? 7 : 5);
+          const contentBudget = Math.max(0, dataBudget - historyBudget);
+          const packet = completeCourseCatalog
+            ? selected
+            : buildEvidencePacket(selected, contentBudget)?.documents;
+          const documents = packet ?? [];
+          traceEvidence('chat_bounded', documents, 'context_budget');
           if (documents.length === 0)
             throw new AppError(
               'LLM_CONTEXT_LIMIT',
@@ -247,6 +250,10 @@ export class ChatService {
             if (timer) clearTimeout(timer);
           }
         }
+        traceEvidence(
+          'response_sources',
+          result.sources.map((source) => ({ id: source.id, content: '' })),
+        );
         const response = chatResponseSchema.parse({
           conversationId,
           ...(isNew ? { conversationToken } : {}),
