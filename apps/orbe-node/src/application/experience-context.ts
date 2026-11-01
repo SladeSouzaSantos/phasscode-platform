@@ -68,3 +68,41 @@ export function experienceContext(
     })
   );
 }
+
+
+/**
+ * Do not assign the total of several employment periods to a single employer.
+ * A scope-specific number can only be asserted if it matches the structured
+ * company period. Unrelated totals are left alone, not recomputed by guesswork.
+ */
+export function reconcileExperienceAttribution(
+  answer: string,
+  documents: readonly KnowledgeDocument[],
+  asOf: Date,
+): string {
+  const aliases: Record<string, RegExp> = {
+    'experiencia-sig': /\b(?:SIG Software|SIGAA)\b/i,
+    'experiencia-acrux': /\bACRUX\b/i,
+    'experiencia-geowellex': /\bGeowellex\b/i,
+    'experiencia-greencity': /\bGreencity\b/i,
+  };
+  return answer.replace(
+    /(\d{1,3})\s+meses?\s+de vínculo(?:\s+exclusivamente\s+no desenvolvimento de software)?/gi,
+    (statement, amount: string, offset: number) => {
+      const tail = answer.slice(offset + statement.length, offset + statement.length + 130);
+      const matched = documents.filter(
+        (document) => document.experiencePeriod && aliases[document.id]?.test(tail),
+      );
+      if (matched.length !== 1) return statement;
+      const summary = summarizeExperiencePeriods([matched[0]!], {
+        asOf,
+        scope: 'company',
+        companyId: matched[0]!.id,
+      });
+      // If the date is incomplete, preserve the response for human review.
+      if (!summary.periodsUsed.length || Number(amount) === summary.approximateMonths)
+        return statement;
+      return 'vínculo de desenvolvimento de software';
+    },
+  );
+}
