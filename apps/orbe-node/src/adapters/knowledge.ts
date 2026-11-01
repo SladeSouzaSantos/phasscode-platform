@@ -468,7 +468,15 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       /\bgit\b/.test(phrase) &&
       (queryTechnologies.has('sql') ||
         /\b(?:testes?|qualidade|qa|playwright|vitest|pytest)\b/.test(phrase));
-    if (vacancy && (requirementCount >= 7 || focusedEngineeringVacancy)) {
+    // Follow-up comparisons and explicit course questions need the same
+    // independent source coverage even without the literal word "vaga".
+    const focusedAttributionInquiry =
+      queryTechnologies.has('sql-server') &&
+      (courseIntent ||
+        queryTechnologies.has('mysql') ||
+        queryTechnologies.has('firebase') ||
+        queryTechnologies.has('angular'));
+    if ((vacancy && (requirementCount >= 7 || focusedEngineeringVacancy)) || focusedAttributionInquiry) {
       // An employer's documented experience is citeable even when the
       // employer's proprietary code is not a public personal repository.
       const candidates = this.documents.filter(
@@ -476,6 +484,8 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
           // Visibility protects employer source code, not the sanitized public
           // employment summary already curated in this knowledge repository.
           (document.type === 'profile' && document.category === 'professional') ||
+          // SDGP has a curated employment summary, but its source code remains private.
+          (document.id === 'greencity-sdgp' && document.category === 'professional') ||
           (document.visibility !== 'private' &&
             (document.type === 'profile' || document.visibility !== 'third-party')),
       );
@@ -525,6 +535,11 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         include('experiencia-sig');
       if (queryTechnologies.has('mysql') || queryTechnologies.has('php'))
         include('experiencia-geowellex');
+      if (queryTechnologies.has('firebase')) {
+        include('greencity-sdgp');
+        // Explicit negative scope: Greencity OS has Isar, not verified Firebase.
+        if (/\bgreencity\b/.test(phrase)) include('greencity-os');
+      }
       // Non-language requirements need the same independent coverage as stacks.
       if (/\b(?:git|github|versionamento|ci cd|devops|docker|pipeline|deploy)\b/.test(phrase)) {
         include('phasscode-platform');
