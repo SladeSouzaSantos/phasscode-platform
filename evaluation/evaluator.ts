@@ -146,6 +146,15 @@ export function evaluateTurn(
         /(?:mysql profissional nao foi verificado|nao verifiquei (?:o uso (?:profissional )?de )?mysql\b(?!\s+(?:no sigaa|na acrux)))/,
     },
     {
+      id: 'mysql-denial-paraphrase',
+      pattern:
+        /(?:nem de uso de mysql\b|nao ha (?:registro|evidencia|comprovacao) de (?:experiencia|atuacao|uso)(?: profissional)? (?:com |de )?mysql\b(?!\s+(?:no sigaa|na acrux)))/,
+    },
+    {
+      id: 'private-geowellex-code',
+      pattern: /geowellex[^\n]{0,350}o codigo esta disponivel publicamente/,
+    },
+    {
       id: 'java-corporate',
       pattern: /java em ambiente corporativo nao est(?:a|ao) verificados?/,
     },
