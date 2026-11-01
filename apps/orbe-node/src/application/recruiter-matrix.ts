@@ -44,7 +44,10 @@ function parseRequirements(query: string): Requirement[] {
   if (!/\b(?:matriz|tabela|planilha)\b/i.test(knowledgePhrase(query))) return [];
   // A comma-separated requirement block must be explicit. Do not try to turn
   // casual prose or a CV into a claimed exhaustive skills audit.
-  const start = /\b(?:java|hibernate|postgresql|mysql|react|angular|spring boot|node(?:[.\s]?js)|ci\/cd)\s*,/i.exec(query);
+  const start =
+    /\b(?:java|hibernate|postgresql|mysql|react|angular|spring boot|node(?:[.\s]?js)|ci\/cd)\s*,/i.exec(
+      query,
+    );
   if (!start || start.index === undefined) return [];
   const list = query
     .slice(start.index)
@@ -82,8 +85,7 @@ function supports(document: KnowledgeDocument, requirement: Requirement): boolea
   if (requirement.key === 'graduacao') return document.id === 'formacao-gestao-ti';
   // The index normalizes Node.js to `node`, not `node-js`. CI/CD is
   // a distinct workflow capability and requires explicit source metadata.
-  const technology =
-    requirement.key === 'node js' ? 'node' : requirement.key.replaceAll(' ', '-');
+  const technology = requirement.key === 'node js' ? 'node' : requirement.key.replaceAll(' ', '-');
   const available = mentionedTechnologies(document.technologies?.join(' ') ?? '');
   if (technology === 'sql')
     return (
