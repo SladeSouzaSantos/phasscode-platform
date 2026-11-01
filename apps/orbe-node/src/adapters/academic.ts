@@ -34,7 +34,8 @@ const courseSchema = z.object({
   status: z.enum(['completed', 'in_progress']),
   verification: z.enum(['owner_confirmed', 'document_verified']),
   hours: z.number().nonnegative().nullable(),
-  skills: z.array(z.string().min(1)).min(1),
+  // Some courses do not have fine-grained skill tags; this is not invalid evidence.
+  skills: z.array(z.string().min(1)),
   evidenceVisibility: z.enum(['private', 'public']),
 });
 const tracksSchema = z.object({
