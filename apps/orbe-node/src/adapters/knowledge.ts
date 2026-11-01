@@ -461,7 +461,14 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       Number(/\b(?:testes?|qa|qualidade|acessibilidade|playwright)\b/.test(phrase)) +
       Number(/\b(?:formacao|graduacao|curso superior|tecnologo|diploma)\b/.test(phrase)) +
       Number(/\b(?:ingles|english|idioma)\b/.test(phrase));
-    if (vacancy && requirementCount >= 7) {
+    // A short recruiter question spanning Git, SQL and testing is multi-domain
+    // too; it must never fall back to a five-source course-heavy ranking.
+    const focusedEngineeringVacancy =
+      vacancy &&
+      /\bgit\b/.test(phrase) &&
+      (queryTechnologies.has('sql') ||
+        /\b(?:testes?|qualidade|qa|playwright|vitest|pytest)\b/.test(phrase));
+    if (vacancy && (requirementCount >= 7 || focusedEngineeringVacancy)) {
       // An employer's documented experience is citeable even when the
       // employer's proprietary code is not a public personal repository.
       const candidates = this.documents.filter(
@@ -519,10 +526,19 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       if (queryTechnologies.has('mysql') || queryTechnologies.has('php'))
         include('experiencia-geowellex');
       // Non-language requirements need the same independent coverage as stacks.
-      if (/\b(?:git|github|versionamento|ci cd|devops|docker|pipeline|deploy)\b/.test(phrase))
+      if (/\b(?:git|github|versionamento|ci cd|devops|docker|pipeline|deploy)\b/.test(phrase)) {
         include('phasscode-platform');
-      if (/\b(?:testes?|qa|qualidade|acessibilidade|playwright)\b/.test(phrase))
+        if (/\bgit\b/.test(phrase)) include('web-portfolio-v2');
+      }
+      if (/\b(?:testes?|qa|qualidade|acessibilidade|playwright|vitest|pytest)\b/.test(phrase)) {
         include('web-portfolio-v2');
+        include('phasscode-platform');
+        include('hsp-simulator');
+      }
+      if (queryTechnologies.has('sql') && !queryTechnologies.has('sql-server')) {
+        include('experiencia-sig');
+        include('experiencia-geowellex');
+      }
       if (/\b(?:formacao|graduacao|curso superior|tecnologo|diploma)\b/.test(phrase))
         include('formacao-gestao-ti');
       if (/\b(?:ingles|english|idioma)\b/.test(phrase)) include('idiomas-declarados');
