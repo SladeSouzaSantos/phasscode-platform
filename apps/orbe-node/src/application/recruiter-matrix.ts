@@ -44,7 +44,7 @@ function parseRequirements(query: string): Requirement[] {
   if (!/\b(?:matriz|tabela|planilha)\b/i.test(knowledgePhrase(query))) return [];
   // A comma-separated requirement block must be explicit. Do not try to turn
   // casual prose or a CV into a claimed exhaustive skills audit.
-  const start = /\b(?:java|hibernate|postgresql|mysql|react|angular|spring boot)\s*,/i.exec(query);
+  const start = /\b(?:java|hibernate|postgresql|mysql|react|angular|spring boot|node(?:[.\s]?js)|ci\/cd)\s*,/i.exec(query);
   if (!start || start.index === undefined) return [];
   const list = query
     .slice(start.index)
