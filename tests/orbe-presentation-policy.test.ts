@@ -31,7 +31,9 @@ describe('Apresentação profissional positiva e honesta', () => {
   });
 
   it('não esconde incompatibilidades obrigatórias numa comparação de vaga', () => {
-    const policy = professionalResponsePolicy('Avalie a aderência de Pedro para uma vaga Go sênior.');
+    const policy = professionalResponsePolicy(
+      'Avalie a aderência de Pedro para uma vaga Go sênior.',
+    );
     expect(policy).toContain('APRESENTAÇÃO PARA VAGA');
     expect(policy).toContain('lacunas RELEVANTES');
     expect(policy).toContain('não substitui experiência direta');
@@ -81,8 +83,12 @@ describe('Apresentação profissional positiva e honesta', () => {
 
   it('corrige somente a negativa agrupada JPA/Hibernate, preservando Hibernate profissional', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
-    const documents = [knowledge.getDocument('experiencia-sig')!, knowledge.getDocument('webservice-springboot-jpa')!];
-    const answer = 'Java e Hibernate constam no SIGAA. Não comprovei experiência profissional remunerada em Spring Boot, Quarkus nem JPA/Hibernate como emprego.';
+    const documents = [
+      knowledge.getDocument('experiencia-sig')!,
+      knowledge.getDocument('webservice-springboot-jpa')!,
+    ];
+    const answer =
+      'Java e Hibernate constam no SIGAA. Não comprovei experiência profissional remunerada em Spring Boot, Quarkus nem JPA/Hibernate como emprego.';
     const corrected = reconcileDocumentedClaims(answer, documents);
     expect(corrected).toContain('Java e Hibernate constam no SIGAA');
     expect(corrected).toContain('nem JPA como emprego');
