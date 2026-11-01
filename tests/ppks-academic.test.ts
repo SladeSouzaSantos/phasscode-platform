@@ -8,6 +8,7 @@ import {
   enrichExperienceDocument,
 } from '../apps/orbe-node/src/adapters/ppks.js';
 import { loadAcademicEvidence } from '../apps/orbe-node/src/adapters/academic.js';
+import { selectSources } from '../apps/orbe-node/src/application/sources.js';
 
 describe('PPKS acadêmico v1.1 e avaliação por vagas', () => {
   it('carrega formação e cursos sem divulgar PDFs ou presumir graduação UNISUL', async () => {
@@ -132,5 +133,32 @@ describe('PPKS v1.2 — matriz de vagas e contexto', () => {
     expect(results.length).toBeLessThanOrEqual(5);
     expect(results.length).toBeGreaterThan(2);
     expect(results.reduce((total, doc) => total + doc.content.length, 0)).toBeLessThanOrEqual(8000);
+  });
+});
+
+describe('PPKS v1.3: rastreabilidade nominal por contexto', () => {
+  it('cita SIGAA, PHASSCODE Platform e Greencity OS quando usados juntos', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const ids = ['experiencia-sig', 'phasscode-platform', 'greencity-os'];
+    const docs = ids.map((id) => knowledge.getDocument(id)!);
+    const sources = selectSources({
+      query: 'Vaga Java e IA: cite experiencia e projetos',
+      answer:
+        'No SIGAA houve Java corporativo; PHASSCODE Platform aplica LLMs e Greencity OS importa datasheets.',
+      documents: docs,
+    });
+    for (const id of ids) expect(sources.map((item) => item.id)).toContain(id);
+  });
+  it('preserva empregadores com mesmo link publico em resposta comparativa', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const ids = ['experiencia-sig', 'experiencia-geowellex', 'experiencia-acrux'];
+    const docs = ids.map((id) => knowledge.getDocument(id)!);
+    const sources = selectSources({
+      query: 'Compare Java SIGAA, MySQL na Geowellex e o estagio ACRUX',
+      answer:
+        'No SIGAA houve Java e PostgreSQL; na Geowellex PHP e MySQL; na ACRUX Java e H2.',
+      documents: docs,
+    });
+    for (const id of ids) expect(sources.map((item) => item.id)).toContain(id);
   });
 });
