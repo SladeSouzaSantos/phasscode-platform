@@ -137,6 +137,28 @@ export function evaluateTurn(
         : 'Conceito esperado não foi detectado pelos termos previstos.',
     });
   }
+  // Deterministic checks for broad false negatives contradicted by the
+  // canonical professional and project catalog; lexical match is intentionally strict.
+  const knownContradictions = [
+    { id: 'professional-mysql', pattern: /mysql profissional nao foi verificado/ },
+    {
+      id: 'java-corporate',
+      pattern: /java em ambiente corporativo nao est(?:a|ao) verificados?/,
+    },
+    {
+      id: 'documented-ci',
+      pattern: /nao ha documentacao de apis rest com swagger\/openapi nem de ci\/cd/,
+    },
+  ];
+  const normalizedAnswer = normalize(response.answer);
+  for (const contradiction of knownContradictions) {
+    add(
+      `consistency:${contradiction.id}`,
+      !contradiction.pattern.test(normalizedAnswer),
+      'Nenhuma contradição conhecida detectada.',
+      'Resposta contradiz evidência profissional ou técnica documentada.',
+    );
+  }
   for (const term of expectation.forbiddenTerms) {
     add(
       `forbidden:${term}`,
