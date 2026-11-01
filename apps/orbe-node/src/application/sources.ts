@@ -444,7 +444,7 @@ export function completeRecruiterEvidence(
   }
   if (!additions.length) return answer;
   const supplement = '\n\nEvidências adicionais: ' + additions.join(' ');
-  return answer.length + supplement.length <= 8000 ? answer + supplement : answer;
+  return answer + supplement;
 }
 
 /**
