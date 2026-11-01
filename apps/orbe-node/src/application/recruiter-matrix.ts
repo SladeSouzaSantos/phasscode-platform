@@ -8,15 +8,36 @@ interface Requirement {
 }
 
 const labels: Readonly<Record<string, string>> = {
-  java: 'Java', hibernate: 'Hibernate', jboss: 'JBoss', 'spring boot': 'Spring Boot',
-  jpa: 'JPA', postgresql: 'PostgreSQL', mysql: 'MySQL', sql: 'SQL',
-  'sql server': 'SQL Server', angular: 'Angular', react: 'React',
-  typescript: 'TypeScript', 'node js': 'Node.js', python: 'Python',
-  fastapi: 'FastAPI', flutter: 'Flutter', firebase: 'Firebase', redis: 'Redis',
-  docker: 'Docker', 'docker swarm': 'Docker Swarm', git: 'Git',
-  'github actions': 'GitHub Actions', 'ci cd': 'CI/CD', vitest: 'Vitest',
-  playwright: 'Playwright', codeql: 'CodeQL', 'owasp zap': 'OWASP ZAP',
-  ingles: 'Inglês', english: 'Inglês', graduacao: 'Graduação',
+  java: 'Java',
+  hibernate: 'Hibernate',
+  jboss: 'JBoss',
+  'spring boot': 'Spring Boot',
+  jpa: 'JPA',
+  postgresql: 'PostgreSQL',
+  mysql: 'MySQL',
+  sql: 'SQL',
+  'sql server': 'SQL Server',
+  angular: 'Angular',
+  react: 'React',
+  typescript: 'TypeScript',
+  'node js': 'Node.js',
+  python: 'Python',
+  fastapi: 'FastAPI',
+  flutter: 'Flutter',
+  firebase: 'Firebase',
+  redis: 'Redis',
+  docker: 'Docker',
+  'docker swarm': 'Docker Swarm',
+  git: 'Git',
+  'github actions': 'GitHub Actions',
+  'ci cd': 'CI/CD',
+  vitest: 'Vitest',
+  playwright: 'Playwright',
+  codeql: 'CodeQL',
+  'owasp zap': 'OWASP ZAP',
+  ingles: 'Inglês',
+  english: 'Inglês',
+  graduacao: 'Graduação',
 };
 
 function parseRequirements(query: string): Requirement[] {
@@ -25,7 +46,9 @@ function parseRequirements(query: string): Requirement[] {
   // casual prose or a CV into a claimed exhaustive skills audit.
   const start = /\b(?:java|hibernate|postgresql|mysql|react|angular|spring boot)\s*,/i.exec(query);
   if (!start || start.index === undefined) return [];
-  const list = query.slice(start.index).split(/[?!]|\.\s+(?=Em cada|Para cada|Não|Nao|Explique)/i)[0]!;
+  const list = query
+    .slice(start.index)
+    .split(/[?!]|\.\s+(?=Em cada|Para cada|Não|Nao|Explique)/i)[0]!;
   const pieces = list.replace(/\s+e\s+(?=gradua[çc][aã]o\b|ingl[eê]s\b)/gi, ', ').split(',');
   const result: Requirement[] = [];
   const seen = new Set<string>();
@@ -60,9 +83,12 @@ function supports(document: KnowledgeDocument, requirement: Requirement): boolea
   const technology = requirement.key.replaceAll(' ', '-');
   const available = mentionedTechnologies(document.technologies?.join(' ') ?? '');
   if (technology === 'sql')
-    return available.has('postgresql') || available.has('mysql') ||
+    return (
+      available.has('postgresql') ||
+      available.has('mysql') ||
       // Explicit SQL skill on its own also qualifies; never infer SQL Server.
-      available.has('sql');
+      available.has('sql')
+    );
   return available.has(technology);
 }
 
@@ -114,7 +140,9 @@ export function buildVerifiedRecruiterMatrix(
   const rows = requirements.map((requirement) => {
     const selected = documents
       .filter((doc) => supports(doc, requirement))
-      .sort((a, b) => priority(b, requirement) - priority(a, requirement) || a.id.localeCompare(b.id))[0];
+      .sort(
+        (a, b) => priority(b, requirement) - priority(a, requirement) || a.id.localeCompare(b.id),
+      )[0];
     if (!selected) return `| ${requirement.label} | Sem evidência suficiente | — | — |`;
     cited.set(selected.id, selected);
     const url = documentSource(selected).url ?? '—';

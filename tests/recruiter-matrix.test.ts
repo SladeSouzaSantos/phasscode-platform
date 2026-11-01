@@ -5,7 +5,8 @@ import { ChatService } from '../apps/orbe-node/src/application/chat.js';
 import { MemoryConversationStore } from '../apps/orbe-node/src/adapters/memory-store.js';
 import { loadConfig } from '../packages/shared-config/src/index.js';
 
-const vacancy = 'Como recrutador, analise os 29 requisitos em uma matriz Markdown: Java, Hibernate, JBoss, Spring Boot, JPA, PostgreSQL, MySQL, SQL, SQL Server, Angular, React, TypeScript, Node.js, Python, FastAPI, Flutter, Firebase, Redis, Docker, Docker Swarm, Git, GitHub Actions, CI/CD, Vitest, Playwright, CodeQL, OWASP ZAP, inglês, graduação. Em cada linha classifique emprego/projeto/curso/insuficiente, sem atribuir stack a projeto errado.';
+const vacancy =
+  'Como recrutador, analise os 29 requisitos em uma matriz Markdown: Java, Hibernate, JBoss, Spring Boot, JPA, PostgreSQL, MySQL, SQL, SQL Server, Angular, React, TypeScript, Node.js, Python, FastAPI, Flutter, Firebase, Redis, Docker, Docker Swarm, Git, GitHub Actions, CI/CD, Vitest, Playwright, CodeQL, OWASP ZAP, inglês, graduação. Em cada linha classifique emprego/projeto/curso/insuficiente, sem atribuir stack a projeto errado.';
 
 describe('Recruiter evidence matrix: 29 independent requirements', () => {
   it('produces 29 complete and correctly scoped rows without a generative token limit', async () => {
@@ -54,6 +55,11 @@ describe('Recruiter evidence matrix: 29 independent requirements', () => {
 
   it('does not replace a normal free-form recruiter question with a table', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
-    expect(buildVerifiedRecruiterMatrix('Qual sua experiência em Java, MySQL e Spring Boot?', knowledge.search('Java MySQL Spring Boot'))).toBeUndefined();
+    expect(
+      buildVerifiedRecruiterMatrix(
+        'Qual sua experiência em Java, MySQL e Spring Boot?',
+        knowledge.search('Java MySQL Spring Boot'),
+      ),
+    ).toBeUndefined();
   });
 });

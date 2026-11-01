@@ -104,9 +104,7 @@ const responseObject = (output: object[]) => ({
 describe('LLM output ceiling controlled only by provider or .env', () => {
   it('omits max_tokens at 0 and accepts answers longer than legacy 8k chars', async () => {
     const longAnswer = 'Resposta fundamentada de teste. '.repeat(360);
-    const stub = await llmServer(() =>
-      completion({ role: 'assistant', content: longAnswer }),
-    );
+    const stub = await llmServer(() => completion({ role: 'assistant', content: longAnswer }));
     const config = loadConfig({
       LLM_PROVIDER: 'openai-compatible',
       LLM_API_KEY: 'test-only',
@@ -117,7 +115,9 @@ describe('LLM output ceiling controlled only by provider or .env', () => {
     });
     const docs = [document('java', 'Java backend e JPA são estudos.')];
     const provider = new LangChainChatProvider(
-      config, new JsonKnowledgeRepository(docs), 'Responda de modo verificável.',
+      config,
+      new JsonKnowledgeRepository(docs),
+      'Responda de modo verificável.',
       allowTestBudget,
     );
     const result = await provider.generate({
@@ -146,7 +146,9 @@ describe('LLM output ceiling controlled only by provider or .env', () => {
     });
     const docs = [document('java', 'Java backend e JPA.')];
     const provider = new LangChainChatProvider(
-      config, new JsonKnowledgeRepository(docs), 'Você é o Orbe.',
+      config,
+      new JsonKnowledgeRepository(docs),
+      'Você é o Orbe.',
       allowTestBudget,
     );
     const result = await provider.generate({
