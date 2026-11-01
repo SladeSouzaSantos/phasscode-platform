@@ -188,10 +188,23 @@ export function selectSources(input: {
       return right.score - left.score || left.document.id.localeCompare(right.document.id);
     });
 
+  // Once a named, evidence-backed project is present, generic technology
+  // overlap must not add unrelated projects to the public citations.
+  const hasNamedProject = ranked.some(
+    (entry) =>
+      entry.explicitlyNamed &&
+      (entry.document.type === 'project' || entry.document.type === 'platform'),
+  );
   const selected: Source[] = [];
   const covered = new Set<string>();
   const urls = new Set<string>();
   for (const entry of ranked) {
+    if (
+      hasNamedProject &&
+      !entry.explicitlyNamed &&
+      (entry.document.type === 'project' || entry.document.type === 'platform')
+    )
+      continue;
     const source = documentSource(entry.document);
     // Different employers often share the same public portfolio anchor.
     // They remain distinct records even when their reference URL is identical.
