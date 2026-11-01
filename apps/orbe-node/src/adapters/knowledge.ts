@@ -542,6 +542,11 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       if (/\b(?:formacao|graduacao|curso superior|tecnologo|diploma)\b/.test(phrase))
         include('formacao-gestao-ti');
       if (/\b(?:ingles|english|idioma)\b/.test(phrase)) include('idiomas-declarados');
+      // Explicit course requirements are distinct from paid work or a
+      // neighbouring technology. SQL Server and Angular are study evidence,
+      // never inferred from PostgreSQL, MySQL or React projects.
+      if (queryTechnologies.has('angular')) include('cursos-frontend-mobile');
+      if (queryTechnologies.has('sql-server')) include('cursos-bancos-dados');
       // Explicitly named records remain eligible, even when they share a stack.
       for (const document of matches) {
         const name = knowledgePhrase(document.id.replaceAll('-', ' '));
