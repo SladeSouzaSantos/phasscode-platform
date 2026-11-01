@@ -169,7 +169,13 @@ export class LangChainChatProvider implements ChatProvider {
         `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${includeSemanticContext ? (this.knowledge.semanticContext?.(input.message, documents) ?? '') : ''}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
       );
     messages.push(
-      new SystemMessage(`${this.prompt}\n\n${professionalResponsePolicy(input.message)}`),
+      // On tiny contexts, keep the factual system prompt and protect the
+      // minimum source evidence instead of forcing an extra presentation note.
+      new SystemMessage(
+        this.maxContextChars >= 6000
+          ? `${this.prompt}\n\n${professionalResponsePolicy(input.message)}`
+          : this.prompt,
+      ),
       reference(),
       ...input.history.map((message) =>
         message.role === 'user'
