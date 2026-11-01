@@ -20,7 +20,8 @@ export const sourceSchema = z.strictObject({
 export const chatResponseSchema = z.strictObject({
   conversationId: z.uuid(),
   conversationToken: z.string().min(43).max(128).optional(),
-  answer: z.string().min(1).max(8000),
+  // Response size follows the selected model; no separate 8k-character cutoff.
+  answer: z.string().min(1),
   sources: z.array(sourceSchema).max(10),
   actions: z
     .array(
