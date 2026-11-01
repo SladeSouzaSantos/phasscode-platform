@@ -208,7 +208,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       /\b(?:certificad\w*|certificac\w*)\b/.test(queryPhrase) &&
       queryTechnologies.size > 0 &&
       !courseIntent;
-    if (!educationIntent && isTechnologyProjectQuestion(query)) {
+    if (!educationIntent && !isCareerOverview(query) && isTechnologyProjectQuestion(query)) {
       const projects = this.documents.filter(
         (document) =>
           (document.type === 'project' || document.type === 'platform') &&
@@ -452,6 +452,66 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     }
     const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
     const graphEvidence = vacancy ? (this.semanticGraph?.evidenceIds(query) ?? []) : [];
+
+    // A vacancy may have any number of independent requirements. Select evidence
+    // for EACH explicitly requested technology before optional graph expansion.
+    // Never let a fixed set of five unrelated records label a proven skill a gap.
+    if (vacancy) {
+      const candidates = this.documents.filter(
+        (document) => document.visibility !== 'private' && document.visibility !== 'third-party',
+      );
+      const technologies = new Map(
+        candidates.map((document) => [
+          document.id,
+          mentionedTechnologies(document.technologies?.join(' ') ?? ''),
+        ]),
+      );
+      const supports = (document: KnowledgeDocument, requirement: string): boolean => {
+        const known = technologies.get(document.id)!;
+        return (
+          known.has(requirement) ||
+          (requirement === 'sql' && (known.has('mysql') || known.has('postgresql'))) ||
+          (requirement === 'spring' && [...known].some((item) => item.startsWith('spring-')))
+        );
+      };
+      const confidence = (document: KnowledgeDocument): number =>
+        document.category === 'professional'
+          ? 4
+          : document.category === 'personal' &&
+              (document.type === 'platform' || document.type === 'project')
+            ? 3
+            : document.category === 'study' && document.type === 'project'
+              ? 2
+              : 1;
+      const chosen = new Map<string, KnowledgeDocument>();
+      const include = (id: string) => {
+        const document = candidates.find((candidate) => candidate.id === id);
+        if (document) chosen.set(id, document);
+      };
+      for (const requirement of queryTechnologies) {
+        if ([...chosen.values()].some((document) => supports(document, requirement))) continue;
+        const best = candidates
+          .filter((document) => supports(document, requirement))
+          .sort((a, b) => confidence(b) - confidence(a) || a.id.localeCompare(b.id))[0];
+        if (best) include(best.id);
+      }
+      // Non-language requirements need the same independent coverage as stacks.
+      if (/\b(?:git|github|versionamento|ci cd|devops|docker|pipeline|deploy)\b/.test(phrase))
+        include('phasscode-platform');
+      if (/\b(?:testes?|qa|qualidade|acessibilidade|playwright)\b/.test(phrase))
+        include('web-portfolio-v2');
+      if (/\b(?:formacao|graduacao|curso superior|tecnologo|diploma)\b/.test(phrase))
+        include('formacao-gestao-ti');
+      if (/\b(?:ingles|english|idioma)\b/.test(phrase)) include('idiomas-declarados');
+      // Explicitly named records remain eligible, even when they share a stack.
+      for (const document of matches) {
+        const name = knowledgePhrase(document.id.replaceAll('-', ' '));
+        if (name.length >= 6 && phrase.includes(` ${name} `)) include(document.id);
+      }
+      if (chosen.size > 0) return this.select([...chosen.values()], query);
+      // No supported requirement in the index: use the ordinary ranked fallback,
+      // never fabricate employment or mark unseen technologies as verified.
+    }
     // A complex Java vacancy requesting MySQL, a degree and reading English
     // must retain those independent records within the five-document ceiling.
     // Project and generic skills remain optional after factual coverage.
