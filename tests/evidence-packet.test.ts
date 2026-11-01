@@ -113,7 +113,9 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     );
   });
 
-  it('retrieves Docker, React, Java, MySQL, academic and language evidence from one 14-requirement vacancy', async () => {
+  it(
+    'retrieves Docker, React, Java, MySQL, academic and language evidence from one 14-requirement vacancy',
+    async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const query =
       'Sou recrutador para uma vaga que exige Java, Spring Boot, JPA, Hibernate, SQL, PostgreSQL, MySQL, React, TypeScript, Docker, testes automatizados, Git, inglês técnico e formação superior. Diferencie emprego, projetos e estudos.';
@@ -152,7 +154,9 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     );
   });
 
-  it('handles more than twenty technology requirements without capping the document count at five', async () => {
+  it(
+    'handles more than twenty technology requirements without capping the document count at five',
+    async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const query =
       'Vaga para recrutador: Java, JavaScript, TypeScript, Python, Flutter, Dart, React, Node.js, Spring Boot, JPA, Hibernate, JBoss, PostgreSQL, MySQL, Redis, Docker, FastAPI, Fastify, Firebase, PHP, HTML, CSS, SQL, Git, CI/CD, testes automatizados, inglês, formação superior.';
@@ -170,7 +174,9 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     ]) {
       expect(ids).toContain(id);
     }
-    const present = new Set(documents.flatMap((doc) => [...mentionedTechnologies(doc.technologies?.join(' ') ?? '')]));
+    const present = new Set(
+      documents.flatMap((doc) => [...mentionedTechnologies(doc.technologies?.join(' ') ?? '')]),
+    );
     for (const requirement of [
       'java',
       'typescript',
@@ -188,7 +194,25 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     expect(packet?.documents).toHaveLength(documents.length);
   });
 
-  it('repairs unsupported Docker gaps and JPA employment claims without inventing DevOps employment', async () => {
+  it('keeps requested Docker evidence at the front of a severely compacted source', () => {
+    const source = {
+      ...doc('phasscode-platform', 'Projeto próprio com Docker Compose e imagens Docker. '.repeat(15)),
+      technologies: ['Node.js', 'TypeScript', 'Fastify', 'LangChain', 'PostgreSQL', 'Redis', 'Docker'],
+    };
+    const packet = buildEvidencePacket([source], 48, new Set(['docker']));
+    expect(packet?.documents[0]?.content).toContain('Stack: Docker.');
+    expect(packet?.retainedChars).toBeLessThanOrEqual(48);
+    const largerSignature = buildEvidencePacket(
+      [source],
+      32,
+      new Set(['typescript', 'postgresql', 'redis', 'docker']),
+    );
+    expect(largerSignature).toBeNull();
+  });
+
+  it(
+    'repairs unsupported Docker gaps and JPA employment claims without inventing DevOps employment',
+    async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const sources = [
       knowledge.getDocument('phasscode-platform')!,
@@ -208,5 +232,4 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     expect(reconcileDocumentedClaims(scope, sources)).toBe(scope);
     expect(reconcileDocumentedClaims(answer, [])).toBe(answer);
   });
-
 });
