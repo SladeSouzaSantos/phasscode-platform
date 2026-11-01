@@ -6,6 +6,42 @@ import {
   selectSources,
 } from '../apps/orbe-node/src/application/sources.js';
 
+describe('PPKS: guarded negative-claim reconciliation', () => {
+  it('corrects false absence of React project and cites its actual public code', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const doc = knowledge.getDocument('web-portfolio-v2')!;
+    const original =
+      'Pedro conhece Java, mas não verifiquei nenhum projeto autoral onde ele tenha desenvolvido frontend com React ou TypeScript.';
+    const fixed = reconcileDocumentedClaims(original, [doc]);
+    expect(fixed).toContain('web-portfolio-v2');
+    expect(fixed).toContain('React e TypeScript');
+    expect(fixed).not.toContain('não verifiquei nenhum projeto');
+    const sources = selectSources({
+      query: 'Sou recrutador para vaga React TypeScript',
+      answer: fixed,
+      documents: [doc],
+    });
+    expect(sources.map((source) => source.id)).toContain('web-portfolio-v2');
+  });
+
+  it('does not promote personal React to an employment contract', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const doc = knowledge.getDocument('web-portfolio-v2')!;
+    const scoped = 'Não há comprovação de projetos comerciais com React em vínculo empregatício.';
+    expect(reconcileDocumentedClaims(scoped, [doc])).toBe(scoped);
+  });
+
+  it('corrects broad indirect MySQL denial only when Geowellex evidence is retained', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const mysql = knowledge.getDocument('experiencia-geowellex')!;
+    const denial = 'Só PostgreSQL está documentado (SIG). Falta de experiência com MySQL.';
+    const fixed = reconcileDocumentedClaims(denial, [mysql]);
+    expect(fixed).toContain('MySQL na Geowellex');
+    expect(fixed).not.toContain('Falta de experiência com MySQL');
+    expect(reconcileDocumentedClaims(denial, [])).toBe(denial);
+  });
+});
+
 describe('PPKS v1.3: cobertura de vaga Java e privacidade do código de empregadores', () => {
   const vacancy =
     'Sou recrutador para Analista Backend Java Júnior. Exigimos Java/C++ ou C#, POO, algoritmos, MySQL, REST APIs, Spring Boot, formação em computação e inglês para leitura. Quais experiências profissionais e projetos de Pedro comprovam aderência? Diferencie o Java profissional do Spring Boot de estudo e diga lacunas reais.';
