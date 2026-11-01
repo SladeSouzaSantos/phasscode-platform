@@ -44,8 +44,7 @@ export function reconcileCanonicalAcademicClaims(
         const degreeLinkedToUnisul =
           /Sistemas de Informação\s*(?:\(\s*UNISUL\s*\)|(?:na|da|pela)\s+UNISUL\b)/i.test(
             updated,
-          ) ||
-          /\bUNISUL\b\s*(?:\)|,|-|\s)*(?:em\s+)?Sistemas de Informação\b/i.test(updated);
+          ) || /\bUNISUL\b\s*(?:\)|,|-|\s)*(?:em\s+)?Sistemas de Informação\b/i.test(updated);
         const claimedProgram = /\b(?:graduação|bacharelado|formação|Pedro|cursa|cursou)\b/i;
         const explicitlyNegated =
           /\b(?:n[aã]o|nem|nunca|sem)\b[^.!?]{0,50}\bSistemas de Informação\b/i.test(updated);
