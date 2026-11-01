@@ -451,6 +451,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         recommend('cursos-devops-qualidade');
     }
     const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
+    const graphEvidence = vacancy ? (this.semanticGraph?.evidenceIds(query) ?? []) : [];
     // A complex Java vacancy requesting MySQL, a degree and reading English
     // must retain those independent records within the five-document ceiling.
     // Project and generic skills remain optional after factual coverage.
@@ -471,7 +472,14 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       : [];
     const indexedById = new Map(this.documents.map((doc) => [doc.id, doc]));
     const priority = [
-      ...new Set([...requiredEvidence, ...recruiter, ...anchors, ...skillEvidence]),
+      ...new Set([
+        ...requiredEvidence,
+        ...recruiter.slice(0, 3),
+        ...graphEvidence,
+        ...recruiter.slice(3),
+        ...anchors,
+        ...skillEvidence,
+      ]),
     ].flatMap((id) => {
       const doc = indexedById.get(id);
       return doc ? [doc] : [];
