@@ -26,8 +26,9 @@ describe('Apresentação profissional positiva e honesta', () => {
   it('distingue falta de evidência de Go de falta absoluta de capacidade', () => {
     const policy = professionalResponsePolicy('Pedro tem experiência com Go?');
     expect(policy).toContain('não está documentada');
-    expect(policy).toContain('habilidades transferíveis');
-    expect(policy).toContain('sem tratá-las como experiência direta');
+    expect(policy).toContain('competências próximas');
+    expect(policy).toContain('sem enumerar a stack inteira');
+    expect(policy).toContain('Não trate competências transferíveis como experiência direta');
   });
 
   it('não esconde incompatibilidades obrigatórias numa comparação de vaga', () => {
@@ -37,6 +38,7 @@ describe('Apresentação profissional positiva e honesta', () => {
     expect(policy).toContain('APRESENTAÇÃO PARA VAGA');
     expect(policy).toContain('lacunas RELEVANTES');
     expect(policy).toContain('não substitui experiência direta');
+    expect(policy).toContain('não atribua Docker do PHASSCODE ao SIGAA');
   });
 
   it('mantém restrições factuais internas e prioriza a pergunta nas respostas livres', async () => {
@@ -46,6 +48,7 @@ describe('Apresentação profissional positiva e honesta', () => {
     expect(prompt).toContain('Não recite listas');
     expect(prompt).toContain('Hibernate é EMPREGO no SIGAA');
     expect(prompt).toContain('JPA é ESTUDO');
+    expect(prompt).toContain('Cursos concluídos e pós em andamento pertencem a frases distintas');
     const policy = professionalResponsePolicy('Conte os pontos fortes e projetos de Pedro.');
     expect(policy).toContain('APRESENTAÇÃO PROFISSIONAL');
     expect(policy).toContain('Evite ressalvas');
@@ -79,6 +82,29 @@ describe('Apresentação profissional positiva e honesta', () => {
     expect(observed).toHaveLength(1);
     expect(observed[0]).toContain('RESPOSTA DIRETA');
     expect(observed[0]).toContain('Proveniência profissional:');
+  });
+
+  it('corrige exclusivamente Docker atribuído ao SIGAA em uma oração mista de vaga', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const documents = [
+      knowledge.getDocument('experiencia-sig')!,
+      knowledge.getDocument('phasscode-platform')!,
+    ];
+    const answer =
+      'Pedro Santos tem PostgreSQL e Docker documentados na experiência profissional com Java/Hibernate/JBoss na SIG Software/SIGAA, além de Docker, CI/CD e APIs no projeto autoral PHASSCODE Platform (Node.js/TypeScript/Fastify).';
+    const revised = reconcileDocumentedClaims(answer, documents);
+    expect(revised).toContain(
+      'PostgreSQL documentado na experiência profissional com Java/Hibernate/JBoss na SIG Software/SIGAA',
+    );
+    expect(revised).toContain(
+      'além de Docker, CI/CD e APIs no projeto autoral PHASSCODE Platform',
+    );
+    expect(revised).not.toContain('PostgreSQL e Docker documentados na experiência profissional');
+    // A project-only statement without SIGAA remains untouched.
+    const projectOnly = 'Docker está documentado no projeto autoral PHASSCODE Platform.';
+    expect(reconcileDocumentedClaims(projectOnly, documents)).toBe(projectOnly);
+    // No correction is possible if the actual employment record is missing.
+    expect(reconcileDocumentedClaims(answer, documents.slice(1))).toBe(answer);
   });
 
   it('corrige somente a negativa agrupada JPA/Hibernate, preservando Hibernate profissional', async () => {
