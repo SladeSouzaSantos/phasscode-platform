@@ -11,6 +11,7 @@ import {
   type ExperienceCard,
 } from './ppks.js';
 import { enrichAcademicDocument, loadAcademicEvidence, type AcademicEvidence } from './academic.js';
+import { SemanticKnowledgeGraph } from './semantic-graph.js';
 import {
   knowledgePhrase,
   knowledgeTerms,
@@ -118,6 +119,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     private readonly projectCards = new Map<string, TechnicalCard>(),
     private readonly academic: AcademicEvidence | null = null,
     private readonly experienceCards = new Map<string, ExperienceCard>(),
+    private readonly semanticGraph: SemanticKnowledgeGraph | null = null,
   ) {}
   private select(documents: KnowledgeDocument[], query: string): KnowledgeDocument[] {
     const enriched = documents.map((document) =>
@@ -160,7 +162,11 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       path === 'knowledge/portfolio.json'
         ? await Promise.all([loadPpksCards(), loadAcademicEvidence(), loadPpksExperienceCards()])
         : [new Map<string, TechnicalCard>(), null, new Map<string, ExperienceCard>()];
-    return new JsonKnowledgeRepository(documents, cards, academic, experienceCards);
+    const semanticGraph = academic ? await SemanticKnowledgeGraph.load(academic.skills) : null;
+    return new JsonKnowledgeRepository(documents, cards, academic, experienceCards, semanticGraph);
+  }
+  semanticContext(query: string, documents: readonly KnowledgeDocument[]): string {
+    return this.semanticGraph?.describe(query, documents) ?? '';
   }
   experienceDocuments(): KnowledgeDocument[] {
     return this.documents.filter((document) => document.experiencePeriod !== undefined);
