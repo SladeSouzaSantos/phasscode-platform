@@ -52,10 +52,18 @@ export function buildEvidencePacket(
     }
   }
 
-  const retained = documents.map((document, index) => ({
-    ...document,
-    content: document.content.slice(0, lengths[index]),
-  }));
+  const retained = documents.map((document, index) => {
+    const limit = lengths[index]!;
+    // Under severe pressure, a factual stack signature carries more useful
+    // evidence than an arbitrary prefix of the prose description. Preserve
+    // exact technologies from the curated source; never infer new technologies.
+    const stack = document.technologies?.slice(0, 8).join(', ') ?? '';
+    const content =
+      limit < 180 && stack && document.content.length > limit
+        ? ('Stack: ' + stack + '. ' + document.content).slice(0, limit)
+        : document.content.slice(0, limit);
+    return { ...document, content };
+  });
   return {
     documents: retained,
     originalChars: documents.reduce((sum, document) => sum + document.content.length, 0),
