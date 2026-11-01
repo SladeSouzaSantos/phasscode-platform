@@ -55,8 +55,7 @@
       "kind": "database",
       "aliases": [
         "redis"
-      ],
-      "skill": "Docker/CI-CD"
+      ]
     },
     {
       "id": "firestore",
