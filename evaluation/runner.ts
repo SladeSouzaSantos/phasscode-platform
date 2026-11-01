@@ -118,7 +118,15 @@ export async function runEvaluation(
         httpStatus = response.status;
         if (!response.ok) {
           const errorCode = await readPublicErrorCode(response);
-          const limited = httpStatus === 429;
+          // Provider cooldowns and control-plane outages are operational
+          // blockers, not evidence failures. Stop instead of burning more quota.
+          const providerLimited =
+            httpStatus === 503 && errorCode === 'LLM_PROVIDERS_LIMITED';
+          const controlUnavailable =
+            httpStatus === 503 &&
+            (errorCode === 'LLM_BUDGET_UNAVAILABLE' ||
+              errorCode === 'RATE_LIMIT_UNAVAILABLE');
+          const limited = httpStatus === 429 || providerLimited || controlUnavailable;
           turns.push({
             message: turn.message,
             httpStatus,
@@ -131,7 +139,9 @@ export async function runEvaluation(
                 id: 'http',
                 status: limited ? 'review' : 'fail',
                 explanation: limited
-                  ? 'HTTP 429: execução interrompida, sem retry. Corpo do erro omitido.'
+                  ? httpStatus === 429
+                    ? 'HTTP 429: execução interrompida, sem retry. Corpo do erro omitido.'
+                    : 'HTTP 503: indisponibilidade temporária de IA ou controle de cotas; execução interrompida sem retry. Corpo do erro omitido.'
                   : `HTTP ${httpStatus}: chamada não concluída. Corpo do erro omitido.`,
               },
             ],
