@@ -125,6 +125,25 @@ async function validateAcademicCatalog(catalog) {
   );
 }
 
+async function validateSemanticRelations() {
+  const graph = await json(join(root, 'semantic-relations.json'));
+  const schema = await json(join(root, 'schemas', 'semantic-relations-v1.schema.json'));
+  const validate = ajv.compile(schema);
+  if (!validate(graph))
+    throw new Error('PPKS_GRAPH_SCHEMA_INVALID: ' + ajv.errorsText(validate.errors));
+  const ids = graph.nodes.map((node) => node.id);
+  const unique = new Set(ids);
+  if (unique.size !== ids.length) throw new Error('PPKS_GRAPH_DUPLICATE_NODE');
+  for (const edge of graph.edges)
+    if (!unique.has(edge.from) || !unique.has(edge.to))
+      throw new Error('PPKS_GRAPH_DANGLING_EDGE');
+  const academic = await json(join(root, 'academic', 'skills.json'));
+  const skills = new Set(academic.skills.map((record) => record.skill));
+  if (graph.nodes.some((node) => node.skill && !skills.has(node.skill)))
+    throw new Error('PPKS_GRAPH_UNKNOWN_SKILL');
+  console.log('PPKS_GRAPH_OK: ' + graph.nodes.length + ' nodes, ' + graph.edges.length + ' relationships');
+}
+
 function buildIndex(projects, experiences, generatedAt) {
   return {
     schemaVersion: version,
@@ -168,6 +187,7 @@ async function main() {
   if (unique.size !== projects.length + experiences.length) throw new Error('PPKS_DUPLICATE_IDS');
   const catalog = await json(resolve('knowledge/portfolio.json'));
   await validateAcademicCatalog(catalog);
+  await validateSemanticRelations();
   const sourceIds = new Set(catalog.map((item) => item.id));
   const catalogProjects = catalog.filter((item) => ['project', 'platform'].includes(item.type));
   if (
