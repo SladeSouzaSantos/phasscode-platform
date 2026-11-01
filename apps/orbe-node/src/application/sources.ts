@@ -45,7 +45,13 @@ function explicitSubject(document: KnowledgeDocument, normalizedAnswer: string):
     'hsp-simulator': ['hsp simulator'],
     'webservice-springboot-jpa': ['webservice spring boot'],
     'task-manager-flask': ['task manager'],
-    'formacao-gestao-ti': ['gestao da tecnologia da informacao', 'tecnologo em gestao'],
+    'formacao-gestao-ti': [
+      'gestao da tecnologia da informacao',
+      'gestao da ti',
+      'tecnologo em gestao',
+      'etep',
+      'unibf',
+    ],
     'formacao-computacao': ['ciencia da computacao', 'bacharelado em computacao'],
   };
   const phrases = aliases[document.id] ?? [document.title];
@@ -205,33 +211,69 @@ export function selectSources(input: {
 }
 
 /**
- * Conservative, evidence-conditioned factual reconciliations for verified
- * contradictions seen in recruiter evaluations. This is intentionally narrow:
- * never convert courses into employment or claim source access not provided.
+ * Apply bounded factual repairs ONLY when the actual documents passed to the
+ * model contain affirmative evidence. Scoped gaps remain gaps: knowing Git
+ * from a personal repository says nothing about Git at SIG Software.
+ * No external tools, additional LLM requests or contract changes.
  */
 export function reconcileDocumentedClaims(
   answer: string,
   documents: readonly KnowledgeDocument[],
 ): string {
-  const ids = new Set(documents.map((document) => document.id));
-  let text = answer;
-  if (ids.has('experiencia-geowellex')) {
-    text = text.replace(
-      /MySQL profissional não foi verificado\.?/gi,
-      'MySQL consta na experiência profissional declarada da Geowellex (sistema de estoque PHP/MySQL); o código não é público.',
+  const verified = (id: string, pattern: RegExp) =>
+    documents.some((document) => document.id === id && pattern.test(knowledgePhrase(document.content)));
+  const mysql = verified('experiencia-geowellex', /\bgeowellex\b[\s\S]*\bmysql\b/);
+  const java = verified('experiencia-sig', /\bsigaa\b[\s\S]*\bjava\b/);
+  const versioning = verified('phasscode-platform', /\b(?:git|github actions|ci cd)\b/);
+  const ci = verified('phasscode-platform', /\b(?:github actions|ci cd)\b/);
+  let result = answer;
+
+  if (mysql) {
+    result = result.replace(
+      /\bnão verifiquei (?:o uso (?:profissional )?de )?MySQL\b(?!\s+(?:no SIGAA|na ACRUX|em produção no SIGAA))/gi,
+      'MySQL consta na experiência profissional declarada na Geowellex (PHP/MySQL); não foi auditado o código privado do sistema',
+    );
+    result = result.replace(
+      /\bMySQL profissional não foi verificado\b/gi,
+      'MySQL é documentado na experiência profissional declarada da Geowellex',
     );
   }
-  if (ids.has('experiencia-sig')) {
-    text = text.replace(
-      /Java em ambiente corporativo não est(?:á|ão) verificado(?:s)?/gi,
-      'Java profissional na SIG Software/SIGAA está documentado, embora seu código não seja público',
+  if (java) {
+    result = result.replace(
+      /\bnão verifiquei Java em produção nem experiência profissional como Desenvolvedor ou DevOps Júnior\b/gi,
+      'A experiência profissional em Java na SIG Software/SIGAA está documentada; a atuação especificamente como DevOps Júnior não está comprovada',
+    );
+    result = result.replace(
+      /\bnão verifiquei Java em produção\b(?!\s+(?:fora|com Spring|na ACRUX|na Greencity))/gi,
+      'Há experiência profissional declarada com Java no SIGAA, embora o código privado e o ambiente de produção não tenham sido auditados',
+    );
+    result = result.replace(
+      /\bJava em ambiente corporativo não est(?:á|ão) verificado(?:s)?\b/gi,
+      'Java profissional na SIG Software/SIGAA está documentado',
     );
   }
-  if (ids.has('phasscode-platform') && ids.has('web-portfolio-v2')) {
-    text = text.replace(
-      /Não há documentação de APIs REST com Swagger\/OpenAPI nem de CI\/CD na plataforma ou no portfólio recuperados\./gi,
-      'CI/CD com GitHub Actions está documentado na PHASSCODE Platform e no portfólio; o uso específico de Swagger/OpenAPI requer verificação separada.',
+  if (versioning) {
+    result = result.replace(
+      /\bGit, versionamento específico e contribuições públicas de código \(não atribuir autoria exclusiva nem código público pessoal\)/gi,
+      'Git e versionamento estão documentados nos repositórios autorais PHASSCODE; contribuições específicas em repositórios corporativos privados não estão comprovadas',
+    );
+    result = result.replace(
+      /\bnão (?:verifiquei|foi comprovado) (?:uso de )?Git\b(?!\s+(?:no SIGAA|na SIG Software|em ambiente corporativo))/gi,
+      'Git está documentado nos repositórios públicos autorais',
     );
   }
-  return text;
+  if (ci) {
+    result = result.replace(
+      /\bNão há documentação de APIs REST com Swagger\/OpenAPI nem de CI\/CD na plataforma ou no portfólio recuperados\b/gi,
+      'CI/CD com GitHub Actions está documentado na PHASSCODE Platform; a documentação Swagger/OpenAPI deve ser verificada separadamente',
+    );
+  }
+  // SIGAA is evidence of enterprise Java, not necessarily of REST endpoints.
+  if (java) {
+    result = result.replace(
+      /\*\*POO e APIs REST em Java:\*\*(?=[^\n]*SIGAA)/gi,
+      '**Desenvolvimento orientado a objetos em Java:**',
+    );
+  }
+  return result;
 }
