@@ -116,6 +116,16 @@ export function buildEvidencePacket(
               ),
             )
             .map((line) => line.trim())
+            .sort((a, b) => {
+              // SQL Server is not synonymous with SQL: prefer exact course
+              // evidence before broader SQL training under a tiny budget.
+              const specific = (line: string) =>
+                [...requestedTechnologies].filter(
+                  (technology) =>
+                    technology.includes('-') && mentionedTechnologies(line).has(technology),
+                ).length;
+              return specific(b) - specific(a);
+            })
         : [];
     const courseEvidence = courseRows.length
       ? ['Cursos declarados (não emprego; certificação oficial não presumida):', ...courseRows]
