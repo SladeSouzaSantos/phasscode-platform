@@ -113,9 +113,7 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     );
   });
 
-  it(
-    'retrieves Docker, React, Java, MySQL, academic and language evidence from one 14-requirement vacancy',
-    async () => {
+  it('covers 14 vacancy requirements with separate factual sources', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const query =
       'Sou recrutador para uma vaga que exige Java, Spring Boot, JPA, Hibernate, SQL, PostgreSQL, MySQL, React, TypeScript, Docker, testes automatizados, Git, inglês técnico e formação superior. Diferencie emprego, projetos e estudos.';
@@ -154,9 +152,7 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     );
   });
 
-  it(
-    'handles more than twenty technology requirements without capping the document count at five',
-    async () => {
+  it('preserves sources for more than twenty vacancy requirements', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const query =
       'Vaga para recrutador: Java, JavaScript, TypeScript, Python, Flutter, Dart, React, Node.js, Spring Boot, JPA, Hibernate, JBoss, PostgreSQL, MySQL, Redis, Docker, FastAPI, Fastify, Firebase, PHP, HTML, CSS, SQL, Git, CI/CD, testes automatizados, inglês, formação superior.';
@@ -210,9 +206,7 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     expect(largerSignature).toBeNull();
   });
 
-  it(
-    'repairs unsupported Docker gaps and JPA employment claims without inventing DevOps employment',
-    async () => {
+  it('repairs Docker gaps and JPA overclaims without inventing employment', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const sources = [
       knowledge.getDocument('phasscode-platform')!,
