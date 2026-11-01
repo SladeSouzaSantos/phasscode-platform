@@ -93,6 +93,35 @@ export async function loadAcademicEvidence(
   return { educations: educationIndex, tracks: trackIndex, skills: skills.skills };
 }
 
+
+export interface CompleteAcademicCourseListing {
+  trackId: string;
+  trackName: string;
+  courses: readonly Pick<Course, 'id' | 'title' | 'provider' | 'status' | 'verification'>[];
+}
+
+/** Only explicit course-list requests qualify. Avoid substituting ordinary Java career answers. */
+export function requestedCompleteJavaCourses(
+  query: string,
+  evidence: AcademicEvidence | null,
+): CompleteAcademicCourseListing | undefined {
+  if (!evidence) return undefined;
+  const phrase = knowledgePhrase(query);
+  if (!/\b(?:java|java e arquitetura)\b/.test(phrase)) return undefined;
+  if (!/\b(?:cursos?|formacoes? livres?|treinamentos?)\b/.test(phrase)) return undefined;
+  if (!/\b(?:quais|liste|listar|lista|todos|titulos?|nomes?|cite|citando|concluidos?|realizou|fez|concluiu)\b/.test(phrase))
+    return undefined;
+  const track = evidence.tracks.get('cursos-java-arquitetura');
+  if (!track) return undefined;
+  return {
+    trackId: track.id,
+    trackName: track.name,
+    courses: track.courses.map(({ id, title, provider, status, verification }) => ({
+      id, title, provider, status, verification,
+    })),
+  };
+}
+
 /** Add only source-qualified academic details to already selected catalog records. */
 export function enrichAcademicDocument(
   document: KnowledgeDocument,
@@ -110,6 +139,21 @@ export function enrichAcademicDocument(
       phrase.includes('todos os cursos') ||
       phrase.includes('lista completa') ||
       phrase.includes('cursos por trilha'));
+  const fullJavaListing = requestedCompleteJavaCourses(query, evidence);
+  if (track && track.id === fullJavaListing?.trackId) {
+    // Every row is canonical and complete, including titles not tagged with
+    // Java (e.g. Clean Code na Prática). Do not select by individual skills.
+    return {
+      ...document,
+      content: [
+        `Trilha ${track.name}: ${track.courses.length} cursos livres registrados. Cursos concluídos não são disciplinas da graduação nem pós em andamento.`,
+        ...track.courses.map(
+          (course) =>
+            `Curso [${course.id}]: ${course.title} — ${course.provider}; status ${course.status}; comprovação ${course.verification}.`,
+        ),
+      ].join('\n'),
+    };
+  }
   if (track && completeCourseRequest) return document;
   // Select individual structured courses before any context truncation.
   // SQL Server does not imply every course whose only skill is generic SQL.
