@@ -131,10 +131,13 @@ export function buildEvidencePacket(
     // before verbose IDs, editorial notes or status fields. Two SQL Server
     // records fit in ~200 characters, unlike two full JSON/PPKS statements.
     const conciseCourses = courseRows
-      .filter((line) => !requestedTechnologies.has('sql-server') ||
-        mentionedTechnologies(line).has('sql-server') ||
-        // Keep independently requested Angular, not generic SQL-only courses.
-        mentionedTechnologies(line).has('angular'))
+      .filter(
+        (line) =>
+          !requestedTechnologies.has('sql-server') ||
+          mentionedTechnologies(line).has('sql-server') ||
+          // Keep independently requested Angular, not generic SQL-only courses.
+          mentionedTechnologies(line).has('angular'),
+      )
       .map((line) => {
         const record = /^Curso \[[^\]]+\]: (.+?) — ([^;]+);/.exec(line);
         if (record) return `${record[1]} (${record[2]})`;
