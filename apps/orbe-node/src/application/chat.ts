@@ -72,6 +72,7 @@ export class ChatService {
           .find((message) => message.role === 'user' && !isContextualFollowUp(message.content));
         const followUp = Boolean(previous && isContextualFollowUp(request.message));
         const query = followUp ? `${previous!.content}\n${request.message}` : request.message;
+        const evidenceTraceId = randomUUID();
         const meetingTurn =
           meetingActions &&
           (isMeetingRequest(request.message) ||
@@ -148,7 +149,7 @@ export class ChatService {
             content:
               'Consulte horários somente com get_meeting_availability. prepare_meeting_request prepara dados para o formulário de confirmação do visitante. Não cria solicitação nem reserva horário. Somente após confirmação HTTP há pedido PENDING; administração aprova e Calendar confirma. Nunca diga que uma proposta já foi registrada ou aprovada.',
           });
-        traceEvidence('retrieved', retrieved, 'initial');
+        traceEvidence('retrieved', retrieved, 'initial', evidenceTraceId);
         let result;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
@@ -202,7 +203,7 @@ export class ChatService {
             ? selected
             : buildEvidencePacket(selected, contentBudget)?.documents;
           const documents = packet ?? [];
-          traceEvidence('chat_bounded', documents, 'context_budget');
+          traceEvidence('chat_bounded', documents, 'context_budget', evidenceTraceId);
           if (documents.length === 0)
             throw new AppError(
               'LLM_CONTEXT_LIMIT',
@@ -217,6 +218,7 @@ export class ChatService {
                 message: request.message,
                 history: bounded,
                 documents,
+                evidenceTraceId,
                 signal: controller.signal,
                 meetingActions,
                 asOf: this.now(),
@@ -253,6 +255,8 @@ export class ChatService {
         traceEvidence(
           'response_sources',
           result.sources.map((source) => ({ id: source.id, content: '' })),
+          undefined,
+          evidenceTraceId,
         );
         const response = chatResponseSchema.parse({
           conversationId,
