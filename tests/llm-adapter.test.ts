@@ -101,6 +101,65 @@ const responseObject = (output: object[]) => ({
   },
 });
 
+describe('LLM output ceiling controlled only by provider or .env', () => {
+  it('omits max_tokens at 0 and accepts answers longer than legacy 8k chars', async () => {
+    const longAnswer = 'Resposta fundamentada de teste. '.repeat(360);
+    const stub = await llmServer(() =>
+      completion({ role: 'assistant', content: longAnswer }),
+    );
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      LLM_MAX_OUTPUT_TOKENS: '0',
+    });
+    const docs = [document('java', 'Java backend e JPA são estudos.')];
+    const provider = new LangChainChatProvider(
+      config, new JsonKnowledgeRepository(docs), 'Responda de modo verificável.',
+      allowTestBudget,
+    );
+    const result = await provider.generate({
+      message: 'Fale sobre Java',
+      history: [],
+      documents: docs,
+      signal: new AbortController().signal,
+    });
+    expect(longAnswer.length).toBeGreaterThan(8000);
+    expect(result.answer).toBe(longAnswer);
+    expect(stub.requests[0]).not.toHaveProperty('max_tokens');
+    expect(stub.requests[0]).not.toHaveProperty('max_completion_tokens');
+  });
+
+  it('passes the env output ceiling to a model as a cap, not as a required size', async () => {
+    const stub = await llmServer(() =>
+      completion({ role: 'assistant', content: 'Resposta breve.' }),
+    );
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      LLM_MAX_OUTPUT_TOKENS: '8192',
+    });
+    const docs = [document('java', 'Java backend e JPA.')];
+    const provider = new LangChainChatProvider(
+      config, new JsonKnowledgeRepository(docs), 'Você é o Orbe.',
+      allowTestBudget,
+    );
+    const result = await provider.generate({
+      message: 'Fale de Java',
+      history: [],
+      documents: docs,
+      signal: new AbortController().signal,
+    });
+    expect(result.answer).toBe('Resposta breve.');
+    expect(stub.requests[0]).toHaveProperty('max_tokens', 8192);
+  });
+});
+
 describe('adaptador real LangChain com transporte HTTP simulado', () => {
   it('recorta pares antigos pelo contexto serializado na terceira mensagem de uma conversa real', async () => {
     const answer = (round: number) =>
