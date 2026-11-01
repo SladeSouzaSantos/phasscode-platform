@@ -95,7 +95,10 @@ export function buildEvidencePacket(
             if (at < 0) return [];
             return [
               document.content
-                .slice(Math.max(0, at - 38), Math.min(document.content.length, at + label.length + 52))
+                .slice(
+                  Math.max(0, at - 38),
+                  Math.min(document.content.length, at + label.length + 52),
+                )
                 .replace(/\s+/g, ' ')
                 .trim(),
             ];

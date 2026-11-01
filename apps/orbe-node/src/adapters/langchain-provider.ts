@@ -105,7 +105,9 @@ export class LangChainChatProvider implements ChatProvider {
                 ...(document.category ? { category: document.category } : {}),
                 ...(document.visibility ? { visibility: document.visibility } : {}),
                 ...(document.technologies?.length ? { technologies: document.technologies } : {}),
-                ...(document.experiencePeriod ? { experiencePeriod: document.experiencePeriod } : {}),
+                ...(document.experiencePeriod
+                  ? { experiencePeriod: document.experiencePeriod }
+                  : {}),
                 ...(document.url ? { url: document.url } : {}),
                 ...(document.repositoryUrl ? { repositoryUrl: document.repositoryUrl } : {}),
               },

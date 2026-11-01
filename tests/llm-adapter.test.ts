@@ -230,7 +230,10 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
 
   it('preserves CodeQL, OWASP ZAP and Docker Swarm over a compacted LLM wire', async () => {
     const stub = await llmServer(() =>
-      completion({ role: 'assistant', content: 'PHASSCODE Platform usa CodeQL e OWASP ZAP; SHADOW SIM PRO usa Docker Swarm.' }),
+      completion({
+        role: 'assistant',
+        content: 'PHASSCODE Platform usa CodeQL e OWASP ZAP; SHADOW SIM PRO usa Docker Swarm.',
+      }),
     );
     const config = loadConfig({
       LLM_PROVIDER: 'openai-compatible',
