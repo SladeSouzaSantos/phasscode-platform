@@ -224,6 +224,13 @@ export function selectSources(input: {
   return selected;
 }
 
+/** Internal record IDs are not public citations or URLs. */
+export function removeInternalCitationIds(answer: string): string {
+  return answer
+    .replace(/\s*\[(?:fonte|source):\s*(?:idiomas|cursos|formacao|experiencia)-[a-z0-9-]+\]/gi, '')
+    .replace(/\s*\((?:(?:cursos|formacao|idiomas|experiencia)-[a-z0-9-]+(?:,\s*)?)+\)/gi, '');
+}
+
 /**
  * Apply bounded factual repairs ONLY when the actual documents passed to the
  * model contain affirmative evidence. Scoped gaps remain gaps: knowing Git
@@ -408,6 +415,18 @@ export function reconcileDocumentedClaims(
         : line,
     )
     .join('\n');
+  // A bold heading combining a professional Java role with REST may wrongly
+  // imply that SIGAA implemented REST endpoints. REST belongs to separately
+  // scoped project/study evidence unless the SIGAA stack explicitly says REST.
+  if (
+    java &&
+    !mentionedTechnologies(sigaa?.technologies?.join(' ') ?? '').has('rest')
+  ) {
+    result = result.replace(
+      /\*\*Java\s+e\s+APIs?\s+REST\*\*(?=\s*[–—-]\s*Na\s+SIG\s+Software)/gi,
+      '**Java profissional no SIGAA**',
+    );
+  }
   // SIGAA is evidence of enterprise Java, not necessarily of REST endpoints.
   if (java) {
     result = result.replace(
