@@ -58,8 +58,7 @@ export function reconcileCanonicalAcademicClaims(
           new RegExp(correctCourse, 'i').test(updated) &&
           /\b(?:graduação|bacharelado|ciência da computação)\b/i.test(updated);
         if (unisul.status === 'pending_completion' && isDegreeContext) {
-          const status =
-            /\b(?:foi|está)\s+conclu[ií]d[ao]\b/i;
+          const status = /\b(?:foi|está)\s+conclu[ií]d[ao]\b/i;
           const negativeStatus =
             /\b(?:n[aã]o|nem|nunca)\b[^.!?]{0,25}\b(?:foi|está)\s+conclu[ií]d[ao]\b/i;
           if (status.test(updated) && !negativeStatus.test(updated)) {
@@ -77,7 +76,10 @@ export function reconcileCanonicalAcademicClaims(
         const reverse =
           /\btrilha\s+(?:de\s+)?Java\s*(?:&|e)\s*Arquitetura\b[^.!?\n]{0,45}\b(8|oito)\s+cursos?\s+(?:livres?\s+)?conclu[ií]dos?\b/gi;
         const replaceCount = (matched: string, count: string) =>
-          matched.replace(/\b(?:8|oito)\b/i, count === '8' ? String(java.completedCount) : countWord);
+          matched.replace(
+            /\b(?:8|oito)\b/i,
+            count === '8' ? String(java.completedCount) : countWord,
+          );
         updated = updated.replace(forward, (matched, count: string) => {
           if (java.completedCount === 8) return matched;
           rules.add('java_track_completed_count');
