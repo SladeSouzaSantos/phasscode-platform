@@ -242,6 +242,11 @@ export function reconcileDocumentedClaims(
   let result = answer;
 
   if (mysql) {
+    // Preserve the scope of the remaining gaps after correcting MySQL.
+    result = result.replace(
+      /\bnão verifiquei MySQL,\s*nem\s+/gi,
+      'MySQL consta na experiência profissional declarada da Geowellex (PHP/MySQL); não verifiquei ',
+    );
     result = result.replace(
       /\bnão verifiquei (?:o uso (?:profissional )?de )?MySQL\b(?!\s+(?:no SIGAA|na ACRUX|em produção no SIGAA))/gi,
       'MySQL consta na experiência profissional declarada na Geowellex (PHP/MySQL); não foi auditado o código privado do sistema',
