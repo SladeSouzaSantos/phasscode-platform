@@ -436,12 +436,12 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         recommend('formacao-gestao-ti');
       if (relevant(/\b(?:ingles|idioma|english)\b/)) recommend('idiomas-declarados');
       if (sqlCourse) recommend('cursos-frontend-mobile', 'cursos-bancos-dados');
+      if (!educationIntent && relevant(/\bspring boot\b/))
+        recommend('competencias-publicas');
       if (java && !sqlCourse && !research) recommend('experiencia-acrux');
       if (devops && relevant(/\b(?:python|dados)\b/)) recommend('hsp-simulator');
       if (devops && relevant(/\b(?:cursos|certificados|devsecops)\b/))
         recommend('cursos-devops-qualidade');
-      // General skills are supplementary; they must not displace degree or language evidence.
-      if (relevant(/\bspring boot\b/)) recommend('competencias-publicas');
     }
     const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
     const indexedById = new Map(this.documents.map((doc) => [doc.id, doc]));
