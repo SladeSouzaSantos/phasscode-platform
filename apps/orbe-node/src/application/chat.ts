@@ -35,6 +35,8 @@ import { isExperienceDurationQuestion } from './experience-context.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
 import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
+import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
+import { documentSource } from './sources.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
 export class ChatService {
@@ -150,6 +152,7 @@ export class ChatService {
               'Consulte horários somente com get_meeting_availability. prepare_meeting_request prepara dados para o formulário de confirmação do visitante. Não cria solicitação nem reserva horário. Somente após confirmação HTTP há pedido PENDING; administração aprova e Calendar confirma. Nunca diga que uma proposta já foi registrada ou aprovada.',
           });
         traceEvidence('retrieved', retrieved, 'initial', evidenceTraceId);
+        const verifiedMatrix = buildVerifiedRecruiterMatrix(query, retrieved);
         let result;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
@@ -175,7 +178,14 @@ export class ChatService {
         )
           result = { answer: scopeRefusal, sources: [] };
         else if (retrieved.length === 0) result = { answer: unknownAnswer, sources: [] };
-        else {
+        else if (verifiedMatrix) {
+          // Structured comparison: deterministic evidence, no additional LLM
+          // calls or output-token truncation. Every requested row is present.
+          result = {
+            answer: verifiedMatrix.answer,
+            sources: verifiedMatrix.sourceDocuments.slice(0, 10).map(documentSource),
+          };
+        } else {
           const bounded: Message[] = [];
           // Reserva fixa para prompt, metadados JSON e protocolo das ferramentas.
           const dataBudget = Math.max(
@@ -287,6 +297,7 @@ export class ChatService {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
             promptVersion: PROMPT_VERSION,
+            ...(verifiedMatrix ? { deterministic: true } : {}),
           },
         });
         return {
