@@ -355,6 +355,19 @@ export function reconcileDocumentedClaims(
       'Java profissional na SIG Software/SIGAA está documentado',
     );
   }
+  // Docker belongs to authored project evidence, not the SIGAA employment.
+  // Remove only this narrowly scoped, unsupported compound attribution; keep
+  // later mention of Docker when explicitly tied to PHASSCODE Platform.
+  const sigaa = documents.find((document) => document.id === 'experiencia-sig');
+  if (
+    sigaa &&
+    !mentionedTechnologies(sigaa.technologies?.join(' ') ?? '').has('docker')
+  ) {
+    result = result.replace(
+      /\bPostgreSQL\s+e\s+Docker\s+documentados?\s+na\s+experi[eê]ncia\s+profissional(?=[^.!?\n]{0,150}\bSIGAA\b)/gi,
+      'PostgreSQL documentado na experiência profissional',
+    );
+  }
   // Never deny Hibernate professional experience by grouping it with JPA.
   // SIGAA establishes Hibernate; JPA has separate evidence in a study project.
   // Change only an explicit employment denial, not an affirmative comparison.
