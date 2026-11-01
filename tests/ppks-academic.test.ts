@@ -136,6 +136,7 @@ describe('PPKS v1.2 — matriz de vagas e contexto', () => {
   });
 });
 
+// prettier-ignore
 describe('PPKS v1.3: rastreabilidade nominal por contexto', () => {
   it('cita SIGAA, PHASSCODE Platform e Greencity OS quando usados juntos', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
