@@ -140,7 +140,7 @@ export class LangChainChatProvider implements ChatProvider {
               },
         )
       : [...input.documents];
-    traceEvidence('provider_initial', documents, 'initial');
+    traceEvidence('provider_initial', documents, 'initial', input.evidenceTraceId);
     const reference = () =>
       new HumanMessage(
         `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${this.knowledge.semanticContext?.(input.message, documents) ?? ''}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
@@ -214,7 +214,7 @@ export class LangChainChatProvider implements ChatProvider {
     };
 
     if (!compactTo(contextTarget)) throw contextLimit();
-    traceEvidence('provider_compacted', documents, 'context_budget');
+    traceEvidence('provider_compacted', documents, 'context_budget', input.evidenceTraceId);
     record(documents);
     let toolCallId = '';
     // Cada busca é limitada. A ferramenta não aceita URL, ID de usuário ou comandos.
@@ -349,7 +349,7 @@ export class LangChainChatProvider implements ChatProvider {
       // A tool call itself extends the transcript. Rebalance earlier evidence
       // and history before appending its tool result instead of failing at once.
       if (!compactTo(contextTarget)) throw contextLimit();
-      traceEvidence('provider_compacted', documents, 'model_tool');
+      traceEvidence('provider_compacted', documents, 'model_tool', input.evidenceTraceId);
       for (const call of response.tool_calls) {
         const selectedTool = tools.find((candidate) => candidate.name === call.name);
         if (!selectedTool || !call.id)
