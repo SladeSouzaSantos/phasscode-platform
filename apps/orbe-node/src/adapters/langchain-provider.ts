@@ -166,6 +166,11 @@ export class LangChainChatProvider implements ChatProvider {
     // otherwise valid recruiter questions with the 12k-character configuration.
     const contextTarget =
       this.maxContextChars - Math.min(2200, Math.floor(this.maxContextChars * 0.18));
+    // Tool result messages may use part of the wire headroom reserved above.
+    // Keep a separate hard ceiling below the configured max to account for
+    // JSON/tool-call wrappers without rejecting even an empty search result.
+    const toolContextTarget =
+      this.maxContextChars - Math.min(450, Math.floor(this.maxContextChars * 0.065));
     let historyMessages = input.history.length;
 
     const removeOldestHistoryPair = (): boolean => {
@@ -250,7 +255,7 @@ export class LangChainChatProvider implements ChatProvider {
         const selected: GenerationInput['documents'] = [];
         const fits = (content: string) =>
           contextSize() + messageSize(new ToolMessage({ content, tool_call_id: toolCallId })) <=
-          contextTarget;
+          toolContextTarget;
         if (!fits('[]')) throw contextLimit();
         for (const doc of docs) {
           const candidate = [...selected, doc];
@@ -395,7 +400,7 @@ export class LangChainChatProvider implements ChatProvider {
               : await prepare.invoke(meetingProposalInputSchema.parse(call.args));
         if (
           contextSize() + messageSize(new ToolMessage({ content, tool_call_id: call.id })) >
-          contextTarget
+          toolContextTarget
         )
           throw contextLimit();
         messages.push(new ToolMessage({ content, tool_call_id: call.id }));
