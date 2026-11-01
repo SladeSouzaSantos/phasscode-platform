@@ -243,7 +243,53 @@ export function reconcileDocumentedClaims(
   const react = verified('web-portfolio-v2', /\breact\b[\s\S]*\btypescript\b/);
   const versioning = verified('phasscode-platform', /\b(?:git|github actions|ci cd)\b/);
   const ci = verified('phasscode-platform', /\b(?:github actions|ci cd)\b/);
+  const dockerProject = documents.some(
+    (document) =>
+      (document.type === 'platform' || document.type === 'project') &&
+      document.category !== 'professional' &&
+      document.technologies?.some((technology) => knowledgePhrase(technology) === 'docker') &&
+      /\bdocker\b/.test(knowledgePhrase(document.content)),
+  );
+  const springStudy = documents.some(
+    (document) =>
+      document.id === 'webservice-springboot-jpa' &&
+      /\bjpa\b/.test(knowledgePhrase(document.content)),
+  );
   let result = answer;
+
+  // Correct only unscoped denials when an actual author-owned Docker project
+  // survived retrieval and compaction. Never claim commercial DevOps employment.
+  if (dockerProject) {
+    result = result
+      .split('\n')
+      .map((line) => {
+        const normalized = knowledgePhrase(line);
+        const dockerHeading = /^\s*(?:[-*]\s*)?(?:\*\*)?Docker\b/i.test(line);
+        const denial = /\b(?:nao ha|nao verifiquei|nao foi comprovado|ausencia|lacuna|sem evidencia)\b/.test(
+          normalized,
+        );
+        const specificallyEmployment =
+          /\b(?:experiencia profissional|emprego|contrato|remunerad|corporativ|comercial|no sigaa|na geowellex)\b/.test(
+            normalized,
+          );
+        if (!dockerHeading || !denial || specificallyEmployment) return line;
+        return '**Docker** – Uso prático documentado em projetos autorais, incluindo PHASSCODE Platform (imagens, Docker Compose e CI/CD); isso não demonstra vínculo empregatício específico como DevOps.';
+      })
+      .join('\n');
+  }
+  if (springStudy && verified('experiencia-sig', /\bhibernate\b/)) {
+    result = result
+      .split('\n')
+      .map((line) => {
+        const normalized = knowledgePhrase(line);
+        return /\bjpa\b/.test(normalized) &&
+          /\b(?:sig software|sigaa)\b/.test(normalized) &&
+          /\b(?:jpa e hibernate|hibernate e jpa|inclui hibernate e jpa)\b/.test(normalized)
+          ? '**JPA / Hibernate** – Hibernate está documentado na experiência profissional SIGAA; JPA está demonstrado no webservice Spring Boot de estudo, sem evidência de uso profissional de JPA nesse vínculo.'
+          : line;
+      })
+      .join('\n');
+  }
 
   if (mysql) {
     // Preserve the scope of unrelated gaps (C++, C#, commercial REST)
