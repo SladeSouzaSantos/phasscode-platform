@@ -436,8 +436,9 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         recommend('formacao-gestao-ti');
       if (relevant(/\b(?:ingles|idioma|english)\b/)) recommend('idiomas-declarados');
       if (sqlCourse) recommend('cursos-frontend-mobile', 'cursos-bancos-dados');
-      if (!educationIntent && relevant(/\bspring boot\b/))
+      if (!educationIntent && relevant(/\bspring boot\b/)) {
         recommend('competencias-publicas');
+      }
       if (java && !sqlCourse && !research) recommend('experiencia-acrux');
       if (devops && relevant(/\b(?:python|dados)\b/)) recommend('hsp-simulator');
       if (devops && relevant(/\b(?:cursos|certificados|devsecops)\b/))
