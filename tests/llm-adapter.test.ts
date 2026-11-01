@@ -288,6 +288,51 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     expect(reference).toContain('Docker Swarm');
   });
 
+  it('keeps vetted public URLs on the compact wire without exposing private code links', async () => {
+    const stub = await llmServer(() =>
+      completion({ role: 'assistant', content: 'O curso SQL Server é declarado na academia.' }),
+    );
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      CHAT_CONTEXT_CHARS: '5000',
+    });
+    const docs = [
+      {
+        ...document('cursos-bancos-dados', 'SQL Server Completo — Formação DBA — Udemy. '.repeat(45)),
+        type: 'profile' as const,
+        url: 'https://gbc.phasscode.com/#academico',
+      },
+      {
+        ...document('phasscode-platform', 'PostgreSQL, Node.js e Redis. '.repeat(65)),
+        type: 'platform' as const,
+        category: 'personal' as const,
+        url: 'https://github.com/SladeSouzaSantos/phasscode-platform',
+      },
+    ];
+    const provider = new LangChainChatProvider(
+      config,
+      new JsonKnowledgeRepository(docs),
+      'A'.repeat(3000),
+      allowTestBudget,
+    );
+    await provider.generate({
+      message: 'Quais cursos SQL Server existem? Cite URLs oficiais.',
+      history: [],
+      documents: docs,
+      signal: new AbortController().signal,
+    });
+    const wire = stub.requests[0]!;
+    expect(messageCharacters(wire)).toBeLessThanOrEqual(5000);
+    const reference = (wire.messages as { content: string }[])[1]!.content;
+    expect(reference).toContain('https://gbc.phasscode.com/#academico');
+    expect(reference).toContain('https://github.com/SladeSouzaSantos/phasscode-platform');
+    expect(reference).toContain('SQL Server');
+  });
+
   it('reduz o primeiro documento usando JSON escapado, sem esvaziar ou modificar o original', async () => {
     const stub = await llmServer(() =>
       completion({ role: 'assistant', content: 'O projeto aspas apresenta um fato público.' }),
