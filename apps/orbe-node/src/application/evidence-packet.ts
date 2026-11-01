@@ -35,7 +35,7 @@ export function buildEvidencePacket(
   for (let phase = 0; phase < 2 && remaining > 0; phase++) {
     const ceilings = phase === 0 ? caps : documents.map((doc) => doc.content.length);
     let active = lengths
-      .map((n, index) => index)
+      .map((_length, index) => index)
       .filter((index) => lengths[index]! < ceilings[index]!);
     while (active.length > 0 && remaining > 0) {
       const share = Math.max(1, Math.floor(remaining / active.length));
