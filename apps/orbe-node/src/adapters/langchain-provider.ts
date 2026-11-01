@@ -17,6 +17,7 @@ import {
 } from '../../../../packages/shared-config/src/index.js';
 import {
   completeRecruiterEvidence,
+  documentSource,
   reconcileDocumentedClaims,
   selectSources,
 } from '../application/sources.js';
@@ -96,6 +97,11 @@ export class LangChainChatProvider implements ChatProvider {
                 id: document.id,
                 kind: document.category ?? document.type,
                 content: document.content,
+                // Retain the vetted public reference even when the provider
+                // needs a compact JSON shape; never expose private source code.
+                ...(documentSource(document).url
+                  ? { url: documentSource(document).url }
+                  : {}),
               }
             : {
                 id: document.id,
