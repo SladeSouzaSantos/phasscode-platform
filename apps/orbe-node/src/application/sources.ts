@@ -53,6 +53,7 @@ function explicitSubject(document: KnowledgeDocument, normalizedAnswer: string):
       'unibf',
     ],
     'formacao-computacao': ['ciencia da computacao', 'bacharelado em computacao'],
+    'idiomas-declarados': ['ingles basico', 'ingles para leitura'],
   };
   const phrases = aliases[document.id] ?? [document.title];
   return phrases.some((phrase) => {
