@@ -849,3 +849,49 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     expect(stub.requests).toHaveLength(1);
   });
 });
+
+
+describe('PPKS v1.3: verificações pós-geração no adaptador real', () => {
+  it('corrige falsos negativos antes de devolver resposta e fontes, sem nova chamada LLM', async () => {
+    const original =
+      'Na SIG Software/SIGAA houve Java. Não verifiquei MySQL, nem REST APIs comerciais. ' +
+      'Tecnólogo em Gestão da TI concluído (ETEP/UNIBF). ' +
+      'Pedro possui 19 meses de vínculo exclusivamente no desenvolvimento de software, entre junho de 2016 e fevereiro de 2017 na SIG Software.';
+    const stub = await llmServer(() => completion({ role: 'assistant', content: original }));
+    const knowledge = await JsonKnowledgeRepository.load();
+    const ids = [
+      'experiencia-sig',
+      'experiencia-geowellex',
+      'experiencia-acrux',
+      'formacao-gestao-ti',
+    ];
+    const provider = new LangChainChatProvider(
+      loadConfig({
+        LLM_PROVIDER: 'openai-compatible',
+        LLM_API_KEY: 'synthetic-only',
+        LLM_MODEL: 'test',
+        LLM_BASE_URL: stub.baseUrl,
+        LLM_API_MODE: 'chat-completions',
+        CHAT_CONTEXT_CHARS: '32000',
+      }),
+      knowledge,
+      await readFile('apps/orbe-node/prompts/v4.md', 'utf8'),
+      allowTestBudget,
+    );
+    const result = await provider.generate({
+      message: 'Vaga Java com MySQL e formação: quais experiências, projetos e períodos?',
+      history: [],
+      documents: ids.map((id) => knowledge.getDocument(id)!),
+      signal: new AbortController().signal,
+      asOf: new Date('2026-10-31T12:00:00Z'),
+    });
+    expect(stub.requests).toHaveLength(1);
+    expect(result.answer).toContain('Geowellex');
+    expect(result.answer).not.toContain('Não verifiquei MySQL');
+    expect(result.answer).not.toContain('19 meses de vínculo');
+    const sourceIds = result.sources.map((item) => item.id);
+    expect(sourceIds).toContain('experiencia-sig');
+    expect(sourceIds).toContain('experiencia-geowellex');
+    expect(sourceIds).toContain('formacao-gestao-ti');
+  });
+});
