@@ -38,6 +38,7 @@ import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js
 import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
 import { buildCompleteAcademicResponse } from './academic-response.js';
+import { buildDirectGoExperienceResponse } from './go-experience-response.js';
 import { documentSource } from './sources.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
@@ -155,6 +156,7 @@ export class ChatService {
           });
         traceEvidence('retrieved', retrieved, 'initial', evidenceTraceId);
         const verifiedMatrix = buildVerifiedRecruiterMatrix(query, retrieved);
+        const verifiedGo = buildDirectGoExperienceResponse(request.message, this.knowledge);
         const academicListing = this.knowledge.academicCourseListing?.(query);
         const verifiedAcademic = academicListing
           ? buildCompleteAcademicResponse(query, academicListing, retrieved)
@@ -166,6 +168,7 @@ export class ChatService {
         else if (isOffTopicTask(request.message)) result = { answer: scopeRefusal, sources: [] };
         else if (isPersonalLifeQuestion(request.message))
           result = { answer: personalLifeAnswer, sources: [] };
+        else if (verifiedGo) result = verifiedGo;
         else if (isMeetingRequest(request.message) && !meetingActions)
           result = {
             answer: meetingUnavailable,
@@ -307,7 +310,7 @@ export class ChatService {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
             promptVersion: PROMPT_VERSION,
-            ...(verifiedMatrix || verifiedAcademic ? { deterministic: true } : {}),
+            ...(verifiedMatrix || verifiedAcademic || verifiedGo ? { deterministic: true } : {}),
           },
         });
         return {
