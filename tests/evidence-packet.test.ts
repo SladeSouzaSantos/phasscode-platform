@@ -43,7 +43,12 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
 
   it('preserves the recorded React stack when the description must be tiny', () => {
     const react = {
-      ...doc('web-portfolio-v2', 'PHASSCODE é um portfólio profissional autoral com interface em React e TypeScript. '.repeat(10)),
+      ...doc(
+        'web-portfolio-v2',
+        'PHASSCODE é um portfólio profissional autoral com interface em React e TypeScript. '.repeat(
+          10,
+        ),
+      ),
       technologies: ['React', 'TypeScript', 'Vite'],
     };
     const packet = buildEvidencePacket([react], 32)!;
