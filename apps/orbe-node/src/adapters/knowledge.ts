@@ -427,8 +427,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       if (java) recommend('experiencia-sig');
       // MySQL used professionally at Geowellex is distinct from study databases.
       if (relevant(/\b(?:mysql|php)\b/)) recommend('experiencia-geowellex');
-      if (relevant(/\bspring boot\b/))
-        recommend('webservice-springboot-jpa');
+      if (relevant(/\bspring boot\b/)) recommend('webservice-springboot-jpa');
       if (fullstack) recommend('phasscode-platform', 'web-portfolio-v2');
       if (devops) recommend('phasscode-platform', 'task-manager-flask');
       if (ai) recommend('phasscode-platform', 'greencity-os');
