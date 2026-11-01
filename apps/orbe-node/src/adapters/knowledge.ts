@@ -476,7 +476,10 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         queryTechnologies.has('mysql') ||
         queryTechnologies.has('firebase') ||
         queryTechnologies.has('angular'));
-    if ((vacancy && (requirementCount >= 7 || focusedEngineeringVacancy)) || focusedAttributionInquiry) {
+    if (
+      (vacancy && (requirementCount >= 7 || focusedEngineeringVacancy)) ||
+      focusedAttributionInquiry
+    ) {
       // An employer's documented experience is citeable even when the
       // employer's proprietary code is not a public personal repository.
       const candidates = this.documents.filter(

@@ -302,7 +302,10 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     });
     const docs = [
       {
-        ...document('cursos-bancos-dados', 'SQL Server Completo — Formação DBA — Udemy. '.repeat(45)),
+        ...document(
+          'cursos-bancos-dados',
+          'SQL Server Completo — Formação DBA — Udemy. '.repeat(45),
+        ),
         type: 'profile' as const,
         url: 'https://gbc.phasscode.com/#academico',
       },

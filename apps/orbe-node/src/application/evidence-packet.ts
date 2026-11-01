@@ -128,8 +128,10 @@ export function buildEvidencePacket(
             })
         : [];
     const courseEvidence = courseRows.length
-      ? ['Cursos declarados (não emprego; certificação oficial não presumida):', ...courseRows]
-          .join(' ')
+      ? [
+          'Cursos declarados (não emprego; certificação oficial não presumida):',
+          ...courseRows,
+        ].join(' ')
       : '';
     const compactEvidence =
       courseEvidence && document.content.length > limit

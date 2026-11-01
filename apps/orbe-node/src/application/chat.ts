@@ -209,9 +209,7 @@ export class ChatService {
           // together. The actual context budget, not a five-record cap, bounds them.
           const multiSourceComparison =
             mentionedTechnologies(query).has('sql-server') &&
-            /\b(?:cursos?|mysql|firebase|angular|compar|reexamin|evidenc)\b/.test(
-              normalizedQuery,
-            );
+            /\b(?:cursos?|mysql|firebase|angular|compar|reexamin|evidenc)\b/.test(normalizedQuery);
           const selected = completeCourseCatalog
             ? retrieved.slice(0, 7)
             : vacancy || multiSourceComparison

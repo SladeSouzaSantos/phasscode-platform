@@ -99,9 +99,7 @@ export class LangChainChatProvider implements ChatProvider {
                 content: document.content,
                 // Retain the vetted public reference even when the provider
                 // needs a compact JSON shape; never expose private source code.
-                ...(documentSource(document).url
-                  ? { url: documentSource(document).url }
-                  : {}),
+                ...(documentSource(document).url ? { url: documentSource(document).url } : {}),
               }
             : {
                 id: document.id,
