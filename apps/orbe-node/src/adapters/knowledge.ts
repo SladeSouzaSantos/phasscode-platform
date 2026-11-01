@@ -464,7 +464,9 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         ]
       : [];
     const indexedById = new Map(this.documents.map((doc) => [doc.id, doc]));
-    const priority = [...new Set([...requiredEvidence, ...recruiter, ...anchors, ...skillEvidence])].flatMap((id) => {
+    const priority = [
+      ...new Set([...requiredEvidence, ...recruiter, ...anchors, ...skillEvidence]),
+    ].flatMap((id) => {
       const doc = indexedById.get(id);
       return doc ? [doc] : [];
     });

@@ -326,7 +326,6 @@ export function reconcileDocumentedClaims(
   return result;
 }
 
-
 /**
  * Complete the independent requirements of a complex recruiter question only
  * from canonical records included in this invocation's bounded LLM context.
@@ -358,9 +357,7 @@ export function completeRecruiterEvidence(
     /\b(?:formacao|graduacao|curso superior|computacao)\b/.test(question) &&
     degree &&
     /\b(?:concluiu|concluido|concluida)\b/.test(knowledgePhrase(degree.content)) &&
-    !/\b(?:tecnologo|gestao da ti|gestao da tecnologia da informacao|etep|unibf)\b/.test(
-      spoken,
-    )
+    !/\b(?:tecnologo|gestao da ti|gestao da tecnologia da informacao|etep|unibf)\b/.test(spoken)
   ) {
     additions.push(
       'Formação: Tecnólogo em Gestão da Tecnologia da Informação concluído; o diploma oficial foi emitido pelo Centro Universitário ETEP (identificado como UNIBF no portfólio).',

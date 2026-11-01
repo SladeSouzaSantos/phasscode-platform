@@ -58,9 +58,9 @@ describe('PPKS v1.3: cobertura de vaga Java e privacidade do código de empregad
     const docs = [knowledge.getDocument('experiencia-sig')!];
     const answer = 'Java profissional no SIGAA.';
     expect(completeRecruiterEvidence(answer, vacancy, docs)).toBe(answer);
-    expect(
-      reconcileDocumentedClaims('Não há evidência de uso de MySQL.', docs),
-    ).toBe('Não há evidência de uso de MySQL.');
+    expect(reconcileDocumentedClaims('Não há evidência de uso de MySQL.', docs)).toBe(
+      'Não há evidência de uso de MySQL.',
+    );
   });
 
   it('nunca transforma o código privado da Geowellex em repositório público', async () => {
@@ -71,8 +71,9 @@ describe('PPKS v1.3: cobertura de vaga Java e privacidade do código de empregad
     const fixed = reconcileDocumentedClaims(answer, [geowellex]);
     expect(fixed).toContain('Não há repositório público desse sistema documentado.');
     expect(fixed).not.toContain('disponível publicamente');
-    expect(selectSources({ query: 'MySQL profissional', answer: fixed, documents: [geowellex] }))
-      .toEqual([expect.objectContaining({ id: 'experiencia-geowellex' })]);
+    expect(
+      selectSources({ query: 'MySQL profissional', answer: fixed, documents: [geowellex] }),
+    ).toEqual([expect.objectContaining({ id: 'experiencia-geowellex' })]);
   });
 
   it('preserva afirmações corretas sobre códigos públicos de outros projetos', async () => {

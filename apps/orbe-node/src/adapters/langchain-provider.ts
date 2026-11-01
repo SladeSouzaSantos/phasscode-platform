@@ -14,7 +14,11 @@ import {
   assertLlmPrivacyEnvironment,
   type Config,
 } from '../../../../packages/shared-config/src/index.js';
-import { completeRecruiterEvidence, reconcileDocumentedClaims, selectSources } from '../application/sources.js';
+import {
+  completeRecruiterEvidence,
+  reconcileDocumentedClaims,
+  selectSources,
+} from '../application/sources.js';
 import {
   experienceContext,
   reconcileExperienceAttribution,
