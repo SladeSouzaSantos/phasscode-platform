@@ -82,10 +82,12 @@ export class SemanticKnowledgeGraph {
           ),
       )
       .map((document) => {
-        const scope = skill?.professional.includes(document.id)
+        const scope = skill?.professional.includes(document.id) || document.experiencePeriod
           ? 'experiência profissional declarada'
-          : skill?.projects.includes(document.id)
-            ? 'projeto'
+          : skill?.projects.includes(document.id) ||
+              document.type === 'project' ||
+              document.type === 'platform'
+            ? document.category === 'study' ? 'projeto de estudo' : 'projeto'
             : skill?.education.includes(document.id)
               ? 'formação'
               : 'curso';
