@@ -466,8 +466,11 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       // employer's proprietary code is not a public personal repository.
       const candidates = this.documents.filter(
         (document) =>
-          document.visibility !== 'private' &&
-          (document.type === 'profile' || document.visibility !== 'third-party'),
+          // Visibility protects employer source code, not the sanitized public
+          // employment summary already curated in this knowledge repository.
+          (document.type === 'profile' && document.category === 'professional') ||
+          (document.visibility !== 'private' &&
+            (document.type === 'profile' || document.visibility !== 'third-party')),
       );
       const technologies = new Map(
         candidates.map((document) => [
