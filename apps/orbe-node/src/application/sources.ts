@@ -244,7 +244,21 @@ export function reconcileDocumentedClaims(
   let result = answer;
 
   if (mysql) {
-    // Preserve the scope of the remaining gaps after correcting MySQL.
+    // Preserve the scope of unrelated gaps (C++, C#, commercial REST)
+    // while correcting only broad MySQL denials.
+    result = result.replace(
+      /,\s*nem de uso de MySQL\b/gi,
+      '; há registro de PHP/MySQL na experiência profissional da Geowellex',
+    );
+    result = result.replace(
+      /\bnão há (?:registro|evidência|comprovação) de (?:experiência|atuação|uso)(?: profissional)? (?:com |de )?MySQL\b/gi,
+      'Há registro de PHP/MySQL na experiência profissional da Geowellex',
+    );
+    result = result.replace(
+      /\bo banco relacional comprovado é PostgreSQL\b/gi,
+      'os bancos relacionais documentados incluem PostgreSQL no SIGAA e MySQL na Geowellex',
+    );
+    // Preserve the scope of remaining gaps after correcting MySQL.
     result = result.replace(
       /\bnão verifiquei MySQL,\s*nem\s+/gi,
       'MySQL consta na experiência profissional declarada da Geowellex (PHP/MySQL); não verifiquei ',
@@ -288,6 +302,19 @@ export function reconcileDocumentedClaims(
       'CI/CD com GitHub Actions está documentado na PHASSCODE Platform; a documentação Swagger/OpenAPI deve ser verificada separadamente',
     );
   }
+  // Geowellex's stock system is private: never turn an employer's
+  // undocumented code into a personal public GitHub repository.
+  result = result
+    .split('\n')
+    .map((line) =>
+      /\bGeowellex\b/i.test(line)
+        ? line.replace(
+            /\bO código est[aá] dispon[ií]vel publicamente(?: no reposit[oó]rio citado acima)?\.?/gi,
+            'Não há repositório público desse sistema documentado.',
+          )
+        : line,
+    )
+    .join('\n');
   // SIGAA is evidence of enterprise Java, not necessarily of REST endpoints.
   if (java) {
     result = result.replace(
@@ -296,4 +323,60 @@ export function reconcileDocumentedClaims(
     );
   }
   return result;
+}
+
+
+/**
+ * Complete the independent requirements of a complex recruiter question only
+ * from canonical records included in this invocation's bounded LLM context.
+ * No evidence is fetched implicitly and no employment is inferred from courses.
+ */
+export function completeRecruiterEvidence(
+  answer: string,
+  query: string,
+  documents: readonly KnowledgeDocument[],
+): string {
+  const question = knowledgePhrase(query);
+  const spoken = knowledgePhrase(answer);
+  const byId = (id: string) => documents.find((document) => document.id === id);
+  const additions: string[] = [];
+
+  const geowellex = byId('experiencia-geowellex');
+  if (
+    /\bmysql\b/.test(question) &&
+    geowellex &&
+    /\bmysql\b/.test(knowledgePhrase(geowellex.content)) &&
+    !/\bgeowellex\b/.test(spoken)
+  ) {
+    additions.push(
+      'MySQL: consta na experiência profissional declarada na Geowellex, em sistema PHP/MySQL de controle de estoque; esse código privado não foi disponibilizado como repositório público.',
+    );
+  }
+  const degree = byId('formacao-gestao-ti');
+  if (
+    /\b(?:formacao|graduacao|curso superior|computacao)\b/.test(question) &&
+    degree &&
+    /\b(?:concluiu|concluido|concluida)\b/.test(knowledgePhrase(degree.content)) &&
+    !/\b(?:tecnologo|gestao da ti|gestao da tecnologia da informacao|etep|unibf)\b/.test(
+      spoken,
+    )
+  ) {
+    additions.push(
+      'Formação: Tecnólogo em Gestão da Tecnologia da Informação concluído; o diploma oficial foi emitido pelo Centro Universitário ETEP (identificado como UNIBF no portfólio).',
+    );
+  }
+  const language = byId('idiomas-declarados');
+  if (
+    /\b(?:ingles|english|idioma)\b/.test(question) &&
+    language &&
+    /\b(?:ingles|leitura)\b/.test(knowledgePhrase(language.content)) &&
+    !/\bingles\b/.test(spoken)
+  ) {
+    additions.push(
+      'Idioma: inglês básico para leitura, conforme currículo declarado; não é comprovação de fluência.',
+    );
+  }
+  if (!additions.length) return answer;
+  const supplement = '\n\nEvidências adicionais: ' + additions.join(' ');
+  return answer.length + supplement.length <= 8000 ? answer + supplement : answer;
 }
