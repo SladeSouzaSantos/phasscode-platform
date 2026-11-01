@@ -251,6 +251,37 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     expect(ids).toContain('experiencia-geowellex');
   });
 
+  it('distinguishes Git, GitHub Actions, SQL and SQL Server', () => {
+    expect(mentionedTechnologies('Git').has('git')).toBe(true);
+    expect(mentionedTechnologies('GitHub Actions').has('git')).toBe(false);
+    expect(mentionedTechnologies('PostgreSQL').has('sql-server')).toBe(false);
+    expect(mentionedTechnologies('SQL Server').has('sql-server')).toBe(true);
+  });
+
+  it('retrieves professional SQL and direct Git and automated test evidence on first turn', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const query =
+      'Um recrutador exige dominio de SQL, Git e testes automatizados. Quais evidencias verificaveis existem nos seus projetos ou empregos?';
+    const documents = knowledge.search(query);
+    const ids = documents.map(({ id }) => id);
+    for (const required of [
+      'experiencia-sig',
+      'experiencia-geowellex',
+      'phasscode-platform',
+      'web-portfolio-v2',
+      'hsp-simulator',
+    ])
+      expect(ids).toContain(required);
+    const platform = documents.find(({ id }) => id === 'phasscode-platform')!;
+    expect(platform.technologies).toContain('Git');
+    expect(platform.technologies).toContain('Vitest');
+    expect(platform.content).toContain('histórico público de commits');
+    expect(platform.content).toContain('testes de integração');
+    const packet = buildEvidencePacket(documents, 2500, mentionedTechnologies(query))!;
+    expect(packet.documents).toHaveLength(documents.length);
+    expect(packet.documents.find(({ id }) => id === 'phasscode-platform')?.content).toContain('Git');
+  });
+
   it('repairs Docker gaps and JPA overclaims without inventing employment', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const sources = [
