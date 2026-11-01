@@ -97,11 +97,14 @@ export class SemanticKnowledgeGraph {
       Number(requested.has(edge.from) && requested.has(edge.to));
     const linked = this.graph.edges
       .filter(({ from, to }) => requested.has(from) || requested.has(to))
-      .sort((a, b) =>
-        both(b) - both(a) ||
-        Number(b.relation === 'transferable_foundation') -
-          Number(a.relation === 'transferable_foundation'),
-      )
+      .sort((a, b) => {
+        const score = (edge: Graph['edges'][number]) =>
+          both(edge) * 10 +
+          Number(edge.relation === 'transferable_foundation') * 4 +
+          Number(edge.relation === 'uses_concept') * 2 +
+          Number(requested.has(edge.from));
+        return score(b) - score(a);
+      })
       .slice(0, 3);
     const facts = linked.map((edge) => edge.description);
     const adjacent = new Set(
@@ -122,9 +125,11 @@ export class SemanticKnowledgeGraph {
         return sources.length ? [node.label + ': ' + sources.join(', ')] : [];
       })
       .slice(0, 3);
+    // Place source IDs before relationships so an output cap never discards
+    // the provenance of a claim while keeping its interpretation.
     const items = [
-      ...facts,
       ...(sourceFacts.length ? ['Evidências diretas: ' + sourceFacts.join('; ') + '.'] : []),
+      ...facts,
     ];
     if (!items.length) return '';
     const description = items.join(' ');
