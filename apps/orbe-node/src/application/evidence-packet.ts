@@ -28,14 +28,15 @@ export function buildEvidencePacket(
   // Put every requested technology already verified in source metadata first.
   // No fixed requirement count: the protected signature grows with the query,
   // and a genuinely insufficient budget is rejected rather than silently lost.
-  const signatures = documents.map((document) =>
-    document.technologies
-      ?.filter((label) =>
-        [...mentionedTechnologies(label)].some((technology) =>
-          requestedTechnologies.has(technology),
-        ),
-      )
-      .join(', ') ?? '',
+  const signatures = documents.map(
+    (document) =>
+      document.technologies
+        ?.filter((label) =>
+          [...mentionedTechnologies(label)].some((technology) =>
+            requestedTechnologies.has(technology),
+          ),
+        )
+        .join(', ') ?? '',
   );
   const minimum = documents.map((document, index) =>
     Math.min(

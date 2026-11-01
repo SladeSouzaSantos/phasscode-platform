@@ -200,9 +200,10 @@ export class ChatService {
           // Vacancy requirements are not limited to five documents. Preserve the
           // entire requirement-aware retrieval set; the packet/provider enforce
           // the actual context budget and fail closed if it cannot fit.
-          const vacancy = /\b(?:vaga|recrutad\w*|experienc\w*|profission\w*|trabalh\w*|candidat\w*|qualific\w*|contrat\w*)\b/.test(
-            normalizedQuery,
-          );
+          const vacancy =
+            /\b(?:vaga|recrutad\w*|experienc\w*|profission\w*|trabalh\w*|candidat\w*|qualific\w*|contrat\w*)\b/.test(
+              normalizedQuery,
+            );
           const selected = completeCourseCatalog
             ? retrieved.slice(0, 7)
             : vacancy

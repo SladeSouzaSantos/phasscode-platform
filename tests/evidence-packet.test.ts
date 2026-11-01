@@ -144,9 +144,9 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     await service.execute({ message: query });
     expect(received).toBeDefined();
     expect(received!.documents.map(({ id }) => id)).toEqual(ids);
-    expect(received!.documents.find(({ id }) => id === 'phasscode-platform')?.technologies).toContain(
-      'Docker',
-    );
+    expect(
+      received!.documents.find(({ id }) => id === 'phasscode-platform')?.technologies,
+    ).toContain('Docker');
     expect(received!.documents.find(({ id }) => id === 'experiencia-geowellex')?.category).toBe(
       'professional',
     );
@@ -192,8 +192,19 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
 
   it('keeps requested Docker evidence at the front of a severely compacted source', () => {
     const source = {
-      ...doc('phasscode-platform', 'Projeto próprio com Docker Compose e imagens Docker. '.repeat(15)),
-      technologies: ['Node.js', 'TypeScript', 'Fastify', 'LangChain', 'PostgreSQL', 'Redis', 'Docker'],
+      ...doc(
+        'phasscode-platform',
+        'Projeto próprio com Docker Compose e imagens Docker. '.repeat(15),
+      ),
+      technologies: [
+        'Node.js',
+        'TypeScript',
+        'Fastify',
+        'LangChain',
+        'PostgreSQL',
+        'Redis',
+        'Docker',
+      ],
     };
     const packet = buildEvidencePacket([source], 48, new Set(['docker']));
     expect(packet?.documents[0]?.content).toContain('Stack: Docker.');

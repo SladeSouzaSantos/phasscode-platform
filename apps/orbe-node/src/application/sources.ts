@@ -265,9 +265,10 @@ export function reconcileDocumentedClaims(
       .map((line) => {
         const normalized = knowledgePhrase(line);
         const dockerHeading = /^\s*(?:[-*]\s*)?(?:\*\*)?Docker\b/i.test(line);
-        const denial = /\b(?:nao ha|nao verifiquei|nao foi comprovado|ausencia|lacuna|sem evidencia)\b/.test(
-          normalized,
-        );
+        const denial =
+          /\b(?:nao ha|nao verifiquei|nao foi comprovado|ausencia|lacuna|sem evidencia)\b/.test(
+            normalized,
+          );
         const specificallyEmployment =
           /\b(?:experiencia profissional|emprego|contrato|remunerad|corporativ|comercial|no sigaa|na geowellex)\b/.test(
             normalized,
