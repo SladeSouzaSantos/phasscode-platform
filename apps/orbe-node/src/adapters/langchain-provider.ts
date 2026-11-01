@@ -33,6 +33,7 @@ import type {
   KnowledgeRepository,
   KnowledgeDocument,
 } from '../domain/ports.js';
+import { professionalResponsePolicy } from '../application/professional-response-policy.js';
 import { AppError } from '../domain/errors.js';
 import type { LlmCallBudget } from '../domain/llm-budget.js';
 import {
@@ -168,7 +169,7 @@ export class LangChainChatProvider implements ChatProvider {
         `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${includeSemanticContext ? (this.knowledge.semanticContext?.(input.message, documents) ?? '') : ''}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
       );
     messages.push(
-      new SystemMessage(this.prompt),
+      new SystemMessage(`${this.prompt}\n\n${professionalResponsePolicy(input.message)}`),
       reference(),
       ...input.history.map((message) =>
         message.role === 'user'
