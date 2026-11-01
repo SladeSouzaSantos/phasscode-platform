@@ -120,13 +120,10 @@ export async function runEvaluation(
           const errorCode = await readPublicErrorCode(response);
           // Provider cooldowns and control-plane outages are operational
           // blockers, not evidence failures. Stop instead of burning more quota.
-          const providerLimited =
-            httpStatus === 503 && errorCode === 'LLM_PROVIDERS_LIMITED';
-          const controlUnavailable =
-            httpStatus === 503 &&
-            (errorCode === 'LLM_BUDGET_UNAVAILABLE' ||
-              errorCode === 'RATE_LIMIT_UNAVAILABLE');
-          const limited = httpStatus === 429 || providerLimited || controlUnavailable;
+          // Any HTTP 503 means this turn was not evaluated. A missing or
+          // unknown code is an operational blocker, never a factual failure.
+          // Keep the recognized code for diagnostics but avoid retries.
+          const limited = httpStatus === 429 || httpStatus === 503;
           turns.push({
             message: turn.message,
             httpStatus,
@@ -141,7 +138,7 @@ export async function runEvaluation(
                 explanation: limited
                   ? httpStatus === 429
                     ? 'HTTP 429: execução interrompida, sem retry. Corpo do erro omitido.'
-                    : 'HTTP 503: indisponibilidade temporária de IA ou controle de cotas; execução interrompida sem retry. Corpo do erro omitido.'
+                    : 'HTTP 503: serviço indisponível; causa não presumida. Execução interrompida sem retry. Corpo do erro omitido.'
                   : `HTTP ${httpStatus}: chamada não concluída. Corpo do erro omitido.`,
               },
             ],
