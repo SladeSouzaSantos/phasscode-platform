@@ -15,7 +15,10 @@ import {
   type Config,
 } from '../../../../packages/shared-config/src/index.js';
 import { reconcileDocumentedClaims, selectSources } from '../application/sources.js';
-import { experienceContext, reconcileExperienceAttribution } from '../application/experience-context.js';
+import {
+  experienceContext,
+  reconcileExperienceAttribution,
+} from '../application/experience-context.js';
 import type {
   ChatProvider,
   GenerationInput,

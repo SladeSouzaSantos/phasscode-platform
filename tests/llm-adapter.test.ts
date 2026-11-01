@@ -850,7 +850,6 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
   });
 });
 
-
 describe('PPKS v1.3: verificações pós-geração no adaptador real', () => {
   it('corrige falsos negativos antes de devolver resposta e fontes, sem nova chamada LLM', async () => {
     const original =

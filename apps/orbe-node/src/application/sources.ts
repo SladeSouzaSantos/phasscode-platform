@@ -234,7 +234,9 @@ export function reconcileDocumentedClaims(
   documents: readonly KnowledgeDocument[],
 ): string {
   const verified = (id: string, pattern: RegExp) =>
-    documents.some((document) => document.id === id && pattern.test(knowledgePhrase(document.content)));
+    documents.some(
+      (document) => document.id === id && pattern.test(knowledgePhrase(document.content)),
+    );
   const mysql = verified('experiencia-geowellex', /\bgeowellex\b[\s\S]*\bmysql\b/);
   const java = verified('experiencia-sig', /\bsigaa\b[\s\S]*\bjava\b/);
   const versioning = verified('phasscode-platform', /\b(?:git|github actions|ci cd)\b/);

@@ -8,7 +8,10 @@ import {
   enrichExperienceDocument,
 } from '../apps/orbe-node/src/adapters/ppks.js';
 import { loadAcademicEvidence } from '../apps/orbe-node/src/adapters/academic.js';
-import { reconcileDocumentedClaims, selectSources } from '../apps/orbe-node/src/application/sources.js';
+import {
+  reconcileDocumentedClaims,
+  selectSources,
+} from '../apps/orbe-node/src/application/sources.js';
 import { reconcileExperienceAttribution } from '../apps/orbe-node/src/application/experience-context.js';
 
 describe('PPKS acadêmico v1.1 e avaliação por vagas', () => {
@@ -165,7 +168,6 @@ describe('PPKS v1.3: rastreabilidade nominal por contexto', () => {
   });
 });
 
-
 describe('PPKS v1.3: pós-validação factual e rastreabilidade por afirmação', () => {
   it('corrige falsos negativos amplos usando apenas documentos entregues ao modelo', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
@@ -191,9 +193,7 @@ describe('PPKS v1.3: pós-validação factual e rastreabilidade por afirmação'
     const scope =
       'Não verifiquei MySQL no SIGAA; não verifiquei Java com Spring em produção; não verifiquei Git na SIG Software.';
     expect(reconcileDocumentedClaims(scope, [sig])).toBe(scope);
-    expect(reconcileDocumentedClaims('Não verifiquei MySQL.', [sig])).toBe(
-      'Não verifiquei MySQL.',
-    );
+    expect(reconcileDocumentedClaims('Não verifiquei MySQL.', [sig])).toBe('Não verifiquei MySQL.');
   });
 
   it('reconcilia MySQL e diploma com fontes correspondentes, sem citar projetos não mencionados', async () => {
@@ -240,11 +240,9 @@ describe('PPKS v1.3: pós-validação factual e rastreabilidade por afirmação'
 
   it('não atribui como fontes os projetos que só compartilham tecnologias gerais', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
-    const docs = [
-      'phasscode-platform',
-      'web-portfolio-v2',
-      'task-manager-flask',
-    ].map((id) => knowledge.getDocument(id)!);
+    const docs = ['phasscode-platform', 'web-portfolio-v2', 'task-manager-flask'].map((id) =>
+      knowledge.getDocument(id)!,
+    );
     const ids = selectSources({
       query: 'Quais projetos demonstram Node React Redis Docker?',
       answer: 'PHASSCODE Platform usa Node, Redis e Docker; o portfólio PHASSCODE usa React.',

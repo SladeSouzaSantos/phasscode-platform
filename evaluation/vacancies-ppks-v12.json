@@ -206,7 +206,13 @@
             "concepts": [
               {
                 "label": "conclusao",
-                "anyOf": ["não concluída", "pendente", "não está concluído", "não está concluída", "não foi concluída"],
+                "anyOf": [
+                  "não concluída",
+                  "pendente",
+                  "não está concluído",
+                  "não está concluída",
+                  "não foi concluída"
+                ],
                 "missing": "review"
               },
               {

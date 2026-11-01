@@ -69,7 +69,6 @@ export function experienceContext(
   );
 }
 
-
 /**
  * Do not assign the total of several employment periods to a single employer.
  * A scope-specific number can only be asserted if it matches the structured

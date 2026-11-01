@@ -142,7 +142,8 @@ export function evaluateTurn(
   const knownContradictions = [
     {
       id: 'professional-mysql',
-      pattern: /(?:mysql profissional nao foi verificado|nao verifiquei (?:o uso (?:profissional )?de )?mysql\b(?!\s+(?:no sigaa|na acrux)))/,
+      pattern:
+        /(?:mysql profissional nao foi verificado|nao verifiquei (?:o uso (?:profissional )?de )?mysql\b(?!\s+(?:no sigaa|na acrux)))/,
     },
     {
       id: 'java-corporate',
