@@ -188,7 +188,7 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     expect(messageCharacters(stub.requests[0]!)).toBeLessThanOrEqual(12000);
   });
 
-  it('remove documentos menos prioritários antes do invoke e não os atribui como fontes', async () => {
+  it('compacta todas as fontes antes do invoke sem eliminar evidência posterior', async () => {
     const stub = await llmServer(() =>
       completion({
         role: 'assistant',
@@ -218,12 +218,12 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
       documents,
       signal: new AbortController().signal,
     });
-    expect(result.sources.map((source) => source.id)).toEqual(['prioritario']);
+    expect(result.sources.map((source) => source.id).sort()).toEqual(['prioritario', 'segundo', 'terceiro']);
     expect(messageCharacters(stub.requests[0]!)).toBeLessThanOrEqual(4000);
     const reference = (stub.requests[0]!.messages as { content: string }[])[1]!.content;
     expect(reference).toContain('prioritario');
-    expect(reference).not.toContain('segundo');
-    expect(reference).not.toContain('terceiro');
+    expect(reference).toContain('segundo');
+    expect(reference).toContain('terceiro');
     expect(documents).toHaveLength(3);
   });
 
