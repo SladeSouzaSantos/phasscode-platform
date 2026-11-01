@@ -101,6 +101,11 @@ const technologyPatterns: Record<string, RegExp> = {
   php: /\bphp\b/,
   html: /\bhtml(?:5)?\b/,
   css: /\bcss(?:3)?\b/,
+  git: /\bgit\b/,
+  vitest: /\bvitest\b/,
+  playwright: /\bplaywright\b/,
+  pytest: /\bpytest\b/,
+  'sql-server': /\bsql server\b/,
   sql: /\bsql\b/,
   'github-actions': /\bgithub actions\b/,
 };
