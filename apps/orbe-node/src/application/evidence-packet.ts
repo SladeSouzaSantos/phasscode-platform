@@ -127,11 +127,23 @@ export function buildEvidencePacket(
               return specific(b) - specific(a);
             })
         : [];
-    const courseEvidence = courseRows.length
-      ? [
-          'Cursos declarados (não emprego; certificação oficial não presumida):',
-          ...courseRows,
-        ].join(' ')
+    // Under severe pressure, keep *complete course names plus providers*
+    // before verbose IDs, editorial notes or status fields. Two SQL Server
+    // records fit in ~200 characters, unlike two full JSON/PPKS statements.
+    const conciseCourses = courseRows
+      .filter((line) => !requestedTechnologies.has('sql-server') ||
+        mentionedTechnologies(line).has('sql-server') ||
+        // Keep independently requested Angular, not generic SQL-only courses.
+        mentionedTechnologies(line).has('angular'))
+      .map((line) => {
+        const record = /^Curso \[[^\]]+\]: (.+?) — ([^;]+);/.exec(line);
+        if (record) return `${record[1]} (${record[2]})`;
+        const legacy = /^\d+\. (.+?) — (Alura|Udemy|DIO|Programa Hackers do Bem) —/.exec(line);
+        if (legacy) return `${legacy[1]} (${legacy[2]})`;
+        return line;
+      });
+    const courseEvidence = conciseCourses.length
+      ? 'Cursos concluídos declarados (estudo, não emprego): ' + conciseCourses.join('; ') + '.'
       : '';
     const compactEvidence =
       courseEvidence && document.content.length > limit
