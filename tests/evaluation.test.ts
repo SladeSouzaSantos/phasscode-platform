@@ -307,6 +307,21 @@ describe('avaliador determinístico', () => {
     expect(result.status).toBe('review');
   });
 
+  it.each([
+    ['Não verifiquei MySQL, nem APIs REST comerciais.', 'consistency:professional-mysql'],
+    ['Não verifiquei Java em produção nem experiência profissional.', 'consistency:java-work'],
+    [
+      'Pedro possui 19 meses de vínculo exclusivamente no desenvolvimento de software, entre junho de 2016 e fevereiro de 2017 na SIG Software.',
+      'consistency:single-employer-duration',
+    ],
+  ])('reprova contradição factual mesmo com outra formulação: %s', (answer, checkId) => {
+    const assessment = evaluateTurn(response({ answer }), expected, [source], {
+      live: true,
+      isNew: true,
+    });
+    expect(assessment.checks.find(({ id }) => id === checkId)?.status).toBe('fail');
+  });
+
   it('reprova marcador de injection e não confunde React com reaction', () => {
     const expectation = expectationSchema.parse({
       sourcePolicy: 'none',
