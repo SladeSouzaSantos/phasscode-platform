@@ -8,7 +8,8 @@ import {
   enrichExperienceDocument,
 } from '../apps/orbe-node/src/adapters/ppks.js';
 import { loadAcademicEvidence } from '../apps/orbe-node/src/adapters/academic.js';
-import { selectSources } from '../apps/orbe-node/src/application/sources.js';
+import { reconcileDocumentedClaims, selectSources } from '../apps/orbe-node/src/application/sources.js';
+import { reconcileExperienceAttribution } from '../apps/orbe-node/src/application/experience-context.js';
 
 describe('PPKS acadêmico v1.1 e avaliação por vagas', () => {
   it('carrega formação e cursos sem divulgar PDFs ou presumir graduação UNISUL', async () => {
@@ -161,5 +162,96 @@ describe('PPKS v1.3: rastreabilidade nominal por contexto', () => {
       documents: docs,
     });
     for (const id of ids) expect(sources.map((item) => item.id)).toContain(id);
+  });
+});
+
+
+describe('PPKS v1.3: pós-validação factual e rastreabilidade por afirmação', () => {
+  it('corrige falsos negativos amplos usando apenas documentos entregues ao modelo', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const records = [
+      'experiencia-sig',
+      'experiencia-geowellex',
+      'phasscode-platform',
+      'web-portfolio-v2',
+    ].map((id) => knowledge.getDocument(id)!);
+    const original =
+      'Não verifiquei MySQL, nem REST APIs comerciais. Não verifiquei Java em produção nem experiência profissional como Desenvolvedor ou DevOps Júnior. Git, versionamento específico e contribuições públicas de código (não atribuir autoria exclusiva nem código público pessoal).';
+    const repaired = reconcileDocumentedClaims(original, records);
+    expect(repaired).toContain('Geowellex');
+    expect(repaired).toContain('SIG Software/SIGAA');
+    expect(repaired).toContain('Git e versionamento');
+    expect(repaired).not.toContain('Não verifiquei MySQL');
+    expect(repaired).not.toContain('Não verifiquei Java em produção');
+  });
+
+  it('preserva lacunas com escopo específico e não inventa evidência ausente', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const sig = knowledge.getDocument('experiencia-sig')!;
+    const scope =
+      'Não verifiquei MySQL no SIGAA; não verifiquei Java com Spring em produção; não verifiquei Git na SIG Software.';
+    expect(reconcileDocumentedClaims(scope, [sig])).toBe(scope);
+    expect(reconcileDocumentedClaims('Não verifiquei MySQL.', [sig])).toBe(
+      'Não verifiquei MySQL.',
+    );
+  });
+
+  it('reconcilia MySQL e diploma com fontes correspondentes, sem citar projetos não mencionados', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const docs = [
+      'experiencia-sig',
+      'experiencia-geowellex',
+      'formacao-gestao-ti',
+      'phasscode-platform',
+    ].map((id) => knowledge.getDocument(id)!);
+    const answer = reconcileDocumentedClaims(
+      'No SIGAA houve Java. Na Geowellex houve PHP/MySQL. Tecnólogo em Gestão da TI concluído (ETEP/UNIBF).',
+      docs,
+    );
+    const ids = selectSources({
+      query: 'Compare Java e MySQL profissional e graduação em TI.',
+      answer,
+      documents: docs,
+    }).map((source) => source.id);
+    expect(ids).toContain('experiencia-sig');
+    expect(ids).toContain('experiencia-geowellex');
+    expect(ids).toContain('formacao-gestao-ti');
+    expect(ids).not.toContain('phasscode-platform');
+  });
+
+  it('corrige subtotal de 19 meses indevidamente atribuído a SIGAA, preservando data factual', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const docs = [
+      knowledge.getDocument('experiencia-acrux')!,
+      knowledge.getDocument('experiencia-sig')!,
+    ];
+    const asOf = new Date('2026-10-31T10:00:00Z');
+    const mistaken =
+      'Pedro possui 19 meses de vínculo exclusivamente no desenvolvimento de software, entre junho de 2016 e fevereiro de 2017 na SIG Software, atuando com Java.';
+    const repaired = reconcileExperienceAttribution(mistaken, docs, asOf);
+    expect(repaired).not.toContain('19 meses');
+    expect(repaired).toContain('junho de 2016 e fevereiro de 2017');
+    expect(repaired).toContain('SIG Software');
+    const valid =
+      'Pedro possui 8 meses de vínculo exclusivamente no desenvolvimento de software, entre junho de 2016 e fevereiro de 2017 na SIG Software.';
+    expect(reconcileExperienceAttribution(valid, docs, asOf)).toBe(valid);
+    expect(reconcileExperienceAttribution(mistaken, [], asOf)).toBe(mistaken);
+  });
+
+  it('não atribui como fontes os projetos que só compartilham tecnologias gerais', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const docs = [
+      'phasscode-platform',
+      'web-portfolio-v2',
+      'task-manager-flask',
+    ].map((id) => knowledge.getDocument(id)!);
+    const ids = selectSources({
+      query: 'Quais projetos demonstram Node React Redis Docker?',
+      answer: 'PHASSCODE Platform usa Node, Redis e Docker; o portfólio PHASSCODE usa React.',
+      documents: docs,
+    }).map(({ id }) => id);
+    expect(ids).toContain('phasscode-platform');
+    expect(ids).toContain('web-portfolio-v2');
+    expect(ids).not.toContain('task-manager-flask');
   });
 });
