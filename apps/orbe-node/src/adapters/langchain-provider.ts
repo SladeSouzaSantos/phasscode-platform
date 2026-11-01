@@ -126,7 +126,7 @@ export class LangChainChatProvider implements ChatProvider {
       : [...input.documents];
     const reference = () =>
       new HumanMessage(
-        `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
+        `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${this.knowledge.semanticContext?.(input.message, documents) ?? ''}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
       );
     messages.push(
       new SystemMessage(this.prompt),
