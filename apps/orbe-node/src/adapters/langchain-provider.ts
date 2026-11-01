@@ -1,3 +1,4 @@
+import { mentionedTechnologies } from '../knowledge-matching.js';
 import { ChatOpenAI } from '@langchain/openai';
 import {
   AIMessage,
@@ -205,7 +206,7 @@ export class LangChainChatProvider implements ChatProvider {
         let best: GenerationInput['documents'] | null = null;
         while (lower <= upper) {
           const middle = Math.floor((lower + upper) / 2);
-          const packet = buildEvidencePacket(original, middle);
+          const packet = buildEvidencePacket(original, middle, mentionedTechnologies(input.message));
           if (!packet) return false;
           documents.splice(0, documents.length, ...packet.documents);
           messages[1] = reference();
