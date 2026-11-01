@@ -32,6 +32,7 @@ import type {
 } from '../domain/ports.js';
 import { AppError } from '../domain/errors.js';
 import type { LlmCallBudget } from '../domain/llm-budget.js';
+import { buildEvidencePacket, traceEvidence } from '../application/evidence-packet.js';
 import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
 import {
   MAX_MODEL_CALLS_PER_TURN,
@@ -79,8 +80,23 @@ export class LangChainChatProvider implements ChatProvider {
   async generate(input: GenerationInput): Promise<GenerationResult> {
     const actions: NonNullable<GenerationResult['actions']> = [];
     const used = new Map<string, KnowledgeDocument>();
+    // The model only needs citeable facts, not search-ranking metadata.
+    // Smaller records leave room for every evidence source in the same prompt.
     const serialize = (docs: GenerationInput['documents']) =>
-      JSON.stringify(docs.map((document) => ({ ...document, keywords: undefined })));
+      JSON.stringify(
+        docs.map((document) => ({
+          id: document.id,
+          type: document.type,
+          title: document.title,
+          content: document.content,
+          ...(document.category ? { category: document.category } : {}),
+          ...(document.visibility ? { visibility: document.visibility } : {}),
+          ...(document.technologies?.length ? { technologies: document.technologies } : {}),
+          ...(document.experiencePeriod ? { experiencePeriod: document.experiencePeriod } : {}),
+          ...(document.url ? { url: document.url } : {}),
+          ...(document.repositoryUrl ? { repositoryUrl: document.repositoryUrl } : {}),
+        })),
+      );
     const record = (docs: GenerationInput['documents']) => {
       for (const document of docs) {
         const previous = used.get(document.id);
@@ -124,6 +140,7 @@ export class LangChainChatProvider implements ChatProvider {
               },
         )
       : [...input.documents];
+    traceEvidence('provider_initial', documents, 'initial');
     const reference = () =>
       new HumanMessage(
         `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${this.knowledge.semanticContext?.(input.message, documents) ?? ''}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
@@ -158,41 +175,46 @@ export class LangChainChatProvider implements ChatProvider {
       return true;
     };
 
-    const trimFirstDocument = (target: number) => {
-      const first = documents[0];
-      if (!first || contextSize() <= target) return;
-      let low = 1;
-      let high = first.content.length;
-      let fitting = 0;
-      while (low <= high) {
-        const length = Math.floor((low + high) / 2);
-        documents[0] = { ...first, content: first.content.slice(0, length) };
-        messages[1] = reference();
-        if (contextSize() <= target) {
-          fitting = length;
-          low = length + 1;
-        } else high = length - 1;
-      }
-      documents[0] = { ...first, content: first.content.slice(0, Math.max(1, fitting)) };
-      messages[1] = reference();
-    };
-
     const compactTo = (target: number): boolean => {
-      // Keep the latest complete recruiter exchange when possible.
+      // Old conversation pairs may be removed; evidence sources are never
+      // dropped in order to let a larger earlier record monopolize context.
       while (contextSize() > target && historyMessages > 2) {
         if (!removeOldestHistoryPair()) break;
       }
-      while (contextSize() > target && documents.length > 1) {
-        documents.pop();
+      if (contextSize() <= target) return true;
+      if (documents.length === 0 || completeCourseCatalog) return false;
+      const original = [...documents];
+      const minimum = original.reduce(
+        (sum, doc) => sum + Math.min(doc.content.length, 96),
+        0,
+      );
+      const maximum = original.reduce((sum, doc) => sum + doc.content.length, 0);
+      let lower = minimum;
+      let upper = maximum;
+      let best: GenerationInput['documents'] | null = null;
+      // Find the largest balanced evidence packet that fits the actual serialized
+      // LangChain transcript, including the graph metadata and JSON escaping.
+      while (lower <= upper) {
+        const middle = Math.floor((lower + upper) / 2);
+        const packet = buildEvidencePacket(original, middle);
+        if (!packet) return false;
+        documents.splice(0, documents.length, ...packet.documents);
         messages[1] = reference();
+        if (contextSize() <= target) {
+          best = packet.documents;
+          lower = middle + 1;
+        } else {
+          upper = middle - 1;
+        }
       }
-      trimFirstDocument(target);
-      // An oversized later tool call can force discarding the last pair.
-      if (contextSize() > target && removeOldestHistoryPair()) trimFirstDocument(target);
+      if (!best) return false;
+      documents.splice(0, documents.length, ...best);
+      messages[1] = reference();
       return contextSize() <= target;
     };
 
     if (!compactTo(contextTarget)) throw contextLimit();
+    traceEvidence('provider_compacted', documents, 'context_budget');
     record(documents);
     let toolCallId = '';
     // Cada busca é limitada. A ferramenta não aceita URL, ID de usuário ou comandos.
@@ -327,6 +349,7 @@ export class LangChainChatProvider implements ChatProvider {
       // A tool call itself extends the transcript. Rebalance earlier evidence
       // and history before appending its tool result instead of failing at once.
       if (!compactTo(contextTarget)) throw contextLimit();
+      traceEvidence('provider_compacted', documents, 'model_tool');
       for (const call of response.tool_calls) {
         const selectedTool = tools.find((candidate) => candidate.name === call.name);
         if (!selectedTool || !call.id)
