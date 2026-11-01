@@ -355,6 +355,20 @@ export function reconcileDocumentedClaims(
       'Java profissional na SIG Software/SIGAA está documentado',
     );
   }
+  // Never deny Hibernate professional experience by grouping it with JPA.
+  // SIGAA establishes Hibernate; JPA has separate evidence in a study project.
+  // Change only an explicit employment denial, not an affirmative comparison.
+  if (java && verified('experiencia-sig', /\bhibernate\b/)) {
+    result = result
+      .split(/(?<=[.!?])\s+/)
+      .map((sentence) =>
+        /\b(?:n[aã]o|nem|sem|aus[eê]ncia)\b/i.test(sentence) &&
+        /\b(?:profissional|emprego|remunerad[ao])\b/i.test(sentence)
+          ? sentence.replace(/\b(?:JPA\/Hibernate|Hibernate\/JPA)\b/gi, 'JPA')
+          : sentence,
+      )
+      .join(' ');
+  }
   if (versioning) {
     result = result.replace(
       /\bGit, versionamento específico e contribuições públicas de código \(não atribuir autoria exclusiva nem código público pessoal\)/gi,
