@@ -135,13 +135,14 @@ async function validateSemanticRelations() {
   const unique = new Set(ids);
   if (unique.size !== ids.length) throw new Error('PPKS_GRAPH_DUPLICATE_NODE');
   for (const edge of graph.edges)
-    if (!unique.has(edge.from) || !unique.has(edge.to))
-      throw new Error('PPKS_GRAPH_DANGLING_EDGE');
+    if (!unique.has(edge.from) || !unique.has(edge.to)) throw new Error('PPKS_GRAPH_DANGLING_EDGE');
   const academic = await json(join(root, 'academic', 'skills.json'));
   const skills = new Set(academic.skills.map((record) => record.skill));
   if (graph.nodes.some((node) => node.skill && !skills.has(node.skill)))
     throw new Error('PPKS_GRAPH_UNKNOWN_SKILL');
-  console.log('PPKS_GRAPH_OK: ' + graph.nodes.length + ' nodes, ' + graph.edges.length + ' relationships');
+  console.log(
+    'PPKS_GRAPH_OK: ' + graph.nodes.length + ' nodes, ' + graph.edges.length + ' relationships',
+  );
 }
 
 function buildIndex(projects, experiences, generatedAt) {

@@ -61,17 +61,24 @@ describe('PPKS: grafo semântico de competências com proveniência', () => {
     const academic = await loadAcademicEvidence();
     const valid = {
       schemaVersion: '1.0' as const,
-      nodes: [
-        { id: 'a', label: 'A', kind: 'concept' as const, aliases: ['alpha'] },
+      nodes: [{ id: 'a', label: 'A', kind: 'concept' as const, aliases: ['alpha'] }],
+      edges: [
+        {
+          from: 'a',
+          to: 'missing',
+          relation: 'is_a' as const,
+          description: 'A belongs to missing.',
+        },
       ],
-      edges: [{ from: 'a', to: 'missing', relation: 'is_a' as const, description: 'A belongs to missing.' }],
     };
     expect(() => new SemanticKnowledgeGraph(valid, academic.skills)).toThrow(
       'PPKS_GRAPH_DANGLING_EDGE',
     );
     const invalidSkill = {
       ...valid,
-      nodes: [{ id: 'a', label: 'A', kind: 'concept' as const, aliases: ['alpha'], skill: 'Made Up' }],
+      nodes: [
+        { id: 'a', label: 'A', kind: 'concept' as const, aliases: ['alpha'], skill: 'Made Up' },
+      ],
       edges: [],
     };
     expect(() => new SemanticKnowledgeGraph(invalidSkill, academic.skills)).toThrow(

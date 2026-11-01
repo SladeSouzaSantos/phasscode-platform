@@ -18,7 +18,7 @@ Direct experience is always attached to actual retained `KnowledgeDocument` IDs.
 ## Recruitment examples
 
 - **SQL** is a query language used by **MySQL** and **PostgreSQL**. The
-  recorded Geowellex/PHP/MySQL work remains a *declared professional experience*,
+  recorded Geowellex/PHP/MySQL work remains a _declared professional experience_,
   independent from SIGAA/PostgreSQL. Knowledge of SQL is transferable, but not
   proof of having used every relational database.
 - **NoSQL** covers different database families. **Redis** is an example of a

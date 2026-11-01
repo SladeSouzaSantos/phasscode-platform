@@ -5,144 +5,97 @@
       "id": "sql",
       "label": "SQL",
       "kind": "concept",
-      "aliases": [
-        "structured query language",
-        "linguagem sql"
-      ]
+      "aliases": ["structured query language", "linguagem sql"]
     },
     {
       "id": "relational",
       "label": "bancos de dados relacionais",
       "kind": "concept",
-      "aliases": [
-        "bancos relacionais",
-        "banco relacional",
-        "rdbms"
-      ]
+      "aliases": ["bancos relacionais", "banco relacional", "rdbms"]
     },
     {
       "id": "mysql",
       "label": "MySQL",
       "kind": "database",
-      "aliases": [
-        "mysql"
-      ],
+      "aliases": ["mysql"],
       "skill": "MySQL"
     },
     {
       "id": "postgresql",
       "label": "PostgreSQL",
       "kind": "database",
-      "aliases": [
-        "postgresql",
-        "postgres"
-      ],
+      "aliases": ["postgresql", "postgres"],
       "skill": "PostgreSQL"
     },
     {
       "id": "nosql",
       "label": "NoSQL",
       "kind": "concept",
-      "aliases": [
-        "bancos nosql",
-        "banco nosql",
-        "non relational databases"
-      ]
+      "aliases": ["bancos nosql", "banco nosql", "non relational databases"]
     },
     {
       "id": "redis",
       "label": "Redis",
       "kind": "database",
-      "aliases": [
-        "redis"
-      ]
+      "aliases": ["redis"]
     },
     {
       "id": "firestore",
       "label": "Cloud Firestore",
       "kind": "database",
-      "aliases": [
-        "cloud firestore",
-        "firestore"
-      ]
+      "aliases": ["cloud firestore", "firestore"]
     },
     {
       "id": "realtime-db",
       "label": "Firebase Realtime Database",
       "kind": "database",
-      "aliases": [
-        "realtime database",
-        "firebase realtime database"
-      ]
+      "aliases": ["realtime database", "firebase realtime database"]
     },
     {
       "id": "firebase",
       "label": "Firebase",
       "kind": "platform",
-      "aliases": [
-        "firebase"
-      ]
+      "aliases": ["firebase"]
     },
     {
       "id": "java",
       "label": "Java",
       "kind": "language",
-      "aliases": [
-        "java"
-      ],
+      "aliases": ["java"],
       "skill": "Java"
     },
     {
       "id": "oop",
       "label": "programação orientada a objetos",
       "kind": "concept",
-      "aliases": [
-        "poo",
-        "oop",
-        "orientacao a objetos",
-        "programacao orientada a objetos"
-      ]
+      "aliases": ["poo", "oop", "orientacao a objetos", "programacao orientada a objetos"]
     },
     {
       "id": "react",
       "label": "React",
       "kind": "framework",
-      "aliases": [
-        "react",
-        "reactjs",
-        "react js"
-      ],
+      "aliases": ["react", "reactjs", "react js"],
       "skill": "React"
     },
     {
       "id": "javascript",
       "label": "JavaScript",
       "kind": "language",
-      "aliases": [
-        "javascript",
-        "js"
-      ],
+      "aliases": ["javascript", "js"],
       "skill": "Node.js/TypeScript"
     },
     {
       "id": "typescript",
       "label": "TypeScript",
       "kind": "language",
-      "aliases": [
-        "typescript",
-        "ts"
-      ],
+      "aliases": ["typescript", "ts"],
       "skill": "Node.js/TypeScript"
     },
     {
       "id": "components",
       "label": "composição e componentes de interface",
       "kind": "concept",
-      "aliases": [
-        "composicao de componentes",
-        "arquitetura de componentes",
-        "componentizacao"
-      ]
+      "aliases": ["composicao de componentes", "arquitetura de componentes", "componentizacao"]
     }
   ],
   "edges": [

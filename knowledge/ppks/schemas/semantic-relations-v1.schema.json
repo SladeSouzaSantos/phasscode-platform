@@ -3,11 +3,7 @@
   "title": "PPKS Semantic Relationships v1.0",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "nodes",
-    "edges"
-  ],
+  "required": ["schemaVersion", "nodes", "edges"],
   "properties": {
     "schemaVersion": {
       "const": "1.0"
@@ -19,12 +15,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "label",
-          "kind",
-          "aliases"
-        ],
+        "required": ["id", "label", "kind", "aliases"],
         "properties": {
           "id": {
             "type": "string",
@@ -36,13 +27,7 @@
             "maxLength": 100
           },
           "kind": {
-            "enum": [
-              "concept",
-              "database",
-              "language",
-              "framework",
-              "platform"
-            ]
+            "enum": ["concept", "database", "language", "framework", "platform"]
           },
           "aliases": {
             "type": "array",
@@ -67,12 +52,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "from",
-          "to",
-          "relation",
-          "description"
-        ],
+        "required": ["from", "to", "relation", "description"],
         "properties": {
           "from": {
             "type": "string",

@@ -15,8 +15,13 @@ const edgeSchema = z.strictObject({
   from: z.string(),
   to: z.string(),
   relation: z.enum([
-    'is_a', 'uses_language', 'offers_service', 'uses_concept',
-    'supports_concept', 'compatible_with', 'transferable_foundation',
+    'is_a',
+    'uses_language',
+    'offers_service',
+    'uses_concept',
+    'supports_concept',
+    'compatible_with',
+    'transferable_foundation',
   ]),
   description: z.string().min(15),
 });
@@ -63,15 +68,18 @@ export class SemanticKnowledgeGraph {
   // Explicit sources only. Relationships are not evidence of professional use.
   private directSources(node: Node, documents: readonly KnowledgeDocument[]): string[] {
     const skill = this.skills.find((item) => item.skill === node.skill);
-    const relevantIds = new Set(skill ? [
-      ...skill.professional, ...skill.projects, ...skill.education, ...skill.courseTracks,
-    ] : []);
+    const relevantIds = new Set(
+      skill
+        ? [...skill.professional, ...skill.projects, ...skill.education, ...skill.courseTracks]
+        : [],
+    );
     return documents
-      .filter((document) =>
-        relevantIds.has(document.id) ||
-        document.technologies?.some((technology) =>
-          knowledgePhrase(technology) === knowledgePhrase(node.label),
-        ),
+      .filter(
+        (document) =>
+          relevantIds.has(document.id) ||
+          document.technologies?.some(
+            (technology) => knowledgePhrase(technology) === knowledgePhrase(node.label),
+          ),
       )
       .map((document) => {
         const scope = skill?.professional.includes(document.id)
@@ -109,9 +117,10 @@ export class SemanticKnowledgeGraph {
     const facts = linked.map((edge) => edge.description);
     const adjacent = new Set(
       this.graph.edges
-        .filter((edge) =>
-          requested.has(edge.to) &&
-          ['is_a', 'uses_language', 'uses_concept'].includes(edge.relation),
+        .filter(
+          (edge) =>
+            requested.has(edge.to) &&
+            ['is_a', 'uses_language', 'uses_concept'].includes(edge.relation),
         )
         .map((edge) => edge.from),
     );
@@ -134,7 +143,10 @@ export class SemanticKnowledgeGraph {
     if (!items.length) return '';
     const description = items.join(' ');
     const bounded = description.length > 740 ? description.slice(0, 736) + '...' : description;
-    return '\nGrafo semântico (relações técnicas, NÃO comprovação de emprego, ' +
-      'uso ou proficiência): ' + bounded;
+    return (
+      '\nGrafo semântico (relações técnicas, NÃO comprovação de emprego, ' +
+      'uso ou proficiência): ' +
+      bounded
+    );
   }
 }
