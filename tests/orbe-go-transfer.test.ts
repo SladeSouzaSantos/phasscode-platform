@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { JsonKnowledgeRepository } from '../apps/orbe-node/src/adapters/knowledge.js';
 import { MemoryConversationStore } from '../apps/orbe-node/src/adapters/memory-store.js';
 import { ChatService } from '../apps/orbe-node/src/application/chat.js';
-import { buildDirectGoExperienceResponse } from '../apps/orbe-node/src/application/go-experience-response.js';
+import {
+  buildDirectGoExperienceResponse,
+} from '../apps/orbe-node/src/application/go-experience-response.js';
 import type { KnowledgeRepository } from '../apps/orbe-node/src/domain/ports.js';
 import { loadConfig } from '../packages/shared-config/src/index.js';
 
@@ -37,7 +39,9 @@ describe('Orbe: Go direct assessment and grounded transferable skills', () => {
       expect(response.answer).toContain('Não há experiência profissional com Go');
       expect(response.answer).toContain('Duas competências documentadas');
       expect(response.answer).toContain('**Backend Java no SIGAA (experiência profissional)**');
-      expect(response.answer).toContain('**APIs em Node.js/TypeScript no PHASSCODE Platform (projeto autoral)**');
+      expect(response.answer).toContain(
+        '**APIs em Node.js/TypeScript no PHASSCODE Platform (projeto autoral)**',
+      );
       expect(response.answer).toContain('transferíveis');
       expect(response.answer).toContain('não comprova domínio dessa linguagem');
       expect(response.answer.match(/^- \*\*/gm)).toHaveLength(2);
@@ -56,10 +60,13 @@ describe('Orbe: Go direct assessment and grounded transferable skills', () => {
     'Compare a experiência com Java e Go para uma candidatura.',
     'Pedro tem experiência profissional com Java e Go?',
     'Monte uma matriz de requisitos: Java, Go, Python e PostgreSQL.',
-  ])('leaves multi-skill or vacancy analysis to the regular recruiter route: %s', async (question) => {
-    const knowledge = await JsonKnowledgeRepository.load();
-    expect(buildDirectGoExperienceResponse(question, knowledge)).toBeUndefined();
-  });
+  ])(
+    'leaves multi-skill or vacancy analysis to the regular recruiter route: %s',
+    async (question) => {
+      const knowledge = await JsonKnowledgeRepository.load();
+      expect(buildDirectGoExperienceResponse(question, knowledge)).toBeUndefined();
+    },
+  );
 
   it('does not deny Go when verified Go evidence is later added to the catalog', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
@@ -85,7 +92,10 @@ describe('Orbe: Go direct assessment and grounded transferable skills', () => {
       getDocument: (id) => (id === 'phasscode-platform' ? undefined : knowledge.getDocument(id)),
     };
     expect(
-      buildDirectGoExperienceResponse('Pedro tem experiência profissional com Golang?', withoutProject),
+      buildDirectGoExperienceResponse(
+        'Pedro tem experiência profissional com Golang?',
+        withoutProject,
+      ),
     ).toBeUndefined();
   });
 
