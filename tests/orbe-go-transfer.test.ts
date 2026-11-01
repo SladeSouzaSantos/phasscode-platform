@@ -36,9 +36,9 @@ describe('Orbe: Go direct assessment and grounded transferable skills', () => {
       expect(response.meta.deterministic).toBe(true);
       expect(response.answer).toContain('Não há experiência profissional com Go');
       expect(response.answer).toContain('Duas competências documentadas');
-      expect(response.answer).toContain('**Backend Java no SIGAA (experiência profissional)**');
+      expect(response.answer).toContain('**Backend Java no SIGAA (experiência profissional):**');
       expect(response.answer).toContain(
-        '**APIs em Node.js/TypeScript no PHASSCODE Platform (projeto autoral)**',
+        '**APIs em Node.js/TypeScript no PHASSCODE Platform (projeto autoral):**',
       );
       expect(response.answer).toContain('transferíveis');
       expect(response.answer).toContain('não comprova domínio dessa linguagem');
