@@ -453,12 +453,21 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
     const graphEvidence = vacancy ? (this.semanticGraph?.evidenceIds(query) ?? []) : [];
 
-    // A vacancy may have any number of independent requirements. Select evidence
-    // for EACH explicitly requested technology before optional graph expansion.
-    // Never let a fixed set of five unrelated records label a proven skill a gap.
-    if (vacancy) {
+    // Keep established small-vacancy curations; large multirequirement vacancies
+    // use requirement-wise coverage without imposing a document-count ceiling.
+    const requirementCount =
+      queryTechnologies.size +
+      Number(/\b(?:git|github|versionamento|ci cd|pipeline|deploy)\b/.test(phrase)) +
+      Number(/\b(?:testes?|qa|qualidade|acessibilidade|playwright)\b/.test(phrase)) +
+      Number(/\b(?:formacao|graduacao|curso superior|tecnologo|diploma)\b/.test(phrase)) +
+      Number(/\b(?:ingles|english|idioma)\b/.test(phrase));
+    if (vacancy && requirementCount >= 7) {
+      // An employer's documented experience is citeable even when the
+      // employer's proprietary code is not a public personal repository.
       const candidates = this.documents.filter(
-        (document) => document.visibility !== 'private' && document.visibility !== 'third-party',
+        (document) =>
+          document.visibility !== 'private' &&
+          (document.type === 'profile' || document.visibility !== 'third-party'),
       );
       const technologies = new Map(
         candidates.map((document) => [
