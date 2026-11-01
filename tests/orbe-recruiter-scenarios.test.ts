@@ -82,10 +82,22 @@ describe('Academia Arcana / base profissional do Orbe DEV', () => {
     ['Qual projeto é o Shadow Sim Pro de simulação?', ['shadow-sim-pro']],
     ['Existe demonstração do Número Secreto no browser?', ['numero-secreto']],
   ])('recrutador recebe fontes pertinentes: %s', async (query, required) => {
-    const { service, generate } = await createService();
-    await service.execute({ message: query });
-    expect(generate).toHaveBeenCalledOnce();
-    const ids = generate.mock.calls[0]![0].documents.map((d) => d.id);
+    const { service, generate, knowledge } = await createService();
+    const response = await service.execute({ message: query });
+    const deterministicCourses = knowledge.academicCourseListing(query);
+    if (deterministicCourses) {
+      // The canonical complete-list route deliberately avoids a model call.
+      expect(generate).not.toHaveBeenCalled();
+      expect(response.meta.deterministic).toBe(true);
+      expect(response.answer).toContain('Clean Code na Prática — Udemy');
+      for (const course of deterministicCourses.courses)
+        expect(response.answer).toContain(course.title);
+    } else {
+      expect(generate).toHaveBeenCalledOnce();
+    }
+    const ids = deterministicCourses
+      ? response.sources.map((source) => source.id)
+      : generate.mock.calls[0]![0].documents.map((d) => d.id);
     for (const id of required) expect(ids).toContain(id);
   });
 
