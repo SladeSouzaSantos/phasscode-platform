@@ -1,6 +1,6 @@
 {
   "version": "orbe-phase2-v3",
-  "description": "PPKS v1.2: seis recrutadores independentes e três cenários acadêmicos, executar live no DEV após deploy manual; avaliação humana obrigatória.",
+  "description": "PPKS v1.3: nove cenários de homologação com regressões de fontes profissionais, projetos e equivalências de redação; revisão humana permanece obrigatória.",
   "cases": [
     {
       "id": "jobgether-pd",
@@ -15,16 +15,23 @@
           "message": "Sou recrutador para Backend Júnior de Pesquisa e Desenvolvimento. Busco POO, bancos SQL/NoSQL, APIs REST, Git, scripts e PoCs, documentação e comparação de desempenho. Quais experiências e projetos de Pedro Santos demonstram esses requisitos? Cite exemplos técnicos, links de evidência e indique claramente o que não foi comprovado.",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": ["hsp-simulator"],
+            "requiredSourceIds": [
+              "hsp-simulator"
+            ],
             "concepts": [
               {
                 "label": "hsp",
-                "anyOf": ["HSP Simulator"],
+                "anyOf": [
+                  "HSP Simulator"
+                ],
                 "missing": "review"
               },
               {
                 "label": "backend",
-                "anyOf": ["API", "Python"],
+                "anyOf": [
+                  "API",
+                  "Python"
+                ],
                 "missing": "review"
               }
             ],
@@ -46,20 +53,32 @@
           "message": "Sou recrutador para Analista Backend Java Júnior. Exigimos Java/C++ ou C#, POO, algoritmos, MySQL, REST APIs, Spring Boot, formação em computação e inglês para leitura. Quais experiências profissionais e projetos de Pedro comprovam aderência? Diferencie o Java profissional do Spring Boot de estudo e diga lacunas reais.",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": ["experiencia-sig"],
+            "requiredSourceIds": [
+              "experiencia-sig",
+              "experiencia-geowellex",
+              "formacao-gestao-ti"
+            ],
             "concepts": [
               {
                 "label": "java",
-                "anyOf": ["Java"],
+                "anyOf": [
+                  "Java"
+                ],
                 "missing": "review"
               },
               {
                 "label": "formacao",
-                "anyOf": ["Gestão da Tecnologia da Informação", "ETEP", "tecnólogo"],
+                "anyOf": [
+                  "Gestão da Tecnologia da Informação",
+                  "ETEP",
+                  "tecnólogo"
+                ],
                 "missing": "review"
               }
             ],
-            "forbiddenTerms": []
+            "forbiddenTerms": [
+              "MySQL profissional não foi verificado"
+            ]
           }
         }
       ]
@@ -77,16 +96,23 @@
           "message": "Sou recrutador para Full Stack Júnior. Precisamos Node.js/TypeScript, Vue ou React, PostgreSQL/SQLite, Redis, Docker, AWS/Kubernetes, CI/CD, Git e REST/GraphQL. Quais projetos mostram experiência prática nas duas camadas? Cite arquitetura, testes, fontes e separe conhecimentos de itens não comprovados.",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": ["phasscode-platform"],
+            "requiredSourceIds": [
+              "phasscode-platform"
+            ],
             "concepts": [
               {
                 "label": "frontend",
-                "anyOf": ["React"],
+                "anyOf": [
+                  "React"
+                ],
                 "missing": "review"
               },
               {
                 "label": "backend",
-                "anyOf": ["Node", "Fastify"],
+                "anyOf": [
+                  "Node",
+                  "Fastify"
+                ],
                 "missing": "review"
               }
             ],
@@ -108,11 +134,20 @@
           "message": "Sou recrutador para Desenvolvimento e DevOps Júnior. Vaga: Java/Python, Linux, Git, Docker, APIs, CI/CD, Terraform/IaC, Camunda 8 e inglês avançado. Descreva projetos verificáveis, deployments e limitações; não confunda Docker/Actions com domínio de Terraform, Camunda ou inglês.",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": ["phasscode-platform"],
+            "requiredSourceIds": [
+              "phasscode-platform"
+            ],
             "concepts": [
               {
                 "label": "limites",
-                "anyOf": ["não comprovado", "não documentado", "não verificado"],
+                "anyOf": [
+                  "não comprovado",
+                  "não documentado",
+                  "não verificado",
+                  "não estão verificados",
+                  "não comprova",
+                  "não foram verificados"
+                ],
                 "missing": "review"
               }
             ],
@@ -134,20 +169,29 @@
           "message": "Sou recrutador para FullStack Júnior com Java ou Node.js, Angular, TypeScript, SQL Server, APIs REST, Swagger/OpenAPI, Docker e CI/CD. Mostre evidências específicas dos projetos e da experiência; destaque Angular e SQL Server como cursos concluídos quando relevantes, não como experiência profissional.",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": ["phasscode-platform"],
+            "requiredSourceIds": [
+              "phasscode-platform"
+            ],
             "concepts": [
               {
                 "label": "angular",
-                "anyOf": ["Angular"],
+                "anyOf": [
+                  "Angular"
+                ],
                 "missing": "review"
               },
               {
                 "label": "backend",
-                "anyOf": ["Node.js", "Node"],
+                "anyOf": [
+                  "Node.js",
+                  "Node"
+                ],
                 "missing": "review"
               }
             ],
-            "forbiddenTerms": []
+            "forbiddenTerms": [
+              "nem de CI/CD na plataforma ou no portfólio"
+            ]
           }
         }
       ]
@@ -165,11 +209,19 @@
           "message": "Sou recrutador para Java Pleno AWS e IA. Preciso Java em microsserviços, EC2/RDS/Lambda/SNS/SQS, mensageria, RAG/agentes/LLMs, testes e experiência financeira. Há evidência concreta em cada frente? Cite projetos reais, o SIGAA e Greencity OS, diferencie estudo de produção e diga lacunas.",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": ["experiencia-sig"],
+            "requiredSourceIds": [
+              "experiencia-sig",
+              "phasscode-platform",
+              "greencity-os"
+            ],
             "concepts": [
               {
                 "label": "ia",
-                "anyOf": ["LLM", "IA", "Greencity OS"],
+                "anyOf": [
+                  "LLM",
+                  "IA",
+                  "Greencity OS"
+                ],
                 "missing": "review"
               }
             ],
@@ -191,16 +243,26 @@
           "message": "A graduação Ciência da Computação da UNISUL já foi concluída? Quais disciplinas importantes foram aprovadas, que atividades de extensão faltam e qual é a previsão indicativa?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": ["formacao-computacao"],
+            "requiredSourceIds": [
+              "formacao-computacao"
+            ],
             "concepts": [
               {
                 "label": "conclusao",
-                "anyOf": ["não concluída", "pendente"],
+                "anyOf": [
+                  "não concluída",
+                  "pendente",
+                  "não está concluído",
+                  "não está concluída"
+                ],
                 "missing": "review"
               },
               {
                 "label": "janela",
-                "anyOf": ["2027", "2028"],
+                "anyOf": [
+                  "2027",
+                  "2028"
+                ],
                 "missing": "review"
               }
             ],
@@ -222,11 +284,15 @@
           "message": "Pedro possui graduação superior concluída em TI? Qual curso, quando concluiu, qual instituição emitiu o diploma e quais disciplinas de POO, banco de dados e testes estudou?",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": ["formacao-gestao-ti"],
+            "requiredSourceIds": [
+              "formacao-gestao-ti"
+            ],
             "concepts": [
               {
                 "label": "emissor",
-                "anyOf": ["ETEP"],
+                "anyOf": [
+                  "ETEP"
+                ],
                 "missing": "review"
               }
             ],
@@ -248,16 +314,24 @@
           "message": "Quais as seis trilhas dos 42 cursos livres concluídos? Destaque Angular, SQL Server e DevSecOps e não trate esses cursos como experiência profissional ou certificação oficial.",
           "expect": {
             "sourcePolicy": "required",
-            "requiredSourceIds": ["cursos-declarados"],
+            "requiredSourceIds": [
+              "cursos-declarados"
+            ],
             "concepts": [
               {
                 "label": "total",
-                "anyOf": ["42"],
+                "anyOf": [
+                  "42"
+                ],
                 "missing": "review"
               },
               {
                 "label": "cursos",
-                "anyOf": ["Angular", "SQL Server", "DevSecOps"],
+                "anyOf": [
+                  "Angular",
+                  "SQL Server",
+                  "DevSecOps"
+                ],
                 "missing": "review"
               }
             ],
