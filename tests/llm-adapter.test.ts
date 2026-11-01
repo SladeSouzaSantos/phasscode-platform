@@ -218,7 +218,8 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
       documents,
       signal: new AbortController().signal,
     });
-    expect(result.sources.map((source) => source.id).sort()).toEqual(['prioritario', 'segundo', 'terceiro']);
+    // Retention makes each document available; citations still depend on answer content.
+    expect(result.sources.map((source) => source.id)).toEqual(['prioritario']);
     expect(messageCharacters(stub.requests[0]!)).toBeLessThanOrEqual(4000);
     const reference = (stub.requests[0]!.messages as { content: string }[])[1]!.content;
     expect(reference).toContain('prioritario');
