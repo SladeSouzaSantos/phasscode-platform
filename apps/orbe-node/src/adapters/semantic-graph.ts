@@ -63,18 +63,22 @@ export class SemanticKnowledgeGraph {
   // Explicit sources only. Relationships are not evidence of professional use.
   private directSources(node: Node, documents: readonly KnowledgeDocument[]): string[] {
     const skill = this.skills.find((item) => item.skill === node.skill);
-    if (!skill) return [];
-    const relevantIds = new Set([
+    const relevantIds = new Set(skill ? [
       ...skill.professional, ...skill.projects, ...skill.education, ...skill.courseTracks,
-    ]);
+    ] : []);
     return documents
-      .filter((document) => relevantIds.has(document.id))
+      .filter((document) =>
+        relevantIds.has(document.id) ||
+        document.technologies?.some((technology) =>
+          knowledgePhrase(technology) === knowledgePhrase(node.label),
+        ),
+      )
       .map((document) => {
-        const scope = skill.professional.includes(document.id)
+        const scope = skill?.professional.includes(document.id)
           ? 'experiência profissional declarada'
-          : skill.projects.includes(document.id)
+          : skill?.projects.includes(document.id)
             ? 'projeto'
-            : skill.education.includes(document.id)
+            : skill?.education.includes(document.id)
               ? 'formação'
               : 'curso';
         return document.id + ' (' + scope + ')';
@@ -100,7 +104,19 @@ export class SemanticKnowledgeGraph {
       )
       .slice(0, 3);
     const facts = linked.map((edge) => edge.description);
-    const sourceFacts = matched
+    const adjacent = new Set(
+      this.graph.edges
+        .filter((edge) =>
+          requested.has(edge.to) &&
+          ['is_a', 'uses_language', 'uses_concept'].includes(edge.relation),
+        )
+        .map((edge) => edge.from),
+    );
+    const citedNodes = [
+      ...matched,
+      ...this.graph.nodes.filter((node) => adjacent.has(node.id) && !requested.has(node.id)),
+    ];
+    const sourceFacts = citedNodes
       .flatMap((node) => {
         const sources = this.directSources(node, documents);
         return sources.length ? [node.label + ': ' + sources.join(', ')] : [];
