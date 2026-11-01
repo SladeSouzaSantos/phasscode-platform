@@ -1,4 +1,5 @@
 import type { KnowledgeDocument } from '../domain/ports.js';
+import { mentionedTechnologies } from '../knowledge-matching.js';
 
 /**
  * Every supplied source retains a minimum core before longer sources get
@@ -18,13 +19,29 @@ export interface EvidencePacket {
 export function buildEvidencePacket(
   documents: readonly KnowledgeDocument[],
   totalContentChars: number,
+  requestedTechnologies: ReadonlySet<string> = new Set<string>(),
 ): EvidencePacket | null {
   if (!Number.isFinite(totalContentChars) || totalContentChars < 0) return null;
   if (!documents.length) return { documents: [], originalChars: 0, retainedChars: 0 };
 
   const budget = Math.floor(totalContentChars);
-  const minimum = documents.map((document) =>
-    Math.min(document.content.length, MIN_SOURCE_CONTENT),
+  // Put every requested technology already verified in source metadata first.
+  // No fixed requirement count: the protected signature grows with the query,
+  // and a genuinely insufficient budget is rejected rather than silently lost.
+  const signatures = documents.map((document) =>
+    document.technologies
+      ?.filter((label) =>
+        [...mentionedTechnologies(label)].some((technology) =>
+          requestedTechnologies.has(technology),
+        ),
+      )
+      .join(', ') ?? '',
+  );
+  const minimum = documents.map((document, index) =>
+    Math.min(
+      document.content.length,
+      Math.max(MIN_SOURCE_CONTENT, signatures[index]!.length ? signatures[index]!.length + 9 : 0),
+    ),
   );
   if (minimum.reduce((sum, n) => sum + n, 0) > budget) return null;
 
@@ -57,7 +74,7 @@ export function buildEvidencePacket(
     // Under severe pressure, a factual stack signature carries more useful
     // evidence than an arbitrary prefix of the prose description. Preserve
     // exact technologies from the curated source; never infer new technologies.
-    const stack = document.technologies?.slice(0, 8).join(', ') ?? '';
+    const stack = signatures[index] || document.technologies?.slice(0, 8).join(', ') || '';
     const content =
       limit < 180 && stack && document.content.length > limit
         ? ('Stack: ' + stack + '. ' + document.content).slice(0, limit)
