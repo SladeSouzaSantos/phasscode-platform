@@ -7,6 +7,7 @@ import {
 import type { Config } from '../../../../packages/shared-config/src/index.js';
 import type {
   ChatProvider,
+  GenerationResult,
   ConversationStore,
   KnowledgeRepository,
   Message,
@@ -158,7 +159,7 @@ export class ChatService {
         const verifiedAcademic = academicListing
           ? buildCompleteAcademicResponse(query, academicListing, retrieved)
           : undefined;
-        let result;
+        let result: GenerationResult;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
         else if (isSimpleTest(request.message)) result = { answer: simpleTestAnswer, sources: [] };
