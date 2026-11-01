@@ -465,12 +465,27 @@ export function auditRecruiterMatrix(
     { id: 'web-portfolio-v2', name: /\bweb-portfolio-v2\b/i },
     { id: 'hsp-simulator', name: /\bHSP Simulator\b/i },
   ];
-  const explicitStacks = ['mysql', 'firebase', 'flutter', 'postgresql', 'redis', 'react',
-    'typescript', 'python', 'java', 'fastapi', 'node', 'docker', 'git'];
+  const explicitStacks = [
+    'mysql',
+    'firebase',
+    'flutter',
+    'postgresql',
+    'redis',
+    'react',
+    'typescript',
+    'python',
+    'java',
+    'fastapi',
+    'node',
+    'docker',
+    'git',
+  ];
   const has = (document: KnowledgeDocument, technology: string): boolean => {
     const available = mentionedTechnologies(document.technologies?.join(' ') ?? '');
-    return available.has(technology) ||
-      (technology === 'sql' && (available.has('mysql') || available.has('postgresql')));
+    return (
+      available.has(technology) ||
+      (technology === 'sql' && (available.has('mysql') || available.has('postgresql')))
+    );
   };
   const sourceFor = (technology: string) => {
     const matched = documents.filter((document) => has(document, technology));
@@ -478,55 +493,79 @@ export function auditRecruiterMatrix(
     // source code is never linked as if it were publicly accessible.
     return matched.sort((a, b) => {
       const priority = (document: KnowledgeDocument) =>
-        document.category === 'professional' ? 3 : document.category === 'personal' ? 2 :
-          document.category === 'study' ? 1 : 0;
+        document.category === 'professional'
+          ? 3
+          : document.category === 'personal'
+            ? 2
+            : document.category === 'study'
+              ? 1
+              : 0;
       return priority(b) - priority(a);
     });
   };
-  return answer.split('\n').map((line) => {
-    if (!line.trim().startsWith('|')) {
-      // The LLM must not invent percentages or totals that were never
-      // computed by the application. Keep the line-oriented evidence matrix.
-      if (/\b(?:possui|atende|comprova|cobre)\b[^\n]{0,95}\b\d+\s*(?:\/|dos?|de)\s*\d+\b[^\n]{0,90}\brequisit/i.test(knowledgePhrase(line)) ||
-        /\brequisitos sem comprovacao\b[^\n]*\bnenhum\b/i.test(knowledgePhrase(line)))
-        return 'A aderência deve ser avaliada por requisito na matriz; não foi calculado um total de requisitos atendidos.';
-      return line;
-    }
-    const cells = line.split('|');
-    if (cells.length < 5) return line;
-    const requirement = mentionedTechnologies(cells[1] ?? '');
-    const requested = [...requirement].find((key) => key !== 'sql' || !requirement.has('sql-server'));
-    if (!requested) return line;
-    const origin = cells[3] ?? '';
-    const mentionedProject = knownProjects.filter((project) => project.name.test(origin));
-    const invalid = mentionedProject.some(({ id }) => {
-      const document = documents.find((candidate) => candidate.id === id);
-      if (!document) return false;
-      if (!has(document, requested)) return true;
-      // A SQL row can legitimately say PostgreSQL. It cannot also attribute
-      // MySQL to a project that only documents PostgreSQL.
-      const claimedStack = mentionedTechnologies(origin);
-      return explicitStacks.some((technology) =>
-        claimedStack.has(technology) && !has(document, technology) &&
-        // Ignore a second project's role when explicitly separated by a
-        // semicolon or a distinct employment/project entry.
-        !/\b(?:nao|não|sem|ausencia|ausência)\b/i.test(origin),
+  return answer
+    .split('\n')
+    .map((line) => {
+      if (!line.trim().startsWith('|')) {
+        // The LLM must not invent percentages or totals that were never
+        // computed by the application. Keep the line-oriented evidence matrix.
+        if (
+          /\b(?:possui|atende|comprova|cobre)\b[^\n]{0,95}\b\d+\s*(?:\/|dos?|de)\s*\d+\b[^\n]{0,90}\brequisit/i.test(
+            knowledgePhrase(line),
+          ) ||
+          /\brequisitos sem comprovacao\b[^\n]*\bnenhum\b/i.test(knowledgePhrase(line))
+        )
+          return 'A aderência deve ser avaliada por requisito na matriz; não foi calculado um total de requisitos atendidos.';
+        return line;
+      }
+      const cells = line.split('|');
+      if (cells.length < 5) return line;
+      const requirement = mentionedTechnologies(cells[1] ?? '');
+      const requested = [...requirement].find(
+        (key) => key !== 'sql' || !requirement.has('sql-server'),
       );
-    });
-    if (!invalid) return line;
-    const candidates = sourceFor(requested);
-    if (candidates.length === 0) {
-      cells[2] = ' Evidência insuficiente ';
-      cells[3] = ' Associação ao projeto não comprovada ';
-      cells[4] = ' — ';
+      if (!requested) return line;
+      const origin = cells[3] ?? '';
+      const mentionedProject = knownProjects.filter((project) => project.name.test(origin));
+      const invalid = mentionedProject.some(({ id }) => {
+        const document = documents.find((candidate) => candidate.id === id);
+        if (!document) return false;
+        if (!has(document, requested)) return true;
+        // A SQL row can legitimately say PostgreSQL. It cannot also attribute
+        // MySQL to a project that only documents PostgreSQL.
+        const claimedStack = mentionedTechnologies(origin);
+        return explicitStacks.some(
+          (technology) =>
+            claimedStack.has(technology) &&
+            !has(document, technology) &&
+            // Ignore a second project's role when explicitly separated by a
+            // semicolon or a distinct employment/project entry.
+            !/\b(?:nao|não|sem|ausencia|ausência)\b/i.test(origin),
+        );
+      });
+      if (!invalid) return line;
+      const candidates = sourceFor(requested);
+      if (candidates.length === 0) {
+        cells[2] = ' Evidência insuficiente ';
+        cells[3] = ' Associação ao projeto não comprovada ';
+        cells[4] = ' — ';
+        return cells.join('|');
+      }
+      const chosen = requested === 'sql' ? candidates.slice(0, 2) : candidates.slice(0, 1);
+      cells[2] = chosen.some((d) => d.category === 'professional')
+        ? ' Emprego ou projeto profissional '
+        : chosen[0]!.category === 'study'
+          ? ' Estudo '
+          : ' Projeto autoral ';
+      cells[3] = ' ' + chosen.map((d) => d.title).join('; ') + ' ';
+      cells[4] =
+        ' ' +
+        chosen
+          .map((d) => documentSource(d).url)
+          .filter(Boolean)
+          .join(' ; ') +
+        ' ';
       return cells.join('|');
-    }
-    const chosen = requested === 'sql' ? candidates.slice(0, 2) : candidates.slice(0, 1);
-    cells[2] = chosen.some((d) => d.category === 'professional')
-      ? ' Emprego ou projeto profissional '
-      : chosen[0]!.category === 'study' ? ' Estudo ' : ' Projeto autoral ';
-    cells[3] = ' ' + chosen.map((d) => d.title).join('; ') + ' ';
-    cells[4] = ' ' + chosen.map((d) => documentSource(d).url).filter(Boolean).join(' ; ') + ' ';
-    return cells.join('|');
-  }).join('\n');
+    })
+    .join('\n');
 }

@@ -7,7 +7,10 @@ import {
   loadPpksExperienceCards,
   enrichExperienceDocument,
 } from '../apps/orbe-node/src/adapters/ppks.js';
-import { loadAcademicEvidence, enrichAcademicDocument } from '../apps/orbe-node/src/adapters/academic.js';
+import {
+  loadAcademicEvidence,
+  enrichAcademicDocument,
+} from '../apps/orbe-node/src/adapters/academic.js';
 import {
   reconcileDocumentedClaims,
   selectSources,

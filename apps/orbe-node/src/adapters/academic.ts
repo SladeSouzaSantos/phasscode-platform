@@ -39,12 +39,14 @@ const courseSchema = z.object({
 });
 const tracksSchema = z.object({
   schemaVersion: z.literal('1.1'),
-  tracks: z.array(z.object({
-    id: z.string().min(1),
-    name: z.string().min(1),
-    focus: z.string().min(1),
-    courses: z.array(courseSchema),
-  })),
+  tracks: z.array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      focus: z.string().min(1),
+      courses: z.array(courseSchema),
+    }),
+  ),
 });
 type Course = z.infer<typeof courseSchema>;
 type Track = z.infer<typeof tracksSchema>['tracks'][number];
@@ -118,20 +120,24 @@ export function enrichAcademicDocument(
       const labels = course.skills.map(knowledgePhrase);
       if (requestedSqlServer && labels.includes('sql server')) return true;
       if (requestedSqlServer && !explicitGenericSql && labels.includes('sql')) return false;
-      return labels.some((label) => {
-        if (label === 'sql') return requested.has('sql');
-        if (!label) return false;
-        return normalized.includes(label);
-      }) || (normalized.includes(knowledgePhrase(course.title)) &&
-        knowledgePhrase(course.title).length > 8);
+      return (
+        labels.some((label) => {
+          if (label === 'sql') return requested.has('sql');
+          if (!label) return false;
+          return normalized.includes(label);
+        }) ||
+        (normalized.includes(knowledgePhrase(course.title)) &&
+          knowledgePhrase(course.title).length > 8)
+      );
     };
     const matched = track.courses.filter(matchCourse);
     if (matched.length) {
       // Emit complete, individually attributable records. Never cut a course
       // title in half or equate a private proof with a public certificate.
       const heading = `Cursos da trilha ${track.name}: ${matched.length} correspondência(s) exata(s); estudo livre, não emprego. Evidência declarada pelo titular, comprovante não necessariamente público.`;
-      const lines = matched.map((course) =>
-        `Curso [${course.id}]: ${course.title} — ${course.provider}; status ${course.status}; comprovação ${course.verification}; competências ${course.skills.join(', ')}.`,
+      const lines = matched.map(
+        (course) =>
+          `Curso [${course.id}]: ${course.title} — ${course.provider}; status ${course.status}; comprovação ${course.verification}; competências ${course.skills.join(', ')}.`,
       );
       const selected = [heading];
       for (const line of lines) {

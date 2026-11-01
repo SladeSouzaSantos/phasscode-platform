@@ -8,7 +8,10 @@ import { MemoryConversationStore } from '../apps/orbe-node/src/adapters/memory-s
 import { JsonKnowledgeRepository } from '../apps/orbe-node/src/adapters/knowledge.js';
 import type { GenerationInput, KnowledgeDocument } from '../apps/orbe-node/src/domain/ports.js';
 import { loadConfig } from '../packages/shared-config/src/index.js';
-import { auditRecruiterMatrix, reconcileDocumentedClaims } from '../apps/orbe-node/src/application/sources.js';
+import {
+  auditRecruiterMatrix,
+  reconcileDocumentedClaims,
+} from '../apps/orbe-node/src/application/sources.js';
 import { mentionedTechnologies } from '../apps/orbe-node/src/knowledge-matching.js';
 
 const doc = (id: string, content: string): KnowledgeDocument => ({
@@ -41,7 +44,8 @@ describe('Orbe recruiter claims audit: source-scoped technology matrix', () => {
       'Requisitos sem comprovação pública identificados: nenhum dos 29.',
     ].join('\n');
     const audited = auditRecruiterMatrix(draft, documents);
-    const row = (name: string) => audited.split('\n').find((line) => line.startsWith('| ' + name + ' |'))!;
+    const row = (name: string) =>
+      audited.split('\n').find((line) => line.startsWith('| ' + name + ' |'))!;
     expect(row('MySQL')).toContain('Geowellex');
     expect(row('Flutter')).toContain('SDGP');
     expect(row('Firebase')).toContain('SDGP');
@@ -62,7 +66,9 @@ describe('Orbe recruiter claims audit: source-scoped technology matrix', () => {
       '| Redis | Projeto autoral | PHASSCODE Platform | https://github.com/SladeSouzaSantos/phasscode-platform |',
     ].join('\n');
     const audited = auditRecruiterMatrix(answer, [platform]);
-    expect(audited).toContain('| Firebase | Evidência insuficiente | Associação ao projeto não comprovada | — |');
+    expect(audited).toContain(
+      '| Firebase | Evidência insuficiente | Associação ao projeto não comprovada | — |',
+    );
     expect(audited).toContain('| Redis | Projeto autoral | PHASSCODE Platform');
     expect(auditRecruiterMatrix('Um resumo livre de portfólio.', [platform])).toBe(
       'Um resumo livre de portfólio.',
