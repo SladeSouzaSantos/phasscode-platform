@@ -99,6 +99,56 @@ export class SemanticKnowledgeGraph {
   }
 
   /**
+   * Propose PPKS source IDs for direct requirements and one-hop shared
+   * concepts. This is retrieval planning only, never a claim of employment
+   * or proof that the person has used a related technology.
+   */
+  evidenceIds(query: string): string[] {
+    const phrase = ' ' + knowledgePhrase(query) + ' ';
+    const matched = this.matches(query)
+      .map((node) => ({
+        node,
+        position: [node.label, ...node.aliases]
+          .map((alias) => phrase.indexOf(' ' + knowledgePhrase(alias) + ' '))
+          .filter((position) => position >= 0)
+          .sort((a, b) => a - b)[0] ?? phrase.length,
+      }))
+      .sort((a, b) => a.position - b.position);
+    if (!matched.length) return [];
+
+    const scores = new Map<string, number>();
+    const add = (node: Node, weight: number) => {
+      const skill = this.skills.find((entry) => entry.skill === node.skill);
+      if (!skill) return;
+      for (const id of skill.professional)
+        scores.set(id, (scores.get(id) ?? 0) + weight + 20);
+      for (const id of skill.projects)
+        scores.set(id, (scores.get(id) ?? 0) + weight + 18);
+      for (const id of skill.education)
+        scores.set(id, (scores.get(id) ?? 0) + weight + 6);
+      for (const id of skill.courseTracks)
+        scores.set(id, (scores.get(id) ?? 0) + weight + 4);
+    };
+    const indexedById = new Map(this.graph.nodes.map((node) => [node.id, node]));
+    for (const [index, { node }] of matched.entries()) {
+      add(node, 90 - Math.min(index, 8) * 5);
+      // SQL -> MySQL/PostgreSQL, NoSQL -> Redis, POO -> Java;
+      // reverse discovery only through semantically safe concept edges.
+      for (const edge of this.graph.edges) {
+        if (
+          edge.to !== node.id ||
+          !['is_a', 'uses_language', 'uses_concept'].includes(edge.relation)
+        ) continue;
+        const child = indexedById.get(edge.from);
+        if (child) add(child, 18);
+      }
+    }
+    return [...scores]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([id]) => id);
+  }
+
+  /**
    * Only documents surviving context compaction may substantiate a personal claim.
    * Taxonomic links never establish implementation, employment or mastery.
    */
