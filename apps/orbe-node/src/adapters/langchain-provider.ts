@@ -371,7 +371,7 @@ export class LangChainChatProvider implements ChatProvider {
                 .filter((part) => part.type === 'text')
                 .map((part) => ('text' in part ? String(part.text) : ''))
                 .join('\n');
-        if (!answer.trim() || answer.length > 8000)
+        if (!answer.trim())
           throw new AppError(
             'LLM_INVALID_RESPONSE',
             502,
