@@ -42,6 +42,8 @@ export interface GenerationInput {
   meetingActions?: boolean;
   asOf?: Date;
   experienceIds?: string[];
+  /** Random per-turn trace identifier, never a visitor or conversation token. */
+  evidenceTraceId?: string;
 }
 export interface GenerationResult {
   answer: string;
