@@ -80,7 +80,10 @@ function supports(document: KnowledgeDocument, requirement: Requirement): boolea
   if (requirement.key === 'ingles' || requirement.key === 'english')
     return document.id === 'idiomas-declarados';
   if (requirement.key === 'graduacao') return document.id === 'formacao-gestao-ti';
-  const technology = requirement.key.replaceAll(' ', '-');
+  // The index normalizes Node.js to `node`, not `node-js`. CI/CD is
+  // a distinct workflow capability and requires explicit source metadata.
+  const technology =
+    requirement.key === 'node js' ? 'node' : requirement.key.replaceAll(' ', '-');
   const available = mentionedTechnologies(document.technologies?.join(' ') ?? '');
   if (technology === 'sql')
     return (
