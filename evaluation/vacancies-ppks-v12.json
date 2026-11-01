@@ -28,7 +28,7 @@
                 "missing": "review"
               }
             ],
-            "forbiddenTerms": []
+            "forbiddenTerms": ["Git, versionamento específico e contribuições públicas de código"]
           }
         }
       ]
@@ -59,7 +59,7 @@
                 "missing": "review"
               }
             ],
-            "forbiddenTerms": ["MySQL profissional não foi verificado"]
+            "forbiddenTerms": ["MySQL profissional não foi verificado", "não verifiquei MySQL"]
           }
         }
       ]
@@ -118,12 +118,13 @@
                   "não verificado",
                   "não estão verificados",
                   "não comprova",
-                  "não foram verificados"
+                  "não foram verificados",
+                  "não verifiquei"
                 ],
                 "missing": "review"
               }
             ],
-            "forbiddenTerms": []
+            "forbiddenTerms": ["não verifiquei Java em produção nem experiência profissional"]
           }
         }
       ]
@@ -154,7 +155,10 @@
                 "missing": "review"
               }
             ],
-            "forbiddenTerms": ["nem de CI/CD na plataforma ou no portfólio"]
+            "forbiddenTerms": [
+              "nem de CI/CD na plataforma ou no portfólio",
+              "19 meses de vínculo exclusivamente no desenvolvimento de software"
+            ]
           }
         }
       ]
@@ -202,7 +206,7 @@
             "concepts": [
               {
                 "label": "conclusao",
-                "anyOf": ["não concluída", "pendente", "não está concluído", "não está concluída"],
+                "anyOf": ["não concluída", "pendente", "não está concluído", "não está concluída", "não foi concluída"],
                 "missing": "review"
               },
               {
