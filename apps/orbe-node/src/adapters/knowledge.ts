@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { sourceSchema } from '../../../../packages/contracts/src/index.js';
-import type { KnowledgeDocument, KnowledgeRepository } from '../domain/ports.js';
+import type { AcademicCourseListing, KnowledgeDocument, KnowledgeRepository } from '../domain/ports.js';
 import {
   enrichProjectDocument,
   enrichExperienceDocument,
@@ -10,7 +10,7 @@ import {
   type TechnicalCard,
   type ExperienceCard,
 } from './ppks.js';
-import { enrichAcademicDocument, loadAcademicEvidence, type AcademicEvidence } from './academic.js';
+import { enrichAcademicDocument, loadAcademicEvidence, requestedCompleteJavaCourses, type AcademicEvidence } from './academic.js';
 import { SemanticKnowledgeGraph } from './semantic-graph.js';
 import {
   knowledgePhrase,
@@ -138,6 +138,8 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
     const evidenceSize = enriched.reduce((total, document) => total + document.content.length, 0);
     if (!isCareerOverview(query) || enriched.length < 4 || evidenceSize <= 8000) return enriched;
     return enriched.map((document) => {
+      // A course list is atomic: a prefix/tail summary would silently discard titles.
+      if (requestedCompleteJavaCourses(query, this.academic)?.trackId === document.id) return document;
       if (document.content.length <= 850) return document;
       const base = document.content.slice(0, 550);
       const finalEvidence = document.content.slice(-270);
@@ -171,6 +173,9 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
   experienceDocuments(): KnowledgeDocument[] {
     return this.documents.filter((document) => document.experiencePeriod !== undefined);
   }
+  academicCourseListing(query: string): AcademicCourseListing | undefined {
+    return requestedCompleteJavaCourses(query, this.academic);
+  }
   getDocument(id: string): KnowledgeDocument | undefined {
     return this.documents.find((document) => document.id === id);
   }
@@ -183,6 +188,28 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         knowledgePhrase(query),
       );
     const courseIntent = /\b(?:cursos?|capacitac\w*|treinament\w*)\b/.test(queryPhrase);
+    // A question may request employment, completed Java courses AND ongoing
+    // studies at once. Keep each distinct source before lexical ranking.
+    const completeJava = requestedCompleteJavaCourses(query, this.academic);
+    if (completeJava) {
+      const mention = (pattern: RegExp) => pattern.test(queryPhrase);
+      const work = mention(/\b(?:experienc\w*|profission\w*|trabalh\w*|empreg\w*|vincul\w*)\b/);
+      const project = mention(/\b(?:projet\w*|webservice|spring boot|jpa)\b/);
+      const postgraduate = mention(/\b(?:pos graduacao|pos|unipds|andamento|java applied engineering)\b/);
+      const graduation = mention(/\b(?:graduacao|tecnologo|diploma)\b/) && !postgraduate;
+      const ids = [
+        ...(work ? ['experiencia-acrux', 'experiencia-sig'] : []),
+        ...(project ? ['webservice-springboot-jpa'] : []),
+        completeJava.trackId,
+        ...(postgraduate ? ['formacao-unipds-java'] : []),
+        ...(graduation ? ['formacao-gestao-ti'] : []),
+      ];
+      return this.select(
+        ids.flatMap((id) => this.documents.filter((document) => document.id === id)),
+        query,
+      );
+    }
+
     // An explicit request for the complete catalog needs the six study tracks,
     // not five ranked snippets that silently omit a track.
     const completeCourseCatalog =
