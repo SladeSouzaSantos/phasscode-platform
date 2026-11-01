@@ -289,7 +289,7 @@ export function reconcileDocumentedClaims(
       const normalized = knowledgePhrase(sentence);
       // "No commercial React project verified" may be true: personal
       // projects do not imply employment or corporate deliveries.
-      if (/\bcomercial\b/.test(normalized) && !/\b(?:autoral|pessoal)\b/.test(normalized))
+      if (/\bcomercia\w*\b/.test(normalized) && !/\b(?:autoral|pessoal)\b/.test(normalized))
         return sentence;
       return 'O projeto autoral PHASSCODE (web-portfolio-v2) documenta frontend com React e TypeScript; isso não comprova vínculo empregatício específico com React.';
     });
