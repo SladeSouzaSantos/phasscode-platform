@@ -1,0 +1,241 @@
+{
+  "schemaVersion": "1.0",
+  "nodes": [
+    {
+      "id": "sql",
+      "label": "SQL",
+      "kind": "concept",
+      "aliases": [
+        "structured query language",
+        "linguagem sql"
+      ]
+    },
+    {
+      "id": "relational",
+      "label": "bancos de dados relacionais",
+      "kind": "concept",
+      "aliases": [
+        "bancos relacionais",
+        "banco relacional",
+        "rdbms"
+      ]
+    },
+    {
+      "id": "mysql",
+      "label": "MySQL",
+      "kind": "database",
+      "aliases": [
+        "mysql"
+      ],
+      "skill": "MySQL"
+    },
+    {
+      "id": "postgresql",
+      "label": "PostgreSQL",
+      "kind": "database",
+      "aliases": [
+        "postgresql",
+        "postgres"
+      ],
+      "skill": "PostgreSQL"
+    },
+    {
+      "id": "nosql",
+      "label": "NoSQL",
+      "kind": "concept",
+      "aliases": [
+        "bancos nosql",
+        "banco nosql",
+        "non relational databases"
+      ]
+    },
+    {
+      "id": "redis",
+      "label": "Redis",
+      "kind": "database",
+      "aliases": [
+        "redis"
+      ],
+      "skill": "Docker/CI-CD"
+    },
+    {
+      "id": "firestore",
+      "label": "Cloud Firestore",
+      "kind": "database",
+      "aliases": [
+        "cloud firestore",
+        "firestore"
+      ]
+    },
+    {
+      "id": "realtime-db",
+      "label": "Firebase Realtime Database",
+      "kind": "database",
+      "aliases": [
+        "realtime database",
+        "firebase realtime database"
+      ]
+    },
+    {
+      "id": "firebase",
+      "label": "Firebase",
+      "kind": "platform",
+      "aliases": [
+        "firebase"
+      ]
+    },
+    {
+      "id": "java",
+      "label": "Java",
+      "kind": "language",
+      "aliases": [
+        "java"
+      ],
+      "skill": "Java"
+    },
+    {
+      "id": "oop",
+      "label": "programação orientada a objetos",
+      "kind": "concept",
+      "aliases": [
+        "poo",
+        "oop",
+        "orientacao a objetos",
+        "programacao orientada a objetos"
+      ]
+    },
+    {
+      "id": "react",
+      "label": "React",
+      "kind": "framework",
+      "aliases": [
+        "react",
+        "reactjs",
+        "react js"
+      ],
+      "skill": "React"
+    },
+    {
+      "id": "javascript",
+      "label": "JavaScript",
+      "kind": "language",
+      "aliases": [
+        "javascript",
+        "js"
+      ],
+      "skill": "Node.js/TypeScript"
+    },
+    {
+      "id": "typescript",
+      "label": "TypeScript",
+      "kind": "language",
+      "aliases": [
+        "typescript",
+        "ts"
+      ],
+      "skill": "Node.js/TypeScript"
+    },
+    {
+      "id": "components",
+      "label": "composição e componentes de interface",
+      "kind": "concept",
+      "aliases": [
+        "composicao de componentes",
+        "arquitetura de componentes",
+        "componentizacao"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "mysql",
+      "to": "sql",
+      "relation": "uses_language",
+      "description": "MySQL permite consultas SQL; conhecer SQL facilita a adaptação, mas não comprova experiência com MySQL."
+    },
+    {
+      "from": "postgresql",
+      "to": "sql",
+      "relation": "uses_language",
+      "description": "PostgreSQL usa SQL e possui recursos e extensões próprias; experiência em SQL não significa domínio automático de PostgreSQL."
+    },
+    {
+      "from": "mysql",
+      "to": "relational",
+      "relation": "is_a",
+      "description": "MySQL é um sistema gerenciador de banco de dados relacional."
+    },
+    {
+      "from": "postgresql",
+      "to": "relational",
+      "relation": "is_a",
+      "description": "PostgreSQL é um sistema gerenciador de banco de dados relacional."
+    },
+    {
+      "from": "redis",
+      "to": "nosql",
+      "relation": "is_a",
+      "description": "Redis oferece estruturas de dados chave-valor; sua utilização não comprova domínio de todos os bancos NoSQL."
+    },
+    {
+      "from": "firestore",
+      "to": "nosql",
+      "relation": "is_a",
+      "description": "Cloud Firestore é um banco NoSQL de documentos."
+    },
+    {
+      "from": "realtime-db",
+      "to": "nosql",
+      "relation": "is_a",
+      "description": "Firebase Realtime Database é um banco NoSQL em formato JSON."
+    },
+    {
+      "from": "firebase",
+      "to": "firestore",
+      "relation": "offers_service",
+      "description": "Firebase disponibiliza Cloud Firestore, mas usar Firebase não comprova utilização de Firestore."
+    },
+    {
+      "from": "firebase",
+      "to": "realtime-db",
+      "relation": "offers_service",
+      "description": "Firebase disponibiliza Realtime Database, mas usar Firebase não comprova utilização desse serviço."
+    },
+    {
+      "from": "java",
+      "to": "oop",
+      "relation": "uses_concept",
+      "description": "Java suporta programação orientada a objetos, como encapsulamento e abstrações."
+    },
+    {
+      "from": "javascript",
+      "to": "oop",
+      "relation": "supports_concept",
+      "description": "JavaScript admite orientação a objetos, mas também outros paradigmas."
+    },
+    {
+      "from": "react",
+      "to": "javascript",
+      "relation": "uses_language",
+      "description": "React utiliza JavaScript e pode ser empregado com TypeScript."
+    },
+    {
+      "from": "react",
+      "to": "typescript",
+      "relation": "compatible_with",
+      "description": "React pode ser usado com TypeScript; a biblioteca não exige TypeScript."
+    },
+    {
+      "from": "react",
+      "to": "components",
+      "relation": "uses_concept",
+      "description": "React moderno privilegia componentes funcionais, composição e Hooks; não exige programação orientada a objetos clássica."
+    },
+    {
+      "from": "java",
+      "to": "react",
+      "relation": "transferable_foundation",
+      "description": "Experiência em Java e POO pode contribuir parcialmente com abstração, encapsulamento e organização do código, mas não substitui prática de JavaScript/TypeScript, React, JSX, Hooks e estado."
+    }
+  ]
+}
