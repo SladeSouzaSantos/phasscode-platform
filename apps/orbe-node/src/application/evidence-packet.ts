@@ -5,7 +5,7 @@ import type { KnowledgeDocument } from '../domain/ports.js';
  * additional space. Never silently drop a source because it is at the tail
  * of the retrieval ranking. The provider must reject an undersized budget.
  */
-export const MIN_SOURCE_CONTENT = 96;
+export const MIN_SOURCE_CONTENT = 32;
 export const CORE_SOURCE_CONTENT = 220;
 
 export interface EvidencePacket {
