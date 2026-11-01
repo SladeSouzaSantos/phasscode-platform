@@ -429,7 +429,7 @@ describe('runner sequencial sem serviços externos', () => {
     },
   );
 
-  it('não confunde um HTTP 503 desconhecido com cooldown comprovado', async () => {
+  it('interrompe HTTP 503 desconhecido sem classificá-lo como cooldown comprovado', async () => {
     const transport = vi.fn<typeof fetch>().mockResolvedValue(
       Response.json(
         { error: { code: 'OTHER_OUTAGE', message: 'opaque', correlationId: 'trace' } },
@@ -437,8 +437,8 @@ describe('runner sequencial sem serviços externos', () => {
       ),
     );
     const report = await runEvaluation(matrix(), [source], options, transport);
-    expect(report.cases[0]?.turns[0]?.status).toBe('fail');
-    expect(report.summary.stoppedEarly).toBe(false);
+    expect(report.cases[0]?.turns[0]?.status).toBe('review');
+    expect(report.summary.stoppedEarly).toBe(true);
     expect(report.cases[0]?.turns[0]?.errorCode).toBeUndefined();
   });
 
