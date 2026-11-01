@@ -8218,8 +8218,7 @@
                     },
                     "answer": {
                       "type": "string",
-                      "minLength": 1,
-                      "maxLength": 8000
+                      "minLength": 1
                     },
                     "sources": {
                       "maxItems": 10,
@@ -8369,6 +8368,9 @@
                         },
                         "promptVersion": {
                           "type": "string"
+                        },
+                        "deterministic": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
