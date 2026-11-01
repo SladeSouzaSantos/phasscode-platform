@@ -2,9 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { JsonKnowledgeRepository } from '../apps/orbe-node/src/adapters/knowledge.js';
 import { MemoryConversationStore } from '../apps/orbe-node/src/adapters/memory-store.js';
 import { ChatService } from '../apps/orbe-node/src/application/chat.js';
-import {
-  buildDirectGoExperienceResponse,
-} from '../apps/orbe-node/src/application/go-experience-response.js';
+import { buildDirectGoExperienceResponse } from '../apps/orbe-node/src/application/go-experience-response.js';
 import type { KnowledgeRepository } from '../apps/orbe-node/src/domain/ports.js';
 import { loadConfig } from '../packages/shared-config/src/index.js';
 
