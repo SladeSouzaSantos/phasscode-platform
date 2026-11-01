@@ -36,6 +36,7 @@ export const chatResponseSchema = z.strictObject({
     provider: z.enum(['mock', 'openai', 'openai-compatible']),
     simulated: z.boolean(),
     promptVersion: z.string(),
+    deterministic: z.boolean().optional(),
   }),
 });
 export const healthResponseSchema = z.strictObject({ status: z.literal('ok') });
