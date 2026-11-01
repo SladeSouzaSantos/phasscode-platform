@@ -43,8 +43,8 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
 
   it('fails closed rather than dropping React on an impossible budget', () => {
     const records = [doc('java', 'Java '.repeat(300)), doc('react', 'React '.repeat(300))];
-    expect(buildEvidencePacket(records, 191)).toBeNull();
-    expect(buildEvidencePacket(records, 192)?.documents.map(({ id }) => id)).toEqual([
+    expect(buildEvidencePacket(records, 63)).toBeNull();
+    expect(buildEvidencePacket(records, 64)?.documents.map(({ id }) => id)).toEqual([
       'java',
       'react',
     ]);
