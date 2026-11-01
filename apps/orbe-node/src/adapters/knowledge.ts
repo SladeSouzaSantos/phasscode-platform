@@ -428,7 +428,7 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       // MySQL used professionally at Geowellex is distinct from study databases.
       if (relevant(/\b(?:mysql|php)\b/)) recommend('experiencia-geowellex');
       if (relevant(/\bspring boot\b/))
-        recommend('webservice-springboot-jpa', 'competencias-publicas');
+        recommend('webservice-springboot-jpa');
       if (fullstack) recommend('phasscode-platform', 'web-portfolio-v2');
       if (devops) recommend('phasscode-platform', 'task-manager-flask');
       if (ai) recommend('phasscode-platform', 'greencity-os');
@@ -441,6 +441,8 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       if (devops && relevant(/\b(?:python|dados)\b/)) recommend('hsp-simulator');
       if (devops && relevant(/\b(?:cursos|certificados|devsecops)\b/))
         recommend('cursos-devops-qualidade');
+      // General skills are supplementary; they must not displace degree or language evidence.
+      if (relevant(/\bspring boot\b/)) recommend('competencias-publicas');
     }
     const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
     const indexedById = new Map(this.documents.map((doc) => [doc.id, doc]));
