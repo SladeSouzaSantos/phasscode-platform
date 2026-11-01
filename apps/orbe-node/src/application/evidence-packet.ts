@@ -104,12 +104,31 @@ export function buildEvidencePacket(
             ];
           })
       : [];
+    // Study records have no implemented technology metadata. Recover the
+    // exact course rows, rather than a generic catalog preface, when compressed.
+    const courseRows =
+      document.id.startsWith('cursos-') && requestedTechnologies.size > 0
+        ? document.content
+            .split('\n')
+            .filter((line) =>
+              [...mentionedTechnologies(line)].some((technology) =>
+                requestedTechnologies.has(technology),
+              ),
+            )
+            .map((line) => line.trim())
+        : [];
+    const courseEvidence = courseRows.length
+      ? ['Cursos declarados (não emprego; certificação oficial não presumida):', ...courseRows]
+          .join(' ')
+      : '';
     const compactEvidence =
-      requestedStack && document.content.length > limit
-        ? ['Stack: ' + requestedStack + '.', ...new Set(excerpts), document.content].join(' ')
-        : limit < 180 && stack && document.content.length > limit
-          ? 'Stack: ' + stack + '. ' + document.content
-          : document.content;
+      courseEvidence && document.content.length > limit
+        ? courseEvidence + ' ' + document.content
+        : requestedStack && document.content.length > limit
+          ? ['Stack: ' + requestedStack + '.', ...new Set(excerpts), document.content].join(' ')
+          : limit < 180 && stack && document.content.length > limit
+            ? 'Stack: ' + stack + '. ' + document.content
+            : document.content;
     const content = compactEvidence.slice(0, limit);
     return { ...document, content };
   });
