@@ -41,6 +41,19 @@ describe('PPKS phase 1–2: provenance and fair evidence budget', () => {
     expect(originals[0]!.content.length).toBeGreaterThan(1200);
   });
 
+  it('preserves the recorded React stack when the description must be tiny', () => {
+    const react = {
+      ...doc('web-portfolio-v2', 'PHASSCODE é um portfólio profissional autoral com interface em React e TypeScript. '.repeat(10)),
+      technologies: ['React', 'TypeScript', 'Vite'],
+    };
+    const packet = buildEvidencePacket([react], 32)!;
+    expect(packet.documents).toHaveLength(1);
+    expect(packet.documents[0]!.content).toContain('React');
+    expect(packet.documents[0]!.content).toContain('TypeScript');
+    expect(packet.retainedChars).toBeLessThanOrEqual(32);
+    expect(react.content).toContain('PHASSCODE');
+  });
+
   it('fails closed rather than dropping React on an impossible budget', () => {
     const records = [doc('java', 'Java '.repeat(300)), doc('react', 'React '.repeat(300))];
     expect(buildEvidencePacket(records, 63)).toBeNull();
