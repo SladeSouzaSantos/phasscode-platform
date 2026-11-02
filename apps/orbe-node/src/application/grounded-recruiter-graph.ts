@@ -23,7 +23,9 @@ const GraphState = Annotation.Root({
 });
 
 export interface GroundedRecruiterGraphOptions {
-  identifyRequirements(question: string): readonly VacancyRequirement[] | Promise<readonly VacancyRequirement[]>;
+  identifyRequirements(
+    question: string,
+  ): readonly VacancyRequirement[] | Promise<readonly VacancyRequirement[]>;
   evidence: EvidenceGraphRepository;
 }
 
@@ -33,9 +35,7 @@ function renderVerifiedMatches(matches: readonly EvidenceGraphMatch[]): string {
   const rows: string[] = [];
   for (const match of matches) {
     for (const claim of match.claims) {
-      rows.push(
-        `- ${claim.label} (escopo: ${claim.scope}; fontes: ${claim.sourceIds.join(', ')})`,
-      );
+      rows.push(`- ${claim.label} (escopo: ${claim.scope}; fontes: ${claim.sourceIds.join(', ')})`);
     }
   }
   return rows.length ? rows.join('\n') : refusal;
@@ -47,7 +47,10 @@ function hasCompletePublicProvenance(matches: readonly EvidenceGraphMatch[]): bo
       match.sources.filter((source) => source.visibility === 'public').map((source) => source.id),
     );
     for (const claim of match.claims) {
-      if (!claim.sourceIds.length || !claim.sourceIds.every((sourceId) => publicIds.has(sourceId))) {
+      if (
+        !claim.sourceIds.length ||
+        !claim.sourceIds.every((sourceId) => publicIds.has(sourceId))
+      ) {
         return false;
       }
     }

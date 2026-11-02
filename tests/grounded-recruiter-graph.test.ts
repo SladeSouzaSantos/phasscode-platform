@@ -100,9 +100,11 @@ describe('F3.3: staged, deterministic LangGraph orchestration', () => {
   it('preserves more than 29 requirements without silently dropping them', async () => {
     const requirements = Array.from({ length: 33 }, (_, index) => req('req-' + index));
     const reader: EvidenceGraphRepository = {
-      findEvidence: vi.fn().mockImplementation(async (items: VacancyRequirement[]) =>
-        items.map((item) => ({ requirementId: item.id, claims: [], sources: [] })),
-      ),
+      findEvidence: vi
+        .fn()
+        .mockImplementation(async (items: VacancyRequirement[]) =>
+          items.map((item) => ({ requirementId: item.id, claims: [], sources: [] })),
+        ),
       getSource: vi.fn(),
     };
     const result = await createGroundedRecruiterGraph({

@@ -5,7 +5,7 @@
 - `@langchain/langgraph@1.5.3` locked with the official npm resolver on Node 24.
 - A standalone compiled `StateGraph` has exactly six deterministic nodes:
   `parseQuestion → identifyRequirements → retrieveGraphEvidence →
-  generateGroundedAnswer → verifyClaims → respond`.
+generateGroundedAnswer → verifyClaims → respond`.
 - The graph executes no LLM calls and no Neo4j connections by itself;
   its query adapter and requirement parser must be injected by trusted tests
   or future application composition. The public Orbe runtime is **not wired**.
