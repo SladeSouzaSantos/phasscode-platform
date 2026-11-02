@@ -37,7 +37,7 @@ const project = z.strictObject({
   kind: z.literal('project'),
   id: nodeId,
   label,
-  category: z.enum(['professional', 'personal', 'study']),
+  category: z.enum(['professional', 'personal', 'study', 'unknown']),
 });
 const skill = z.strictObject({
   kind: z.literal('skill'),
@@ -96,9 +96,17 @@ export const evidenceClaimSchema = z.strictObject({
     'ENROLLED_IN',
     'SUPPORTED_BY',
     'MATCHES_REQUIREMENT',
+    'IN_TRACK',
   ]),
   objectId: nodeId,
-  scope: z.enum(['professional', 'mixed_role', 'personal_project', 'study', 'unknown']),
+  scope: z.enum([
+    'professional',
+    'mixed_role',
+    'professional_project',
+    'personal_project',
+    'study',
+    'unknown',
+  ]),
   sourceIds: sourceRefs,
 });
 export const vacancyRequirementSchema = z.strictObject({
@@ -132,6 +140,7 @@ export const evidenceRelationSchema = z.strictObject({
     'ENROLLED_IN',
     'SUPPORTED_BY',
     'MATCHES_REQUIREMENT',
+    'IN_TRACK',
   ]),
   sourceIds: sourceRefs,
 });
