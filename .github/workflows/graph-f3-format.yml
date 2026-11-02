@@ -1,0 +1,38 @@
+# One-time source formatting and TypeScript qualification for F3.2/F3.3.
+# Remove after generated formatting is committed to dev.
+name: Graph F3 code qualification
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/graph-f3-format.yml
+permissions:
+  contents: write
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: true }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format changed GraphRAG source
+        run: |
+          npx prettier --write \
+            apps/orbe-node/src/application/grounded-recruiter-graph.ts \
+            tests/grounded-recruiter-graph.test.ts \
+            docs/graph-rag-f3-3.md
+      - name: Lint, TypeScript and focused security tests
+        run: |
+          npm run lint
+          npm run typecheck
+          npx vitest run tests/grounded-recruiter-graph.test.ts tests/graph-public-policy.test.ts
+      - name: Commit qualified formatting to dev
+        run: |
+          git add -- apps/orbe-node/src/application/grounded-recruiter-graph.ts tests/grounded-recruiter-graph.test.ts docs/graph-rag-f3-3.md
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(orbe): qualify F3.3 LangGraph scaffold (#30)'
+            git push origin HEAD:dev
+          fi
