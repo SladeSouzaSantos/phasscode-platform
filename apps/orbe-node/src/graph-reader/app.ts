@@ -2,7 +2,10 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 import Fastify from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import { z } from 'zod';
-import { vacancyRequirementSchema, type EvidenceGraphRepository } from '../domain/evidence-graph.js';
+import {
+  vacancyRequirementSchema,
+  type EvidenceGraphRepository,
+} from '../domain/evidence-graph.js';
 import { PublicGraphEvidenceGateway } from '../application/graph-public-policy.js';
 
 const evidenceRequestSchema = z.strictObject({

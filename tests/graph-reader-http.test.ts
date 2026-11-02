@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { buildInternalGraphReader } from '../apps/orbe-node/src/graph-reader/app.js';
-import type { EvidenceGraphRepository, EvidenceSource } from '../apps/orbe-node/src/domain/evidence-graph.js';
+import type {
+  EvidenceGraphRepository,
+  EvidenceSource,
+} from '../apps/orbe-node/src/domain/evidence-graph.js';
 
 const token = 'A'.repeat(43);
 const publicSource: EvidenceSource = {
@@ -52,9 +55,7 @@ const evidence: EvidenceGraphRepository = {
   ),
 };
 const payload = {
-  requirements: [
-    { kind: 'vacancy_requirement', id: 'java', label: 'Java', mandatory: true },
-  ],
+  requirements: [{ kind: 'vacancy_requirement', id: 'java', label: 'Java', mandatory: true }],
 };
 
 describe('F3.2 isolated internal HTTP graph-reader', () => {
@@ -72,11 +73,15 @@ describe('F3.2 isolated internal HTTP graph-reader', () => {
           })
         ).statusCode,
       ).toBe(401);
-      expect((await app.inject({
-        method: 'GET',
-        url: '/internal/health',
-        headers: { authorization: 'Bearer ' + token },
-      })).statusCode).toBe(200);
+      expect(
+        (
+          await app.inject({
+            method: 'GET',
+            url: '/internal/health',
+            headers: { authorization: 'Bearer ' + token },
+          })
+        ).statusCode,
+      ).toBe(200);
     } finally {
       await app.close();
     }
