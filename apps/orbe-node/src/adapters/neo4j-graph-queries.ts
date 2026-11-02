@@ -109,9 +109,7 @@ export const graphGetSourceCypher = [
   'RETURN source.payload AS source LIMIT 1',
 ].join('\n');
 
-const evidenceRow = (
-  value: unknown,
-): { claim: string; sources: string[] } | undefined => {
+const evidenceRow = (value: unknown): { claim: string; sources: string[] } | undefined => {
   if (typeof value !== 'object' || value === null) return undefined;
   const row = value as Record<string, unknown>;
   if (typeof row.claim !== 'string' || !Array.isArray(row.sources)) return undefined;

@@ -28,13 +28,22 @@ describe('F3.2: Cypher parametrizado, escopo de grafo e operação opt-in', () =
   it('não promove relações técnicas nem cursos a vínculo profissional', async () => {
     const graph = await projectPpksEvidenceGraph();
     const plan = planNeo4jGraphSeed(graph);
-    const data = plan.operations[0]!.params.rows as { id: string; properties: Record<string, unknown> }[];
+    const data = plan.operations[0]!.params.rows as {
+      id: string;
+      properties: Record<string, unknown>;
+    }[];
     const pending = data.find((entry) => entry.id === 'formacao-computacao');
     expect(pending?.properties.status).toBe('pending_completion');
     const study = data.find((entry) => entry.id === 'webservice-springboot-jpa');
     expect(study?.properties.category).toBe('study');
     const claims = data.filter((entry) => entry.properties.kind === 'claim');
-    expect(claims.filter((entry) => entry.properties.scope === 'professional' && String(entry.properties.objectId).includes('go'))).toHaveLength(0);
+    expect(
+      claims.filter(
+        (entry) =>
+          entry.properties.scope === 'professional' &&
+          String(entry.properties.objectId).includes('go'),
+      ),
+    ).toHaveLength(0);
   });
 
   it('consulta só Cypher fixo com parâmetros e exige toda proveniência da claim', async () => {
@@ -56,9 +65,9 @@ describe('F3.2: Cypher parametrizado, escopo de grafo e operação opt-in', () =
       visibility: 'public',
       verificationStatus: 'code_reviewed',
     };
-    const read = vi.fn().mockResolvedValue([
-      { claim: JSON.stringify(claim), sources: [JSON.stringify(source)] },
-    ]);
+    const read = vi
+      .fn()
+      .mockResolvedValue([{ claim: JSON.stringify(claim), sources: [JSON.stringify(source)] }]);
     const repository = new Neo4jEvidenceRepository({ read });
     const result = await repository.findEvidence([
       { kind: 'vacancy_requirement', id: 'react', label: 'React', mandatory: true },
@@ -71,7 +80,14 @@ describe('F3.2: Cypher parametrizado, escopo de grafo e operação opt-in', () =
     const read = vi.fn().mockResolvedValue([]);
     const repo = new Neo4jEvidenceRepository({ read });
     await repo.findEvidence(
-      [{ kind: 'vacancy_requirement', id: 'r', label: 'React") DETACH DELETE n //', mandatory: true }],
+      [
+        {
+          kind: 'vacancy_requirement',
+          id: 'r',
+          label: 'React") DETACH DELETE n //',
+          mandatory: true,
+        },
+      ],
       { maxClaimsPerRequirement: 1000 },
     );
     const [cypher, params] = read.mock.calls[0]!;
@@ -82,7 +98,9 @@ describe('F3.2: Cypher parametrizado, escopo de grafo e operação opt-in', () =
 
   it('não publica Bolt/Browser nem habilita Neo4j por padrão no DEV', async () => {
     const overlay = YAML.parse(await readFile('compose.graphrag.dev.yaml', 'utf8')) as {
-      services: { neo4j: { profiles: string[]; ports?: string[]; networks: string[]; secrets: string[] } };
+      services: {
+        neo4j: { profiles: string[]; ports?: string[]; networks: string[]; secrets: string[] };
+      };
     };
     const service = overlay.services.neo4j;
     expect(service.profiles).toContain('graphrag');
