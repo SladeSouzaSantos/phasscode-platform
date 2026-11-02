@@ -45,6 +45,29 @@ describe('Orbe: PPKS canonical claims in open recruiter answers', () => {
     expect(result.sourceIds).toEqual(['formacao-computacao']);
   });
 
+  it('repairs the exact eight-course total phrase observed after 70da738 DEV deploy', async () => {
+    const answer =
+      'O resumo está parcialmente correto: Pedro Santos declarou a conclusão de oito cursos da trilha Java & Arquitetura, estudo livre que não equivale a experiência profissional. A graduação em Ciência da Computação na UNISUL está pendente. Java profissional em ACRUX e SIGAA.';
+    const result = reconcileCanonicalAcademicClaims(answer, await facts());
+    expect(result.answer).toContain('conclusão de nove cursos da trilha Java & Arquitetura');
+    expect(result.answer).not.toContain('conclusão de oito cursos');
+    expect(result.answer).toContain('Ciência da Computação na UNISUL está pendente');
+    expect(result.answer).toContain('Java profissional em ACRUX e SIGAA');
+    expect(result.rules).toEqual(['java_track_completed_count']);
+    expect(result.sourceIds).toEqual(['cursos-java-arquitetura']);
+  });
+
+  it.each([
+    'Pedro concluiu oito cursos da trilha Java & Arquitetura.',
+    'Pedro completou 8 cursos na trilha Java e Arquitetura.',
+    'O aluno declarou a conclusão de oito cursos da trilha Java & Arquitetura.',
+  ])('normalizes alternative complete-track course totals: %s', async (answer) => {
+    const result = reconcileCanonicalAcademicClaims(answer, await facts());
+    expect(result.answer).not.toMatch(/\b(?:8|oito)\s+cursos\b/i);
+    expect(result.answer).toMatch(/\b(?:9|nove)\s+cursos\b/i);
+    expect(result.sourceIds).toEqual(['cursos-java-arquitetura']);
+  });
+
   it('repairs the exact eight-course claim while retaining a Java career summary', async () => {
     const canonical = await facts();
     const answer =
@@ -68,6 +91,8 @@ describe('Orbe: PPKS canonical claims in open recruiter answers', () => {
 
   it.each([
     'Ele apresentou oito dos nove cursos da trilha Java & Arquitetura.',
+    'Pedro apresentou oito cursos da trilha Java & Arquitetura nesta seleção.',
+    'Pedro não concluiu oito cursos da trilha Java & Arquitetura.',
     'Não são oito cursos concluídos na trilha Java & Arquitetura, mas nove.',
     'A afirmação de oito cursos concluídos na trilha Java & Arquitetura está incorreta.',
     'Concluiu oito cursos de Java que selecionou para esta apresentação.',

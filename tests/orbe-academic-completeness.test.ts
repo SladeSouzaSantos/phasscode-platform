@@ -88,6 +88,30 @@ describe('Orbe: nine canonical Java courses and mixed career questions', () => {
     expect(response.sources.some((source) => source.id === 'formacao-computacao')).toBe(true);
   });
 
+  it('repairs the observed eight-course wording in a mixed recruiter conversation before persistence', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = {
+      name: 'mock' as const,
+      generate: vi.fn(async () => ({
+        answer:
+          'O resumo está parcialmente correto: Pedro Santos declarou a conclusão de oito cursos da trilha Java & Arquitetura. A graduação em Ciência da Computação na UNISUL está pendente. Experiência profissional Java: ACRUX e SIGAA.',
+        sources: [],
+      })),
+    };
+    const response = await new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }),
+    ).execute({ message: disputedRecruiterSummary });
+    expect(provider.generate).toHaveBeenCalledOnce();
+    expect(response.meta.deterministic).toBeUndefined();
+    expect(response.answer).toContain('conclusão de nove cursos da trilha Java & Arquitetura');
+    expect(response.answer).toContain('Ciência da Computação na UNISUL');
+    expect(response.answer).toContain('ACRUX e SIGAA');
+    expect(response.sources.map((source) => source.id)).toContain('cursos-java-arquitetura');
+  });
+
   it('still routes an explicit course count to canonical nine-course enumeration', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const query =
