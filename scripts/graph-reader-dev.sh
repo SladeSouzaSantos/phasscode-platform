@@ -94,11 +94,43 @@ fi
 echo "GRAPH_READER_PREFLIGHT_OK api_revision=$api_revision"
 if [[ "$action" == preflight || "$action" == prepare-token ]]; then exit 0; fi
 
+# Wait for the graph reader's own HTTP listener to become ready. Compose
+# "Started" only means that the container process was launched, not that its
+# Neo4j connectivity check and Fastify listen() have completed.
+wait_reader() {
+  local reader_id state exit_code attempt
+  reader_id=$("${compose[@]}" ps -aq graph-reader)
+  [[ -n "$reader_id" ]] || die 'graph-reader container was not created'
+
+  for ((attempt = 1; attempt <= 30; attempt++)); do
+    state=$(docker inspect "$reader_id" --format '{{.State.Status}}')
+    if [[ "$state" != running ]]; then
+      exit_code=$(docker inspect "$reader_id" --format '{{.State.ExitCode}}')
+      die "graph-reader exited before HTTP readiness: state=$state exit_code=$exit_code. Inspect: docker logs --tail 40 $reader_id"
+    fi
+    # An unauthenticated health request MUST return 401. This tests readiness
+    # without mounting/printing the private bearer token or Neo4j password.
+    if docker exec "$reader_id" node -e '
+      fetch("http://127.0.0.1:8765/internal/health", {
+        signal: AbortSignal.timeout(1500),
+      }).then((response) => {
+        process.exit(response.status === 401 ? 0 : 1);
+      }).catch(() => process.exit(1));
+    ' >/dev/null 2>&1; then
+      echo 'GRAPH_READER_HTTP_READY'
+      return 0
+    fi
+    sleep 1
+  done
+  die "graph-reader HTTP readiness timed out after 30 checks. Inspect: docker logs --tail 40 $reader_id"
+}
+
 case "$action" in
   start)
     # The existing API, Neo4j and database must not be restarted or recreated.
     "${compose[@]}" up -d --no-deps graph-reader
-    echo 'Only graph-reader was started. Run the probe separately.'
+    wait_reader
+    echo 'Only graph-reader was started and HTTP readiness was verified.'
     ;;
   stop)
     "${compose[@]}" stop graph-reader
@@ -110,6 +142,7 @@ case "$action" in
       --format 'table {{.Names}}\t{{.Status}}'
     ;;
   probe)
+    wait_reader
     reader_id=$("${compose[@]}" ps -q graph-reader)
     [[ -n "$reader_id" ]] || die 'graph-reader not started'
     [[ "$(docker inspect "$reader_id" --format '{{.State.Running}}')" == true ]] ||
