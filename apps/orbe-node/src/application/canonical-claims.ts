@@ -96,7 +96,7 @@ export function reconcileCanonicalAcademicClaims(
           const suffix = sentence.slice(index + matched.length, index + matched.length + 45);
           return (
             /\b(?:n[aã]o\s+(?:s[aã]o|tem|possui|foram)|nem|nunca)\b/i.test(prefix) ||
-            /\b(?:est[aá]|[ée]|seria)\s+(?:incorreto|errado|falso|equivocado)\b/i.test(suffix)
+            /\b(?:est[aá]|[ée]|seria)\s+(?:incorret[oa]|errad[oa]|fals[oa]|equivocad[oa])\b/i.test(suffix)
           );
         };
         updated = updated.replace(forward, (matched, count: string) => {
