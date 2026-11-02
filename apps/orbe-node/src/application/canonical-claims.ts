@@ -94,7 +94,9 @@ export function reconcileCanonicalAcademicClaims(
         const rejectedCount = (sentence: string, matched: string): boolean => {
           const index = sentence.indexOf(matched);
           const prefix = sentence.slice(Math.max(0, index - 40), index);
-          const suffix = sentence.slice(index + matched.length, index + matched.length + 45);
+          // Inspect the full local claim: "oito cursos ... está incorreta" extends
+          // past the course count and must remain a rejected, unmodified premise.
+          const suffix = sentence.slice(index + matched.length, index + matched.length + 130);
           return (
             /\b(?:n[aã]o\s+(?:s[aã]o|tem|possui|foram)|nem|nunca)\b/i.test(prefix) ||
             /\b(?:est[aá]|[ée]|seria)\s+(?:incorret[oa]|errad[oa]|fals[oa]|equivocad[oa])\b/i.test(
