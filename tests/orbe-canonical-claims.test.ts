@@ -68,6 +68,41 @@ describe('Orbe: PPKS canonical claims in open recruiter answers', () => {
     expect(result.sourceIds).toEqual(['cursos-java-arquitetura']);
   });
 
+  it('repairs the full literal DEV claim where completion follows the track name', async () => {
+    const original =
+      'Parcialmente correto. Os oito cursos da trilha Java & Arquitetura estão concluídos, mas são estudo livre, não emprego, e a pós-graduação Java Applied Engineering na UNIPDS está em andamento. A experiência profissional em Java inclui a ACRUX e o SIGAA.';
+    const result = reconcileCanonicalAcademicClaims(original, await facts());
+    expect(result.answer).toContain('Os nove cursos da trilha Java & Arquitetura estão concluídos');
+    expect(result.answer).toContain('a ACRUX e o SIGAA');
+    expect(result.rules).toEqual(['java_track_completed_count']);
+    expect(result.sourceIds).toEqual(['cursos-java-arquitetura']);
+  });
+
+  it.each([
+    'Os oito cursos da trilha Java & Arquitetura estão concluídos.',
+    'Os 8 cursos da trilha Java & Arquitetura foram concluídos.',
+    'Os sete cursos da trilha Java & Arquitetura estão concluídos.',
+  ])('corrects completed total claims with status after the track: %s', async (answer) => {
+    const result = reconcileCanonicalAcademicClaims(answer, await facts());
+    expect(result.answer).not.toMatch(/\b(?:oito|8|sete)\s+cursos\b/i);
+    expect(result.answer).toMatch(/\b(?:nove|9)\s+cursos\b/i);
+    expect(result.rules).toEqual(['java_track_completed_count']);
+  });
+
+  it('answers the exact UNISUL degree when it was omitted in a multi-topic fact-check', async () => {
+    const query =
+      "Revise o resumo: oito cursos concluídos na trilha Java & Arquitetura e Sistemas de Informação na UNISUL. Está correto?";
+    const answer =
+      'São nove cursos concluídos na trilha Java & Arquitetura. A graduação na UNISUL está pendente. Java profissional no SIGAA.';
+    const result = reconcileCanonicalAcademicClaims(answer, await facts(), query);
+    expect(result.answer).toContain('Bacharelado em Ciência da Computação');
+    expect(result.answer).toContain('ainda não concluído');
+    expect(result.answer).toContain('São nove cursos');
+    expect(result.answer).toContain('Java profissional no SIGAA');
+    expect(result.rules).toEqual(['unisul_degree_explicit_answer']);
+    expect(result.sourceIds).toEqual(['formacao-computacao']);
+  });
+
   it('repairs the exact eight-course claim while retaining a Java career summary', async () => {
     const canonical = await facts();
     const answer =
@@ -92,6 +127,8 @@ describe('Orbe: PPKS canonical claims in open recruiter answers', () => {
   it.each([
     'Ele apresentou oito dos nove cursos da trilha Java & Arquitetura.',
     'Pedro apresentou oito cursos da trilha Java & Arquitetura nesta seleção.',
+    'Os oito cursos da trilha Java & Arquitetura foram selecionados como exemplos.',
+    'Os oito cursos da trilha Java & Arquitetura não estão concluídos.',
     'Pedro não concluiu oito cursos da trilha Java & Arquitetura.',
     'Não são oito cursos concluídos na trilha Java & Arquitetura, mas nove.',
     'A afirmação de oito cursos concluídos na trilha Java & Arquitetura está incorreta.',

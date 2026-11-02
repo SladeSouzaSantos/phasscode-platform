@@ -112,6 +112,32 @@ describe('Orbe: nine canonical Java courses and mixed career questions', () => {
     expect(response.sources.map((source) => source.id)).toContain('cursos-java-arquitetura');
   });
 
+  it('keeps the recruiter review complete when the model uses postpositive course completion', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = {
+      name: 'mock' as const,
+      generate: vi.fn(async () => ({
+        answer:
+          'Os oito cursos da trilha Java & Arquitetura estão concluídos. A graduação na UNISUL segue pendente. Java profissional na ACRUX e no SIGAA.',
+        sources: [],
+      })),
+    };
+    const result = await new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }),
+    ).execute({ message: disputedRecruiterSummary });
+    expect(provider.generate).toHaveBeenCalledOnce();
+    expect(result.answer).toContain('Os nove cursos da trilha Java & Arquitetura estão concluídos');
+    expect(result.answer).toContain('Bacharelado em Ciência da Computação');
+    expect(result.answer).toContain('Java profissional na ACRUX e no SIGAA');
+    expect(result.sources.map((source) => source.id)).toEqual([
+      'cursos-java-arquitetura',
+      'formacao-computacao',
+    ]);
+  });
+
   it('still routes an explicit course count to canonical nine-course enumeration', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const query =

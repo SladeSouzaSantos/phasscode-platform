@@ -14,6 +14,7 @@ export interface CanonicalClaimsResult {
 export function reconcileCanonicalAcademicClaims(
   answer: string,
   facts: CanonicalAcademicFacts | undefined,
+  query?: string,
 ): CanonicalClaimsResult {
   if (!facts) return { answer, rules: [], sourceIds: [] };
 
@@ -132,9 +133,81 @@ export function reconcileCanonicalAcademicClaims(
           sourceIds.add(java.id);
           return replaceCount(matched, count);
         });
+        // A total can be expressed as "Os oito cursos da trilha ...
+        // estão concluídos", not just "oito cursos concluídos na trilha".
+        // Check semantic context on both sides of the count and require an
+        // affirmative completion claim. Selected subsets are not totals.
+        const courseCount = /\b(\d{1,2}|um|dois|tr[eê]s|quatro|cinco|seis|sete|oito|nove|dez|onze|doze)\s+cursos?\b/gi;
+        const wordCounts: Record<string, number> = {
+          um: 1,
+          dois: 2,
+          tres: 3,
+          quatro: 4,
+          cinco: 5,
+          seis: 6,
+          sete: 7,
+          oito: 8,
+          nove: 9,
+          dez: 10,
+          onze: 11,
+          doze: 12,
+        };
+        updated = updated.replace(courseCount, (matched, count: string, offset: number) => {
+          const actualCount = /^\d+$/.test(count)
+            ? Number(count)
+            : wordCounts[count.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')];
+          if (actualCount === java.completedCount) return matched;
+          const prefix = updated.slice(Math.max(0, offset - 100), offset);
+          const suffix = updated.slice(offset + matched.length, offset + matched.length + 130);
+          const trackAfter =
+            /^\s+(?:livres?\s+)?(?:conclu[ií]dos?\s+)?(?:na|da|de)\s+trilha\s+(?:de\s+)?Java\s*(?:&|e)\s*Arquitetura\b/i.test(
+              suffix,
+            );
+          const completedBefore =
+            /\b(?:conclus[aã]o|concluiu|conclu[ií]ram|completou|finalizou|totalizou)\b/i.test(
+              prefix,
+            );
+          const completedAfter =
+            /^\s+(?:livres?\s+)?conclu[ií]dos?\b/i.test(suffix) ||
+            /\b(?:est[aã]o|foram|ficaram)\s+conclu[ií]dos?\b/i.test(suffix);
+          const deniedCompletion =
+            /\b(?:n[aã]o|nem|nunca)\b[^.!?]{0,30}\b(?:conclus[aã]o|concluiu|completou|finalizou)\b/i.test(
+              prefix,
+            ) ||
+            /\b(?:n[aã]o|nem|nunca)\s+(?:est[aã]o|foram|ficaram)\s+conclu[ií]dos?\b/i.test(
+              suffix,
+            );
+          if (
+            !trackAfter ||
+            !(completedBefore || completedAfter) ||
+            deniedCompletion ||
+            rejectedCount(updated, matched)
+          )
+            return matched;
+          rules.add('java_track_completed_count');
+          sourceIds.add(java.id);
+          const canonicalCount = /^\d+$/.test(count) ? String(java.completedCount) : countWord;
+          return matched.replace(count, canonicalCount);
+        });
       }
       return updated;
     })
     .join('');
-  return { answer: output, rules: [...rules], sourceIds: [...sourceIds] };
+  // A recruiter may ask to verify a false degree title. If the model merely
+  // says "UNISUL is pending" without naming the program, supply the missing
+  // canonical qualification instead of treating an incomplete answer as valid.
+  const degreeCheck =
+    unisul &&
+    query &&
+    /\bUNISUL\b/i.test(query) &&
+    /Sistemas de Informação/i.test(query) &&
+    !/Ciência da Computação/i.test(output);
+  if (degreeCheck) {
+    rules.add('unisul_degree_explicit_answer');
+    sourceIds.add(unisul.id);
+  }
+  const degreeNote = degreeCheck
+    ? `**Formação na UNISUL:** ${unisul.title} — ainda não concluído.\n\n`
+    : '';
+  return { answer: degreeNote + output, rules: [...rules], sourceIds: [...sourceIds] };
 }

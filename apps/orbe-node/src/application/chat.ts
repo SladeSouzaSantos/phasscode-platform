@@ -302,6 +302,7 @@ export class ChatService {
           const canonical = reconcileCanonicalAcademicClaims(
             result.answer,
             this.knowledge.canonicalAcademicFacts?.(),
+            request.message,
           );
           if (canonical.rules.length) {
             const canonicalSources = canonical.sourceIds
