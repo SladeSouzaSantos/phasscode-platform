@@ -42,7 +42,6 @@ container to 1024 MiB with an explicit 256 MiB JVM heap and 128 MiB page cache
 to preserve native-memory headroom. These are **starting values for DEV only**;
 inspect actual memory and restarts during homologation before changing limits.
 
-
 Create a private file with exactly `neo4j/<strong random password>` at
 `.secrets/neo4j_auth`, permissions 0600. Store only that file on the DEV server
 and ensure it is Git-ignored.
@@ -50,7 +49,7 @@ and ensure it is Git-ignored.
 After validation and explicit authorization, to start **only** Neo4j:
 
 ```sh
-docker compose --env-file .env \
+docker compose -p phasscode-platform-dev --env-file .env \
   -f compose.yaml -f compose.graphrag.dev.yaml \
   --profile graphrag up -d --no-deps neo4j
 ```
