@@ -204,7 +204,7 @@ export function createFallbackModelFactory(
       streaming: false,
       disableStreaming: true,
       timeout: provider.timeoutMs,
-      maxTokens: config.maxOutputTokens,
+      ...(config.maxOutputTokens > 0 ? { maxTokens: config.maxOutputTokens } : {}),
       modelKwargs: {
         // ChatOpenAI defaults to n=1; Cohere rejects n even when it equals one.
         n: undefined,

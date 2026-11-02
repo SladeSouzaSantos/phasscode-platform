@@ -63,7 +63,9 @@ const envSchema = z.object({
   LLM_API_MODE: z.enum(['responses', 'chat-completions']).default('responses'),
   OPENROUTER_REASONING_ENABLED: optionalBoolean,
   LLM_TIMEOUT_MS: z.coerce.number().int().min(100).max(60000).default(15000),
-  LLM_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(64).max(2000).default(800),
+  // 0 omits the provider output cap; positive values are configured per deployment.
+  // Providers still enforce their own model limits and quotas.
+  LLM_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(0).default(0),
   LLM_GLOBAL_MAX_CALLS: optionalPositiveInteger,
   LLM_GLOBAL_WINDOW_MS: z.coerce.number().int().min(1000).max(2_678_400_000).default(86_400_000),
   LLM_GLOBAL_BUDGET_KEY: z

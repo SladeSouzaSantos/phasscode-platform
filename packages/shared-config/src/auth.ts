@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const bool = z.enum(['true', 'false']).transform((value) => value === 'true');
 const schema = z.object({
+  AUTH_ADMIN_EMAIL: z.string().trim().toLowerCase().max(320).pipe(z.email()),
   AUTH_PUBLIC_URL: z.url(),
   AUTH_FRONTEND_URL: z.url(),
   AUTH_GOOGLE_CLIENT_ID: z.string().min(1).max(300),

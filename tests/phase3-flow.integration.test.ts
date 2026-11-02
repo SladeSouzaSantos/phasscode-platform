@@ -48,6 +48,7 @@ it('visitante público → Google OIDC → admin/CSRF → Calendar → canais �
     DATABASE_URL: process.env.TEST_DATABASE_URL!,
     REDIS_URL: process.env.TEST_REDIS_URL!,
     AUTH_ENABLED: 'true',
+    AUTH_ADMIN_EMAIL: 'flow@example.test',
     AUTH_PUBLIC_URL: 'http://localhost:3000',
     AUTH_FRONTEND_URL: 'http://localhost:5173/login-complete',
     AUTH_GOOGLE_CLIENT_ID: 'test-client',
@@ -90,21 +91,30 @@ it('visitante público → Google OIDC → admin/CSRF → Calendar → canais �
         .statusCode,
     ).toBe(200);
     expect((await inject({ url: '/api/v1/admin/meetings' })).statusCode).toBe(401);
-    const logged = await login(app, auth, google, { sub: randomUUID() }, false, remoteAddress);
+    const logged = await login(
+      app,
+      auth,
+      google,
+      { sub: randomUUID(), email: 'flow@example.test' },
+      false,
+      remoteAddress,
+    );
     stateHash = authHash(
       new URL(logged.callbackUrl, 'http://localhost:3000').searchParams.get('state')!,
     );
     expect(logged.callback.statusCode).toBe(302);
     expect(logged.state.authenticated).toBe(true);
     userId = logged.state.user.id;
-    expect(logged.state.user.roles).toEqual(['user']);
+    expect(logged.state.user.roles).toEqual(['admin', 'user']);
     const headers = {
       cookie: logged.sessionCookie,
       origin: 'http://localhost:5173',
       'x-csrf-token': logged.state.csrfToken,
     };
+    // Authorization must still consult the current role rather than the login snapshot.
+    await pool.query("DELETE FROM auth_user_roles WHERE user_id=$1 AND role='admin'", [userId]);
     expect((await inject({ url: '/api/v1/admin/meetings', headers })).statusCode).toBe(403);
-    // Explicit test operator action; login never performs this grant.
+    // Explicit operator recovery after revocation; login must not undo the veto.
     await pool.query("INSERT INTO auth_user_roles(user_id,role) VALUES($1,'admin')", [userId]);
     const start = new Date(Date.now() + 2 * 86400000);
     start.setUTCHours(12, 0, 0, 0);
@@ -220,6 +230,7 @@ it('visitante público → Google OIDC → admin/CSRF → Calendar → canais �
     if (proposalId) await pool.query('DELETE FROM meeting_proposals WHERE id=$1', [proposalId]);
     if (userId) {
       await pool.query('DELETE FROM auth_sessions WHERE user_id=$1', [userId]);
+      await pool.query('DELETE FROM auth_role_audit WHERE user_id=$1', [userId]);
       await pool.query('DELETE FROM auth_user_roles WHERE user_id=$1', [userId]);
       await pool.query('DELETE FROM auth_external_identities WHERE user_id=$1', [userId]);
       await pool.query('DELETE FROM auth_users WHERE id=$1', [userId]);

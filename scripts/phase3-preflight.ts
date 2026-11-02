@@ -41,6 +41,7 @@ export interface PreflightReport {
 export type ComposeEnvironment = Record<string, string | number | boolean>;
 
 const authRequired = [
+  'AUTH_ADMIN_EMAIL',
   'AUTH_PUBLIC_URL',
   'AUTH_FRONTEND_URL',
   'AUTH_GOOGLE_CLIENT_ID',

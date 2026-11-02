@@ -85,7 +85,7 @@ export function meetingOpenApiPaths(errors: Record<string, unknown>) {
     [status]: { description: 'Operação concluída.', content: json(schema) },
     ...errors,
   });
-  const admin = [{ sessionCookie: [] }, { accessJwt: [] }];
+  const adminRead = [{ sessionCookie: [] }, { accessJwt: [] }];
   return {
     '/api/v1/meetings/availability': {
       get: {
@@ -146,7 +146,9 @@ export function meetingOpenApiPaths(errors: Record<string, unknown>) {
     '/api/v1/admin/meetings': {
       get: {
         summary: 'Listar solicitações; exige papel admin',
-        security: admin,
+        description:
+          'Aceita cookie de sessão ou access JWT vinculado a sessão ativa no servidor. Exige identidade admitida pela política administrativa e papel admin atual. Esta leitura não exige X-CSRF-Token.',
+        security: adminRead,
         parameters: [
           { in: 'query', name: 'cursor', schema: { type: 'string' } },
           { in: 'query', name: 'limit', schema: { type: 'integer', minimum: 1, maximum: 100 } },
@@ -161,13 +163,25 @@ export function meetingOpenApiPaths(errors: Record<string, unknown>) {
         {
           post: {
             summary: `${action}: operação administrativa auditada`,
-            security: admin,
+            description:
+              'Exige cookie de sessão ativo, identidade admitida pela política administrativa, papel admin atual, Origin permitido e X-CSRF-Token correspondente à sessão. Authorization Bearer isolado não autoriza o comando nem substitui cookie, Origin ou CSRF.',
+            security: [{ sessionCookie: [] }],
             parameters: [
               id,
               {
                 in: 'header',
+                name: 'Origin',
+                required: true,
+                description:
+                  'O servidor exige uma origem presente na allowlist configurada. Header controlado pelo navegador; não defini-lo manualmente no fetch. Não é uma credencial de autenticação.',
+                schema: { type: 'string', format: 'uri' },
+              },
+              {
+                in: 'header',
                 name: 'X-CSRF-Token',
-                description: 'Obrigatório para sessão em cookie.',
+                required: true,
+                description:
+                  'Token CSRF da sessão por cookie, obtido em GET /api/v1/auth/session. Obrigatório em todo comando, inclusive quando Authorization também está presente.',
                 schema: { type: 'string' },
               },
             ],

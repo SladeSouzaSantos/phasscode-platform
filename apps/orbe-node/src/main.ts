@@ -11,14 +11,18 @@ import { RedisLlmCallBudget } from './adapters/redis-llm-budget.js';
 import { createRedisFallbackInvocationFactory } from './adapters/fallback-llm.js';
 import type { ChatProvider } from './domain/ports.js';
 import { buildApp } from './http/app.js';
+import { RestrictedPublicEvidenceReader } from './application/public-evidence.js';
 import { PROMPT_VERSION } from './application/chat.js';
-import { AuthService } from './auth/service.js';
-import { MeetingService } from './meetings/service.js';
-import { PostgresMeetingStore } from './meetings/postgres-store.js';
-import { createCalendar } from '../../../packages/integrations/src/calendar.js';
 
 try {
-  const config = loadConfig();
+  // The public Orbe cannot activate the retired auth/meetings/notification subsystems,
+  // including when a legacy Mac Mini .env still contains their old flags.
+  const config = loadConfig({
+    ...process.env,
+    AUTH_ENABLED: 'false',
+    MEETINGS_ENABLED: 'false',
+    WORKER_ENABLED: 'false',
+  });
   const knowledge = await JsonKnowledgeRepository.load();
   const pool = config.PERSISTENCE === 'postgres' ? createPool(config.DATABASE_URL!) : undefined;
   const store =
@@ -32,6 +36,7 @@ try {
           pool!,
           config.CHAT_HISTORY_MESSAGES,
           config.CHAT_RETENTION_DAYS,
+          process.env.ORBE_REPORTS_ENABLED === 'true',
         );
   const redis = config.REDIS_URL
     ? new Redis(config.REDIS_URL, {
@@ -47,34 +52,12 @@ try {
     /* Readiness reporta falhas sem registrar credenciais do driver. */
   });
   let provider: ChatProvider;
-  let auth: AuthService;
-  const meetings = config.meetings.enabled
-    ? new MeetingService(
-        config.meetings,
-        new PostgresMeetingStore(pool!),
-        createCalendar(config.calendar),
-      )
-    : undefined;
-  const phase3Ready =
-    config.auth.enabled || config.meetings.enabled
-      ? async () => {
-          const applied = await pool!.query(
-            "SELECT name FROM schema_migrations WHERE name IN ('002_auth.sql','003_meetings.sql','004_notifications.sql','005_calendar_create_uncertainty.sql')",
-          );
-          if (applied.rowCount !== 4) throw new Error('Migrations da Fase 3 pendentes.');
-          await pool!.query(
-            'SELECT 1 FROM auth_users, meetings, meeting_outbox, notification_deliveries LIMIT 0',
-          );
-        }
-      : undefined;
   try {
     await store.ready();
     if (redis) {
       await redis.connect();
       await redis.ping();
     }
-    auth = await AuthService.create(config.auth, pool);
-    if (phase3Ready) await phase3Ready();
     if (!config.llmFallback.enabled && config.LLM_PROVIDER === 'mock') {
       provider = new MockChatProvider();
     } else {
@@ -93,7 +76,7 @@ try {
         knowledge,
         await readFile(`apps/orbe-node/prompts/${PROMPT_VERSION.replace('orbe-', '')}.md`, 'utf8'),
         budget,
-        meetings,
+        undefined,
         invocationFactory,
       );
     }
@@ -103,14 +86,13 @@ try {
     throw new Error('Dependências indisponíveis ou migrations pendentes. Execute npm run migrate.');
   }
   const app = await buildApp({
+    evidenceReader: new RestrictedPublicEvidenceReader(),
     config,
     knowledge,
     provider,
     store,
+    publicOnly: true,
     ...(redis ? { redis } : {}),
-    auth,
-    ...(meetings ? { meetings } : {}),
-    ...(phase3Ready ? { phase3Ready } : {}),
   }).catch(async (error: unknown) => {
     await store.close();
     redis?.disconnect();

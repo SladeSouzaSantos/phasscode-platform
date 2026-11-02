@@ -137,6 +137,49 @@ export function evaluateTurn(
         : 'Conceito esperado não foi detectado pelos termos previstos.',
     });
   }
+  // Deterministic checks for broad false negatives contradicted by the
+  // canonical professional and project catalog; lexical match is intentionally strict.
+  const knownContradictions = [
+    {
+      id: 'professional-mysql',
+      pattern:
+        /(?:mysql profissional nao foi verificado|nao verifiquei (?:o uso (?:profissional )?de )?mysql\b(?!\s+(?:no sigaa|na acrux)))/,
+    },
+    {
+      id: 'mysql-denial-paraphrase',
+      pattern:
+        /(?:nem de uso de mysql\b|nao ha (?:registro|evidencia|comprovacao) de (?:experiencia|atuacao|uso)(?: profissional)? (?:com |de )?mysql\b(?!\s+(?:no sigaa|na acrux)))/,
+    },
+    {
+      id: 'private-geowellex-code',
+      pattern: /geowellex[^\n]{0,350}o codigo esta disponivel publicamente/,
+    },
+    {
+      id: 'java-corporate',
+      pattern: /java em ambiente corporativo nao est(?:a|ao) verificados?/,
+    },
+    {
+      id: 'java-work',
+      pattern: /nao verifiquei java em producao nem experiencia profissional/,
+    },
+    {
+      id: 'single-employer-duration',
+      pattern: /19 meses? de vinculo[^.!?\n]{0,120}entre junho de 2016 e fevereiro de 2017/,
+    },
+    {
+      id: 'documented-ci',
+      pattern: /nao ha documentacao de apis rest com swagger\/openapi nem de ci\/cd/,
+    },
+  ];
+  const normalizedAnswer = normalize(response.answer);
+  for (const contradiction of knownContradictions) {
+    add(
+      `consistency:${contradiction.id}`,
+      !contradiction.pattern.test(normalizedAnswer),
+      'Nenhuma contradição conhecida detectada.',
+      'Resposta contradiz evidência profissional ou técnica documentada.',
+    );
+  }
   for (const term of expectation.forbiddenTerms) {
     add(
       `forbidden:${term}`,

@@ -118,7 +118,12 @@ export async function runEvaluation(
         httpStatus = response.status;
         if (!response.ok) {
           const errorCode = await readPublicErrorCode(response);
-          const limited = httpStatus === 429;
+          // Provider cooldowns and control-plane outages are operational
+          // blockers, not evidence failures. Stop instead of burning more quota.
+          // Any HTTP 503 means this turn was not evaluated. A missing or
+          // unknown code is an operational blocker, never a factual failure.
+          // Keep the recognized code for diagnostics but avoid retries.
+          const limited = httpStatus === 429 || httpStatus === 503;
           turns.push({
             message: turn.message,
             httpStatus,
@@ -131,7 +136,9 @@ export async function runEvaluation(
                 id: 'http',
                 status: limited ? 'review' : 'fail',
                 explanation: limited
-                  ? 'HTTP 429: execução interrompida, sem retry. Corpo do erro omitido.'
+                  ? httpStatus === 429
+                    ? 'HTTP 429: execução interrompida, sem retry. Corpo do erro omitido.'
+                    : 'HTTP 503: serviço indisponível; causa não presumida. Execução interrompida sem retry. Corpo do erro omitido.'
                   : `HTTP ${httpStatus}: chamada não concluída. Corpo do erro omitido.`,
               },
             ],

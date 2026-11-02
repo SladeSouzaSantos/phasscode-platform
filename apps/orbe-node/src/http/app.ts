@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { hashToken } from '../domain/security.js';
 import { resolve } from 'node:path';
 import Fastify, { LogController } from 'fastify';
 import cors from '@fastify/cors';
@@ -11,6 +12,7 @@ import { chatRequestSchema, openApiDocument } from '../../../../packages/contrac
 import type { Config } from '../../../../packages/shared-config/src/index.js';
 import type { ChatProvider, ConversationStore, KnowledgeRepository } from '../domain/ports.js';
 import { ChatService } from '../application/chat.js';
+import type { PublicEvidenceReader } from '../application/public-evidence.js';
 import { AppError } from '../domain/errors.js';
 import { AuthService } from '../auth/service.js';
 import { registerAuthRoutes } from '../auth/routes.js';
@@ -26,6 +28,8 @@ export interface AppOptions {
   auth?: AuthService;
   meetings?: MeetingService;
   phase3Ready?: () => Promise<void>;
+  publicOnly?: boolean;
+  evidenceReader?: PublicEvidenceReader;
 }
 export async function buildApp({
   config,
@@ -36,7 +40,11 @@ export async function buildApp({
   auth,
   meetings,
   phase3Ready,
+  publicOnly = false,
+  evidenceReader,
 }: AppOptions) {
+  if (publicOnly && (config.auth.enabled || meetings))
+    throw new Error('Orbe público não aceita autenticação ou reuniões.');
   if (config.auth.enabled && !auth) throw new Error('Autenticação habilitada sem serviço.');
   if (config.meetings.enabled && !meetings) throw new Error('Reuniões habilitadas sem serviço.');
   const app = Fastify({
@@ -74,7 +82,15 @@ export async function buildApp({
             serializers: { req: (req: { method: string }) => ({ method: req.method }) },
           },
   });
-  const service = new ChatService(store, provider, knowledge, config, Boolean(meetings));
+  const service = new ChatService(
+    store,
+    provider,
+    knowledge,
+    config,
+    Boolean(meetings),
+    () => new Date(),
+    evidenceReader,
+  );
   await app.register(helmet);
   app.addHook('onRequest', async (request, reply) => {
     reply.header('X-Correlation-Id', request.id);
@@ -94,6 +110,7 @@ export async function buildApp({
       'Idempotency-Key',
       'Authorization',
       'X-Orbe-Capabilities',
+      'X-Orbe-Report-Consent',
     ],
     exposedHeaders: ['X-Correlation-Id', 'Retry-After'],
     credentials: config.auth.enabled,
@@ -134,14 +151,15 @@ export async function buildApp({
       );
     }
   });
-  await app.register(swagger, {
-    mode: 'static',
-    specification: {
-      path: resolve('packages/contracts/openapi.json'),
-      baseDir: resolve('packages/contracts'),
-    },
-  });
-  await app.register(swaggerUi, { routePrefix: '/docs', staticCSP: true });
+  if (!publicOnly)
+    await app.register(swagger, {
+      mode: 'static',
+      specification: {
+        path: resolve('packages/contracts/openapi.json'),
+        baseDir: resolve('packages/contracts'),
+      },
+    });
+  if (!publicOnly) await app.register(swaggerUi, { routePrefix: '/docs', staticCSP: true });
   app.setErrorHandler((error, request, reply) => {
     const httpStatus =
       typeof error === 'object' &&
@@ -220,10 +238,29 @@ export async function buildApp({
       },
     });
   });
-  app.get('/api/v1/openapi.json', async () => openApiDocument);
+  const publicOpenApiDocument = publicOnly
+    ? {
+        ...openApiDocument,
+        info: {
+          ...openApiDocument.info,
+          description: 'API pública do Orbe profissional: sem contas, reuniões ou notificações.',
+        },
+        components: { securitySchemes: {} },
+        paths: {
+          '/health': openApiDocument.paths['/health'],
+          '/ready': openApiDocument.paths['/ready'],
+          '/api/v1/chat': openApiDocument.paths['/api/v1/chat'],
+          '/api/v1/chat/report-optout': openApiDocument.paths['/api/v1/chat/report-optout'],
+          '/api/v1/openapi.json': openApiDocument.paths['/api/v1/openapi.json'],
+        },
+      }
+    : openApiDocument;
+  app.get('/api/v1/openapi.json', async () => publicOpenApiDocument);
   const authentication = auth ?? new AuthService({ enabled: false });
-  await registerAuthRoutes(app, authentication);
-  if (meetings) registerMeetingRoutes(app, { service: meetings, auth: authentication });
+  // Public runtime has no login routes. Legacy route tests remain isolated behind enabled config.
+  if (!publicOnly && config.auth.enabled) await registerAuthRoutes(app, authentication);
+  if (!publicOnly && meetings)
+    registerMeetingRoutes(app, { service: meetings, auth: authentication });
   app.post(
     '/api/v1/chat',
     {
@@ -255,7 +292,48 @@ export async function buildApp({
       const capabilities = request.headers['x-orbe-capabilities'];
       if (capabilities !== undefined && capabilities !== 'meetings-v1')
         throw new AppError('INVALID_REQUEST', 400, 'Capacidade do cliente não suportada.');
-      return service.execute(body.data, token, { meetingActions: capabilities === 'meetings-v1' });
+      const reportConsent = request.headers['x-orbe-report-consent'];
+      if (reportConsent !== undefined && reportConsent !== 'yes')
+        throw new AppError('INVALID_REQUEST', 400, 'Autorização de relatório inválida.');
+      if (reportConsent === 'yes' && body.data.conversationId !== undefined)
+        throw new AppError(
+          'INVALID_REQUEST',
+          400,
+          'Autorização deve ocorrer no início da conversa.',
+        );
+      return service.execute(body.data, token, {
+        meetingActions: capabilities === 'meetings-v1',
+        analyticsConsent: reportConsent === 'yes',
+      });
+    },
+  );
+  // Explicit withdrawal invalidates all unsent report summaries for this conversation.
+  app.post(
+    '/api/v1/chat/report-optout',
+    {
+      onRequest: async (request, reply) => {
+        await limitChat.call(app, request, reply);
+      },
+    },
+    async (request) => {
+      const body = request.body;
+      if (
+        !body ||
+        typeof body !== 'object' ||
+        Array.isArray(body) ||
+        Object.keys(body).length !== 1 ||
+        !('conversationId' in body) ||
+        typeof body.conversationId !== 'string' ||
+        !/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(body.conversationId)
+      )
+        throw new AppError('INVALID_REQUEST', 400, 'Identificador inválido.');
+      const token = request.headers['x-conversation-token'];
+      if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token))
+        throw new AppError('INVALID_REQUEST', 400, 'Token inválido.');
+      if (!store.withdrawReport)
+        throw new AppError('REPORTS_DISABLED', 503, 'Revogação indisponível neste ambiente.');
+      await store.withdrawReport(body.conversationId, hashToken(token));
+      return { withdrawn: true };
     },
   );
   app.addHook('onClose', async () => {

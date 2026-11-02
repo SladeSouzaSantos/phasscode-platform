@@ -5,14 +5,23 @@ import type { AuthConfig, EnabledAuthConfig } from '../../../../packages/shared-
 import { AppError } from '../domain/errors.js';
 import { GoogleOidc, type GoogleIdentityProvider } from './google.js';
 import { AuthTokens } from './jwt.js';
+import { AuthCallbackError } from './callback-error.js';
+import {
+  decodeLoginBrowserCookie,
+  encodeLoginBrowserCookie,
+  loginErrorReturnUrl,
+  resolveLoginReturnUrl,
+} from './login-navigation.js';
 import { PgAuthStore } from './postgres.js';
-import type { AuthSession, AuthStore, NewAuthSession, Principal } from './types.js';
+import type { AuthSession, AuthStore, AuthUser, NewAuthSession, Principal } from './types.js';
 
 export const authHash = (value: string) => createHash('sha256').update(value).digest('hex');
 const secret = () => randomBytes(32).toString('base64url');
 const validSecret = (value: unknown): value is string =>
   typeof value === 'string' && /^[A-Za-z0-9_-]{43}$/.test(value);
 const unauthorized = () => new AppError('AUTH_REQUIRED', 401, 'Autenticação válida é necessária.');
+const adminOnly = () =>
+  new AppError('AUTH_ADMIN_ONLY', 403, 'Acesso negado. Apenas o administrador tem acesso.');
 export class AuthService {
   constructor(
     readonly config: AuthConfig,
@@ -84,6 +93,15 @@ export class AuthService {
       session.absoluteExpiresAt.getTime() > Date.now()
     );
   }
+  private approvedEmail(email: string | null): boolean {
+    return email?.trim().toLowerCase() === this.enabled().AUTH_ADMIN_EMAIL;
+  }
+  private approvedAdministrator(user: AuthUser): boolean {
+    return this.approvedEmail(user.email) && user.roles.includes('admin');
+  }
+  private requireAdministrator(user: AuthUser): void {
+    if (!this.approvedAdministrator(user)) throw adminOnly();
+  }
   private async cookieSession(request: FastifyRequest): Promise<AuthSession | undefined> {
     const value = request.cookies?.[this.cookieName];
     return validSecret(value) ? this.store!.sessionByHash(authHash(value)) : undefined;
@@ -102,10 +120,15 @@ export class AuthService {
   async beginLogin(request: FastifyRequest) {
     return this.safe(async () => {
       if (request.headers.origin) this.origin(request);
+      const query = new URLSearchParams(request.url.split('?')[1] ?? '');
+      if (query.getAll('returnTo').length > 1)
+        throw new AppError('INVALID_REQUEST', 400, 'Destino de retorno inválido.');
+      const returnTo = query.get('returnTo') ?? undefined;
+      resolveLoginReturnUrl(this.enabled().AUTH_FRONTEND_URL, returnTo);
       const state = secret(),
         nonce = secret(),
         verifier = secret(),
-        browserToken = secret();
+        browserToken = encodeLoginBrowserCookie(secret(), returnTo);
       const url = await this.provider!.authorizationUrl(state, nonce, verifier);
       await this.store!.saveTransaction({
         stateHash: authHash(state),
@@ -122,12 +145,15 @@ export class AuthService {
       const query = new URLSearchParams(request.url.split('?')[1] ?? '');
       const state = query.get('state'),
         browser = request.cookies?.[this.loginCookieName];
+      const decodedBrowser = decodeLoginBrowserCookie(browser);
+      const codeResponse = query.getAll('code').length === 1 && !query.has('error');
+      const errorResponse = query.getAll('error').length === 1 && !query.has('code');
       if (
         !validSecret(state) ||
-        !validSecret(browser) ||
+        typeof browser !== 'string' ||
+        !decodedBrowser ||
         query.getAll('state').length !== 1 ||
-        query.getAll('code').length !== 1 ||
-        query.has('error')
+        (!codeResponse && !errorResponse)
       )
         throw new AppError(
           'AUTH_LOGIN_FAILED',
@@ -141,16 +167,40 @@ export class AuthService {
           401,
           'Não foi possível validar o login. Inicie novamente.',
         );
-      const callback = new URL(this.enabled().callbackUrl);
-      callback.search = query.toString();
-      const user = await this.store!.findOrCreateUser(
-        await this.provider!.exchange(callback, transaction, state),
+      // The stored hash covers the complete cookie, including returnTo. Do not
+      // use decoded metadata until state and this exact cookie are validated.
+      const redirect = resolveLoginReturnUrl(
+        this.enabled().AUTH_FRONTEND_URL,
+        decodedBrowser.returnTo,
       );
-      if (user.disabled) throw unauthorized();
-      const token = secret();
-      const session = this.newSession(user.id, token);
-      await this.store!.insertSession(session);
-      return { token, expiresAt: session.expiresAt, redirect: this.enabled().AUTH_FRONTEND_URL };
+      try {
+        if (errorResponse)
+          throw new AppError(
+            'AUTH_LOGIN_FAILED',
+            401,
+            'Não foi possível validar o login. Inicie novamente.',
+          );
+        const callback = new URL(this.enabled().callbackUrl);
+        callback.search = query.toString();
+        // The provider validates issuer, signature, audience, PKCE/state/nonce and
+        // email_verified before admission. Reject other accounts before creating
+        // a user, identity or session; query/body fields never grant access.
+        const profile = await this.provider!.exchange(callback, transaction, state);
+        if (!this.approvedEmail(profile.email)) throw adminOnly();
+        const user = await this.store!.findOrCreateUser(profile, { bootstrapAdmin: true });
+        if (user.disabled) throw unauthorized();
+        this.requireAdministrator(user);
+        const token = secret();
+        const session = this.newSession(user.id, token);
+        await this.store!.insertSession(session);
+        return { token, expiresAt: session.expiresAt, redirect };
+      } catch (error) {
+        const failure =
+          error instanceof AppError
+            ? error
+            : new AppError('AUTH_UNAVAILABLE', 503, 'Autenticação temporariamente indisponível.');
+        throw new AuthCallbackError(failure, loginErrorReturnUrl(redirect, failure.code));
+      }
     });
   }
   private newSession(userId: string, token: string, previous?: AuthSession): NewAuthSession {
@@ -172,7 +222,7 @@ export class AuthService {
   async session(request: FastifyRequest) {
     return this.safe(async () => {
       const session = await this.cookieSession(request);
-      return this.active(session)
+      return this.active(session) && this.approvedAdministrator(session.user)
         ? {
             authenticated: true,
             user: {
@@ -191,6 +241,7 @@ export class AuthService {
     return this.safe(async () => {
       const previous = await this.cookieSession(request);
       if (!previous || previous.user.disabled) throw unauthorized();
+      this.requireAdministrator(previous.user);
       this.csrf(request, previous);
       const token = secret(),
         session = this.newSession(previous.userId, token, previous);
@@ -230,6 +281,7 @@ export class AuthService {
         session = bearer ?? cookie;
       }
       if (!this.active(session)) throw unauthorized();
+      this.requireAdministrator(session.user);
       if (options.admin && !session.user.roles.includes('admin'))
         throw new AppError('AUTH_FORBIDDEN', 403, 'Permissão administrativa necessária.');
       return { userId: session.userId, roles: session.user.roles, sessionId: session.id };
@@ -240,6 +292,7 @@ export class AuthService {
       const principal = await this.requirePrincipal(request);
       const session = await this.store!.sessionById(principal.sessionId);
       if (!this.active(session)) throw unauthorized();
+      this.requireAdministrator(session.user);
       return {
         id: session.user.id,
         email: session.user.email,
@@ -254,6 +307,7 @@ export class AuthService {
       const principal = await this.requirePrincipal(request);
       const session = await this.store!.sessionById(principal.sessionId);
       if (!this.active(session)) throw unauthorized();
+      this.requireAdministrator(session.user);
       return this.tokens!.issue(session);
     });
   }

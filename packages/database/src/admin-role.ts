@@ -34,7 +34,9 @@ if (
           : await client.query("DELETE FROM auth_user_roles WHERE user_id=$1 AND role='admin'", [
               userId,
             ]);
-      if (change.rowCount)
+      // An explicit revoke is also a veto of first-login provisioning, even if
+      // no admin role exists yet. Keep that intention in the same audit log.
+      if (change.rowCount || action === 'revoke')
         await client.query(
           "INSERT INTO auth_role_audit(id,user_id,action,role) VALUES($1,$2,$3,'admin')",
           [randomUUID(), userId, action],

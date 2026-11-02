@@ -48,8 +48,7 @@ também não altera a senha de um volume PostgreSQL já inicializado.
 Provedor real exige chave/modelo, `REDIS_URL` e `LLM_GLOBAL_MAX_CALLS` positivo. No Compose,
 PostgreSQL e Redis usam os nomes internos. `PHASSCODE_NODE_ENV` preserva `production` por padrão,
 inclusive no checkout de desenvolvimento; `development`/`test` permitem fakes locais explícitos.
-Configure origins específicas do frontend para cada ambiente. A
-[operação da Fase 3](phase3.md) detalha login, credenciais Calendar independentes e worker.
+Configure origins específicas do frontend para cada ambiente. O guia da Fase 3 é histórico e não descreve as funcionalidades do Orbe público atual.
 
 `LLM_GLOBAL_WINDOW_MS` tem padrão 86400000; a janela começa na primeira reserva, pelo relógio do
 Redis. Instâncias do mesmo ambiente compartilham Redis e `LLM_GLOBAL_BUDGET_KEY`, com limite/janela
@@ -83,6 +82,66 @@ são escolhas explícitas. O estado não cria redes nem presume seus nomes/alias
 Migrations são transacionais, com advisory lock/checksums; nunca editar SQL já aplicado. Antes de
 publicar, ter backup testado e estratégia de recuperação. Rollback de imagem não reverte schema ou
 dados: o script falha com diagnóstico e não anuncia rollback automático do banco.
+
+## Transição R3/R4 para o Orbe público
+
+O bloqueio incondicional `R3_R4_NO_GO` deixa de impedir `dev`.
+Ele foi substituído por um **gate operacional condicional e fail-closed**:
+
+- Nenhum worker antigo no projeto Compose: o deploy do backend pode seguir.
+- Worker ativo: bloqueio antes do fast-forward do checkout remoto, pull ou migrations.
+- Worker parado ainda existente: exigir a marca de aposentadoria verificada
+  `.deployment/worker-retired` com o nome do projeto correto.
+- Tentativa de deploy ou parada interrompida: manter bloqueio até reconciliação
+  supervisionada; nunca apagar marcas para liberar a release.
+
+### Inspeção e parada controlada (uma vez por ambiente)
+
+No Mac Mini, sem copiar valores de `.env` ou dados pessoais:
+
+```bash
+cd /opt/projects/phasscode-platform-dev
+bash scripts/retire-worker.sh development --inspect
+```
+
+O comando consulta **somente contagens**: outbox não processado, notificações
+pendentes, reuniões com estado `PENDING`, `APPROVED` ou `CONFIRMED`,
+e leases ativos de Calendar. Se o banco ou esquema estiver indisponível,
+a inspeção falha sem modificar nada. Se não houver container legado, não
+é necessário criar marca alguma.
+
+Caso exista worker antigo, verifique backups, obrigações com visitantes e
+eventos externos. Só quando todas as contagens estiverem zeradas e o
+histórico externo tiver sido revisado, solicite sua parada explicitamente:
+
+```bash
+bash scripts/retire-worker.sh development --apply
+```
+
+O script usa a configuração e o projeto Compose do checkout selecionado.
+Ele recusa contagens não zeradas, solicita `stop --timeout 45` do worker
+e exige que o container esteja parado com código de saída 0. A marca
+`.deployment/worker-retired` é escrita apenas após sucesso. Em interrupção,
+`.deployment/worker-stop-attempted` permanece e bloqueia deploys;
+investigue logs e efeitos externos antes de qualquer reconciliação.
+
+Para produção, use o checkout `/opt/projects/phasscode-platform` e substitua
+`development` por `production`. Não reinicie o worker para diagnóstico: ele
+pode reenviar notificações ou processar eventos de Calendar. Nunca execute
+`down --volumes` ou exclua tabelas/marcas para contornar impedimentos.
+
+### Deploys de dev e main
+
+Concluída a transição, execute o workflow de release na branch e target
+correspondentes (`dev/development` ou `main/production`) com
+`apply_remote=true`, além de `ENABLE_REMOTE_DEPLOY=true` no GitHub
+Environment autorizado. Mantenha revisão humana para produção, backups
+conferidos e verificação de porta, proxy, CORS e endpoint público.
+
+**R4 continua relevante:** migrations não têm rollback automático. Se
+`.deployment/attempted-image-ref` ou `.deployment/attempted-phase`
+existir, a publicação recusa prosseguir até uma recuperação supervisionada.
+A validação local e CI não comprovam que o Mac Mini está pronto.
 
 ## Nginx compartilhado
 
@@ -122,6 +181,11 @@ encaminhamento recebidos; uma cadeia com CDN precisa de configuração própria 
 
 ## Release automatizada e manual no GitHub
 
+Há três workflows ativos no código: `Backend CI` (PR e reutilização no Release),
+`Static security analysis` (PR e segunda-feira), e `Backend release` (push/manual).
+O teste isolado de conexão SSH/Tailscale foi retirado; o Release continua
+validando Tailscale, host key SSH e checks do servidor antes de aplicar alterações.
+
 [`deploy.yml`](../../.github/workflows/deploy.yml) dispara em `push` para `dev` e `main`,
 e também permite `workflow_dispatch`:
 
@@ -134,9 +198,10 @@ e também permite `workflow_dispatch`:
 3. ZAP lê OpenAPI com alvo sobrescrito para a API descartável, em mock e sem chave de LLM. Os
    relatórios duram 14 dias; falhas definidas em `.ci/zap-rules.conf` bloqueiam a release.
 4. Em execução manual, `apply_remote=false` publica/testa a imagem sem aplicar no servidor;
-   `apply_remote=true` permite deploy. Em push, o deploy é automático somente se
-   `ENABLE_REMOTE_DEPLOY=true` no environment GitHub correspondente. O deploy manual também exige
-   essa variável. Em `production`, configurar **Required reviewers** no GitHub Environment
+   `apply_remote=true` permite deploy. Em **push**, o workflow apenas qualifica e publica a imagem:
+   **não aplica automaticamente no Mac Mini**, mesmo se `ENABLE_REMOTE_DEPLOY=true`.
+   O deploy remoto exige `workflow_dispatch`, `apply_remote=true`, branch/target correspondentes
+   e `ENABLE_REMOTE_DEPLOY=true` no environment GitHub correspondente. Em `production`, configurar **Required reviewers** no GitHub Environment
    para exigir aprovação humana antes de iniciar o job. Apenas referenciar o environment no YAML
    não cria nem garante essa aprovação.
 5. Tailscale prefere OAuth completo; credencial parcial falha. A authkey é alternativa somente

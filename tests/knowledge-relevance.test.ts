@@ -156,6 +156,27 @@ describe('recuperação de experiência e projetos por tecnologias reais', () =>
   });
 });
 
+describe('proveniência de experiências de emprego', () => {
+  it('não usa projetos autorais para comprovar tarefas específicas no SIGAA', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const evidence = knowledge.search('SIGAA Java Hibernate Spring Boot');
+    const selected = selectSources({
+      query: 'Qual a contribuição profissional dele na empresa SIG Software para o SIGAA?',
+      answer:
+        'Na SIG Software ele desenvolveu e manteve o SIGAA em Java, Hibernate, JBoss e PostgreSQL.',
+      documents: [
+        ...evidence,
+        ...knowledge.search('PHASSCODE Platform Orbe'),
+        ...knowledge.search('Webservice Spring Boot JPA'),
+      ],
+    });
+    expect(selected.map((source) => source.id)).toContain('experiencia-sig');
+    expect(
+      selected.every((source) => source.type !== 'project' && source.type !== 'platform'),
+    ).toBe(true);
+  });
+});
+
 describe('seleção determinística de fontes usadas na resposta', () => {
   it('cita experiência SIGAA e repositório Spring/JPA, excluindo perfil e cursos recuperados', () => {
     const sources = selectSources({
@@ -224,6 +245,26 @@ describe('seleção determinística de fontes usadas na resposta', () => {
       id: 'experience-sigaa',
       title: 'Experiência profissional no SIGAA',
     });
+  });
+
+  it('nunca entrega links diretos para JSON ou arquivos-fonte como referência profissional', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const sigaa = knowledge
+      .search('experiência Java no SIGAA')
+      .find((doc) => doc.id === 'experiencia-sig');
+    expect(sigaa).toBeDefined();
+    expect(documentSource(sigaa!).url).toBe('https://gbc.phasscode.com/#experiencia');
+    const skills = knowledge
+      .search('competências técnicas Java')
+      .find((doc) => doc.id === 'competencias-publicas');
+    expect(skills).toBeDefined();
+    expect(documentSource(skills!).url).toBe('https://gbc.phasscode.com/#sobre');
+    for (const url of [
+      'https://phasscode.com/assets/json/experiencia.json',
+      'https://github.com/example/repo/blob/main/src/data/perfil.ts',
+    ]) {
+      expect(documentSource({ ...documents[2]!, url })).not.toHaveProperty('url');
+    }
   });
 
   it('prefere demo existente quando falta repositório e descarta esquemas não HTTP', () => {

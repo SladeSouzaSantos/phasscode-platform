@@ -89,7 +89,10 @@ describe('Google OIDC through real HTTP, PKCE and signed JWKS', () => {
     expect(result.callback.headers.location).toBe('http://localhost:5173/login-complete');
     expect(google.jwksRequests).toBeGreaterThan(previousJwks);
     expect(result.state.authenticated).toBe(true);
-    expect(result.state.user.roles).toEqual(['user']);
+    expect(result.state.user.roles).toEqual(['admin', 'user']);
+    expect(store.roleAudit).toEqual([
+      { userId: result.state.user.id, action: 'grant', role: 'admin' },
+    ]);
     expect(result.callback.headers['set-cookie']).toEqual(
       expect.arrayContaining([expect.stringContaining('HttpOnly')]),
     );
@@ -110,11 +113,120 @@ describe('Google OIDC through real HTTP, PKCE and signed JWKS', () => {
     const start = await app.inject('/api/v1/auth/login/google');
     expect((await app.inject(google.authorize(start.headers.location!))).statusCode).toBe(401);
   });
+  it('does not clear a valid administrator session on an unsolicited invalid callback', async () => {
+    const { app, service } = await setup();
+    const result = await login(app, service, google);
+    const callback = await app.inject({
+      url: '/api/v1/auth/callback/google?error=access_denied',
+      headers: { cookie: result.sessionCookie },
+    });
+    expect(callback.statusCode).toBe(401);
+    expect(cookieValue(callback.headers['set-cookie'], service.cookieName)).toBe('');
+    expect(
+      (
+        await app.inject({ url: '/api/v1/auth/session', headers: { cookie: result.sessionCookie } })
+      ).json().authenticated,
+    ).toBe(true);
+  });
+  it.each([
+    'bob@example.test',
+    'alice+admin@example.test',
+    'a.lice@example.test',
+    'alice@example.test.attacker.invalid',
+  ])('denies verified Google account %s before creating any user or session', async (email) => {
+    const { app, service, store } = await setup();
+    const result = await login(app, service, google, { email });
+    expect(result.callback.statusCode).toBe(403);
+    expect(result.callback.json().error).toMatchObject({
+      code: 'AUTH_ADMIN_ONLY',
+      message: 'Acesso negado. Apenas o administrador tem acesso.',
+    });
+    expect(result.callback.headers.location).toBeUndefined();
+    expect(result.state.authenticated).toBe(false);
+    expect(store.users.size).toBe(0);
+    expect(store.identities.size).toBe(0);
+    expect(store.sessions.size).toBe(0);
+    expect(store.roleAudit).toHaveLength(0);
+    expect(cookieValue(result.callback.headers['set-cookie'], service.cookieName)).toBe(
+      `${service.cookieName}=`,
+    );
+    expect(cookieValue(result.callback.headers['set-cookie'], service.loginCookieName)).toBe(
+      `${service.loginCookieName}=`,
+    );
+    expect(result.callback.body).not.toContain('alice@example.test');
+  });
+  it('normalizes case and configuration whitespace without granting roles from query parameters', async () => {
+    const { app, service, store } = await setup({ AUTH_ADMIN_EMAIL: ' ALICE@EXAMPLE.TEST ' });
+    const accepted = await login(app, service, google, { email: 'ALICE@EXAMPLE.TEST' });
+    expect(accepted.callback.statusCode).toBe(302);
+    expect(store.users.get(accepted.state.user.id)!.email).toBe('alice@example.test');
+    const start = await app.inject('/api/v1/auth/login/google?email=alice@example.test&role=admin');
+    const callback = google.authorize(start.headers.location!, { email: 'bob@example.test' });
+    const denied = await app.inject({
+      url: `${callback}&email=alice%40example.test&role=admin`,
+      headers: { cookie: cookieValue(start.headers['set-cookie'], service.loginCookieName) },
+    });
+    expect(denied.statusCode).toBe(403);
+    expect(denied.json().error.code).toBe('AUTH_ADMIN_ONLY');
+    expect(store.users.size).toBe(1);
+    expect(store.sessions.size).toBe(1);
+  });
+  it('provisions admin only once and does not restore a manually removed role on login', async () => {
+    const { app, service, store } = await setup();
+    const first = await login(app, service, google);
+    const second = await login(app, service, google);
+    expect(first.state.user.id).toBe(second.state.user.id);
+    expect(store.roleAudit).toHaveLength(1);
+    const sessionsBefore = store.sessions.size;
+    store.users.get(first.state.user.id)!.roles = ['user'];
+    const denied = await login(app, service, google);
+    expect(denied.callback.statusCode).toBe(403);
+    expect(denied.callback.json().error.code).toBe('AUTH_ADMIN_ONLY');
+    expect(store.sessions.size).toBe(sessionsBefore);
+    expect(store.roleAudit).toHaveLength(1);
+    expect(store.users.get(first.state.user.id)!.roles).toEqual(['user']);
+  });
+  it('provisions an existing approved identity and updates only that identity profile', async () => {
+    const { app, service, store } = await setup();
+    const existing = await store.findOrCreateUser({
+      issuer: google.issuer,
+      subject: 'google-alice',
+      email: 'old-address@example.test',
+      displayName: 'Old profile',
+    });
+    expect(existing.roles).toEqual(['user']);
+    const result = await login(app, service, google);
+    expect(result.callback.statusCode).toBe(302);
+    expect(result.state.user.id).toBe(existing.id);
+    expect(existing.email).toBe('alice@example.test');
+    expect(existing.roles).toEqual(['admin', 'user']);
+    expect(store.users.size).toBe(1);
+    expect(store.roleAudit).toHaveLength(1);
+  });
+  it('respects an explicit administrative veto before the first bootstrap', async () => {
+    const { app, service, store } = await setup();
+    const existing = await store.findOrCreateUser({
+      issuer: google.issuer,
+      subject: 'google-alice',
+      email: 'alice@example.test',
+      displayName: 'Alice',
+    });
+    store.roleAudit.push({ userId: existing.id, action: 'revoke', role: 'admin' });
+    const result = await login(app, service, google);
+    expect(result.callback.statusCode).toBe(403);
+    expect(result.callback.json().error.code).toBe('AUTH_ADMIN_ONLY');
+    expect(existing.roles).toEqual(['user']);
+    expect(store.sessions.size).toBe(0);
+    expect(store.roleAudit).toHaveLength(1);
+  });
   it.each([
     { nonce: 'forged' },
     { iss: 'https://other.example' },
     { aud: 'other-client' },
     { email_verified: false },
+    { email_verified: 'true' },
+    { email: null },
+    { email: 'not-an-email' },
     { exp: 1 },
   ])('rejects invalid ID token claims %j', async (claims) => {
     const { app, service } = await setup();
@@ -159,14 +271,108 @@ describe('Google OIDC through real HTTP, PKCE and signed JWKS', () => {
   });
 });
 describe('sessions, authorization, rotation and JWT resource access', () => {
+  it.each(['email', 'role'] as const)(
+    'rejects existing cookies and JWTs after the current %s becomes ineligible',
+    async (changed) => {
+      const { app, service, store } = await setup();
+      const result = await login(app, service, google);
+      const bearer = await service.issueAccessToken(request(result.sessionCookie));
+      const user = store.users.get(result.state.user.id)!;
+      if (changed === 'email') user.email = 'former-admin@example.test';
+      else user.roles = ['user'];
+      for (const headers of [
+        { cookie: result.sessionCookie },
+        { authorization: `Bearer ${bearer}` },
+      ]) {
+        for (const url of ['/api/v1/me', '/test-admin']) {
+          const response = await app.inject({ url, headers });
+          expect(response.statusCode).toBe(403);
+          expect(response.json().error.code).toBe('AUTH_ADMIN_ONLY');
+        }
+      }
+      const state = await app.inject({
+        url: '/api/v1/auth/session',
+        headers: { cookie: result.sessionCookie },
+      });
+      expect(state.json()).toEqual({
+        authenticated: false,
+        user: null,
+        csrfToken: null,
+        expiresAt: null,
+      });
+      expect(cookieValue(state.headers['set-cookie'], service.cookieName)).toBe(
+        `${service.cookieName}=`,
+      );
+      const count = store.sessions.size;
+      const refreshed = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/refresh',
+        headers: {
+          cookie: result.sessionCookie,
+          origin: 'http://localhost:5173',
+          'x-csrf-token': result.state.csrfToken,
+        },
+      });
+      expect(refreshed.statusCode).toBe(403);
+      expect(refreshed.json().error.code).toBe('AUTH_ADMIN_ONLY');
+      expect(cookieValue(refreshed.headers['set-cookie'], service.cookieName)).toBe(
+        `${service.cookieName}=`,
+      );
+      expect(store.sessions.size).toBe(count);
+      await expect(service.issueAccessToken(request(result.sessionCookie))).rejects.toMatchObject({
+        code: 'AUTH_ADMIN_ONLY',
+      });
+      // A legacy session may still sign itself out with its original CSRF proof.
+      expect(
+        (
+          await app.inject({
+            method: 'POST',
+            url: '/api/v1/auth/logout',
+            headers: {
+              cookie: result.sessionCookie,
+              origin: 'http://localhost:5173',
+              'x-csrf-token': result.state.csrfToken,
+            },
+          })
+        ).statusCode,
+      ).toBe(204);
+      expect([...store.sessions.values()].every((session) => session.revokedAt !== null)).toBe(
+        true,
+      );
+    },
+  );
+  it('applies a changed administrator configuration to previously issued cookies and JWTs', async () => {
+    const { app, service, store, config } = await setup();
+    const result = await login(app, service, google);
+    const bearer = await service.issueAccessToken(request(result.sessionCookie));
+    const next = await authApp({ ...config, AUTH_ADMIN_EMAIL: 'new-admin@example.test' }, store);
+    apps.push(next.app);
+    for (const headers of [
+      { cookie: result.sessionCookie },
+      { authorization: `Bearer ${bearer}` },
+    ]) {
+      const response = await next.app.inject({ url: '/api/v1/me', headers });
+      expect(response.statusCode).toBe(403);
+      expect(response.json().error.code).toBe('AUTH_ADMIN_ONLY');
+    }
+    expect(
+      (
+        await next.app.inject({
+          url: '/api/v1/auth/session',
+          headers: { cookie: result.sessionCookie },
+        })
+      ).json().authenticated,
+    ).toBe(false);
+  });
   it('denies administration without a role and enforces Origin plus CSRF for cookie mutations', async () => {
     const { app, service, store } = await setup();
     const result = await login(app, service, google);
+    store.users.get(result.state.user.id)!.roles = ['user'];
     expect(
       (await app.inject({ url: '/test-admin', headers: { cookie: result.sessionCookie } }))
         .statusCode,
     ).toBe(403);
-    store.users.get(result.state.user.id)!.roles.push('admin');
+    store.users.get(result.state.user.id)!.roles = ['admin', 'user'];
     expect(
       (await app.inject({ url: '/test-admin', headers: { cookie: result.sessionCookie } }))
         .statusCode,
@@ -391,7 +597,7 @@ describe('sessions, authorization, rotation and JWT resource access', () => {
     const { app, service, store } = await setup();
     const result = await login(app, service, google);
     const user = store.users.get(result.state.user.id)!;
-    user.roles.push('admin');
+    user.roles = ['admin', 'user'];
     const jwt = await service.issueAccessToken(request(result.sessionCookie));
     user.roles = ['user'];
     expect(

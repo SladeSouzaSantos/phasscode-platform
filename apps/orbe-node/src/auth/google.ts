@@ -1,4 +1,5 @@
 import * as oidc from 'openid-client';
+import { z } from 'zod';
 import type { EnabledAuthConfig } from '../../../../packages/shared-config/src/auth.js';
 import { AppError } from '../domain/errors.js';
 import type { ExternalProfile, OAuthTransaction } from './types.js';
@@ -57,18 +58,19 @@ export class GoogleOidc implements GoogleIdentityProvider {
         idTokenExpected: true,
       });
       const claims = result.claims();
+      const email = z.string().trim().max(320).pipe(z.email()).safeParse(claims?.email);
       if (
         !claims ||
         typeof claims.sub !== 'string' ||
         !claims.sub ||
-        typeof claims.email !== 'string' ||
+        !email.success ||
         claims.email_verified !== true
       )
         throw new Error('Verified identity required.');
       return {
         issuer: claims.iss,
         subject: claims.sub,
-        email: claims.email.slice(0, 320),
+        email: email.data.toLowerCase(),
         displayName: typeof claims.name === 'string' ? claims.name.slice(0, 100) : 'Usuário',
       };
     } catch (error) {

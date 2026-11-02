@@ -307,6 +307,29 @@ describe('avaliador determinístico', () => {
     expect(result.status).toBe('review');
   });
 
+  it.each([
+    ['Não verifiquei MySQL, nem APIs REST comerciais.', 'consistency:professional-mysql'],
+    [
+      'Não há evidência de atuação com C++ ou C#, nem de uso de MySQL.',
+      'consistency:mysql-denial-paraphrase',
+    ],
+    [
+      'Geowellex implementou controle de estoque. O código está disponível publicamente no repositório citado acima.',
+      'consistency:private-geowellex-code',
+    ],
+    ['Não verifiquei Java em produção nem experiência profissional.', 'consistency:java-work'],
+    [
+      'Pedro possui 19 meses de vínculo exclusivamente no desenvolvimento de software, entre junho de 2016 e fevereiro de 2017 na SIG Software.',
+      'consistency:single-employer-duration',
+    ],
+  ])('reprova contradição factual mesmo com outra formulação: %s', (answer, checkId) => {
+    const assessment = evaluateTurn(response({ answer }), expected, [source], {
+      live: true,
+      isNew: true,
+    });
+    expect(assessment.checks.find(({ id }) => id === checkId)?.status).toBe('fail');
+  });
+
   it('reprova marcador de injection e não confunde React com reaction', () => {
     const expectation = expectationSchema.parse({
       sourcePolicy: 'none',
@@ -379,6 +402,54 @@ describe('runner sequencial sem serviços externos', () => {
     expect(transport).toHaveBeenCalledTimes(1);
     expect(report.summary).toMatchObject({ calls: 1, stoppedEarly: true, review: 1 });
     expect(JSON.stringify(report)).not.toContain(upstreamSecret);
+  });
+
+  it.each(['LLM_PROVIDERS_LIMITED', 'LLM_BUDGET_UNAVAILABLE', 'RATE_LIMIT_UNAVAILABLE'])(
+    'interrompe após HTTP 503 operacional %s, sem retries nem vazamento de dados',
+    async (code) => {
+      const transport = vi.fn<typeof fetch>().mockResolvedValue(
+        Response.json(
+          {
+            error: {
+              code,
+              message: 'secret_provider_payload_never_persist',
+              correlationId: 'private_trace_never_persist',
+            },
+          },
+          { status: 503 },
+        ),
+      );
+      const report = await runEvaluation(matrix(), [source], options, transport);
+      expect(transport).toHaveBeenCalledTimes(1);
+      expect(report.summary).toMatchObject({
+        calls: 1,
+        stoppedEarly: true,
+        review: 1,
+        fail: 0,
+      });
+      expect(report.cases[0]?.turns[0]).toMatchObject({
+        errorCode: code,
+        status: 'review',
+        httpStatus: 503,
+      });
+      expect(JSON.stringify(report)).not.toContain('secret_provider_payload');
+      expect(JSON.stringify(report)).not.toContain('private_trace');
+    },
+  );
+
+  it('interrompe HTTP 503 desconhecido sem classificá-lo como cooldown comprovado', async () => {
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        Response.json(
+          { error: { code: 'OTHER_OUTAGE', message: 'opaque', correlationId: 'trace' } },
+          { status: 503 },
+        ),
+      );
+    const report = await runEvaluation(matrix(), [source], options, transport);
+    expect(report.cases[0]?.turns[0]?.status).toBe('review');
+    expect(report.summary.stoppedEarly).toBe(true);
+    expect(report.cases[0]?.turns[0]?.errorCode).toBeUndefined();
   });
 
   it('respeita teto de chamadas e marca cenário incompleto para revisão', async () => {

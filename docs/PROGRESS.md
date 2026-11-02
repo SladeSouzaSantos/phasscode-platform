@@ -27,8 +27,10 @@ alterado. Portfólio e Orbe continuam públicos.
 - Google OIDC com biblioteca mantida, Code/PKCE/state/nonce/assinatura, transação de uso único e
   vínculo `(issuer,subject)`. Usuários, identidades, papéis e sessões ficam no PostgreSQL central.
 - BFF com cookie opaco HttpOnly/Secure/SameSite, Origin/CSRF, rotação/reuso/logout. JWT RS256 de
-  serviço, JWKS e revogação por sessão; nenhum JWT ou token Google no navegador. Admin só por
-  atribuição explícita e auditada do operador. Senha/GitHub/MFA/passkeys seguem no roadmap.
+  serviço, JWKS e revogação por sessão; nenhum JWT ou token Google no navegador. O login agora
+  exige o único e-mail Google verificado de `AUTH_ADMIN_EMAIL`; outras contas são recusadas antes
+  do cadastro/sessão. Bootstrap inicial de admin é auditado e não restaura papéis revogados;
+  recuperação posterior exige operador. Senha/GitHub/MFA/passkeys seguem no roadmap.
   Rotação, reuso e logout compartilham mutex transacional por família, impedindo uma sucessora
   ativa de escapar de revogação concorrente entre instâncias.
 - Política confirmada: America/Fortaleza, seg–sáb 09h–18h, 30min, 24h de antecedência e buffer de

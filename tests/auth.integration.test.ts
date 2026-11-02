@@ -7,6 +7,7 @@ import { migrate } from '../packages/database/src/migrations.js';
 import { PgAuthStore } from '../apps/orbe-node/src/auth/postgres.js';
 import { authHash } from '../apps/orbe-node/src/auth/service.js';
 import type {
+  AuthUserProvisioning,
   ExternalProfile,
   NewAuthSession,
   OAuthTransaction,
@@ -20,8 +21,8 @@ const userIds = new Set<string>();
 const states = new Set<string>();
 const apps: Array<{ close(): Promise<void> }> = [];
 class TrackingStore extends PgAuthStore {
-  override async findOrCreateUser(profile: ExternalProfile) {
-    const user = await super.findOrCreateUser(profile);
+  override async findOrCreateUser(profile: ExternalProfile, options?: AuthUserProvisioning) {
+    const user = await super.findOrCreateUser(profile, options);
     userIds.add(user.id);
     return user;
   }
@@ -99,6 +100,88 @@ it('creates one central user per issuer/subject under concurrent logins and neve
   const other = await store.findOrCreateUser({ ...identity, subject: randomUUID() });
   expect(other.id).not.toBe(users[0]!.id);
 });
+it('bootstraps and audits the administrator exactly once across concurrent store instances', async () => {
+  const identity = profile();
+  const users = await Promise.all(
+    Array.from({ length: 8 }, (_, index) =>
+      (index % 2 ? store : new PgAuthStore(pool)).findOrCreateUser(identity, {
+        bootstrapAdmin: true,
+      }),
+    ),
+  );
+  for (const user of users) userIds.add(user.id);
+  expect(new Set(users.map((user) => user.id)).size).toBe(1);
+  expect(users.every((user) => user.roles.join(',') === 'admin,user')).toBe(true);
+  const audit = await pool.query<{ action: string; role: string }>(
+    'SELECT action,role FROM auth_role_audit WHERE user_id=$1',
+    [users[0]!.id],
+  );
+  expect(audit.rows).toEqual([{ action: 'grant', role: 'admin' }]);
+});
+it('updates a verified identity profile without merging another subject with the same email', async () => {
+  const identity = profile();
+  const original = await store.findOrCreateUser(identity);
+  const updated = await store.findOrCreateUser({
+    ...identity,
+    email: 'updated-profile@example.test',
+    displayName: 'Updated verified name',
+  });
+  expect(updated).toMatchObject({
+    id: original.id,
+    email: 'updated-profile@example.test',
+    displayName: 'Updated verified name',
+    roles: ['user'],
+  });
+  const other = await store.findOrCreateUser({
+    ...identity,
+    subject: randomUUID(),
+    email: updated.email,
+  });
+  expect(other.id).not.toBe(original.id);
+  expect(other.roles).toEqual(['user']);
+});
+it('never bootstraps a disabled user or overrides an audited revocation before first grant', async () => {
+  const disabledIdentity = profile();
+  const disabled = await store.findOrCreateUser(disabledIdentity);
+  await pool.query('UPDATE auth_users SET disabled_at=now() WHERE id=$1', [disabled.id]);
+  expect(await store.findOrCreateUser(disabledIdentity, { bootstrapAdmin: true })).toMatchObject({
+    disabled: true,
+    roles: ['user'],
+  });
+  const revokedIdentity = profile();
+  const revoked = await store.findOrCreateUser(revokedIdentity);
+  await pool.query(
+    "INSERT INTO auth_role_audit(id,user_id,action,role) VALUES($1,$2,'revoke','admin')",
+    [randomUUID(), revoked.id],
+  );
+  expect(await store.findOrCreateUser(revokedIdentity, { bootstrapAdmin: true })).toMatchObject({
+    id: revoked.id,
+    roles: ['user'],
+  });
+  const grants = await pool.query(
+    "SELECT id FROM auth_role_audit WHERE user_id=ANY($1::uuid[]) AND action='grant'",
+    [[disabled.id, revoked.id]],
+  );
+  expect(grants.rowCount).toBe(0);
+});
+it('does not regrant an administrator after its audited role has been revoked', async () => {
+  const identity = profile();
+  const user = await store.findOrCreateUser(identity, { bootstrapAdmin: true });
+  await pool.query("DELETE FROM auth_user_roles WHERE user_id=$1 AND role='admin'", [user.id]);
+  await pool.query(
+    "INSERT INTO auth_role_audit(id,user_id,action,role) VALUES($1,$2,'revoke','admin')",
+    [randomUUID(), user.id],
+  );
+  expect(await store.findOrCreateUser(identity, { bootstrapAdmin: true })).toMatchObject({
+    id: user.id,
+    roles: ['user'],
+  });
+  const audit = await pool.query<{ action: string }>(
+    'SELECT action FROM auth_role_audit WHERE user_id=$1 ORDER BY action',
+    [user.id],
+  );
+  expect(audit.rows).toEqual([{ action: 'grant' }, { action: 'revoke' }]);
+});
 it('serializes refresh across instances and revokes the family on reuse', async () => {
   const user = await store.findOrCreateUser(profile());
   const original = newSession(user.id);
@@ -128,6 +211,36 @@ async function waitForBlockedQuery(query: string): Promise<number> {
   }
   throw new Error('A operação concorrente não alcançou a barreira de lock PostgreSQL.');
 }
+it('waits for a concurrent operator revocation and reads the committed veto before bootstrap', async () => {
+  const identity = profile();
+  const user = await store.findOrCreateUser(identity);
+  const operator = await pool.connect();
+  let locked = false;
+  let pending: ReturnType<PgAuthStore['findOrCreateUser']> | undefined;
+  try {
+    await operator.query('BEGIN');
+    locked = true;
+    await operator.query('SELECT id FROM auth_users WHERE id=$1 FOR UPDATE', [user.id]);
+    pending = store.findOrCreateUser(identity, { bootstrapAdmin: true });
+    await waitForBlockedQuery('SELECT id FROM auth_users WHERE id=$1 FOR UPDATE');
+    await operator.query(
+      "INSERT INTO auth_role_audit(id,user_id,action,role) VALUES($1,$2,'revoke','admin')",
+      [randomUUID(), user.id],
+    );
+    await operator.query('COMMIT');
+    locked = false;
+    expect(await pending).toMatchObject({ id: user.id, roles: ['user'] });
+    const audit = await pool.query<{ action: string }>(
+      'SELECT action FROM auth_role_audit WHERE user_id=$1',
+      [user.id],
+    );
+    expect(audit.rows).toEqual([{ action: 'revoke' }]);
+  } finally {
+    if (locked) await operator.query('ROLLBACK');
+    operator.release();
+    if (pending) await Promise.allSettled([pending]);
+  }
+});
 it.each(['logout', 'reused refresh'] as const)(
   '%s waits for an in-flight rotation and revokes its newly inserted child',
   async (operation) => {
@@ -248,6 +361,13 @@ it('reads administrative permissions from the central database for every request
   const { app, service } = await authApp(config, store);
   apps.push(app);
   const result = await login(app, service, google, { sub: randomUUID() });
+  expect(
+    (await app.inject({ url: '/test-admin', headers: { cookie: result.sessionCookie } }))
+      .statusCode,
+  ).toBe(200);
+  await pool.query("DELETE FROM auth_user_roles WHERE user_id=$1 AND role='admin'", [
+    result.state.user.id,
+  ]);
   expect(
     (await app.inject({ url: '/test-admin', headers: { cookie: result.sessionCookie } }))
       .statusCode,

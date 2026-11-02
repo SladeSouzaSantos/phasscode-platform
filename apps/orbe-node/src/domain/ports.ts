@@ -27,9 +27,44 @@ export interface KnowledgeDocument extends Source {
       }
     | undefined;
 }
+export interface AcademicCourseListing {
+  trackId: string;
+  trackName: string;
+  courses: readonly {
+    id: string;
+    title: string;
+    provider: string;
+    status: 'completed' | 'in_progress';
+    verification: 'owner_confirmed' | 'document_verified';
+  }[];
+}
+
+/** Snapshot of structured PPKS facts, never generated from an LLM response. */
+export interface CanonicalAcademicFacts {
+  educations: readonly {
+    id: string;
+    title: string;
+    institution: string;
+    status: 'completed' | 'in_progress' | 'pending_completion' | 'not_verified';
+  }[];
+  tracks: readonly {
+    id: string;
+    name: string;
+    completedCount: number;
+    totalCount: number;
+  }[];
+}
+
 export interface KnowledgeRepository {
+  /** Optional for test adapters that do not load the curated academic PPKS. */
+  canonicalAcademicFacts?(): CanonicalAcademicFacts | undefined;
   search(query: string): KnowledgeDocument[];
+  getDocument?(id: string): KnowledgeDocument | undefined;
+  /** Canonical records for explicit complete-course requests, not LLM summaries. */
+  academicCourseListing?(query: string): AcademicCourseListing | undefined;
   experienceDocuments?(): KnowledgeDocument[];
+  /** Bounded, provenance-aware semantic relationships for retained documents. */
+  semanticContext?(query: string, documents: readonly KnowledgeDocument[]): string;
 }
 export interface GenerationInput {
   message: string;
@@ -39,6 +74,8 @@ export interface GenerationInput {
   meetingActions?: boolean;
   asOf?: Date;
   experienceIds?: string[];
+  /** Random per-turn trace identifier, never a visitor or conversation token. */
+  evidenceTraceId?: string;
 }
 export interface GenerationResult {
   answer: string;
@@ -55,9 +92,10 @@ export interface TurnResult {
 }
 export interface ConversationStore {
   runTurn(
-    input: { id: string; tokenHash: string; isNew: boolean },
+    input: { id: string; tokenHash: string; isNew: boolean; analyticsConsent?: boolean },
     operation: (history: Message[]) => Promise<TurnResult>,
   ): Promise<ChatResponse>;
+  withdrawReport?(id: string, tokenHash: string): Promise<void>;
   ready(): Promise<void>;
   close(): Promise<void>;
 }

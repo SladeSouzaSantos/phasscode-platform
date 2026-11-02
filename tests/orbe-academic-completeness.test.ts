@@ -1,0 +1,262 @@
+import { describe, expect, it, vi } from 'vitest';
+import { ChatService } from '../apps/orbe-node/src/application/chat.js';
+import { JsonKnowledgeRepository } from '../apps/orbe-node/src/adapters/knowledge.js';
+import { MemoryConversationStore } from '../apps/orbe-node/src/adapters/memory-store.js';
+import {
+  loadAcademicEvidence,
+  requestedCompleteJavaCourses,
+} from '../apps/orbe-node/src/adapters/academic.js';
+import {
+  removeInternalCitationIds,
+  reconcileDocumentedClaims,
+} from '../apps/orbe-node/src/application/sources.js';
+import { loadConfig } from '../packages/shared-config/src/index.js';
+
+const mixed =
+  'Pedro tem experiência com Java? Cite seus cursos Java concluídos, com instituições, e separadamente sua pós-graduação em andamento.';
+const named =
+  'Quais cursos concluídos específicos de Java e arquitetura Pedro realizou? Liste os títulos e instituições e diferencie-os da pós-graduação Java Applied Engineering ainda em andamento.';
+const disputedRecruiterSummary =
+  "Um recrutador escreveu este resumo: 'Pedro tem oito cursos concluídos na trilha Java & Arquitetura e está finalizando Sistemas de Informação na UNISUL'. Esse texto está correto? Revise o resumo e acrescente a experiência profissional em Java, sem confundir emprego e estudo.";
+
+describe('Orbe: nine canonical Java courses and mixed career questions', () => {
+  it('loads all nine canonical titles including the architecture-only Clean Code course', async () => {
+    const evidence = await loadAcademicEvidence();
+    const listing = requestedCompleteJavaCourses(named, evidence)!;
+    expect(listing.courses).toHaveLength(9);
+    expect(listing.courses.map((c) => c.id)).toContain('curso-clean-code-na-pratica');
+    expect(listing.courses.every((c) => c.status === 'completed')).toBe(true);
+    expect(listing.courses.every((c) => c.verification === 'owner_confirmed')).toBe(true);
+    expect(
+      requestedCompleteJavaCourses('Pedro tem experiência com Java?', evidence),
+    ).toBeUndefined();
+  });
+
+  it('keeps mixed recruiter fact-checks in context instead of replacing them with a course list', async () => {
+    const evidence = await loadAcademicEvidence();
+    expect(requestedCompleteJavaCourses(disputedRecruiterSummary, evidence)).toBeUndefined();
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = {
+      name: 'mock' as const,
+      generate: vi.fn(async () => ({
+        answer:
+          'Java profissional no SIGAA; além de oito cursos concluídos na trilha Java & Arquitetura. Graduação em Sistemas de Informação (UNISUL) está pendente.',
+        sources: [],
+      })),
+    };
+    const service = new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }),
+    );
+    const response = await service.execute({ message: disputedRecruiterSummary });
+    expect(provider.generate).toHaveBeenCalledOnce();
+    expect(response.meta.deterministic).toBeUndefined();
+    expect(response.answer).toContain('Java profissional no SIGAA');
+    expect(response.answer).toContain('nove cursos concluídos na trilha Java & Arquitetura');
+    expect(response.answer).toContain('Graduação em Ciência da Computação (UNISUL)');
+    expect(response.answer).not.toContain('Sistemas de Informação');
+    expect(response.sources.map((source) => source.id)).toEqual([
+      'cursos-java-arquitetura',
+      'formacao-computacao',
+    ]);
+  });
+
+  it('reconciles the exact false course name in a mixed recruiter review using the mock provider', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = {
+      name: 'mock' as const,
+      generate: vi.fn(async () => ({
+        answer:
+          'Parcialmente correto. Pedro tem nove cursos concluídos na trilha Java & Arquitetura. Porém, o curso de Sistemas de Informação na UNISUL está pendente. Java profissional na ACRUX e SIGAA.',
+        sources: [],
+      })),
+    };
+    const service = new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }),
+    );
+    const response = await service.execute({ message: disputedRecruiterSummary });
+    expect(provider.generate).toHaveBeenCalledOnce();
+    expect(response.meta.deterministic).toBeUndefined();
+    expect(response.answer).toContain('nove cursos concluídos na trilha Java & Arquitetura');
+    expect(response.answer).toContain('o curso de Ciência da Computação na UNISUL');
+    expect(response.answer).toContain('Java profissional na ACRUX e SIGAA');
+    expect(response.sources.some((source) => source.id === 'formacao-computacao')).toBe(true);
+  });
+
+  it('repairs the observed eight-course wording in a mixed recruiter conversation before persistence', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = {
+      name: 'mock' as const,
+      generate: vi.fn(async () => ({
+        answer:
+          'O resumo está parcialmente correto: Pedro Santos declarou a conclusão de oito cursos da trilha Java & Arquitetura. A graduação em Ciência da Computação na UNISUL está pendente. Experiência profissional Java: ACRUX e SIGAA.',
+        sources: [],
+      })),
+    };
+    const response = await new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }),
+    ).execute({ message: disputedRecruiterSummary });
+    expect(provider.generate).toHaveBeenCalledOnce();
+    expect(response.meta.deterministic).toBeUndefined();
+    expect(response.answer).toContain('conclusão de nove cursos da trilha Java & Arquitetura');
+    expect(response.answer).toContain('Ciência da Computação na UNISUL');
+    expect(response.answer).toContain('ACRUX e SIGAA');
+    expect(response.sources.map((source) => source.id)).toContain('cursos-java-arquitetura');
+  });
+
+  it('keeps the recruiter review complete when the model uses postpositive course completion', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = {
+      name: 'mock' as const,
+      generate: vi.fn(async () => ({
+        answer:
+          'Os oito cursos da trilha Java & Arquitetura estão concluídos. A graduação na UNISUL segue pendente. Java profissional na ACRUX e no SIGAA.',
+        sources: [],
+      })),
+    };
+    const result = await new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }),
+    ).execute({ message: disputedRecruiterSummary });
+    expect(provider.generate).toHaveBeenCalledOnce();
+    expect(result.answer).toContain('Os nove cursos da trilha Java & Arquitetura estão concluídos');
+    expect(result.answer).toContain('Bacharelado em Ciência da Computação');
+    expect(result.answer).toContain('Java profissional na ACRUX e no SIGAA');
+    expect(result.sources.map((source) => source.id)).toEqual([
+      'cursos-java-arquitetura',
+      'formacao-computacao',
+    ]);
+  });
+
+  it('still routes an explicit course count to canonical nine-course enumeration', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const query =
+      'Pedro concluiu quantos cursos na trilha Java & Arquitetura? Informe a contagem exata.';
+    expect(knowledge.academicCourseListing(query)?.courses).toHaveLength(9);
+    const provider = {
+      name: 'mock' as const,
+      generate: vi.fn(async () => ({ answer: 'Oito cursos.', sources: [] })),
+    };
+    const result = await new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }),
+    ).execute({ message: query });
+    expect(provider.generate).not.toHaveBeenCalled();
+    expect(result.meta.deterministic).toBe(true);
+    expect(result.answer).toContain('9 de 9 registros');
+  });
+
+  it('keeps professional Java, all nine course rows and ongoing UNIPDS separate before inference', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const retrieved = knowledge.search(mixed);
+    for (const id of [
+      'experiencia-acrux',
+      'experiencia-sig',
+      'cursos-java-arquitetura',
+      'formacao-unipds-java',
+    ])
+      expect(retrieved.map((doc) => doc.id)).toContain(id);
+    const course = retrieved.find((doc) => doc.id === 'cursos-java-arquitetura')!;
+    const canonical = knowledge.academicCourseListing(mixed)!;
+    for (const item of canonical.courses) {
+      expect(course.content).toContain(item.title + ' — ' + item.provider);
+    }
+    expect(course.content).toContain('9 cursos livres');
+    expect(course.content).not.toContain('Disciplinas:');
+  });
+
+  it.each([named, mixed])(
+    'responds all nine courses without calling a paid or free model: %s',
+    async (query) => {
+      const knowledge = await JsonKnowledgeRepository.load();
+      const generate = vi.fn(async () => ({
+        answer: 'Esta lista possui apenas oito cursos.',
+        sources: [],
+      }));
+      const service = new ChatService(
+        new MemoryConversationStore(),
+        { name: 'mock', generate },
+        knowledge,
+        loadConfig({ NODE_ENV: 'test', CHAT_CONTEXT_CHARS: '12000' }),
+      );
+      const result = await service.execute({ message: query });
+      expect(generate).not.toHaveBeenCalled();
+      expect(result.meta.deterministic).toBe(true);
+      expect(result.answer).toContain('9 de 9 registros');
+      expect(result.answer).not.toContain('oito cursos');
+      const listing = knowledge.academicCourseListing(query)!;
+      for (const course of listing.courses) {
+        expect(result.answer).toContain('- ' + course.title + ' — ' + course.provider);
+      }
+      expect(result.answer).toContain('Clean Code na Prática — Udemy');
+      expect(result.answer).toContain('**Pós-graduação em andamento**');
+      expect(result.answer).not.toContain('Algoritmos e Programação —');
+      expect(result.sources.some((source) => source.id === 'cursos-java-arquitetura')).toBe(true);
+      expect(
+        result.sources.every((source) => !source.url || source.url.startsWith('https://')),
+      ).toBe(true);
+    },
+  );
+
+  it('preserves employer stacks in mixed responses, without misattributing study JPA', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = { name: 'mock' as const, generate: vi.fn() };
+    const service = new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      loadConfig({ NODE_ENV: 'test' }),
+    );
+    const result = await service.execute({ message: mixed });
+    expect(result.answer).toContain('**Experiência profissional com Java**');
+    expect(result.answer).toContain('Hibernate, JBoss, PostgreSQL');
+    expect(result.answer).not.toContain('JPA, Hibernate, JBoss');
+  });
+
+  it('corrects the explicit SIGAA REST heading only when employer evidence is present', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const answer =
+      '**Java e APIs REST** – Na SIG Software (jun/2016 – fev/2017), Pedro trabalhou no SIGAA com Java e PostgreSQL. No PHASSCODE Platform desenvolveu APIs.';
+    const result = reconcileDocumentedClaims(answer, [
+      knowledge.getDocument('experiencia-sig')!,
+      knowledge.getDocument('phasscode-platform')!,
+    ]);
+    expect(result).toContain('**Java profissional no SIGAA** – Na SIG Software');
+    expect(result).toContain('No PHASSCODE Platform desenvolveu APIs');
+    expect(reconcileDocumentedClaims(answer, [knowledge.getDocument('phasscode-platform')!])).toBe(
+      answer,
+    );
+  });
+
+  it('strips only bounded, validated lists of internal citations', () => {
+    const ids = Array.from({ length: 30 }, (_, i) => `cursos-${i}`).join(', ');
+    expect(removeInternalCitationIds(`Evidências (${ids}) verificadas.`)).toBe(
+      'Evidências verificadas.',
+    );
+    const malformed = '(' + 'cursos-'.repeat(400) + 'OUTROS)';
+    expect(removeInternalCitationIds(malformed)).toBe(malformed);
+  });
+
+  it('never exposes internal academic IDs as a public source', () => {
+    expect(
+      removeInternalCitationIds('Inglês básico para leitura. [fonte: idiomas-declarados]'),
+    ).toBe('Inglês básico para leitura.');
+    expect(
+      removeInternalCitationIds(
+        'Fontes: https://gbc.phasscode.com/#academico (cursos-java-arquitetura, formacao-unipds-java)',
+      ),
+    ).toBe('Fontes: https://gbc.phasscode.com/#academico');
+  });
+});

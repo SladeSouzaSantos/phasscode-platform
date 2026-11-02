@@ -1,8 +1,6 @@
 Atualize `portfolio.json` com fontes profissionais autorizadas e fatos públicos rastreáveis. A
 curadoria ampliada de 21/10/2026 combina o briefing, a implementação local, o site antigo, GitHub e
-o currículo e as confirmações atuais do proprietário nesta sessão. São **31 documentos**: 17 registros de perfil, experiências,
-formação, cursos e idiomas; 13 registros de projetos; e um da plataforma. Os oito IDs originais
-foram preservados. Proveniência, arquivos/commits, páginas do CV e divergências estão em
+o currículo e as confirmações atuais do proprietário nesta sessão. O catálogo inicial continha **31 documentos** (17 de perfil, 13 de projetos e uma plataforma). Depois da expansão de 31/10/2026, são **48 registros**. Os 31 anteriores foram preservados. Proveniência, arquivos/commits, páginas do CV e divergências estão em
 [SOURCES.md](SOURCES.md).
 
 Informações profissionais registradas devem ser apresentadas diretamente. A proveniência fica em
@@ -41,3 +39,33 @@ A busca pondera termos, tecnologias reais e intenção de experiência/projeto. 
 compara os registros fornecidos com a resposta final; não retorna automaticamente tudo que foi
 consultado. Não usa embeddings nem faz scraping.
 Uma futura porta de recuperação vetorial poderá usar PostgreSQL/pgvector após medir a necessidade.
+
+## Atualização do catálogo profissional (31/10/2026)
+
+O Orbe usa uma **curadoria versionada no backend**, não consome automaticamente
+o catálogo React da Academia Arcana. A sincronização editorial desta revisão
+foi baseada nas listas `src/data/formacoes.ts`, `projetos.ts` e
+`arquivoProjetos.ts` do frontend `web-portfolio-v2/dev` na revisão
+`6efb48ed1450e728fbacf1e9b0e378eb1b6dd113`.
+
+São **48 registros**: 31 anteriores preservados e 17 novos (oito projetos,
+seis trilhas de cursos, resumo Hackers do Bem e duas pós-graduações UNIPDS).
+Todos os **42 cursos livres** estão marcados como concluídos por confirmação
+do autor. Quatro certificados Hackers do Bem somam **320 horas** e não foram
+incluídos no repositório. Não há certificados de fabricantes inferidos.
+
+Cada resposta cita páginas públicas ou repositórios reais quando apropriado;
+JSON e caminhos de código locais não são apresentados como fontes externas.
+O conteúdo é estático até uma nova revisão/redeploy do **backend**. Mudanças no
+frontend não atualizam a base em tempo real. O Orbe não faz scraping contínuo.
+Para novos cursos e projetos, sincronize e revise a procedência antes de
+publicar novamente.
+
+A validação de comportamento de recrutadores usa
+`tests/orbe-recruiter-scenarios.test.ts`, e a avaliação HTTP opcional usa
+`evaluation/recruiter-cases.json` com `--matrix=`, sempre limitada e explícita.
+A execução de testes simulados não comprova respostas de um provedor LLM real.
+
+## PPKS Acadêmico v1.1 (31/10/2026)
+
+Formações e cursos agora possuem catálogos versionados e esquemas próprios em `knowledge/ppks/academic/`. O curso de Ciência da Computação na UNISUL está incompleto por atividades de extensão presenciais pendentes; a conclusão estimada é entre o fim de 2027 e o início de 2028, sem garantia. O histórico de janeiro de 2026 indica 2.780/3.200 horas aprovadas; não reutilizar o registro histórico de matrícula ativa como status atual. Gestão da TI é graduação concluída em agosto de 2025 e o diploma apresentado é emitido pelo Centro Universitário ETEP, embora o currículo use UNIBF. Os 42 cursos livres permanecem concluídos por confirmação, sem certificações de fornecedor inferidas. PDFs e dados pessoais não são publicados.

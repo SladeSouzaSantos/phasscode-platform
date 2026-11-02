@@ -1,7 +1,6 @@
 name: Backend release | CI > SAST > Image > DAST > Deploy > Verify
-# Push em dev/main executa testes, seguranca e deploy no ambiente correspondente.
-# PROD exige required reviewers no environment production (configuracao GitHub fora deste arquivo).
-# Push faz deploy somente com ENABLE_REMOTE_DEPLOY=true; dispatch exige tambem apply_remote=true.
+# Dev/main qualify immutable images automatically; remote application is manual-only.
+# Legacy worker retirement and unreconciled migrations are mandatory safety gates.
 on:
   push:
     branches: [dev, main]
@@ -19,9 +18,18 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: backend-release-${{ github.ref }}
-  cancel-in-progress: false
+  # Cancel only superseded automatic candidates, never a manual release.
+  group: backend-release-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 jobs:
+  # R1: full Backend CI executes in THIS run and on THIS github.sha.
+  # The independent push CI cannot be referenced with needs:.
+  ci_gate:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  # Independent public Orbe qualification on dev/main.
   tests:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -73,7 +81,7 @@ jobs:
         with: { category: backend-release }
   image:
     runs-on: ubuntu-latest
-    needs: sast
+    needs: [sast, ci_gate]
     timeout-minutes: 20
     permissions:
       contents: read
@@ -151,9 +159,9 @@ jobs:
         if: always()
         run: docker compose --env-file /dev/null down --volumes
   deploy:
-    if: github.event_name == 'push' || inputs.apply_remote
+    if: github.event_name == 'workflow_dispatch' && ((github.ref == 'refs/heads/dev' && inputs.target == 'development') || (github.ref == 'refs/heads/main' && inputs.target == 'production')) && inputs.apply_remote
     runs-on: ubuntu-latest
-    needs: [image, dast]
+    needs: [image, dast, ci_gate]
     timeout-minutes: 25
     environment: ${{ github.event_name == 'push' && (github.ref_name == 'main' && 'production' || 'development') || inputs.target }}
     env:
@@ -197,6 +205,39 @@ jobs:
             cd "$PROJECT_DIR"
             test "$(git branch --show-current)" = "$DEPLOY_BRANCH"
             test -z "$(git status --porcelain)"
+            # Read-only operational gate BEFORE the on-server Git checkout is advanced.
+            test ! -L .deployment
+            test ! -e .deployment/attempted-image-ref
+            test ! -L .deployment/attempted-image-ref
+            test ! -e .deployment/attempted-phase
+            test ! -L .deployment/attempted-phase
+            test ! -e .deployment/worker-stop-attempted
+            test ! -L .deployment/worker-stop-attempted
+            test ! -d .deploy-lock
+            test ! -L .deploy-lock
+            if [ "$DEPLOY_TARGET" = development ]; then
+              WORKER_PROJECT=phasscode-platform-dev
+            else
+              WORKER_PROJECT=phasscode-platform
+            fi
+            WORKER_RUNNING=$(docker ps \
+              --filter "label=com.docker.compose.project=$WORKER_PROJECT" \
+              --filter "label=com.docker.compose.service=worker" --format '{{.ID}}')
+            if [ -n "$WORKER_RUNNING" ]; then
+              echo 'LEGACY_WORKER_RUNNING: supervised retirement required before remote deploy.' >&2
+              exit 1
+            fi
+            WORKER_ALL=$(docker ps --all \
+              --filter "label=com.docker.compose.project=$WORKER_PROJECT" \
+              --filter "label=com.docker.compose.service=worker" --format '{{.ID}}')
+            if [ -n "$WORKER_ALL" ]; then
+              test ! -L .deployment/worker-retired
+              test -f .deployment/worker-retired
+              test "$(cat .deployment/worker-retired)" = "$WORKER_PROJECT" || {
+                echo 'LEGACY_WORKER_UNRECONCILED: inspect pending commitments before deploy.' >&2
+                exit 1
+              }
+            fi
             git fetch origin "$DEPLOY_BRANCH"
             test "$(git rev-parse FETCH_HEAD)" = "$DEPLOY_SHA"
             git merge --ff-only "$DEPLOY_SHA"

@@ -16,10 +16,7 @@ const loopbackRequest = /^http:\/\/127\.0\.0\.1(?::[1-9]\d{0,4})?(?=\/|\?|$)/u;
 const hasForbiddenUrlCharacters = (value: string): boolean =>
   Array.from(value).some(
     (character) =>
-      character.charCodeAt(0) <= 32 ||
-      character.charCodeAt(0) === 127 ||
-      character === '\\' ||
-      character === '#',
+      character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127 || character === '\\',
   );
 const hopByHopHeaders = [
   'connection',
@@ -57,7 +54,8 @@ export function createLocalProxy(allowedOrigins: readonly string[]): Server {
   if (!destinations.size) throw new Error('O proxy de testes exige destinos locais autorizados.');
 
   const authorizedTarget = (value: string): { url: URL; destination: LocalDestination } | null => {
-    if (!loopbackRequest.test(value) || hasForbiddenUrlCharacters(value)) return null;
+    if (!loopbackRequest.test(value) || hasForbiddenUrlCharacters(value) || value.includes('#'))
+      return null;
     let url: URL;
     try {
       url = new URL(value);
@@ -95,7 +93,11 @@ export function createLocalProxy(allowedOrigins: readonly string[]): Server {
           const location = received.headers.location;
           let redirect: string;
           try {
-            redirect = new URL(location, target.url).href;
+            const destination = new URL(location, target.url);
+            // A fragment is browser-side navigation data, never an HTTP
+            // destination. Validate the same pinned origin/path without it.
+            destination.hash = '';
+            redirect = destination.href;
           } catch {
             received.resume();
             response.writeHead(403).end();
@@ -104,10 +106,12 @@ export function createLocalProxy(allowedOrigins: readonly string[]): Server {
           // Node's HTTP client never follows redirects. Only pass the local
           // redirects needed by OIDC; each subsequent browser hop is checked
           // again. Do not expose an arbitrary Location to the browser.
+          const locationTarget = location.split('#')[0]!;
           if (
             hasForbiddenUrlCharacters(location) ||
-            (/^[a-z][a-z\d+.-]*:/iu.test(location) && !loopbackRequest.test(location)) ||
-            (location.startsWith('//') && !loopbackRequest.test(`http:${location}`)) ||
+            (/^[a-z][a-z\d+.-]*:/iu.test(locationTarget) &&
+              !loopbackRequest.test(locationTarget)) ||
+            (locationTarget.startsWith('//') && !loopbackRequest.test(`http:${locationTarget}`)) ||
             !authorizedTarget(redirect)
           ) {
             received.resume();

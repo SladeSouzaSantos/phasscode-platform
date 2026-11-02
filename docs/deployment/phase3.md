@@ -31,14 +31,23 @@ Authorization Code/PKCE/state/nonce e verificação de assinatura do ID token.
    O comando cria **novos** arquivos ignorados em `.secrets/`, sem imprimir nem sobrescrever chaves.
    Copiar os campos do fragmento privado para o `.env` escolhido, preservar `\n` literal no PEM e
    proteger o arquivo com permissões/ACL do operador. Não compartilhar a chave privada.
-2. Preencher `AUTH_PUBLIC_URL` (origem da API), `AUTH_FRONTEND_URL` (retorno fixo), cliente Google,
-   `AUTH_JWT_KEY_ID` e `AUTH_JWT_PRIVATE_KEY`. Definir `AUTH_ENABLED=true`. A origem do frontend
-   deve estar em `CORS_ORIGINS`.
+2. Preencher `AUTH_PUBLIC_URL` (origem da API), `AUTH_FRONTEND_URL` (origem e retorno padrão), cliente Google,
+   `AUTH_JWT_KEY_ID`, `AUTH_JWT_PRIVATE_KEY` e `AUTH_ADMIN_EMAIL`. Inserir manualmente o endereço
+   Google exato confirmado pelo proprietário no ambiente privado escolhido, preservando o `.env`
+   existente; não publicar esse valor no bundle ou em exemplos versionados. Definir
+   `AUTH_ENABLED=true`. Sem e-mail
+   válido a aplicação recusa habilitar auth. A origem do frontend deve estar em `CORS_ORIGINS`.
 3. Em produção, ambas as URLs usam HTTPS e `AUTH_COOKIE_SECURE=true`. Somente para HTTP local,
    usar `NODE_ENV=development`, URLs loopback e `AUTH_COOKIE_SECURE=false`. No Compose, a variável
    equivalente é `PHASSCODE_NODE_ENV`; seu padrão continua `production`.
-4. Fazer login, conferir `/api/v1/me` e anotar o UUID do próprio usuário. Atribuir administração
-   explicitamente no ambiente correto, depois de conferir a identidade vinculada:
+4. Fazer login com a conta Google autorizada e conferir `/api/v1/me` e `roles`. O primeiro login
+   válido concede `admin` uma única vez por usuário, na mesma transação do registro de auditoria,
+   se não existe histórico administrativo. Usuário desabilitado ou com histórico de revogação
+   não é promovido novamente. Outra conta é recusada sem cadastro ou sessão: JSON recebe
+   `403 AUTH_ADMIN_ONLY` e navegação HTML retorna `303` ao portfólio com `auth_error=AUTH_ADMIN_ONLY`.
+   Não há parâmetro do frontend para escolher outro e-mail ou contornar a política.
+5. Para revogar ou recuperar explicitamente o acesso depois de uma revogação, conferir UUID e
+   identidade vinculada no ambiente correto e usar o CLI auditado:
 
 ```bash
 # Host, com DATABASE_URL do ambiente escolhido:
@@ -50,12 +59,28 @@ bash scripts/compose.sh phasscode-platform-dev /opt/projects/phasscode-platform-
   exec -T api node dist/packages/database/src/admin-role.js grant UUID_DO_USUARIO
 ```
 
-O comando é transacional, idempotente e registra `auth_role_audit`. Não usa e-mail, formulário ou
-“primeiro usuário” como promoção automática. O cookie normal dura 30 minutos, com máximo absoluto
+O comando é transacional, idempotente e registra `auth_role_audit`; a revogação registra um veto
+mesmo se o papel já estava ausente, evitando bootstrap posterior inadvertido. Não usar o CLI para
+admitir outro e-mail: além do papel, toda sessão exige a política `AUTH_ADMIN_EMAIL` atual.
+O bootstrap é exclusivo da identidade Google validada e admitida, não do primeiro visitante.
+O cookie normal dura 30 minutos, com máximo absoluto
 de oito horas; refresh rotaciona o segredo e CSRF. Reuso de sessão rotacionada revoga a família.
 Refresh, reuso e logout compartilham um mutex transacional por família no PostgreSQL, impedindo
 uma sucessora ativa de escapar de uma revogação concorrente. O frontend também deve serializar
 seus refreshes para não provocar a própria proteção de reuso.
+
+Verificar também recusa de outra conta Google e de aliases/pontos diferentes, revogação imediata
+em cookie/JWT e manutenção do chat/pedidos públicos sem login. Alterar `AUTH_ADMIN_EMAIL` exige
+recriar a API para aplicar a configuração e sincronizá-la entre réplicas; não modifica nem une
+identidades existentes. Cookies antigos fora da política não concedem acesso. A recusa de uma
+identidade validada limpa cookies de login/sessão; callback inválido sem state/prova de navegador
+não encerra uma sessão administrativa válida. Refresh negado por `AUTH_ADMIN_ONLY` limpa a sessão.
+Para retornar à página inicial do login, o frontend pode enviar `returnTo` relativo com path/query/hash;
+apenas a origem de `AUTH_FRONTEND_URL` é admitida, mesmo havendo outras origens em `CORS_ORIGINS`.
+O retorno é vinculado à transação do navegador e não requer nova migration. Conferir sucesso `302`,
+falha navegacional `303` com código público e erro JSON preservado com `Accept: application/json`.
+Callback inválido/replay nunca deve redirecionar. Instruções de apresentação e limpeza de
+`auth_error` estão no [guia do frontend](../api/phase3-integration.md).
 
 JWTs RS256 de serviço duram até cinco minutos e ficam no backend; o endpoint JWKS publica somente
 chaves públicas. Para rotação, usar novo `KEY_ID`/chave, incluir a chave pública anterior em

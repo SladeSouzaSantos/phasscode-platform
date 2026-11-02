@@ -20,7 +20,8 @@ export const sourceSchema = z.strictObject({
 export const chatResponseSchema = z.strictObject({
   conversationId: z.uuid(),
   conversationToken: z.string().min(43).max(128).optional(),
-  answer: z.string().min(1).max(8000),
+  // Response size follows the selected model; no separate 8k-character cutoff.
+  answer: z.string().min(1),
   sources: z.array(sourceSchema).max(10),
   actions: z
     .array(
@@ -35,6 +36,7 @@ export const chatResponseSchema = z.strictObject({
     provider: z.enum(['mock', 'openai', 'openai-compatible']),
     simulated: z.boolean(),
     promptVersion: z.string(),
+    deterministic: z.boolean().optional(),
   }),
 });
 export const healthResponseSchema = z.strictObject({ status: z.literal('ok') });
@@ -93,6 +95,14 @@ export const openApiDocument = {
           },
           {
             in: 'header',
+            name: 'X-Orbe-Report-Consent',
+            required: false,
+            description:
+              'Autorização opcional e explícita para relatório anônimo, somente na primeira mensagem.',
+            schema: { type: 'string', enum: ['yes'] },
+          },
+          {
+            in: 'header',
             name: 'X-Conversation-Token',
             required: false,
             schema: { type: 'string', minLength: 43, maxLength: 128 },
@@ -107,6 +117,27 @@ export const openApiDocument = {
           },
           ...errors,
         },
+      },
+    },
+    '/api/v1/chat/report-optout': {
+      post: {
+        operationId: 'withdrawOrbeReport',
+        summary: 'Revogar análise opcional de conversa',
+        description:
+          'Requer conversationId no corpo e X-Conversation-Token. Exclui os relatórios ainda armazenados; não recupera mensagens já enviadas pelo Telegram.',
+        parameters: [
+          {
+            in: 'header',
+            name: 'X-Conversation-Token',
+            required: true,
+            schema: { type: 'string', minLength: 43, maxLength: 128 },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: json(z.strictObject({ conversationId: z.uuid() })),
+        },
+        responses: { 200: { description: 'Revogação confirmada' }, ...errors },
       },
     },
     '/api/v1/openapi.json': {

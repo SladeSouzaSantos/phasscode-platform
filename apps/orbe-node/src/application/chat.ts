@@ -7,6 +7,7 @@ import {
 import type { Config } from '../../../../packages/shared-config/src/index.js';
 import type {
   ChatProvider,
+  GenerationResult,
   ConversationStore,
   KnowledgeRepository,
   Message,
@@ -32,6 +33,14 @@ import {
 } from '../domain/security.js';
 import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
+import type { PublicEvidenceReader } from './public-evidence.js';
+import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
+import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
+import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
+import { buildCompleteAcademicResponse } from './academic-response.js';
+import { buildDirectGoExperienceResponse } from './go-experience-response.js';
+import { reconcileCanonicalAcademicClaims } from './canonical-claims.js';
+import { documentSource } from './sources.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
 export class ChatService {
@@ -42,12 +51,13 @@ export class ChatService {
     private readonly config: Config,
     private readonly meetingsEnabled = false,
     private readonly now: () => Date = () => new Date(),
+    private readonly evidenceReader?: PublicEvidenceReader,
   ) {}
 
   async execute(
     request: ChatRequest,
     token?: string,
-    options: { meetingActions?: boolean } = {},
+    options: { meetingActions?: boolean; analyticsConsent?: boolean } = {},
   ): Promise<ChatResponse> {
     const meetingActions = this.meetingsEnabled && options.meetingActions === true;
     const isNew = request.conversationId === undefined;
@@ -55,7 +65,12 @@ export class ChatService {
     const conversationId = request.conversationId ?? randomUUID();
     const conversationToken = isNew ? randomBytes(32).toString('base64url') : token!;
     return this.store.runTurn(
-      { id: conversationId, tokenHash: hashToken(conversationToken), isNew },
+      {
+        id: conversationId,
+        tokenHash: hashToken(conversationToken),
+        isNew,
+        ...(options.analyticsConsent ? { analyticsConsent: true } : {}),
+      },
       async (history) => {
         const eligible = eligibleHistory(history);
         const previous = [...eligible]
@@ -63,22 +78,73 @@ export class ChatService {
           .find((message) => message.role === 'user' && !isContextualFollowUp(message.content));
         const followUp = Boolean(previous && isContextualFollowUp(request.message));
         const query = followUp ? `${previous!.content}\n${request.message}` : request.message;
+        const evidenceTraceId = randomUUID();
         const meetingTurn =
           meetingActions &&
           (isMeetingRequest(request.message) ||
             (/\b(?:\d{4}-\d{2}-\d{2}|[\w.+-]+@[\w.-]+\.[a-z]{2,})\b/i.test(request.message) &&
               Boolean(previous && isMeetingRequest(previous.content))));
         let retrieved = this.knowledge.search(query);
-        const experienceDocuments = isExperienceDurationQuestion(query)
-          ? (this.knowledge.experienceDocuments?.() ?? [])
-          : [];
+        const normalizedQuery = knowledgePhrase(query);
+        // Recruiters asking for the complete chronological career need every
+        // verified employer, not just the 5 best lexical search matches.
+        const chronologicalOverview =
+          /\b(?:trajetoria|historico profissional|experiencias profissionais|todas as experiencias|ordem cronologica|empresas em ordem|cada empresa)\b/.test(
+            normalizedQuery,
+          );
+        const completeCourseCatalog =
+          /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(
+            normalizedQuery,
+          );
+        const durationQuestion = isExperienceDurationQuestion(query);
+        const experienceDocuments =
+          durationQuestion || chronologicalOverview
+            ? (this.knowledge.experienceDocuments?.() ?? []).sort((a, b) =>
+                (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''),
+              )
+            : [];
         if (experienceDocuments.length) {
-          const ordered = [
-            ...retrieved.filter((doc) => doc.experiencePeriod),
-            ...experienceDocuments,
-            ...retrieved,
-          ];
+          const broadProgrammingQuestion = /\b(?:programa\w*|desenvolv\w*|software)\b/.test(
+            normalizedQuery,
+          );
+          // The SDGP is a canonical mixed-role project, not a ranked fallback.
+          // Keep this optional lookup compatible with test knowledge adapters.
+          const sdgp = this.knowledge.getDocument?.('greencity-sdgp');
+          const mixedRoleProject = broadProgrammingQuestion && sdgp ? [sdgp] : [];
+          const ordered = chronologicalOverview
+            ? [...experienceDocuments, ...retrieved]
+            : [
+                // Durations must prioritize concise original employment records.
+                // Project evidence must not be discarded after enriched texts fill the budget.
+                ...experienceDocuments,
+                ...mixedRoleProject,
+                ...retrieved,
+              ];
           retrieved = [...new Map(ordered.map((doc) => [doc.id, doc])).values()];
+          // Duration answers use structured periods, not long prose. Reserve
+          // room for all four employment records plus the mixed-role SDGP proof.
+          if (durationQuestion && broadProgrammingQuestion) {
+            retrieved = retrieved.map((doc) => ({
+              ...doc,
+              content: doc.content.slice(0, 550),
+            }));
+          }
+        }
+        // External pages are untrusted data, never instructions. Restrict retrieval to
+        // public LinkedIn job postings and known public GitHub project READMEs.
+        if (
+          this.evidenceReader &&
+          !isInjection(request.message) &&
+          !isOffTopicTask(request.message)
+        ) {
+          const evidence = await this.evidenceReader.read(request.message, retrieved);
+          if (evidence.length) {
+            const replacements = new Map(evidence.map((doc) => [doc.id, doc]));
+            retrieved = [
+              ...evidence.filter((doc) => doc.id === 'external-vacancy'),
+              ...retrieved.map((doc) => replacements.get(doc.id) ?? doc),
+            ];
+          }
         }
         if (meetingTurn)
           retrieved.unshift({
@@ -89,13 +155,21 @@ export class ChatService {
             content:
               'Consulte horários somente com get_meeting_availability. prepare_meeting_request prepara dados para o formulário de confirmação do visitante. Não cria solicitação nem reserva horário. Somente após confirmação HTTP há pedido PENDING; administração aprova e Calendar confirma. Nunca diga que uma proposta já foi registrada ou aprovada.',
           });
-        let result;
+        traceEvidence('retrieved', retrieved, 'initial', evidenceTraceId);
+        const verifiedMatrix = buildVerifiedRecruiterMatrix(query, retrieved);
+        const verifiedGo = buildDirectGoExperienceResponse(request.message, this.knowledge);
+        const academicListing = this.knowledge.academicCourseListing?.(query);
+        const verifiedAcademic = academicListing
+          ? buildCompleteAcademicResponse(query, academicListing, retrieved)
+          : undefined;
+        let result: GenerationResult;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
         else if (isSimpleTest(request.message)) result = { answer: simpleTestAnswer, sources: [] };
         else if (isOffTopicTask(request.message)) result = { answer: scopeRefusal, sources: [] };
         else if (isPersonalLifeQuestion(request.message))
           result = { answer: personalLifeAnswer, sources: [] };
+        else if (verifiedGo) result = verifiedGo;
         else if (isMeetingRequest(request.message) && !meetingActions)
           result = {
             answer: meetingUnavailable,
@@ -114,14 +188,25 @@ export class ChatService {
         )
           result = { answer: scopeRefusal, sources: [] };
         else if (retrieved.length === 0) result = { answer: unknownAnswer, sources: [] };
-        else {
+        else if (verifiedAcademic) {
+          // Exact enumeration: don't let a model count nine canonical courses
+          // as eight or replace courses with degree coursework.
+          result = verifiedAcademic;
+        } else if (verifiedMatrix) {
+          // Structured comparison: deterministic evidence, no additional LLM
+          // calls or output-token truncation. Every requested row is present.
+          result = {
+            answer: verifiedMatrix.answer,
+            sources: verifiedMatrix.sourceDocuments.slice(0, 10).map(documentSource),
+          };
+        } else {
           const bounded: Message[] = [];
           // Reserva fixa para prompt, metadados JSON e protocolo das ferramentas.
           const dataBudget = Math.max(
             0,
             this.config.CHAT_CONTEXT_CHARS - 3000 - request.message.length,
           );
-          const historyBudget = Math.floor(dataBudget / 2);
+          const historyBudget = Math.floor(dataBudget / (completeCourseCatalog ? 6 : 2));
           let chars = 0;
           for (let index = eligible.length - 2; index >= 0; index -= 2) {
             const pair = eligible.slice(index, index + 2);
@@ -134,14 +219,34 @@ export class ChatService {
             chars += pairChars;
             bounded.unshift(...pair);
           }
-          // Recuperação tem orçamento independente para manter toda chamada limitada.
-          let remaining = dataBudget - historyBudget;
-          const documents = retrieved.slice(0, 5).flatMap((doc) => {
-            if (remaining <= 0) return [];
-            const content = doc.content.slice(0, remaining);
-            remaining -= content.length;
-            return [{ ...doc, content }];
-          });
+          // Maintain coverage across distinct requirements. An overflowing early
+          // record may never consume the entire budget and hide React/MySQL later.
+          // Vacancy requirements are not limited to five documents. Preserve the
+          // entire requirement-aware retrieval set; the packet/provider enforce
+          // the actual context budget and fail closed if it cannot fit.
+          const vacancy =
+            /\b(?:vaga|recrutad\w*|experienc\w*|profission\w*|trabalh\w*|candidat\w*|qualific\w*|contrat\w*)\b/.test(
+              normalizedQuery,
+            );
+          // Comparison follow-ups may not say "vaga", but still require
+          // professional evidence, private-code-safe summaries and courses
+          // together. The actual context budget, not a five-record cap, bounds them.
+          const multiSourceComparison =
+            mentionedTechnologies(query).has('sql-server') &&
+            /\b(?:cursos?|mysql|firebase|angular|compar|reexamin|evidenc)\b/.test(normalizedQuery);
+          const selected = completeCourseCatalog
+            ? retrieved.slice(0, 7)
+            : vacancy || multiSourceComparison
+              ? retrieved
+              : retrieved.slice(0, 5);
+          // Unused history headroom belongs to evidence, not an artificial gap.
+          // Actual retained history is already bounded above by historyBudget.
+          const contentBudget = Math.max(0, dataBudget - chars);
+          const packet = completeCourseCatalog
+            ? selected
+            : buildEvidencePacket(selected, contentBudget, mentionedTechnologies(query))?.documents;
+          const documents = packet ?? [];
+          traceEvidence('chat_bounded', documents, 'context_budget', evidenceTraceId);
           if (documents.length === 0)
             throw new AppError(
               'LLM_CONTEXT_LIMIT',
@@ -156,6 +261,7 @@ export class ChatService {
                 message: request.message,
                 history: bounded,
                 documents,
+                evidenceTraceId,
                 signal: controller.signal,
                 meetingActions,
                 asOf: this.now(),
@@ -189,6 +295,45 @@ export class ChatService {
             if (timer) clearTimeout(timer);
           }
         }
+        // The model can invent incidental academic details even when the
+        // structured course and recruiter routes are already correct. Reconcile
+        // only unambiguous, documented academic claims before saving the turn.
+        if (!verifiedGo && !verifiedAcademic && !verifiedMatrix && !result.actions?.length) {
+          const canonical = reconcileCanonicalAcademicClaims(
+            result.answer,
+            this.knowledge.canonicalAcademicFacts?.(),
+            request.message,
+          );
+          if (canonical.rules.length) {
+            const canonicalSources = canonical.sourceIds
+              .map((id) => this.knowledge.getDocument?.(id))
+              .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined)
+              .map(documentSource);
+            result = {
+              ...result,
+              answer: canonical.answer,
+              sources: [
+                ...new Map(
+                  [...canonicalSources, ...result.sources].map((source) => [source.id, source]),
+                ).values(),
+              ].slice(0, 10),
+            };
+            console.info(
+              JSON.stringify({
+                event: 'orbe_canonical_claims',
+                traceId: evidenceTraceId,
+                rules: canonical.rules,
+                sourceIds: canonical.sourceIds,
+              }),
+            );
+          }
+        }
+        traceEvidence(
+          'response_sources',
+          result.sources.map((source) => ({ id: source.id, content: '' })),
+          undefined,
+          evidenceTraceId,
+        );
         const response = chatResponseSchema.parse({
           conversationId,
           ...(isNew ? { conversationToken } : {}),
@@ -199,6 +344,7 @@ export class ChatService {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
             promptVersion: PROMPT_VERSION,
+            ...(verifiedMatrix || verifiedAcademic || verifiedGo ? { deterministic: true } : {}),
           },
         });
         return {

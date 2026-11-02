@@ -19,6 +19,7 @@ x-runtime: &runtime
     CORS_ORIGINS: http://localhost:5173
     RATE_LIMIT_MAX: 100
     AUTH_ENABLED: 'true'
+    AUTH_ADMIN_EMAIL: admin@example.test
     AUTH_PUBLIC_URL: http://localhost:3000
     AUTH_FRONTEND_URL: http://localhost:5173
     AUTH_GOOGLE_CLIENT_ID: synthetic-offline-client

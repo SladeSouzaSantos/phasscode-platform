@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PPKS Course Tracks v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "tracks"],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.1"
+    },
+    "tracks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "focus", "courses"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "focus": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "title",
+                "provider",
+                "status",
+                "verification",
+                "hours",
+                "skills",
+                "evidenceVisibility"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                },
+                "provider": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                },
+                "status": {
+                  "const": "completed"
+                },
+                "verification": {
+                  "enum": ["document_verified", "owner_confirmed"]
+                },
+                "hours": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "skills": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000
+                  }
+                },
+                "evidenceVisibility": {
+                  "const": "private"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

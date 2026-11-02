@@ -10,6 +10,7 @@ import { registerAuthRoutes } from '../apps/orbe-node/src/auth/routes.js';
 import { AppError } from '../apps/orbe-node/src/domain/errors.js';
 import type {
   AuthStore,
+  AuthUserProvisioning,
   AuthSession,
   AuthUser,
   ExternalProfile,
@@ -22,6 +23,7 @@ export class MemoryAuthStore implements AuthStore {
   readonly identities = new Map<string, string>();
   readonly sessions = new Map<string, AuthSession>();
   readonly transactions = new Map<string, OAuthTransaction>();
+  readonly roleAudit: Array<{ userId: string; action: 'grant' | 'revoke'; role: 'admin' }> = [];
   async saveTransaction(value: OAuthTransaction) {
     this.transactions.set(value.stateHash, value);
   }
@@ -36,7 +38,10 @@ export class MemoryAuthStore implements AuthStore {
     this.transactions.delete(stateHash);
     return transaction;
   }
-  async findOrCreateUser(profile: ExternalProfile) {
+  async findOrCreateUser(
+    profile: ExternalProfile,
+    { bootstrapAdmin = false }: AuthUserProvisioning = {},
+  ) {
     const key = `${profile.issuer}|${profile.subject}`;
     let id = this.identities.get(key);
     if (!id) {
@@ -50,7 +55,19 @@ export class MemoryAuthStore implements AuthStore {
         disabled: false,
       });
     }
-    return this.users.get(id)!;
+    const user = this.users.get(id)!;
+    user.email = profile.email;
+    user.displayName = profile.displayName;
+    if (
+      bootstrapAdmin &&
+      !user.disabled &&
+      !user.roles.includes('admin') &&
+      !this.roleAudit.some((entry) => entry.userId === id && entry.role === 'admin')
+    ) {
+      user.roles = [...user.roles, 'admin'].sort();
+      this.roleAudit.push({ userId: id, action: 'grant', role: 'admin' });
+    }
+    return user;
   }
   async insertSession(value: NewAuthSession) {
     this.sessions.set(value.id, { ...value, user: this.users.get(value.userId)!, revokedAt: null });
@@ -206,6 +223,7 @@ export function authConfig(google: FakeGoogle, extra: NodeJS.ProcessEnv = {}): E
     PERSISTENCE: 'postgres',
     DATABASE_URL: 'postgresql://unused:unused@localhost/unused',
     AUTH_ENABLED: 'true',
+    AUTH_ADMIN_EMAIL: 'alice@example.test',
     AUTH_PUBLIC_URL: 'http://localhost:3000',
     AUTH_FRONTEND_URL: 'http://localhost:5173/login-complete',
     AUTH_GOOGLE_CLIENT_ID: 'test-client',

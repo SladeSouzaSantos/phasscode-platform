@@ -103,7 +103,8 @@ expõe um fluxo sensível que merece correção verificável, mesmo com a prote�
 A conexão agora usa protocolo HTTP e endereço IPv4 loopback constantes. A porta vem de uma tabela
 privada, validada e copiada das origens confiáveis do fixture; somente caminho e query vêm da
 requisição. O `Host` também é reconstruído a partir do destino confiável. Credenciais em URL,
-fragmentos, protocolos diferentes, hosts ou portas não autorizados e túneis `CONNECT` são recusados.
+fragmentos em destinos de requisição HTTP, protocolos diferentes, hosts ou portas não autorizados
+e túneis `CONNECT` são recusados.
 O proxy não faz resolução DNS para escolher o destino nem aceita opções de transporte do cliente.
 
 `http.request` não segue redirecionamentos automaticamente. Além disso, respostas com `Location`
@@ -111,6 +112,11 @@ fora da lista são bloqueadas. Os redirecionamentos locais necessários ao OIDC 
 respostas HTTP reais: o navegador inicia cada novo salto e o proxy valida novamente seu destino.
 Bloquear todos os `302` impediria o fluxo que o teste precisa verificar. Nenhum redirecionamento
 arbitrário é autorizado e nenhuma chamada automática é feita ao próximo destino pelo proxy.
+
+Na correção posterior do retorno ao portfólio, em 25/10/2026, `Location` passou a preservar
+fragmentos de navegação após validar o destino HTTP local na mesma lista explícita. O fragmento
+não é enviado ao servidor de destino. Controles, barras invertidas e destinos fora da lista
+continuam recusados, com regressões para impedir que um fragmento esconda um destino externo.
 
 Não foi criada interceptação Playwright com `context.route`, nem foram substituídos preflights.
 Cookies, Origin, CSRF, corpo e respostas relevantes continuam atravessando HTTP real. A origem

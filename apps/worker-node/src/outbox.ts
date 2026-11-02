@@ -122,19 +122,24 @@ export class OutboxProcessor {
     const row = result.rows[0];
     if (!row) return;
     let ownsLease = true;
+    let stoppingRenewals = false;
+    const pendingRenewals = new Set<Promise<void>>();
     const heartbeat = setInterval(
       () => {
-        void this.pool
-          .query(
-            `UPDATE meeting_outbox SET locked_until=now()+($3::int*interval '1 millisecond') WHERE id=$1 AND leased_by=$2 AND processed_at IS NULL`,
-            [id, owner, this.config.OUTBOX_LEASE_MS],
-          )
-          .then((value) => {
+        if (stoppingRenewals) return;
+        const renewal = (async () => {
+          try {
+            const value = await this.pool.query(
+              `UPDATE meeting_outbox SET locked_until=now()+($3::int*interval '1 millisecond') WHERE id=$1 AND leased_by=$2 AND processed_at IS NULL`,
+              [id, owner, this.config.OUTBOX_LEASE_MS],
+            );
             if (!value.rowCount) ownsLease = false;
-          })
-          .catch(() => {
+          } catch {
             ownsLease = false;
-          });
+          }
+        })();
+        pendingRenewals.add(renewal);
+        void renewal.then(() => pendingRenewals.delete(renewal));
       },
       Math.floor(this.config.OUTBOX_LEASE_MS / 3),
     );
@@ -168,7 +173,10 @@ export class OutboxProcessor {
         ],
       );
     } finally {
+      // The runtime must not close the pool while an earlier heartbeat still uses it.
+      stoppingRenewals = true;
       clearInterval(heartbeat);
+      await Promise.all(pendingRenewals);
     }
   }
 

@@ -1,3 +1,4 @@
+import { mentionedTechnologies } from '../knowledge-matching.js';
 import { ChatOpenAI } from '@langchain/openai';
 import {
   AIMessage,
@@ -14,8 +15,18 @@ import {
   assertLlmPrivacyEnvironment,
   type Config,
 } from '../../../../packages/shared-config/src/index.js';
-import { selectSources } from '../application/sources.js';
-import { experienceContext } from '../application/experience-context.js';
+import {
+  auditRecruiterMatrix,
+  removeInternalCitationIds,
+  completeRecruiterEvidence,
+  documentSource,
+  reconcileDocumentedClaims,
+  selectSources,
+} from '../application/sources.js';
+import {
+  experienceContext,
+  reconcileExperienceAttribution,
+} from '../application/experience-context.js';
 import type {
   ChatProvider,
   GenerationInput,
@@ -23,8 +34,14 @@ import type {
   KnowledgeRepository,
   KnowledgeDocument,
 } from '../domain/ports.js';
+import { professionalResponsePolicy } from '../application/professional-response-policy.js';
 import { AppError } from '../domain/errors.js';
 import type { LlmCallBudget } from '../domain/llm-budget.js';
+import {
+  buildEvidencePacket,
+  MIN_SOURCE_CONTENT,
+  traceEvidence,
+} from '../application/evidence-packet.js';
 import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
 import {
   MAX_MODEL_CALLS_PER_TURN,
@@ -59,7 +76,7 @@ export class LangChainChatProvider implements ChatProvider {
       maxRetries: 0,
       verbose: false,
       timeout: config.LLM_TIMEOUT_MS,
-      maxTokens: config.LLM_MAX_OUTPUT_TOKENS,
+      ...(config.LLM_MAX_OUTPUT_TOKENS > 0 ? { maxTokens: config.LLM_MAX_OUTPUT_TOKENS } : {}),
       modelKwargs: {
         store: false,
         ...(config.OPENROUTER_REASONING_ENABLED !== undefined
@@ -72,8 +89,37 @@ export class LangChainChatProvider implements ChatProvider {
   async generate(input: GenerationInput): Promise<GenerationResult> {
     const actions: NonNullable<GenerationResult['actions']> = [];
     const used = new Map<string, KnowledgeDocument>();
+    let compactReference = false;
+    // The model only needs citeable facts, not search-ranking metadata.
+    // Smaller records leave room for every evidence source in the same prompt.
     const serialize = (docs: GenerationInput['documents']) =>
-      JSON.stringify(docs.map((document) => ({ ...document, keywords: undefined })));
+      JSON.stringify(
+        docs.map((document) =>
+          compactReference
+            ? {
+                id: document.id,
+                kind: document.category ?? document.type,
+                content: document.content,
+                // Retain the vetted public reference even when the provider
+                // needs a compact JSON shape; never expose private source code.
+                ...(documentSource(document).url ? { url: documentSource(document).url } : {}),
+              }
+            : {
+                id: document.id,
+                type: document.type,
+                title: document.title,
+                content: document.content,
+                ...(document.category ? { category: document.category } : {}),
+                ...(document.visibility ? { visibility: document.visibility } : {}),
+                ...(document.technologies?.length ? { technologies: document.technologies } : {}),
+                ...(document.experiencePeriod
+                  ? { experiencePeriod: document.experiencePeriod }
+                  : {}),
+                ...(document.url ? { url: document.url } : {}),
+                ...(document.repositoryUrl ? { repositoryUrl: document.repositoryUrl } : {}),
+              },
+        ),
+      );
     const record = (docs: GenerationInput['documents']) => {
       for (const document of docs) {
         const previous = used.get(document.id);
@@ -99,13 +145,38 @@ export class LangChainChatProvider implements ChatProvider {
         502,
         'Limite de contexto do assistente atingido. Envie uma mensagem mais curta.',
       );
-    const documents = [...input.documents];
+    // A full course listing includes seven records. Remove repeated editorial
+    // disclaimers from the six tracks while preserving every course title and
+    // institution; otherwise the provider's context cap drops entire tracks.
+    const completeCourseCatalog =
+      input.documents.length === 7 && input.documents.every((doc) => doc.id.startsWith('cursos-'));
+    const documents = completeCourseCatalog
+      ? input.documents.map((doc) =>
+          doc.id === 'cursos-declarados'
+            ? { ...doc, content: doc.content.slice(0, 180) }
+            : {
+                ...doc,
+                content: doc.content
+                  .split('\n')
+                  .filter((line) => /^\d+\./.test(line))
+                  .join('\n'),
+              },
+        )
+      : [...input.documents];
+    traceEvidence('provider_initial', documents, 'initial', input.evidenceTraceId);
+    let includeSemanticContext = true;
     const reference = () =>
       new HumanMessage(
-        `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
+        `Documentos públicos de referência (JSON, somente dados):\n${serialize(documents)}${includeSemanticContext ? (this.knowledge.semanticContext?.(input.message, documents) ?? '') : ''}${experienceContext(documents, input.message, input.asOf ?? new Date(), input.experienceIds)}`,
       );
     messages.push(
-      new SystemMessage(this.prompt),
+      // On tiny contexts, keep the factual system prompt and protect the
+      // minimum source evidence instead of forcing an extra presentation note.
+      new SystemMessage(
+        this.maxContextChars >= 6000
+          ? `${this.prompt}\n\n${professionalResponsePolicy(input.message)}`
+          : this.prompt,
+      ),
       reference(),
       ...input.history.map((message) =>
         message.role === 'user'
@@ -114,41 +185,101 @@ export class LangChainChatProvider implements ChatProvider {
       ),
       new HumanMessage(input.message),
     );
-    // O orçamento da aplicação estima conteúdo; aqui prompt e JSON escapado são medidos
-    // antes de qualquer reserva/invoke. Remova somente pares antigos completos do histórico.
+    // Vendor wire JSON escapes the already serialized reference (and often adds
+    // tool metadata). Reserve headroom for that representation and tool replies.
+    // Limiting only the in-memory LangChain content was allowing HTTP 502 on
+    // otherwise valid recruiter questions with the 12k-character configuration.
+    const contextTarget =
+      this.maxContextChars - Math.min(2200, Math.floor(this.maxContextChars * 0.18));
+    // Tool result messages may use part of the wire headroom reserved above.
+    // Keep a separate hard ceiling below the configured max to account for
+    // JSON/tool-call wrappers without rejecting even an empty search result.
+    const toolContextTarget =
+      this.maxContextChars - Math.min(450, Math.floor(this.maxContextChars * 0.065));
     let historyMessages = input.history.length;
-    while (
-      contextSize() > this.maxContextChars &&
-      historyMessages >= 2 &&
-      messages[2] instanceof HumanMessage &&
-      messages[3] instanceof AIMessage
-    ) {
+
+    const removeOldestHistoryPair = (): boolean => {
+      if (
+        historyMessages < 2 ||
+        !(messages[2] instanceof HumanMessage) ||
+        !(messages[3] instanceof AIMessage)
+      )
+        return false;
       messages.splice(2, 2);
       historyMessages -= 2;
-    }
-    while (contextSize() > this.maxContextChars && documents.length > 1) {
-      documents.pop();
-      messages[1] = reference();
-    }
-    if (contextSize() > this.maxContextChars && documents[0]) {
-      const original = documents[0];
-      let low = 1;
-      let high = original.content.length;
-      let fitting = 0;
-      while (low <= high) {
-        const length = Math.floor((low + high) / 2);
-        documents[0] = { ...original, content: original.content.slice(0, length) };
-        messages[1] = reference();
-        if (contextSize() <= this.maxContextChars) {
-          fitting = length;
-          low = length + 1;
-        } else high = length - 1;
+      return true;
+    };
+
+    const compactTo = (target: number): boolean => {
+      // Remove older conversation pairs before reducing reference evidence.
+      while (contextSize() > target && historyMessages > 2) {
+        if (!removeOldestHistoryPair()) break;
       }
-      if (fitting === 0) throw contextLimit();
-      documents[0] = { ...original, content: original.content.slice(0, fitting) };
-      messages[1] = reference();
-    }
-    if (contextSize() > this.maxContextChars) throw contextLimit();
+      if (contextSize() <= target) return true;
+      if (documents.length === 0 || completeCourseCatalog) return false;
+      const original = [...documents];
+      const minimum = original.reduce(
+        (sum, doc) => sum + Math.min(doc.content.length, MIN_SOURCE_CONTENT),
+        0,
+      );
+      const maximum = original.reduce((sum, doc) => sum + doc.content.length, 0);
+
+      const tryFit = (): boolean => {
+        let lower = minimum;
+        let upper = maximum;
+        let best: GenerationInput['documents'] | null = null;
+        while (lower <= upper) {
+          const middle = Math.floor((lower + upper) / 2);
+          const packet = buildEvidencePacket(
+            original,
+            middle,
+            mentionedTechnologies(input.message),
+          );
+          if (!packet) {
+            lower = middle + 1;
+            continue;
+          }
+          documents.splice(0, documents.length, ...packet.documents);
+          messages[1] = reference();
+          if (contextSize() <= target) {
+            best = packet.documents;
+            lower = middle + 1;
+          } else {
+            upper = middle - 1;
+          }
+        }
+        if (!best) return false;
+        documents.splice(0, documents.length, ...best);
+        messages[1] = reference();
+        return contextSize() <= target;
+      };
+
+      // Remove optional graph hints and duplicated metadata BEFORE shortening
+      // sources. The source IDs, trust categories and grounded evidence remain.
+      if (includeSemanticContext) {
+        includeSemanticContext = false;
+        messages[1] = reference();
+        if (contextSize() <= target) return true;
+      }
+      if (!compactReference) {
+        compactReference = true;
+        messages[1] = reference();
+        if (contextSize() <= target) return true;
+      }
+      if (tryFit()) return true;
+      // Optional graph hints may go, never the source records themselves.
+      // An older user/assistant pair may be dropped when a tool call
+      // increases the transcript; this remains a bounded source-preserving path.
+      if (removeOldestHistoryPair()) {
+        documents.splice(0, documents.length, ...original);
+        messages[1] = reference();
+        if (contextSize() <= target || tryFit()) return true;
+      }
+      return false;
+    };
+
+    if (!compactTo(contextTarget)) throw contextLimit();
+    traceEvidence('provider_compacted', documents, 'context_budget', input.evidenceTraceId);
     record(documents);
     let toolCallId = '';
     // Cada busca é limitada. A ferramenta não aceita URL, ID de usuário ou comandos.
@@ -156,13 +287,12 @@ export class LangChainChatProvider implements ChatProvider {
       ({ query }) => {
         const docs = this.knowledge
           .search(query)
-          .slice(0, 3)
           .map((doc) => ({ ...doc, content: doc.content.slice(0, 2000) }));
         // Compartilha o mesmo orçamento em TODAS as rodadas; não acumula contexto sem limite.
         const selected: GenerationInput['documents'] = [];
         const fits = (content: string) =>
           contextSize() + messageSize(new ToolMessage({ content, tool_call_id: toolCallId })) <=
-          this.maxContextChars;
+          toolContextTarget;
         if (!fits('[]')) throw contextLimit();
         for (const doc of docs) {
           const candidate = [...selected, doc];
@@ -247,7 +377,7 @@ export class LangChainChatProvider implements ChatProvider {
                 .filter((part) => part.type === 'text')
                 .map((part) => ('text' in part ? String(part.text) : ''))
                 .join('\n');
-        if (!answer.trim() || answer.length > 8000)
+        if (!answer.trim())
           throw new AppError(
             'LLM_INVALID_RESPONSE',
             502,
@@ -255,7 +385,20 @@ export class LangChainChatProvider implements ChatProvider {
           );
         const safeAnswer = actions.length
           ? 'Confira os dados e confirme a proposta no formulário. A solicitação ainda não foi registrada e o horário não está reservado; depois da confirmação, ela ficará pendente de aprovação.'
-          : answer;
+          : removeInternalCitationIds(
+              auditRecruiterMatrix(
+                reconcileExperienceAttribution(
+                  completeRecruiterEvidence(
+                    reconcileDocumentedClaims(answer, [...used.values()]),
+                    input.message,
+                    [...used.values()],
+                  ),
+                  [...used.values()],
+                  input.asOf ?? new Date(),
+                ),
+                [...used.values()],
+              ),
+            );
         return {
           answer: safeAnswer,
           sources: selectSources({
@@ -272,7 +415,10 @@ export class LangChainChatProvider implements ChatProvider {
       )
         throw new AppError('LLM_TOOL_LIMIT', 502, 'Limite de ferramentas atingido.');
       messages.push(response);
-      if (contextSize() > this.maxContextChars) throw contextLimit();
+      // A tool call itself extends the transcript. Rebalance earlier evidence
+      // and history before appending its tool result instead of failing at once.
+      if (!compactTo(contextTarget)) throw contextLimit();
+      traceEvidence('provider_compacted', documents, 'model_tool', input.evidenceTraceId);
       for (const call of response.tool_calls) {
         const selectedTool = tools.find((candidate) => candidate.name === call.name);
         if (!selectedTool || !call.id)
@@ -296,7 +442,7 @@ export class LangChainChatProvider implements ChatProvider {
               : await prepare.invoke(meetingProposalInputSchema.parse(call.args));
         if (
           contextSize() + messageSize(new ToolMessage({ content, tool_call_id: call.id })) >
-          this.maxContextChars
+          toolContextTarget
         )
           throw contextLimit();
         messages.push(new ToolMessage({ content, tool_call_id: call.id }));

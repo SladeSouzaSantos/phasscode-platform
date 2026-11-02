@@ -101,6 +101,67 @@ const responseObject = (output: object[]) => ({
   },
 });
 
+describe('LLM output ceiling controlled only by provider or .env', () => {
+  it('omits max_tokens at 0 and accepts answers longer than legacy 8k chars', async () => {
+    const longAnswer = 'Resposta fundamentada de teste. '.repeat(360);
+    const stub = await llmServer(() => completion({ role: 'assistant', content: longAnswer }));
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      LLM_MAX_OUTPUT_TOKENS: '0',
+    });
+    const docs = [document('java', 'Java backend e JPA são estudos.')];
+    const provider = new LangChainChatProvider(
+      config,
+      new JsonKnowledgeRepository(docs),
+      'Responda de modo verificável.',
+      allowTestBudget,
+    );
+    const result = await provider.generate({
+      message: 'Fale sobre Java',
+      history: [],
+      documents: docs,
+      signal: new AbortController().signal,
+    });
+    expect(longAnswer.length).toBeGreaterThan(8000);
+    expect(result.answer).toBe(longAnswer);
+    expect(stub.requests[0]).not.toHaveProperty('max_tokens');
+    expect(stub.requests[0]).not.toHaveProperty('max_completion_tokens');
+  });
+
+  it('passes the env output ceiling to a model as a cap, not as a required size', async () => {
+    const stub = await llmServer(() =>
+      completion({ role: 'assistant', content: 'Resposta breve.' }),
+    );
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      LLM_MAX_OUTPUT_TOKENS: '8192',
+    });
+    const docs = [document('java', 'Java backend e JPA.')];
+    const provider = new LangChainChatProvider(
+      config,
+      new JsonKnowledgeRepository(docs),
+      'Você é o Orbe.',
+      allowTestBudget,
+    );
+    const result = await provider.generate({
+      message: 'Fale de Java',
+      history: [],
+      documents: docs,
+      signal: new AbortController().signal,
+    });
+    expect(result.answer).toBe('Resposta breve.');
+    expect(stub.requests[0]).toHaveProperty('max_tokens', 8192);
+  });
+});
+
 describe('adaptador real LangChain com transporte HTTP simulado', () => {
   it('recorta pares antigos pelo contexto serializado na terceira mensagem de uma conversa real', async () => {
     const answer = (round: number) =>
@@ -149,7 +210,46 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
     ]);
   });
 
-  it('remove documentos menos prioritários antes do invoke e não os atribui como fontes', async () => {
+  it('mantém títulos dos 42 cursos em seis trilhas no contexto real da LLM', async () => {
+    const stub = await llmServer(() =>
+      completion({
+        role: 'assistant',
+        content: 'Os 42 cursos livres estão organizados em seis trilhas.',
+      }),
+    );
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      CHAT_CONTEXT_CHARS: '12000',
+    });
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = new LangChainChatProvider(
+      config,
+      knowledge,
+      await readFile('apps/orbe-node/prompts/v4.md', 'utf8'),
+      allowTestBudget,
+    );
+    const service = new ChatService(new MemoryConversationStore(), provider, knowledge, config);
+    await service.execute({ message: 'Liste todos os 42 cursos concluídos por trilha.' });
+    expect(stub.requests).toHaveLength(1);
+    const transmitted = JSON.stringify(stub.requests[0]!.messages);
+    for (const phrase of [
+      'Formação Java e Clean Architecture',
+      'Formação Power BI Analyst',
+      'Formação Firebase Authentication',
+      'Formação Engenharia de Requisitos',
+      'Formação SQL Database Specialist',
+      'Hackers do Bem',
+    ]) {
+      expect(transmitted).toContain(phrase);
+    }
+    expect(messageCharacters(stub.requests[0]!)).toBeLessThanOrEqual(12000);
+  });
+
+  it('compacta todas as fontes antes do invoke sem eliminar evidência posterior', async () => {
     const stub = await llmServer(() =>
       completion({
         role: 'assistant',
@@ -179,13 +279,122 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
       documents,
       signal: new AbortController().signal,
     });
+    // Retention makes each document available; citations still depend on answer content.
     expect(result.sources.map((source) => source.id)).toEqual(['prioritario']);
     expect(messageCharacters(stub.requests[0]!)).toBeLessThanOrEqual(4000);
     const reference = (stub.requests[0]!.messages as { content: string }[])[1]!.content;
     expect(reference).toContain('prioritario');
-    expect(reference).not.toContain('segundo');
-    expect(reference).not.toContain('terceiro');
+    expect(reference).toContain('segundo');
+    expect(reference).toContain('terceiro');
     expect(documents).toHaveLength(3);
+  });
+
+  it('preserves CodeQL, OWASP ZAP and Docker Swarm over a compacted LLM wire', async () => {
+    const stub = await llmServer(() =>
+      completion({
+        role: 'assistant',
+        content: 'PHASSCODE Platform usa CodeQL e OWASP ZAP; SHADOW SIM PRO usa Docker Swarm.',
+      }),
+    );
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      CHAT_CONTEXT_CHARS: '5000',
+    });
+    const platform = {
+      ...document(
+        'phasscode-platform',
+        'Backend autoral PHASSCODE com Node.js, Redis e Docker. '.repeat(35) +
+          'O workflow executa CodeQL (SAST) e OWASP ZAP (DAST).',
+      ),
+      type: 'platform' as const,
+      category: 'personal' as const,
+      technologies: ['Node.js', 'Docker', 'CodeQL', 'OWASP ZAP', 'SAST', 'DAST'],
+    };
+    const swarm = {
+      ...document(
+        'shadow-sim-pro',
+        'SHADOW SIM PRO utiliza Python para estudos de sombreamento. '.repeat(30) +
+          'O deploy usa Docker Swarm.',
+      ),
+      category: 'study' as const,
+      technologies: ['Python', 'Docker Swarm'],
+    };
+    const provider = new LangChainChatProvider(
+      config,
+      new JsonKnowledgeRepository([platform, swarm]),
+      'Diretrizes de recrutamento: fundamentar toda evidência, diferenciar projeto e emprego. '.repeat(
+        27,
+      ),
+      allowTestBudget,
+    );
+    await provider.generate({
+      message: 'Vaga com CodeQL, OWASP ZAP, SAST, DAST e Docker Swarm. Onde são usados?',
+      history: [],
+      documents: [platform, swarm],
+      signal: new AbortController().signal,
+    });
+    const wire = stub.requests[0]!;
+    expect(messageCharacters(wire)).toBeLessThanOrEqual(5000);
+    const reference = (wire.messages as { content: string }[])[1]!.content;
+    expect(reference).toContain('phasscode-platform');
+    expect(reference).toContain('shadow-sim-pro');
+    expect(reference).toContain('CodeQL');
+    expect(reference).toContain('OWASP ZAP');
+    expect(reference).toContain('SAST');
+    expect(reference).toContain('DAST');
+    expect(reference).toContain('Docker Swarm');
+  });
+
+  it('keeps vetted public URLs on the compact wire without exposing private code links', async () => {
+    const stub = await llmServer(() =>
+      completion({ role: 'assistant', content: 'O curso SQL Server é declarado na academia.' }),
+    );
+    const config = loadConfig({
+      LLM_PROVIDER: 'openai-compatible',
+      LLM_API_KEY: 'test-only',
+      LLM_MODEL: 'test',
+      LLM_BASE_URL: stub.baseUrl,
+      LLM_API_MODE: 'chat-completions',
+      CHAT_CONTEXT_CHARS: '5000',
+    });
+    const docs = [
+      {
+        ...document(
+          'cursos-bancos-dados',
+          'SQL Server Completo — Formação DBA — Udemy. '.repeat(45),
+        ),
+        type: 'profile' as const,
+        url: 'https://gbc.phasscode.com/#academico',
+      },
+      {
+        ...document('phasscode-platform', 'PostgreSQL, Node.js e Redis. '.repeat(65)),
+        type: 'platform' as const,
+        category: 'personal' as const,
+        url: 'https://github.com/SladeSouzaSantos/phasscode-platform',
+      },
+    ];
+    const provider = new LangChainChatProvider(
+      config,
+      new JsonKnowledgeRepository(docs),
+      'A'.repeat(3000),
+      allowTestBudget,
+    );
+    await provider.generate({
+      message: 'Quais cursos SQL Server existem? Cite URLs oficiais.',
+      history: [],
+      documents: docs,
+      signal: new AbortController().signal,
+    });
+    const wire = stub.requests[0]!;
+    expect(messageCharacters(wire)).toBeLessThanOrEqual(5000);
+    const reference = (wire.messages as { content: string }[])[1]!.content;
+    expect(reference).toContain('https://gbc.phasscode.com/#academico');
+    expect(reference).toContain('https://github.com/SladeSouzaSantos/phasscode-platform');
+    expect(reference).toContain('SQL Server');
   });
 
   it('reduz o primeiro documento usando JSON escapado, sem esvaziar ou modificar o original', async () => {
@@ -808,5 +1017,50 @@ describe('adaptador real LangChain com transporte HTTP simulado', () => {
       }),
     ).rejects.toMatchObject({ code: 'LLM_INVALID_TOOL' });
     expect(stub.requests).toHaveLength(1);
+  });
+});
+
+describe('PPKS v1.3: verificações pós-geração no adaptador real', () => {
+  it('corrige falsos negativos antes de devolver resposta e fontes, sem nova chamada LLM', async () => {
+    const original =
+      'Na SIG Software/SIGAA houve Java. Não verifiquei MySQL, nem REST APIs comerciais. ' +
+      'Tecnólogo em Gestão da TI concluído (ETEP/UNIBF). ' +
+      'Pedro possui 19 meses de vínculo exclusivamente no desenvolvimento de software, entre junho de 2016 e fevereiro de 2017 na SIG Software.';
+    const stub = await llmServer(() => completion({ role: 'assistant', content: original }));
+    const knowledge = await JsonKnowledgeRepository.load();
+    const ids = [
+      'experiencia-sig',
+      'experiencia-geowellex',
+      'experiencia-acrux',
+      'formacao-gestao-ti',
+    ];
+    const provider = new LangChainChatProvider(
+      loadConfig({
+        LLM_PROVIDER: 'openai-compatible',
+        LLM_API_KEY: 'synthetic-only',
+        LLM_MODEL: 'test',
+        LLM_BASE_URL: stub.baseUrl,
+        LLM_API_MODE: 'chat-completions',
+        CHAT_CONTEXT_CHARS: '32000',
+      }),
+      knowledge,
+      await readFile('apps/orbe-node/prompts/v4.md', 'utf8'),
+      allowTestBudget,
+    );
+    const result = await provider.generate({
+      message: 'Vaga Java com MySQL e formação: quais experiências, projetos e períodos?',
+      history: [],
+      documents: ids.map((id) => knowledge.getDocument(id)!),
+      signal: new AbortController().signal,
+      asOf: new Date('2026-10-31T12:00:00Z'),
+    });
+    expect(stub.requests).toHaveLength(1);
+    expect(result.answer).toContain('Geowellex');
+    expect(result.answer).not.toContain('Não verifiquei MySQL');
+    expect(result.answer).not.toContain('19 meses de vínculo');
+    const sourceIds = result.sources.map((item) => item.id);
+    expect(sourceIds).toContain('experiencia-sig');
+    expect(sourceIds).toContain('experiencia-geowellex');
+    expect(sourceIds).toContain('formacao-gestao-ti');
   });
 });

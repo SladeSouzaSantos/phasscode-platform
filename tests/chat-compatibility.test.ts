@@ -37,6 +37,7 @@ async function setup(mode: 'disabled' | 'auth' | 'meetings') {
     DATABASE_URL: 'postgresql://synthetic:synthetic@localhost/unused',
     REDIS_URL: 'redis://localhost:6379',
     AUTH_ENABLED: mode === 'disabled' ? 'false' : 'true',
+    AUTH_ADMIN_EMAIL: 'visitor@example.test',
     AUTH_PUBLIC_URL: 'http://localhost:3000',
     AUTH_FRONTEND_URL: 'http://localhost:5173',
     AUTH_COOKIE_SECURE: 'false',

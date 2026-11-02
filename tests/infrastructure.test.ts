@@ -200,6 +200,7 @@ describe('Docker environment isolation (real Compose interpolation, no daemon)',
 
   it('forwards phase 3 session and integration timing overrides to API and worker', () => {
     const overrides = {
+      AUTH_ADMIN_EMAIL: 'admin@example.test',
       AUTH_ACCESS_TTL_SECONDS: '240',
       AUTH_SESSION_TTL_SECONDS: '1200',
       AUTH_SESSION_MAX_SECONDS: '14400',
@@ -254,8 +255,20 @@ writeFileSync(
   hooks,
   `
 docker() {
-  printf 'docker[%s|%s|%s] %s\\n' "$COMPOSE_PROJECT_NAME" "$PHASSCODE_HTTP_PORT" "$PHASSCODE_IMAGE" "$*" >> "$TEST_LOG"
+  printf 'docker[%s|%s|%s] %s\\n' "$COMPOSE_PROJECT_NAME" "$PHASSCODE_HTTP_PORT" "\${PHASSCODE_IMAGE:-}" "$*" >> "$TEST_LOG"
   case "$*" in
+    *'ps --all --filter label=com.docker.compose.project='*'label=com.docker.compose.service=worker'*) [[ \${FAKE_WORKER_PRESENT:-0} != 1 ]] || echo worker-container ;;
+    *'ps --filter label=com.docker.compose.project='*'label=com.docker.compose.service=worker'*) [[ \${FAKE_WORKER_RUNNING:-0} != 1 || -e "$TEST_LOG.stopped" ]] || echo worker-container ;;
+    *'exec -T postgres sh -c'*)
+      [[ \${FAKE_AUDIT_UNAVAILABLE:-0} != 1 ]] || return 9
+      if [[ -e "$TEST_LOG.stopped" ]]; then
+        echo "\${FAKE_AUDIT_COUNTS_AFTER_STOP:-\${FAKE_AUDIT_COUNTS:-0|0|0|0}}"
+      else
+        echo "\${FAKE_AUDIT_COUNTS:-0|0|0|0}"
+      fi
+      ;;
+    *'stop --timeout 45 worker'*) [[ \${FAKE_STOP_FAIL:-0} != 1 ]] || return 9; touch "$TEST_LOG.stopped" ;;
+    *'inspect --format {{.State.Running}}|{{.State.ExitCode}}'*) echo "\${FAKE_WORKER_EXIT_STATE:-false|0}" ;;
     *'config --format json'*) printf '{\\n  "WORKER_ENABLED": "%s"\\n}\\n' "\${FAKE_WORKER_ENABLED:-false}" ;;
     *'run --rm --no-deps migrate'*) [[ \${FAKE_MIGRATION_FAIL:-0} != 1 ]] || return 9 ;;
     *'up -d --no-build --no-deps --wait api'*) [[ \${FAKE_API_FAIL:-0} != 1 ]] || return 9 ;;
@@ -324,8 +337,8 @@ function rememberReleasedSnapshot(
   proxy: boolean,
   release: ReturnType<typeof deployment>,
 ) {
-  // Baselines come only from a completed execution of the actual deploy script with fake tools.
-  // Keep an immutable copy: operations tests must never share mutable metadata with each other.
+  // Baselines are synthetic and isolated; no real Docker or server is accessed.
+  // All commands remain intercepted by fake tools; no server changes are made.
   expect(release.status, release.stderr).toBe(0);
   const project = target === 'production' ? 'phasscode-platform' : 'phasscode-platform-dev';
   for (const [file, value] of Object.entries({
@@ -341,13 +354,32 @@ function rememberReleasedSnapshot(
   releasedSnapshots.set(`${target}:${proxy}`, { ...release, checkout: baseline });
 }
 
+function seedOfflineDevMetadata(proxy: boolean) {
+  // The R3/R4 gate prohibits DEV apply, including this synthetic harness.
+  // Seed only inert metadata for compose.sh's saved-state read-only policy tests.
+  const plan = deployment('development', { PHASSCODE_USE_PROXY: String(proxy) }, false);
+  expect(plan.status, plan.stderr).toBe(0);
+  const saved = join(plan.checkout, '.deployment');
+  mkdirSync(saved, { recursive: true });
+  for (const [name, value] of Object.entries({
+    'image-ref': digest,
+    'project-name': 'phasscode-platform-dev',
+    'http-port': '3001',
+    'use-proxy': String(proxy),
+  }))
+    writeFileSync(join(saved, name), String(value) + '\n');
+  return plan;
+}
+
 function releasedFixture(target = 'development', proxy = false) {
   const key = `${target}:${proxy}`;
   if (!releasedSnapshots.has(key))
     rememberReleasedSnapshot(
       target,
       proxy,
-      deployment(target, { PHASSCODE_USE_PROXY: String(proxy) }),
+      target === 'development'
+        ? seedOfflineDevMetadata(proxy)
+        : deployment(target, { PHASSCODE_USE_PROXY: String(proxy) }),
     );
   const baseline = releasedSnapshots.get(key)!;
   const project = target === 'production' ? 'phasscode-platform' : 'phasscode-platform-dev';
@@ -389,30 +421,207 @@ function operationalCompose(
 }
 
 describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
-  it('drains and upgrades the opted-in worker using the verified API image', () => {
-    const result = deployment('development', { FAKE_WORKER_ENABLED: 'true' });
-    expect(result.status, result.stderr).toBe(0);
-    expect(result.log).toContain('pull api migrate retention worker');
-    expect(result.log.indexOf('stop worker')).toBeLessThan(
-      result.log.indexOf('run --rm --no-deps migrate'),
-    );
-    expect(result.log.indexOf('run --rm --no-deps migrate')).toBeLessThan(
-      result.log.indexOf('up -d --no-build --no-deps --wait worker'),
-    );
-    expect(result.log).toContain('ps -q worker');
-    expect(result.log).toContain('worker-container');
+  it('permits DEV/PROD without any legacy worker; never stops/restarts workers', () => {
+    for (const target of ['development', 'production']) {
+      const result = deployment(target);
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.log).not.toContain('stop worker');
+      expect(result.log).not.toContain('worker-start-requested');
+      expect(result.log).toContain('run --rm --no-deps migrate');
+      expect(existsSync(join(result.checkout, '.deployment/image-ref'))).toBe(true);
+    }
   });
-  it('keeps a failed worker release marked incomplete without rolling back data', () => {
-    const result = deployment('development', {
-      FAKE_WORKER_ENABLED: 'true',
-      FAKE_WORKER_FAIL: '1',
+
+  it.each(['development', 'production'])(
+    'blocks running worker in %s before image or migration',
+    (target) => {
+      const result = deployment(target, { FAKE_WORKER_PRESENT: '1', FAKE_WORKER_RUNNING: '1' });
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain('LEGACY_WORKER_RUNNING');
+      expect(result.log).not.toContain('pull api');
+      expect(result.log).not.toContain('migrate');
+      expect(existsSync(join(result.checkout, '.deployment/image-ref'))).toBe(false);
+      expect(existsSync(join(result.checkout, '.deploy-lock'))).toBe(false);
+    },
+  );
+
+  it('blocks an unreviewed stopped worker, but accepts a project-scoped retirement marker', () => {
+    const plan = deployment('development', { FAKE_WORKER_PRESENT: '1' }, false);
+    const denied = deployment(
+      'development',
+      { FAKE_WORKER_PRESENT: '1' },
+      true,
+      digest,
+      plan.checkout,
+    );
+    expect(denied.status).not.toBe(0);
+    expect(denied.stderr).toContain('LEGACY_WORKER_UNRECONCILED');
+    mkdirSync(join(plan.checkout, '.deployment'), { recursive: true });
+    writeFileSync(join(plan.checkout, '.deployment/worker-retired'), 'phasscode-platform-dev\n');
+    const approved = deployment(
+      'development',
+      { FAKE_WORKER_PRESENT: '1' },
+      true,
+      digest,
+      plan.checkout,
+    );
+    expect(approved.status, approved.stderr).toBe(0);
+    expect(approved.log).not.toContain('stop worker');
+  });
+
+  it('preserves fail-closed markers for incomplete retirement and R4 attempts', () => {
+    for (const marker of ['worker-stop-attempted', 'attempted-phase', 'attempted-image-ref']) {
+      const plan = deployment('development', {}, false);
+      mkdirSync(join(plan.checkout, '.deployment'), { recursive: true });
+      writeFileSync(join(plan.checkout, '.deployment', marker), 'synthetic\n');
+      const denied = deployment('development', {}, true, digest, plan.checkout);
+      expect(denied.status).not.toBe(0);
+      expect(denied.log).not.toContain('pull api');
+      expect(denied.log).not.toContain('migrate');
+    }
+  });
+  function retireWorker(
+    target: 'development' | 'production',
+    options: Record<string, string> = {},
+    apply = false,
+  ) {
+    const plan = deployment(target, {}, false);
+    const log = join(dirname(plan.checkout), 'retirement-commands.log');
+    writeFileSync(log, '');
+    const result = spawnSync(
+      bash,
+      [shellPath(join(root, 'scripts/retire-worker.sh')), target, apply ? '--apply' : '--inspect'],
+      {
+        encoding: 'utf8',
+        timeout: processTimeoutMs,
+        env: {
+          ...process.env,
+          BASH_ENV: shellPath(hooks),
+          TEST_LOG: shellPath(log),
+          PHASSCODE_PROJECTS_ROOT: shellPath(dirname(plan.checkout)),
+          PHASSCODE_USE_PROXY: '',
+          PHASSCODE_HTTP_PORT: target === 'production' ? '3202' : '3001',
+          PHASSCODE_IMAGE: '',
+          COMPOSE_PROJECT_NAME:
+            target === 'production' ? 'phasscode-platform' : 'phasscode-platform-dev',
+          FAKE_BRANCH: target === 'production' ? 'main' : 'dev',
+          ...options,
+        },
+      },
+    );
+    return { ...result, checkout: plan.checkout, log: readFileSync(log, 'utf8') };
+  }
+
+  it('a read-only retirement inspection reports only aggregates, without stopping workers', () => {
+    const result = retireWorker('development', {
+      FAKE_WORKER_PRESENT: '1',
+      FAKE_WORKER_RUNNING: '1',
+      FAKE_AUDIT_COUNTS: '3|1|2|0',
     });
-    expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain('Worker failed after migration');
-    expect(existsSync(join(result.checkout, '.deployment/attempted-image-ref'))).toBe(true);
-    expect(existsSync(join(result.checkout, '.deployment/image-ref'))).toBe(false);
-    expect(result.log).not.toMatch(/down|--volumes/);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('pending_outbox=3');
+    expect(result.stdout).toContain('pending_notifications=1');
+    expect(result.stdout).toContain('active_meetings=2');
+    expect(result.stdout).toContain('worker_running=yes');
+    expect(result.log).toContain('exec -T postgres');
+    expect(result.log).not.toContain('stop --timeout');
+    expect(existsSync(join(result.checkout, '.deployment'))).toBe(false);
   });
+
+  it('retirement refuses unsatisfied commitments without touching an active worker', () => {
+    const result = retireWorker(
+      'development',
+      {
+        FAKE_WORKER_PRESENT: '1',
+        FAKE_WORKER_RUNNING: '1',
+        FAKE_AUDIT_COUNTS: '0|0|1|0',
+      },
+      true,
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('LEGACY_OBLIGATIONS_PRESENT');
+    expect(result.log).not.toContain('stop --timeout');
+    expect(existsSync(join(result.checkout, '.deployment/worker-retired'))).toBe(false);
+  });
+
+  it('retirement stops a checked legacy worker, checks exit 0 and records a scoped marker', () => {
+    const result = retireWorker(
+      'development',
+      {
+        FAKE_WORKER_PRESENT: '1',
+        FAKE_WORKER_RUNNING: '1',
+      },
+      true,
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.log).toContain('stop --timeout 45 worker');
+    expect(result.log).toContain('inspect --format {{.State.Running}}|{{.State.ExitCode}}');
+    expect(readFileSync(join(result.checkout, '.deployment/worker-retired'), 'utf8')).toBe(
+      'phasscode-platform-dev\n',
+    );
+    expect(existsSync(join(result.checkout, '.deployment/worker-stop-attempted'))).toBe(false);
+    expect(existsSync(join(result.checkout, '.deploy-lock'))).toBe(false);
+    expect(result.log).not.toMatch(/down|--volumes|run --rm --no-deps migrate/);
+  });
+
+  it.each([
+    [{ FAKE_STOP_FAIL: '1' }, 'LEGACY_WORKER_STOP_FAILED'],
+    [{ FAKE_WORKER_EXIT_STATE: 'false|1' }, 'LEGACY_WORKER_EXIT_UNSAFE'],
+  ])('retirement fails closed and retains its interruption marker (%j)', (failure, code) => {
+    const result = retireWorker(
+      'development',
+      {
+        FAKE_WORKER_PRESENT: '1',
+        FAKE_WORKER_RUNNING: '1',
+        ...failure,
+      },
+      true,
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(code);
+    expect(existsSync(join(result.checkout, '.deployment/worker-stop-attempted'))).toBe(true);
+    expect(existsSync(join(result.checkout, '.deployment/worker-retired'))).toBe(false);
+  });
+
+  it('retirement rechecks the database after shutdown and blocks new obligations', () => {
+    const result = retireWorker(
+      'development',
+      {
+        FAKE_WORKER_PRESENT: '1',
+        FAKE_WORKER_RUNNING: '1',
+        FAKE_AUDIT_COUNTS_AFTER_STOP: '1|0|0|0',
+      },
+      true,
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('LEGACY_OBLIGATIONS_AFTER_STOP');
+    expect(result.log).toContain('stop --timeout 45 worker');
+    expect(existsSync(join(result.checkout, '.deployment/worker-stop-attempted'))).toBe(true);
+    expect(existsSync(join(result.checkout, '.deployment/worker-retired'))).toBe(false);
+  });
+
+  it('retirement without legacy container has no DB access or mutations', () => {
+    const result = retireWorker('production', {}, true);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('No legacy worker container');
+    expect(result.log).not.toContain('exec -T postgres');
+    expect(existsSync(join(result.checkout, '.deployment'))).toBe(false);
+  });
+
+  it('retirement fails closed when Postgres aggregates are unavailable', () => {
+    const result = retireWorker(
+      'development',
+      {
+        FAKE_WORKER_PRESENT: '1',
+        FAKE_AUDIT_UNAVAILABLE: '1',
+      },
+      true,
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('LEGACY_AUDIT_UNAVAILABLE');
+    expect(result.log).not.toContain('stop --timeout');
+  });
+
   it('does nothing by default and rejects mutable image tags', () => {
     const plan = deployment('development', {}, false);
     expect(plan.status, plan.stderr).toBe(0);
@@ -470,15 +679,15 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     },
   );
 
-  it('does not activate the API when migration fails', () => {
-    const result = deployment('development', { FAKE_MIGRATION_FAIL: '1' });
+  it('does not activate fake production API when migration fails', () => {
+    const result = deployment('production', { FAKE_MIGRATION_FAIL: '1' });
     expect(result.status).not.toBe(0);
     expect(result.log).not.toContain('up -d --no-build --no-deps --wait api');
     expect(existsSync(join(result.checkout, '.deployment/image-ref'))).toBe(false);
   });
 
-  it('rejects an image from another revision before database startup, migration or API activation', () => {
-    const result = deployment('development', { FAKE_IMAGE_REVISION: 'd'.repeat(40) });
+  it('rejects a fake production image from another revision before migration', () => {
+    const result = deployment('production', { FAKE_IMAGE_REVISION: 'd'.repeat(40) });
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain('Pulled image revision differs');
     expect(result.log).not.toContain('up -d');
@@ -486,8 +695,8 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     expect(existsSync(join(result.checkout, '.deployment'))).toBe(false);
   });
 
-  it('reports API activation failure without pretending to roll back database changes', () => {
-    const result = deployment('development', { FAKE_API_FAIL: '1' });
+  it('reports fake production API activation failure without DB rollback', () => {
+    const result = deployment('production', { FAKE_API_FAIL: '1' });
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain('No automatic database/image rollback');
     expect(existsSync(join(result.checkout, '.deployment/image-ref'))).toBe(false);
@@ -495,8 +704,8 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     expect(existsSync(join(result.checkout, '.deploy-lock'))).toBe(false);
   });
 
-  it('refuses to promote a different running image', () => {
-    const result = deployment('development', {
+  it('refuses to promote a different running image in fake production', () => {
+    const result = deployment('production', {
       FAKE_ACTUAL_IMAGE: `ghcr.io/example/other@sha256:${'e'.repeat(64)}`,
     });
     expect(result.status).not.toBe(0);
@@ -539,10 +748,10 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     expect(invalidImage.stderr).toContain('Invalid deployment metadata');
   });
 
-  it('does not fall back to local configuration after an incomplete deployment', () => {
-    const failed = deployment('development', { FAKE_MIGRATION_FAIL: '1' });
+  it('does not fall back to local configuration after an incomplete fake production release', () => {
+    const failed = deployment('production', { FAKE_MIGRATION_FAIL: '1' });
     expect(failed.status).not.toBe(0);
-    const operation = operationalCompose(failed.checkout, 'phasscode-platform-dev');
+    const operation = operationalCompose(failed.checkout, 'phasscode-platform');
     expect(operation.status).not.toBe(0);
     expect(operation.log).toBe('');
     expect(operation.stderr).toContain('Deployment attempt is incomplete');
@@ -579,7 +788,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     }
   });
 
-  it('retains the applied proxy overlay for retention and a later deployment with no explicit mode', () => {
+  it('retains the saved proxy overlay for DEV maintenance and redeploy', () => {
     const release = releasedFixture('development', true);
     expect(release.status, release.stderr).toBe(0);
     expect(readFileSync(join(release.checkout, '.deployment/use-proxy'), 'utf8').trim()).toBe(
@@ -594,7 +803,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
     expect(readFileSync(join(next.checkout, '.deployment/use-proxy'), 'utf8').trim()).toBe('true');
   }, 30_000);
 
-  it('supports an explicit --no-proxy operation and an explicitly selected non-proxy release', () => {
+  it('supports no-proxy maintenance and explicit DEV release promotion', () => {
     const release = releasedFixture('development', true);
     expect(release.status, release.stderr).toBe(0);
     const operation = operationalCompose(release.checkout, 'phasscode-platform-dev', {}, [
@@ -633,7 +842,7 @@ describe('deployment orchestration with fake Git, Docker and HTTP only', () => {
   });
 });
 
-it('release workflow automates dev/main pushes, retains manual dry-run and gates deployment', () => {
+it('keeps public dev/main releases manual, branch-scoped, and safety gated', () => {
   const source = readFileSync(join(root, '.github/workflows/deploy.yml'), 'utf8');
   const workflow = parse(source) as {
     on: {
@@ -652,8 +861,29 @@ it('release workflow automates dev/main pushes, retains manual dry-run and gates
   };
   expect(Object.keys(workflow.on).sort()).toEqual(['push', 'workflow_dispatch']);
   expect(workflow.on.push.branches).toEqual(['dev', 'main']);
+  const ci = parse(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8')) as {
+    on: { pull_request: { branches: string[] }; workflow_call: unknown; push?: unknown };
+  };
+  // PRs run CI directly, while the Release reuses it for both dev/main pushes.
+  // Independent push CI would duplicate the same expensive checks.
+  expect(Object.keys(ci.on).sort()).toEqual(['pull_request', 'workflow_call']);
+  expect(ci.on.pull_request.branches).toEqual(['dev', 'main']);
+  expect(ci.on).not.toHaveProperty('push');
+  expect(source).toContain('uses: ./.github/workflows/ci.yml');
+
+  const security = parse(readFileSync(join(root, '.github/workflows/security.yml'), 'utf8')) as {
+    on: { pull_request: { branches: string[] }; schedule: Array<{ cron: string }> };
+  };
+  expect(Object.keys(security.on).sort()).toEqual(['pull_request', 'schedule']);
+  expect(security.on.pull_request.branches).toEqual(['dev', 'main']);
+  expect(security.on.schedule).toHaveLength(1);
   expect(workflow.on.workflow_dispatch.inputs.apply_remote!.default).toBe(false);
-  expect(workflow.jobs.deploy!.if).toBe("github.event_name == 'push' || inputs.apply_remote");
+  expect(workflow.jobs.deploy!.if).toContain("github.event_name == 'workflow_dispatch'");
+  expect(workflow.jobs.deploy!.if).toContain("github.ref == 'refs/heads/dev'");
+  expect(workflow.jobs.deploy!.if).toContain("github.ref == 'refs/heads/main'");
+  expect(workflow.jobs.deploy!.if).toContain("inputs.target == 'development'");
+  expect(workflow.jobs.deploy!.if).toContain("inputs.target == 'production'");
+  expect(workflow.jobs.deploy!.if).toContain('inputs.apply_remote');
   expect(workflow.jobs.deploy!.environment).toContain("'production'");
   expect(workflow.jobs.deploy!.environment).toContain("'development'");
   expect(workflow.jobs.verify!.environment).toBe(workflow.jobs.deploy!.environment);
@@ -661,16 +891,17 @@ it('release workflow automates dev/main pushes, retains manual dry-run and gates
   expect(workflow.jobs.deploy!.env!.DEPLOY_BRANCH).toContain('github.ref_name');
   expect(workflow.jobs.deploy!.env!.PROJECT_DIR).toContain('github.ref_name');
   expect(source).toContain('test "$ENABLE_REMOTE_DEPLOY" = true');
-  expect(workflow.jobs.deploy!.needs).toEqual(['image', 'dast']);
+  expect(workflow.jobs.deploy!.needs).toEqual(['image', 'dast', 'ci_gate']);
   expect(workflow.jobs.deploy!.env!.PHASSCODE_USE_PROXY).toBe('${{ vars.PHASSCODE_USE_PROXY }}');
   expect(workflow.jobs.deploy!.env!.PHASSCODE_HTTP_PORT).toBe('${{ vars.PHASSCODE_HTTP_PORT }}');
   expect(source).toContain('PHASSCODE_USE_PROXY,PHASSCODE_HTTP_PORT');
   expect(workflow.jobs.dast!.env!.LLM_PROVIDER).toBe('mock');
   expect(workflow.jobs.dast!.env!.LLM_API_KEY).toBe('');
-  expect(source).toContain('ENABLE_REMOTE_DEPLOY');
   expect(source).toContain('needs.image.outputs.ref');
   expect(source).toContain('-O http://127.0.0.1:18080');
   expect(source).toContain('"$PUBLIC_URL/health"');
   expect(source).not.toContain('"$PUBLIC_URL/ready"');
   expect(source).not.toContain('--live');
+  expect(source).not.toContain('backend-dev-candidate-pair');
+  expect(workflow.jobs).not.toHaveProperty('coordinated');
 });

@@ -82,6 +82,11 @@ const technologyPatterns: Record<string, RegExp> = {
   fastapi: /\bfast\s*api\b/,
   fastify: /\bfastify\b/,
   django: /\bdjango\b/,
+  'docker-swarm': /\bdocker\s+swarm\b/,
+  codeql: /\bcodeql\b/,
+  'owasp-zap': /\b(?:owasp\s+)?zap\b/,
+  sast: /\bsast\b/,
+  dast: /\bdast\b/,
   docker: /\bdocker\b/,
   kubernetes: /\b(?:kubernetes|k8s)\b/,
   postgresql: /\b(?:postgresql|postgres)\b/,
@@ -96,8 +101,15 @@ const technologyPatterns: Record<string, RegExp> = {
   php: /\bphp\b/,
   html: /\bhtml(?:5)?\b/,
   css: /\bcss(?:3)?\b/,
+  git: /\bgit\b/,
+  vitest: /\bvitest\b/,
+  playwright: /\bplaywright\b/,
+  pytest: /\bpytest\b/,
+  'sql-server': /\bsql server\b/,
   sql: /\bsql\b/,
   'github-actions': /\bgithub actions\b/,
+  'ci-cd':
+    /\bci cd\b|\bcontinuous integration(?: and| &)? (?:continuous deployment|continuous delivery)\b/,
 };
 
 export function mentionedTechnologies(text: string): Set<string> {

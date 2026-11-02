@@ -9,18 +9,46 @@ de referência com renovação compartilhada e confirmação explícita.
 
 ## Login e sessão
 
-1. Navegar com `window.location.assign(API + '/api/v1/auth/login/google')`. Não usar popup com
-   tokens no JavaScript. O callback fixo no backend valida PKCE/state/nonce e redireciona para
-   `AUTH_FRONTEND_URL`, sem código/JWT nos parâmetros do frontend.
+1. Navegar para `GET /api/v1/auth/login/google`, opcionalmente com `returnTo` contendo o caminho
+   atual do portfólio, query e hash. Não usar popup com tokens no JavaScript. O callback fixo no
+   backend valida PKCE/state/nonce. No sucesso retorna `302` ao destino vinculado ao login;
+   somente a conta Google verificada do administrador ganha sessão. Uma navegação HTML recusada
+   retorna `303` ao mesmo destino com `auth_error=AUTH_ADMIN_ONLY`, sem cadastrar outra conta.
+   Clientes com `Accept: application/json` continuam recebendo `403 AUTH_ADMIN_ONLY` em JSON,
+   com a mensagem “Acesso negado. Apenas o administrador tem acesso.”
 2. Consultar `GET /api/v1/auth/session` com `credentials: 'include'`. A resposta anônima é
    `{authenticated:false,user:null,csrfToken:null,expiresAt:null}`. Quando autenticado, `user`
    contém `id`, `email`, `displayName`, `roles`; `csrfToken` e `expiresAt` acompanham a sessão.
-3. Para `POST /api/v1/auth/refresh`, `/api/v1/auth/logout` e comandos administrativos, enviar
-   `credentials: 'include'` e `X-CSRF-Token` obtido da sessão. O navegador inclui `Origin`.
+   Cookies de usuários fora da política ou sem papel administrativo também produzem estado anônimo.
+3. Para `POST /api/v1/auth/refresh`, `/api/v1/auth/logout` e os POSTs administrativos de reuniões,
+   enviar `credentials: 'include'` e `X-CSRF-Token` obtido da sessão. O navegador inclui `Origin`,
+   que deve corresponder a uma origem permitida pelo backend; não defini-lo manualmente no fetch.
    Atualizar o token CSRF depois do refresh. Logout retorna `204` e revoga a família da sessão.
 
 ```ts
 const API = 'http://localhost:3000';
+
+function beginGoogleLogin() {
+  const returnTo = window.location.pathname + window.location.search + window.location.hash;
+  const query = new URLSearchParams({ returnTo });
+  window.location.assign(`${API}/api/v1/auth/login/google?${query}`);
+}
+
+const currentUrl = new URL(window.location.href);
+const authError = currentUrl.searchParams.get('auth_error');
+const loginMessage = document.getElementById('login-message');
+if (authError === 'AUTH_ADMIN_ONLY' && loginMessage) {
+  loginMessage.textContent = 'Acesso negado. Apenas o administrador tem acesso.';
+}
+if (currentUrl.searchParams.has('auth_error')) {
+  currentUrl.searchParams.delete('auth_error');
+  window.history.replaceState(
+    window.history.state,
+    '',
+    currentUrl.pathname + currentUrl.search + currentUrl.hash,
+  );
+}
+
 let session = await fetch(`${API}/api/v1/auth/session`, {
   credentials: 'include',
 }).then((r) => r.json());
@@ -36,18 +64,57 @@ async function refreshSession() {
 }
 ```
 
+`returnTo` é um caminho relativo iniciado por uma única `/`, limitado a **1024 bytes UTF-8**,
+resolvido exclusivamente na origem de `AUTH_FRONTEND_URL`. O backend preserva path/query/hash,
+recusa URLs absolutas, `//`, barras invertidas e formas inseguras; uma segunda origem autorizada
+por CORS não se torna destino de retorno. O valor é vinculado à transação e ao cookie do navegador,
+não é escolhido novamente no callback. Sem esse parâmetro, o destino é `AUTH_FRONTEND_URL`.
+Um `auth_error` antigo é removido do destino antes de concluir o login; em nova falha, o backend
+acrescenta apenas o código atual. Não colocar tokens ou dados privados em `returnTo`.
+
+Falhas posteriores à validação de state e da transação podem retornar ao navegador com um destes
+códigos fixos: `AUTH_ADMIN_ONLY`, `AUTH_REQUIRED`, `AUTH_LOGIN_FAILED`, `AUTH_PROVIDER_UNAVAILABLE`
+ou `AUTH_UNAVAILABLE`. Usar mensagens locais constantes para cada código conhecido, remover
+`auth_error` da URL com `history.replaceState` e permitir nova tentativa manual. Não usar o valor
+da query como HTML ou como prova de autorização. O retorno nunca contém código OAuth, JWT, tokens,
+e-mail ou mensagem recebida do provedor. Callback sem state/prova válida ou replay não redireciona
+e não encerra uma sessão administrativa existente. `Accept: application/json` conserva a resposta
+HTTP/JSON de erro, mesmo quando o destino de retorno é válido.
+Navegação é identificada por `Sec-Fetch-Mode: navigate` ou, sem esse header, por `Accept: text/html`.
+`Accept: application/json` tem precedência; sem indicação de navegação, a resposta continua JSON.
+O callback envia `Cache-Control: no-store` e `Referrer-Policy: no-referrer` para não armazenar a
+resposta nem propagar sua URL OAuth no Referer da navegação seguinte.
+
 Guardar o CSRF em memória. A sessão fica em cookie HttpOnly/Secure/SameSite=Lax, host-only.
 Nenhum access/refresh JWT é devolvido ao navegador; não criar armazenamento de JWT no localStorage.
 `GET /api/v1/me` exige identidade e retorna o perfil. Papéis no React controlam a apresentação;
-o backend verifica o papel atual em cada comando. `401` pede novo login; `403` pode indicar papel
-insuficiente ou CSRF/Origin incorreto. Login habilitado não cria administradores automaticamente.
+o backend verifica o papel e a identidade atuais nos acessos autenticados, inclusive nas leituras
+com JWT de serviço. Os requisitos dos comandos administrativos estão detalhados abaixo.
+`401` pede novo login; `403 AUTH_ADMIN_ONLY` indica conta não admitida ou administração revogada;
+outros `403` podem indicar CSRF/Origin incorreto. Exibir a mensagem de acesso negado como texto,
+sem repetir login ou mutações automaticamente. O frontend recebe a recusa da navegação por
+`auth_error` na página de retorno. O retorno só representa uma sessão válida depois de confirmar
+`authenticated:true` em `/auth/session`.
+Oferecer retorno ao portfólio público e nova tentativa manual com a conta correta, sem abrir
+novo login automaticamente. A recusa de uma identidade validada por política administrativa limpa
+cookies de transação/sessão; callback inválido sem state/prova de navegador não encerra uma sessão
+administrativa existente. Refresh
+negado por `AUTH_ADMIN_ONLY` limpa a sessão. Logout ainda pode revogar uma família antiga com
+Origin/CSRF válidos.
+
+O primeiro login admitido atribui `admin` e audita a concessão na mesma transação, desde que não
+exista histórico administrativo. Um papel revogado não é reposto pelo login; o operador precisa
+recuperá-lo explicitamente. O frontend não deve apresentar esse caso como erro temporário.
 Com `AUTH_ENABLED=false`, as rotas auth retornam `404 AUTH_DISABLED`.
 
 Em desenvolvimento HTTP, usar `AUTH_COOKIE_SECURE=false` e o mesmo hostname no frontend/backend
 (ex.: ambos `localhost`). Em produção, servir frontend e BFF no mesmo site HTTPS, preferencialmente
 na mesma origem por proxy. `credentials` não torna cookies SameSite utilizáveis entre sites distintos.
 `CORS_ORIGINS` deve conter a origem exata, sem wildcard. O frontend não escolhe issuer, callback,
-papel ou URL de retorno. Apenas login Google está disponível; senha/GitHub/MFA/passkeys são roadmap.
+papel, e-mail autorizado ou origem de retorno; pode informar apenas o caminho relativo permitido.
+`AUTH_ADMIN_EMAIL` é configuração privada do backend,
+obrigatória com `AUTH_ENABLED=true`; não colocar em `VITE_*` nem confiar em comparação na UI.
+Apenas login Google está disponível; senha/GitHub/MFA/passkeys são roadmap.
 
 ## Proposta, consentimento e pedido público
 
@@ -124,13 +191,32 @@ oferecer também formulário direto para quem não desejar compartilhar dados pe
 
 ## Administração
 
-`GET /api/v1/admin/meetings?limit=25&status=PENDING` exige papel `admin`, com paginação por
-`nextCursor` opaco. Não usar números de página nem ordenar no frontend como se toda a base
-estivesse carregada. Os itens administrativos têm nome, e-mail, assunto, versão e falha resumida.
+`GET /api/v1/admin/meetings?limit=25&status=PENDING` aceita cookie de sessão ou access JWT da
+plataforma em `Authorization: Bearer ...`. Em ambos os casos, exige sessão ativa no servidor,
+identidade admitida pela política administrativa e papel `admin` atual. Um JWT com assinatura
+válida não substitui essas verificações. A leitura não exige `X-CSRF-Token`; o CORS continua
+aplicável às chamadas do navegador. O React usa cookie com `credentials: 'include'`, sem receber
+ou armazenar JWT.
 
-Os POSTs `/api/v1/admin/meetings/{id}/approve`, `/reject` e `/cancel` não aceitam dados da reunião
-no corpo e exigem sessão/admin/CSRF. Retries da mesma decisão são idempotentes quando o estado
-já permite a mesma resposta. `409` indica conflito/transição inválida; atualizar lista/status.
+A paginação usa `nextCursor` opaco. Não usar números de página nem ordenar no frontend como se
+toda a base estivesse carregada. Os itens administrativos têm nome, e-mail, assunto, versão e
+falha resumida.
+
+Os POSTs `/api/v1/admin/meetings/{id}/approve`, `/api/v1/admin/meetings/{id}/reject` e
+`/api/v1/admin/meetings/{id}/cancel` exigem **sempre cookie de sessão ativo, `Origin` permitido e
+`X-CSRF-Token` correspondente à sessão**, além da identidade/papel administrativos atuais.
+Essa exigência permanece mesmo se a requisição incluir `Authorization: Bearer ...`: Bearer
+isolado não autoriza esses comandos nem desativa a proteção CSRF.
+
+No navegador, enviar `credentials: 'include'` e o CSRF atual; `Origin` é controlado pelo navegador,
+não é uma credencial e não deve ser forjado ou usado como substituto da sessão/CSRF. O cliente
+React já usa esse fluxo e não precisa migrar para Bearer por causa desta distinção de contrato.
+As exigências dos comandos administrativos não tornam as consultas/propostas/solicitações
+públicas dependentes de login ou CSRF de sessão; o status privado continua usando `X-Meeting-Token`.
+
+Os comandos administrativos não aceitam dados da reunião no corpo. Retries da mesma decisão são
+idempotentes quando o estado já permite a mesma resposta. `409` indica conflito/transição inválida;
+atualizar lista/status.
 Cancelar uma reserva preserva sua proteção até verificar a remoção no Calendar. Falhas de
 notificação não desfazem decisões. SMTP comunica o visitante; Telegram informa o administrador
 sem nome, e-mail ou assunto do visitante. O backend mantém auditoria da decisão.
