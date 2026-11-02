@@ -1,0 +1,4 @@
+# Versioned, reproducible quality-check toolchain; no application credentials or docker socket.
+FROM node:24-alpine
+RUN apk add --no-cache bash git docker-cli docker-cli-compose
+WORKDIR /work

@@ -1,51 +1,20 @@
 #!/usr/bin/env bash
-# PHASSCODE local quality gate. Run from any working directory before Git pushes.
+# PHASSCODE local quality gate: opt-in via scripts/install-prepush-hook.sh.
 set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
-echo '[PHASSCODE] Verificando qualidade antes do git push...'
-
-if [[ ! -f package-lock.json || ! -f package.json ]]; then
-  echo '[PHASSCODE] Bloqueado: package.json e package-lock.json obrigatorios.' >&2
-  exit 1
-fi
-
-# Verify exactly the committed working tree; local uncommitted edits can mask a bad push.
 if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
-  echo '[PHASSCODE] Bloqueado: commit/stash das alteracoes antes do push.' >&2
+  echo '[PHASSCODE] Bloqueado: finalize as alteracoes antes do push.' >&2
   exit 1
 fi
 
-if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1 &&
-  [[ "$(node -p 'process.versions.node.split(".")[0]')" == '24' ]]; then
-  echo '[PHASSCODE] Validando com Node.js 24 local.'
-  npm ci --ignore-scripts
-  npm run check
-  npm run test:infrastructure
-  npm run smoke
-elif command -v docker >/dev/null 2>&1; then
-  echo '[PHASSCODE] Validando em contêiner Node.js 24.'
-  docker run --rm \
-    --user "$(id -u):$(id -g)" \
-    -e HOME=/tmp \
-    -v "$ROOT:/work" \
-    -w /work \
-    node:24 bash -euo pipefail -c '
-      npm ci --ignore-scripts
-      npm run check
-      npm run test:infrastructure
-      npm run smoke
-    '
-else
-  echo '[PHASSCODE] Bloqueado: requer Node.js 24 + npm ou Docker.' >&2
-  exit 1
-fi
+bash scripts/quality-check.sh
 
 if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
-  echo '[PHASSCODE] Bloqueado: validacao modificou a arvore Git; revise antes do push.' >&2
+  echo '[PHASSCODE] Bloqueado: validacao alterou arquivos versionados.' >&2
   exit 1
 fi
 
-echo '[PHASSCODE] Qualidade aprovada; liberando push.'
+echo '[PHASSCODE] Pre-push aprovado.'
