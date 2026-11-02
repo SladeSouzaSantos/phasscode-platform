@@ -50,8 +50,19 @@ export class Neo4jGraphStore implements GraphReadExecutor {
     await this.driver.verifyConnectivity();
   }
 
-  async read(query: string, params: Readonly<Record<string, unknown>>): Promise<readonly unknown[]> {
+  async read(
+    query: string,
+    params: Readonly<Record<string, unknown>>,
+  ): Promise<readonly unknown[]> {
     if (!allowedReads.has(query)) throw new Error('GRAPH_UNAPPROVED_CYPHER');
+    const bound: Record<string, unknown> = { ...params };
+    if (query === graphFindEvidenceCypher) {
+      const limit = params.limit;
+      if (typeof limit !== 'number' || !Number.isSafeInteger(limit) || limit < 1 || limit > 20) {
+        throw new Error('GRAPH_INVALID_LIMIT');
+      }
+      bound.limit = neo4j.int(limit);
+    }
     const session = this.driver.session({
       database: this.database,
       defaultAccessMode: neo4j.session.READ,
@@ -59,7 +70,7 @@ export class Neo4jGraphStore implements GraphReadExecutor {
     try {
       return await session.executeRead(
         async (tx) => {
-          const result = await tx.run(query, { ...params });
+          const result = await tx.run(query, bound);
           return result.records.map((record) => record.toObject());
         },
         { timeout: 5000 },

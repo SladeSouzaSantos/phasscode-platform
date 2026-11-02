@@ -15,7 +15,6 @@
 - All environment names, data volumes, and network namespaces remain scoped to
   `COMPOSE_PROJECT_NAME`. No live Neo4j rollout has been authorized.
 
-
 The Neo4j graph is a rebuildable **read model**. PPKS stays canonical and PostgreSQL
 continues to own conversations and transactional state. Nothing is wired into Orbe
 runtime yet; the F3.1 baseline remains the default behavior.
@@ -57,14 +56,13 @@ the existing application project.
 
 `planNeo4jGraphSeed` produces one deterministic snapshot SHA, fixed parameterized
 Cypher operations for upserting nodes/relations and removing stale projection
-records. A future runner must execute schema creation separately and the four
-seed operations **in one write transaction**. Reapplying the same snapshot must
-not duplicate graph records; dry-run counts will be checked against a disposable
-Neo4j integration environment.
+records. The seed runner executes schema creation separately and its four data
+operations **in one write transaction**. Reapplying the same snapshot must
+not duplicate graph records; the disposable Neo4j job checks the counts.
 
 `Neo4jEvidenceRepository` is a read-only, narrow query contract. The official
-`neo4j-driver` connection factory, read-only account/access boundary and live
-integration tests will be added before it can receive any production traffic.
+`neo4j-driver` connection factory and disposable integration tests exist,
+but the read-only access boundary requires review before any public traffic.
 Its returned claims require all referenced source IDs to be present; no
 cross-skill inference is performed.
 

@@ -1,3 +1,4 @@
+import neo4j from 'neo4j-driver';
 import { describe, expect, it, vi } from 'vitest';
 import {
   Neo4jGraphStore,
@@ -54,7 +55,10 @@ describe('F3.2: official driver adapter contract', () => {
     const store = new Neo4jGraphStore(f.driver as never);
     await store.read(graphFindEvidenceCypher, { skill: 'React', limit: 5 });
     expect(f.executeRead).toHaveBeenCalledTimes(1);
-    expect(f.tx.run).toHaveBeenCalledWith(graphFindEvidenceCypher, { skill: 'React', limit: 5 });
+    expect(f.tx.run).toHaveBeenCalledWith(graphFindEvidenceCypher, {
+      skill: 'React',
+      limit: neo4j.int(5),
+    });
     expect(f.closeSession).toHaveBeenCalledTimes(1);
   });
 
