@@ -137,7 +137,8 @@ export function reconcileCanonicalAcademicClaims(
         // estão concluídos", not just "oito cursos concluídos na trilha".
         // Check semantic context on both sides of the count and require an
         // affirmative completion claim. Selected subsets are not totals.
-        const courseCount = /\b(\d{1,2}|um|dois|tr[eê]s|quatro|cinco|seis|sete|oito|nove|dez|onze|doze)\s+cursos?\b/gi;
+        const courseCount =
+          /\b(\d{1,2}|um|dois|tr[eê]s|quatro|cinco|seis|sete|oito|nove|dez|onze|doze)\s+cursos?\b/gi;
         const wordCounts: Record<string, number> = {
           um: 1,
           dois: 2,
