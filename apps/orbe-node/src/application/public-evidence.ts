@@ -12,18 +12,35 @@ const MAX_README = 1900;
 const TIMEOUT_MS = 5_000;
 
 function htmlText(input: string): string {
-  return input
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&(?:nbsp|#160);/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#(?:39|x27);/gi, "'")
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    input
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, ' ')
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      // Decode entities in one pass: &amp;lt; must not become '<'.
+      .replace(/&(?:nbsp|amp|lt|gt|quot|#160|#39|#x27);/gi, (entity) => {
+        switch (entity.toLowerCase()) {
+          case '&nbsp;':
+          case '&#160;':
+            return ' ';
+          case '&amp;':
+            return '&';
+          case '&lt;':
+            return '<';
+          case '&gt;':
+            return '>';
+          case '&quot;':
+            return '"';
+          case '&#39;':
+          case '&#x27;':
+            return "'";
+          default:
+            return entity;
+        }
+      })
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 async function boundedPublicText(

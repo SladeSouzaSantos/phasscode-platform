@@ -228,7 +228,12 @@ export function selectSources(input: {
 export function removeInternalCitationIds(answer: string): string {
   return answer
     .replace(/\s*\[(?:fonte|source):\s*(?:idiomas|cursos|formacao|experiencia)-[a-z0-9-]+\]/gi, '')
-    .replace(/\s*\((?:(?:cursos|formacao|idiomas|experiencia)-[a-z0-9-]+(?:,\s*)?)+\)/gi, '');
+    .replace(/\s*\(([^()\r\n]{1,600})\)/g, (whole, inner: string) => {
+      const ids = inner.split(/,\s*/);
+      return ids.every((id) => /^(?:cursos|formacao|idiomas|experiencia)-[a-z0-9-]+$/i.test(id))
+        ? ''
+        : whole;
+    });
 }
 
 /**

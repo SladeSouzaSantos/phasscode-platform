@@ -37,6 +37,28 @@ describe('leitura pública limitada para vagas e projetos', () => {
     expect(fetcher.mock.calls[0]?.[1]).toMatchObject({ redirect: 'error', credentials: 'omit' });
   });
 
+  it('handles script closing-tag whitespace and decodes entities only once', async () => {
+    const description =
+      '<script type="text/plain">INJECTED_SCRIPT_TEXT</script >' +
+      '<style media="all">HIDDEN_STYLE_TEXT</style >' +
+      '<p>Java &amp;lt;script&amp;gt; PostgreSQL, testes, APIs REST e arquitetura.</p>'.repeat(4);
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      htmlResponse(
+        '<script type="application/ld+json">' +
+          JSON.stringify({ '@type': 'JobPosting', title: 'Backend Java', description }) +
+          '</script>',
+      ),
+    );
+    const docs = await new RestrictedPublicEvidenceReader(fetcher).read(
+      'Analise a vaga ' + vacancy,
+      [],
+    );
+    expect(docs[0]?.content).toContain('PostgreSQL');
+    expect(docs[0]?.content).toContain('&lt;script&gt;');
+    expect(docs[0]?.content).not.toContain('INJECTED_SCRIPT_TEXT');
+    expect(docs[0]?.content).not.toContain('HIDDEN_STYLE_TEXT');
+  });
+
   it('não inventa requisitos de uma vaga bloqueada e não acessa domínios arbitrários', async () => {
     const fetcher = vi.fn<typeof fetch>(async () => new Response('blocked', { status: 403 }));
     const reader = new RestrictedPublicEvidenceReader(fetcher);

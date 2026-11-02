@@ -240,6 +240,15 @@ describe('Orbe: nine canonical Java courses and mixed career questions', () => {
     );
   });
 
+  it('strips only bounded, validated lists of internal citations', () => {
+    const ids = Array.from({ length: 30 }, (_, i) => `cursos-${i}`).join(', ');
+    expect(removeInternalCitationIds(`Evidências (${ids}) verificadas.`)).toBe(
+      'Evidências verificadas.',
+    );
+    const malformed = '(' + 'cursos-'.repeat(400) + 'OUTROS)';
+    expect(removeInternalCitationIds(malformed)).toBe(malformed);
+  });
+
   it('never exposes internal academic IDs as a public source', () => {
     expect(
       removeInternalCitationIds('Inglês básico para leitura. [fonte: idiomas-declarados]'),

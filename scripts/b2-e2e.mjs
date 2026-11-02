@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import { cp, lstat, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { cp, mkdir, mkdtemp, open, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -237,16 +238,21 @@ async function snapshot(directory, checkout, kind) {
   for (const name of names) {
     const source = resolve(repository, name);
     assert.ok(within(repository, source));
-    const metadata = await lstat(source);
-    assert.ok(
-      metadata.isFile() && !metadata.isSymbolicLink(),
-      'Snapshots refuse symlinks and non-files.',
-    );
-    assert.ok(
-      within(repository, await realpath(source)),
-      'Snapshot files must remain inside their checkout.',
-    );
-    const bytes = await readFile(source);
+    // Read through the same descriptor that was validated; a pathname can
+    // otherwise change between lstat/realpath and readFile (TOCTOU).
+    const handle = await open(source, constants.O_RDONLY | constants.O_NOFOLLOW);
+    let bytes;
+    try {
+      const metadata = await handle.stat();
+      assert.ok(metadata.isFile(), 'Snapshots refuse symlinks and non-files.');
+      assert.ok(
+        within(repository, await realpath(source)),
+        'Snapshot files must remain inside their checkout.',
+      );
+      bytes = await handle.readFile();
+    } finally {
+      await handle.close();
+    }
     const target = join(directory, kind, name);
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, bytes);
