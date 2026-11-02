@@ -13,8 +13,10 @@ import type { ChatProvider } from './domain/ports.js';
 import { buildApp } from './http/app.js';
 import { RestrictedPublicEvidenceReader } from './application/public-evidence.js';
 import { PROMPT_VERSION } from './application/chat.js';
+import { assertPublicOrbeGraphIsolation } from './application/graph-public-policy.js';
 
 try {
+  assertPublicOrbeGraphIsolation(process.env);
   // The public Orbe cannot activate the retired auth/meetings/notification subsystems,
   // including when a legacy Mac Mini .env still contains their old flags.
   const config = loadConfig({
