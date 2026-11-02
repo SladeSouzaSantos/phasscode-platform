@@ -89,7 +89,7 @@ describe('Orbe: PPKS canonical claims in open recruiter answers', () => {
     expect(result.rules).toEqual(['java_track_completed_count']);
   });
 
-  it('answers the exact UNISUL degree when it was omitted in a multi-topic fact-check', async () => {
+  it('answers an omitted UNISUL degree in a mixed fact-check', async () => {
     const query =
       "Revise o resumo: oito cursos concluídos na trilha Java & Arquitetura e Sistemas de Informação na UNISUL. Está correto?";
     const answer =
