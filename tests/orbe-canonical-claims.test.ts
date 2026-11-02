@@ -33,6 +33,18 @@ describe('Orbe: PPKS canonical claims in open recruiter answers', () => {
     expect(result.sourceIds).toEqual(['formacao-computacao']);
   });
 
+  it('repairs the literal DEV E2E false course claim without altering Java evidence', async () => {
+    const answer =
+      'Pedro possui nove cursos concluídos na trilha Java & Arquitetura. Porém, o curso de Sistemas de Informação na UNISUL está pendente, com previsão incerta para 2027/2028. Java profissional na SIG Software/SIGAA.';
+    const result = reconcileCanonicalAcademicClaims(answer, await facts());
+    expect(result.answer).toContain('o curso de Ciência da Computação na UNISUL está pendente');
+    expect(result.answer).not.toContain('Sistemas de Informação');
+    expect(result.answer).toContain('nove cursos concluídos na trilha Java & Arquitetura');
+    expect(result.answer).toContain('Java profissional na SIG Software/SIGAA');
+    expect(result.rules).toEqual(['unisul_degree_title']);
+    expect(result.sourceIds).toEqual(['formacao-computacao']);
+  });
+
   it('repairs the exact eight-course claim while retaining a Java career summary', async () => {
     const canonical = await facts();
     const answer =

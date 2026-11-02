@@ -63,6 +63,31 @@ describe('Orbe: nine canonical Java courses and mixed career questions', () => {
     ]);
   });
 
+  it('reconciles the exact false course name in a mixed recruiter review using the mock provider', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const provider = {
+      name: 'mock' as const,
+      generate: vi.fn(async () => ({
+        answer:
+          'Parcialmente correto. Pedro tem nove cursos concluídos na trilha Java & Arquitetura. Porém, o curso de Sistemas de Informação na UNISUL está pendente. Java profissional na ACRUX e SIGAA.',
+        sources: [],
+      })),
+    };
+    const service = new ChatService(
+      new MemoryConversationStore(),
+      provider,
+      knowledge,
+      loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }),
+    );
+    const response = await service.execute({ message: disputedRecruiterSummary });
+    expect(provider.generate).toHaveBeenCalledOnce();
+    expect(response.meta.deterministic).toBeUndefined();
+    expect(response.answer).toContain('nove cursos concluídos na trilha Java & Arquitetura');
+    expect(response.answer).toContain('o curso de Ciência da Computação na UNISUL');
+    expect(response.answer).toContain('Java profissional na ACRUX e SIGAA');
+    expect(response.sources.some((source) => source.id === 'formacao-computacao')).toBe(true);
+  });
+
   it('still routes an explicit course count to canonical nine-course enumeration', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
     const query =
