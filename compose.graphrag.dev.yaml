@@ -7,6 +7,10 @@ services:
     profiles: [graphrag]
     environment:
       NEO4J_AUTH_FILE: /run/secrets/neo4j_auth
+      # Constrain JVM reservations below the cgroup memory limit.
+      NEO4J_server_memory_heap_initial__size: 256m
+      NEO4J_server_memory_heap_max__size: 256m
+      NEO4J_server_memory_pagecache_size: 128m
     secrets: [neo4j_auth]
     networks: [backend]
     volumes: [neo4j-dev-data:/data]
@@ -20,7 +24,7 @@ services:
       retries: 20
       start_period: 45s
     restart: unless-stopped
-    mem_limit: 768m
+    mem_limit: 1024m
     cpus: 1.0
   graph-seed:
     profiles: [graphrag-seed]

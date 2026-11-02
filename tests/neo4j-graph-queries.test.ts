@@ -99,7 +99,14 @@ describe('F3.2: Cypher parametrizado, escopo de grafo e operação opt-in', () =
   it('não publica Bolt/Browser nem habilita Neo4j por padrão no DEV', async () => {
     const overlay = YAML.parse(await readFile('compose.graphrag.dev.yaml', 'utf8')) as {
       services: {
-        neo4j: { profiles: string[]; ports?: string[]; networks: string[]; secrets: string[] };
+        neo4j: {
+          profiles: string[];
+          ports?: string[];
+          networks: string[];
+          secrets: string[];
+          mem_limit: string;
+          environment: Record<string, string>;
+        };
       };
     };
     const service = overlay.services.neo4j;
@@ -107,6 +114,12 @@ describe('F3.2: Cypher parametrizado, escopo de grafo e operação opt-in', () =
     expect(service.ports).toBeUndefined();
     expect(service.networks).toContain('backend');
     expect(service.secrets).toContain('neo4j_auth');
+    expect(service.mem_limit).toBe('1024m');
+    expect(service.environment).toMatchObject({
+      NEO4J_server_memory_heap_initial__size: '256m',
+      NEO4J_server_memory_heap_max__size: '256m',
+      NEO4J_server_memory_pagecache_size: '128m',
+    });
 
     const original = YAML.parse(await readFile('compose.yaml', 'utf8')) as {
       services: Record<string, unknown>;

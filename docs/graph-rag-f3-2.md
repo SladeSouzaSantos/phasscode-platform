@@ -36,6 +36,13 @@ runtime yet; the F3.1 baseline remains the default behavior.
 
 ## DEV operator instructions (not yet authorized for deployment)
 
+The Mac Mini preflight on 2026-11-02 reported 7.2 GiB total RAM, 5.7 GiB
+available RAM, and 178 GiB disk available. Limit the optional Neo4j DEV
+container to 1024 MiB with an explicit 256 MiB JVM heap and 128 MiB page cache
+to preserve native-memory headroom. These are **starting values for DEV only**;
+inspect actual memory and restarts during homologation before changing limits.
+
+
 Create a private file with exactly `neo4j/<strong random password>` at
 `.secrets/neo4j_auth`, permissions 0600. Store only that file on the DEV server
 and ensure it is Git-ignored.
