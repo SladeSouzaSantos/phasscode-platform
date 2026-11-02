@@ -34,7 +34,8 @@ const claim = {
   sourceIds: ['ppks-project'],
 } as const;
 
-const graph = () => ({
+const graph = () =>
+  evidenceGraphSnapshotSchema.parse({
   schemaVersion: '1.0' as const,
   nodes: [source, project, skill, claim],
   relations: [
@@ -45,7 +46,7 @@ const graph = () => ({
       sourceIds: ['ppks-project'],
     },
   ],
-});
+  });
 
 describe('GraphRAG F3.1: contrato de proveniência tipada', () => {
   it('aceita claim de projeto com fonte explícita sem equiparar a emprego', () => {
