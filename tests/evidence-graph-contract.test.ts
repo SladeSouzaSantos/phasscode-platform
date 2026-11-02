@@ -36,16 +36,16 @@ const claim = {
 
 const graph = () =>
   evidenceGraphSnapshotSchema.parse({
-  schemaVersion: '1.0' as const,
-  nodes: [source, project, skill, claim],
-  relations: [
-    {
-      from: 'phasscode-platform',
-      to: 'typescript',
-      type: 'USES_TECHNOLOGY' as const,
-      sourceIds: ['ppks-project'],
-    },
-  ],
+    schemaVersion: '1.0' as const,
+    nodes: [source, project, skill, claim],
+    relations: [
+      {
+        from: 'phasscode-platform',
+        to: 'typescript',
+        type: 'USES_TECHNOLOGY' as const,
+        sourceIds: ['ppks-project'],
+      },
+    ],
   });
 
 describe('GraphRAG F3.1: contrato de proveniência tipada', () => {
@@ -93,7 +93,11 @@ describe('GraphRAG F3.1: contrato de proveniência tipada', () => {
       startedAt: '2017-03',
       endedAt: '2018-10',
     } as const;
-    const invalid = { schemaVersion: '1.0', nodes: [candidate, company, engagement], relations: [] };
+    const invalid = {
+      schemaVersion: '1.0',
+      nodes: [candidate, company, engagement],
+      relations: [],
+    };
     expect(evidenceGraphSnapshotSchema.safeParse(invalid).success).toBe(false);
     expect(
       evidenceGraphSnapshotSchema.safeParse({
