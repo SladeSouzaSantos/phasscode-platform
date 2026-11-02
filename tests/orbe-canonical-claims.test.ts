@@ -91,7 +91,7 @@ describe('Orbe: PPKS canonical claims in open recruiter answers', () => {
 
   it('answers an omitted UNISUL degree in a mixed fact-check', async () => {
     const query =
-      "Revise o resumo: oito cursos concluídos na trilha Java & Arquitetura e Sistemas de Informação na UNISUL. Está correto?";
+      'Revise o resumo: oito cursos concluídos na trilha Java & Arquitetura e Sistemas de Informação na UNISUL. Está correto?';
     const answer =
       'São nove cursos concluídos na trilha Java & Arquitetura. A graduação na UNISUL está pendente. Java profissional no SIGAA.';
     const result = reconcileCanonicalAcademicClaims(answer, await facts(), query);

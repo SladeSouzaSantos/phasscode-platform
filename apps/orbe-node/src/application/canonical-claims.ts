@@ -156,7 +156,12 @@ export function reconcileCanonicalAcademicClaims(
         updated = updated.replace(courseCount, (matched, count: string, offset: number) => {
           const actualCount = /^\d+$/.test(count)
             ? Number(count)
-            : wordCounts[count.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')];
+            : wordCounts[
+                count
+                  .toLowerCase()
+                  .normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+              ];
           if (actualCount === java.completedCount) return matched;
           const prefix = updated.slice(Math.max(0, offset - 100), offset);
           const suffix = updated.slice(offset + matched.length, offset + matched.length + 130);
@@ -175,9 +180,7 @@ export function reconcileCanonicalAcademicClaims(
             /\b(?:n[aã]o|nem|nunca)\b[^.!?]{0,30}\b(?:conclus[aã]o|concluiu|completou|finalizou)\b/i.test(
               prefix,
             ) ||
-            /\b(?:n[aã]o|nem|nunca)\s+(?:est[aã]o|foram|ficaram)\s+conclu[ií]dos?\b/i.test(
-              suffix,
-            );
+            /\b(?:n[aã]o|nem|nunca)\s+(?:est[aã]o|foram|ficaram)\s+conclu[ií]dos?\b/i.test(suffix);
           if (
             !trackAfter ||
             !(completedBefore || completedAfter) ||
