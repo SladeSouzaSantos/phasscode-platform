@@ -39,7 +39,7 @@ describe('leitura pública limitada para vagas e projetos', () => {
 
   it('handles script closing-tag whitespace and decodes entities only once', async () => {
     const description =
-      '<script type="text/plain">INJECTED_SCRIPT_TEXT</script >' +
+      '<script data-kind="a>b" type="text/plain">INJECTED_SCRIPT_TEXT</script >' +
       '<style media="all">HIDDEN_STYLE_TEXT</style >' +
       '<p>Java &amp;lt;script&amp;gt; PostgreSQL, testes, APIs REST e arquitetura.</p>'.repeat(4);
     const fetcher = vi.fn<typeof fetch>(async () =>

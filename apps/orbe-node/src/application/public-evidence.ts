@@ -12,12 +12,54 @@ const MAX_README = 1900;
 const TIMEOUT_MS = 5_000;
 
 function htmlText(input: string): string {
+  // Tokenize markup without a regular-expression-based script/style filter.
+  // Honor quoted attribute delimiters and suppress executable block contents.
+  const parts: string[] = [];
+  let cursor = 0;
+  let suppressed: string | undefined;
+  while (cursor < input.length) {
+    const start = input.indexOf('<', cursor);
+    const textEnd = start < 0 ? input.length : start;
+    if (!suppressed) parts.push(input.slice(cursor, textEnd));
+    if (start < 0) break;
+
+    if (input.startsWith('<!--', start)) {
+      const commentEnd = input.indexOf('-->', start + 4);
+      cursor = commentEnd < 0 ? input.length : commentEnd + 3;
+      continue;
+    }
+
+    let end = start + 1;
+    let quote: string | undefined;
+    for (; end < input.length; end++) {
+      const character = input[end]!;
+      if (quote) {
+        if (character === quote) quote = undefined;
+      } else if (character === '"' || character === "'") {
+        quote = character;
+      } else if (character === '>') {
+        break;
+      }
+    }
+    if (end === input.length) {
+      if (!suppressed) parts.push(input.slice(start));
+      break;
+    }
+
+    const tag = input.slice(start + 1, end).trim();
+    const kind = /^\/?\s*(script|style)\b/i.exec(tag)?.[1]?.toLowerCase();
+    if (kind) {
+      if (tag.startsWith('/') && suppressed === kind) suppressed = undefined;
+      else if (!tag.startsWith('/') && !suppressed) suppressed = kind;
+    }
+    if (!suppressed) parts.push(' ');
+    cursor = end + 1;
+  }
+
   return (
-    input
-      .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, ' ')
-      .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, ' ')
-      .replace(/<[^>]+>/g, ' ')
-      // Decode entities in one pass: &amp;lt; must not become '<'.
+    parts
+      .join('')
+      // Decode entities once. Never recurse through &amp;lt; into '<'.
       .replace(/&(?:nbsp|amp|lt|gt|quot|#160|#39|#x27);/gi, (entity) => {
         switch (entity.toLowerCase()) {
           case '&nbsp;':
