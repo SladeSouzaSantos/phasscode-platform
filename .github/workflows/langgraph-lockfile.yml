@@ -1,0 +1,29 @@
+# Temporary generator: official npm lockfile on a clean Node 24 runner.
+# Remove this workflow when the generated lockfile is committed to dev.
+name: LangGraph dependency lockfile candidate
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/langgraph-lockfile.yml
+permissions:
+  contents: read
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - name: Lock LangGraph 1.5.3 in existing Orbe workspace
+        run: npm install --workspace @phasscode/orbe-node --save-exact @langchain/langgraph@1.5.3 --ignore-scripts --no-audit --no-fund
+      - name: Verify official dependency lock with npm ci
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/upload-artifact@v7
+        with:
+          name: langgraph-1-5-3-lockfile
+          path: |
+            apps/orbe-node/package.json
+            package-lock.json
+          retention-days: 2
