@@ -108,8 +108,11 @@ export function requestedCompleteJavaCourses(
   const phrase = knowledgePhrase(query);
   if (!/\b(?:java|java e arquitetura)\b/.test(phrase)) return undefined;
   if (!/\b(?:cursos?|formacoes? livres?|treinamentos?)\b/.test(phrase)) return undefined;
+  // A mere mention of completed courses in a recruitment summary must not
+  // replace the entire answer with a course list. Require a real enumeration
+  // or quantity request, preserving contextual reviews for the LLM.
   if (
-    !/\b(?:quais|liste|listar|lista|todos|titulos?|nomes?|cite|citando|concluidos?|realizou|fez|concluiu)\b/.test(
+    !/\b(?:quais|liste|listar|lista|todos|titulos?|nomes?|cite|citando|enumere|enumerar|quantos?|quantas?|total|contagem|quantidade)\b/.test(
       phrase,
     )
   )

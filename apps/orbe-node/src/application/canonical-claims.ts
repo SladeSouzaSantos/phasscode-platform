@@ -88,14 +88,25 @@ export function reconcileCanonicalAcademicClaims(
             /\b(?:8|oito)\b/i,
             count === '8' ? String(java.completedCount) : countWord,
           );
+        // Do not change a quoted false premise that the answer explicitly
+        // rejects: "não são oito cursos..." must not become "não são nove".
+        const rejectedCount = (sentence: string, matched: string): boolean => {
+          const index = sentence.indexOf(matched);
+          const prefix = sentence.slice(Math.max(0, index - 40), index);
+          const suffix = sentence.slice(index + matched.length, index + matched.length + 45);
+          return (
+            /\b(?:n[aã]o\s+(?:s[aã]o|tem|possui|foram)|nem|nunca)\b/i.test(prefix) ||
+            /\b(?:est[aá]|[ée]|seria)\s+(?:incorreto|errado|falso|equivocado)\b/i.test(suffix)
+          );
+        };
         updated = updated.replace(forward, (matched, count: string) => {
-          if (java.completedCount === 8) return matched;
+          if (java.completedCount === 8 || rejectedCount(updated, matched)) return matched;
           rules.add('java_track_completed_count');
           sourceIds.add(java.id);
           return replaceCount(matched, count);
         });
         updated = updated.replace(reverse, (matched, count: string) => {
-          if (java.completedCount === 8) return matched;
+          if (java.completedCount === 8 || rejectedCount(updated, matched)) return matched;
           rules.add('java_track_completed_count');
           sourceIds.add(java.id);
           return replaceCount(matched, count);

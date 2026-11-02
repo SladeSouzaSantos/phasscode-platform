@@ -56,6 +56,8 @@ describe('Orbe: PPKS canonical claims in open recruiter answers', () => {
 
   it.each([
     'Ele apresentou oito dos nove cursos da trilha Java & Arquitetura.',
+    'Não são oito cursos concluídos na trilha Java & Arquitetura, mas nove.',
+    'A afirmação de oito cursos concluídos na trilha Java & Arquitetura está incorreta.',
     'Concluiu oito cursos de Java que selecionou para esta apresentação.',
     'Formação Java & Arquitetura: oito exemplos de cursos.',
     'Cursou Sistemas de Informação em uma instituição diferente da UNISUL.',
