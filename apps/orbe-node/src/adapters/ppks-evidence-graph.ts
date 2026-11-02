@@ -63,15 +63,14 @@ const skillId = (name: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-const sourceId = (recordId: string, evidenceId: string) =>
-  'source-' + recordId + '-' + evidenceId;
+const sourceId = (recordId: string, evidenceId: string) => 'source-' + recordId + '-' + evidenceId;
 
 function isGitHubEvidence(record: PpksRecord, evidenceId: string): boolean {
   const evidence = record.evidence.find((item) => item.id === evidenceId);
   return Boolean(
     record.sync.verificationStatus === 'code_reviewed' &&
-      evidence &&
-      ['source_code', 'test', 'documentation'].includes(evidence.type),
+    evidence &&
+    ['source_code', 'test', 'documentation'].includes(evidence.type),
   );
 }
 
@@ -79,7 +78,10 @@ function isGitHubEvidence(record: PpksRecord, evidenceId: string): boolean {
  * A verified repository has source-specific proof; a catalog row never inherits
  * verified status or sourceCommit merely because another source was reviewed.
  */
-function sourceFromRecord(record: PpksRecord, evidence: PpksRecord['evidence'][number]): EvidenceSource {
+function sourceFromRecord(
+  record: PpksRecord,
+  evidence: PpksRecord['evidence'][number],
+): EvidenceSource {
   const reviewed = isGitHubEvidence(record, evidence.id);
   const candidate: EvidenceSource = {
     kind: 'source',
@@ -89,15 +91,9 @@ function sourceFromRecord(record: PpksRecord, evidence: PpksRecord['evidence'][n
     visibility: 'public',
     verificationStatus: reviewed ? 'code_reviewed' : 'catalog_only',
     ...(evidence.url ? { sourceUrl: evidence.url } : {}),
-    ...(reviewed && record.sync.sourceCommit
-      ? { sourceCommit: record.sync.sourceCommit }
-      : {}),
-    ...(reviewed && record.sync.lastModifiedAt
-      ? { lastModified: record.sync.lastModifiedAt }
-      : {}),
-    ...(reviewed && record.sync.reviewedAt
-      ? { verifiedAt: record.sync.reviewedAt }
-      : {}),
+    ...(reviewed && record.sync.sourceCommit ? { sourceCommit: record.sync.sourceCommit } : {}),
+    ...(reviewed && record.sync.lastModifiedAt ? { lastModified: record.sync.lastModifiedAt } : {}),
+    ...(reviewed && record.sync.reviewedAt ? { verifiedAt: record.sync.reviewedAt } : {}),
   };
   return candidate;
 }
@@ -154,11 +150,18 @@ export async function projectPpksEvidenceGraph(
       label: 'PPKS acadêmico: ' + degree.id,
       origin: degree.evidence.includes('owner') ? 'owner_declaration' : 'academic_record',
       visibility: 'private',
-      verificationStatus: degree.evidence.includes('owner') ? 'owner_confirmed' : 'document_verified',
+      verificationStatus: degree.evidence.includes('owner')
+        ? 'owner_confirmed'
+        : 'document_verified',
     };
     add(source);
     add({ kind: 'degree', id: degree.id, label: degree.title, status: degree.status });
-    relations.push({ from: degree.id, to: source.id, type: 'SUPPORTED_BY', sourceIds: [source.id] });
+    relations.push({
+      from: degree.id,
+      to: source.id,
+      type: 'SUPPORTED_BY',
+      sourceIds: [source.id],
+    });
     // "pending_completion" does not establish current enrollment or graduation.
   }
 
@@ -203,7 +206,13 @@ export async function projectPpksEvidenceGraph(
   const processStack = (
     record: PpksRecord,
     subjectId: string,
-    scope: 'professional' | 'mixed_role' | 'professional_project' | 'personal_project' | 'study' | 'unknown',
+    scope:
+      | 'professional'
+      | 'mixed_role'
+      | 'professional_project'
+      | 'personal_project'
+      | 'study'
+      | 'unknown',
   ) => {
     const available = new Map(record.evidence.map((item) => [item.id, item]));
     for (const entry of record.stack) {
@@ -269,8 +278,12 @@ export async function projectPpksEvidenceGraph(
     const category =
       nature === 'professional' || nature === 'personal' || nature === 'study' ? nature : 'unknown';
     add({ kind: 'project', id: record.id, label: record.identity.name, category });
-    const scope = category === 'professional' ? 'professional_project'
-      : category === 'personal' ? 'personal_project' : category;
+    const scope =
+      category === 'professional'
+        ? 'professional_project'
+        : category === 'personal'
+          ? 'personal_project'
+          : category;
     processStack(record, record.id, scope);
   }
 

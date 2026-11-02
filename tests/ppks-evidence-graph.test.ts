@@ -16,7 +16,8 @@ describe('GraphRAG F3.1: projeção auditável do PPKS real', () => {
         expect.objectContaining({ kind: 'course', id, status: 'completed' }),
       );
       const claim = graph.nodes.find(
-        (node) => node.kind === 'claim' && node.predicate === 'COMPLETED_COURSE' && node.objectId === id,
+        (node) =>
+          node.kind === 'claim' && node.predicate === 'COMPLETED_COURSE' && node.objectId === id,
       );
       expect(claim).toMatchObject({ scope: 'study', sourceIds: ['source-' + id] });
       expect(graph.nodes).toContainEqual(
@@ -48,7 +49,9 @@ describe('GraphRAG F3.1: projeção auditável do PPKS real', () => {
       sourceIds: ['source-formacao-computacao'],
     });
     expect(
-      graph.relations.some((edge) => edge.from === 'candidate' && edge.to === 'formacao-computacao'),
+      graph.relations.some(
+        (edge) => edge.from === 'candidate' && edge.to === 'formacao-computacao',
+      ),
     ).toBe(false);
   });
 
@@ -75,7 +78,8 @@ describe('GraphRAG F3.1: projeção auditável do PPKS real', () => {
     expect(tech('experiencia-sig', 'Spring Boot')).toBe(false);
     expect(tech('webservice-springboot-jpa', 'Spring Boot')).toBe(true);
     const spring = graph.nodes.find(
-      (node) => node.kind === 'claim' && node.id === 'claim-webservice-springboot-jpa-skill-spring-boot',
+      (node) =>
+        node.kind === 'claim' && node.id === 'claim-webservice-springboot-jpa-skill-spring-boot',
     );
     expect(spring).toMatchObject({ scope: 'study' });
     expect(graph.nodes).toContainEqual(
@@ -93,10 +97,13 @@ describe('GraphRAG F3.1: projeção auditável do PPKS real', () => {
   it('não confunde MySQL/Geowellex com PostgreSQL/SIGAA nem transforma trabalho misto em exclusivo', async () => {
     const graph = await projectPpksEvidenceGraph();
     const edge = (id: string, technology: string) =>
-      graph.relations.some((relation) =>
-        relation.type === 'USES_TECHNOLOGY' &&
-        relation.from === id &&
-        graph.nodes.some((node) => node.kind === 'skill' && node.id === relation.to && node.label === technology),
+      graph.relations.some(
+        (relation) =>
+          relation.type === 'USES_TECHNOLOGY' &&
+          relation.from === id &&
+          graph.nodes.some(
+            (node) => node.kind === 'skill' && node.id === relation.to && node.label === technology,
+          ),
       );
     expect(edge('experiencia-geowellex', 'MySQL')).toBe(true);
     expect(edge('experiencia-geowellex', 'PostgreSQL')).toBe(false);
@@ -111,7 +118,11 @@ describe('GraphRAG F3.1: projeção auditável do PPKS real', () => {
       }),
     );
     expect(graph.nodes).toContainEqual(
-      expect.objectContaining({ id: 'experiencia-greencity', kind: 'engagement', softwareWorkScope: 'mixed' }),
+      expect.objectContaining({
+        id: 'experiencia-greencity',
+        kind: 'engagement',
+        softwareWorkScope: 'mixed',
+      }),
     );
     expect(graph.nodes).toContainEqual(
       expect.objectContaining({ id: 'experiencia-acrux', kind: 'engagement', type: 'intern' }),
@@ -145,7 +156,9 @@ describe('GraphRAG F3.1: projeção auditável do PPKS real', () => {
       (node) => node.kind === 'project' && node.id === 'webservice-springboot-jpa',
     );
     expect(study).toMatchObject({ category: 'study' });
-    expect(graph.relations.some((rel) => rel.type === 'HAS_ENGAGEMENT' && rel.to === study?.id)).toBe(false);
+    expect(
+      graph.relations.some((rel) => rel.type === 'HAS_ENGAGEMENT' && rel.to === study?.id),
+    ).toBe(false);
   });
 
   it('todas as relações e claims têm fontes presentes; snapshot é determinístico e validado', async () => {
@@ -153,12 +166,15 @@ describe('GraphRAG F3.1: projeção auditável do PPKS real', () => {
     const b = await projectPpksEvidenceGraph();
     expect(a).toEqual(b);
     expect(evidenceGraphSnapshotSchema.safeParse(a).success).toBe(true);
-    const sources = new Set(a.nodes.filter((node) => node.kind === 'source').map((node) => node.id));
+    const sources = new Set(
+      a.nodes.filter((node) => node.kind === 'source').map((node) => node.id),
+    );
     for (const relation of a.relations) {
       expect(relation.sourceIds.length).toBeGreaterThan(0);
       for (const id of relation.sourceIds) expect(sources.has(id)).toBe(true);
     }
     for (const node of a.nodes)
-      if (node.kind === 'claim') for (const id of node.sourceIds) expect(sources.has(id)).toBe(true);
+      if (node.kind === 'claim')
+        for (const id of node.sourceIds) expect(sources.has(id)).toBe(true);
   });
 });
