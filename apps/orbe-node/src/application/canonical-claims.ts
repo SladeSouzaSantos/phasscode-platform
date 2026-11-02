@@ -116,20 +116,18 @@ export function reconcileCanonicalAcademicClaims(
         // Covers "declarou a conclusão de oito cursos da trilha..." and
         // "concluiu oito cursos na trilha..." when claiming a completed total.
         // Merely presenting eight selected courses is not a total-count claim.
-        const completedTotalVariant =
+        const totalVariant =
           /\b(8|oito)\s+cursos?\s+(?:livres?\s+)?(?:conclu[ií]dos?\s+)?(?:na|da|de)\s+trilha\s+(?:de\s+)?Java\s*(?:&|e)\s*Arquitetura\b/gi;
-        updated = updated.replace(completedTotalVariant, (matched, count: string, offset: number) => {
+        updated = updated.replace(totalVariant, (matched, count: string, offset: number) => {
           if (java.completedCount === 8 || rejectedCount(updated, matched)) return matched;
           const prefix = updated.slice(Math.max(0, offset - 90), offset);
           const claimsCompletion =
             /\b(?:conclus[aã]o|concluiu|conclu[ií]ram|completou|finalizou|totalizou)\b/i.test(
               prefix,
             );
-          const deniesCompletion =
-            /\b(?:n[aã]o|nem|nunca)\b[^.!?]{0,30}\b(?:conclus[aã]o|concluiu|completou|finalizou)\b/i.test(
-              prefix,
-            );
-          if (!claimsCompletion || deniesCompletion) return matched;
+          const denial =
+            /\b(?:n[aã]o|nem|nunca)\b[^.!?]{0,30}\b(?:conclus[aã]o|concluiu|completou|finalizou)\b/i;
+          if (!claimsCompletion || denial.test(prefix)) return matched;
           rules.add('java_track_completed_count');
           sourceIds.add(java.id);
           return replaceCount(matched, count);
