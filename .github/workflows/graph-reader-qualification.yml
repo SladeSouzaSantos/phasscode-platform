@@ -1,4 +1,5 @@
 # One-time qualification runner for internal GraphRAG reader; remove after checked-in changes.
+# Requalify TypeScript-safe generic Fastify error handling.
 name: Graph reader qualification
 on:
   push:

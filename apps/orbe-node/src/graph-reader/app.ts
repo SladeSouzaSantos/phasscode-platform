@@ -79,10 +79,14 @@ export function buildInternalGraphReader(options: InternalGraphReaderOptions) {
     }
   });
 
-  app.setErrorHandler((error, _request, reply) =>
-    reply
-      .code(error.statusCode === 429 ? 429 : error.statusCode === 413 ? 413 : 503)
-      .send({ error: 'GRAPH_READER_UNAVAILABLE' }),
-  );
+  app.setErrorHandler((error, _request, reply) => {
+    const statusCode =
+      typeof error === 'object' && error !== null && 'statusCode' in error
+        ? error.statusCode
+        : undefined;
+    return reply
+      .code(statusCode === 429 ? 429 : statusCode === 413 ? 413 : 503)
+      .send({ error: 'GRAPH_READER_UNAVAILABLE' });
+  });
   return app;
 }
