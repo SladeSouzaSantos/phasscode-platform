@@ -64,7 +64,10 @@ if [[ "$action" == prepare-token ]]; then
     tmp=$(mktemp .secrets/.graph-reader-token.XXXXXXXX)
     trap 'rm -f -- "$tmp"' EXIT
     openssl rand -hex 32 > "$tmp"
-    sudo install -o 7474 -g 7474 -m 0400 -- "$tmp" "$token_file"
+    # GNU install -o/-g resolves names via passwd/group on some hosts.
+    # Neo4j's UID/GID 7474 may exist only numerically in the container.
+    sudo install -m 0400 -- "$tmp" "$token_file"
+    sudo chown 7474:7474 -- "$token_file"
     rm -f -- "$tmp"
     trap - EXIT
     echo 'New private GraphRAG reader token created; its value was not printed.'
