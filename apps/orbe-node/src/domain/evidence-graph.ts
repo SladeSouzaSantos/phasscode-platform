@@ -75,7 +75,10 @@ export const evidenceSourceSchema = z.strictObject({
     'pending_review',
   ]),
   sourceUrl: z.string().url().optional(),
-  sourceCommit: z.string().regex(/^[0-9a-f]{40}$/).optional(),
+  sourceCommit: z
+    .string()
+    .regex(/^[0-9a-f]{40}$/)
+    .optional(),
   lastModified: timestamp.optional(),
   verifiedAt: timestamp.optional(),
 });
