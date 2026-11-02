@@ -95,7 +95,8 @@ export interface GraphReadExecutor {
 export const graphFindEvidenceCypher = [
   'MATCH (skill:OrbeEvidence {kind: "skill"})',
   'WHERE toLower(skill.label) = toLower($skill)',
-  'MATCH (claim:OrbeEvidence {kind: "claim", predicate: "USES_TECHNOLOGY", objectId: skill.id})',
+  'MATCH (claim:OrbeEvidence {kind: "claim", predicate: "USES_TECHNOLOGY"})',
+  'WHERE claim.objectId = skill.id',
   'WHERE claim.scope IN ["professional", "mixed_role", "professional_project", "personal_project", "study"]',
   'WITH claim ORDER BY claim.id LIMIT $limit',
   'MATCH (source:OrbeEvidence {kind: "source"})',

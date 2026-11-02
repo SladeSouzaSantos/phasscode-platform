@@ -71,12 +71,12 @@ describe('F3.2: Cypher parametrizado, escopo de grafo e operação opt-in', () =
     const read = vi.fn().mockResolvedValue([]);
     const repo = new Neo4jEvidenceRepository({ read });
     await repo.findEvidence(
-      [{ kind: 'vacancy_requirement', id: 'r', label: 'React\") DETACH DELETE n //', mandatory: true }],
+      [{ kind: 'vacancy_requirement', id: 'r', label: 'React") DETACH DELETE n //', mandatory: true }],
       { maxClaimsPerRequirement: 1000 },
     );
     const [cypher, params] = read.mock.calls[0]!;
     expect(cypher).toBe(graphFindEvidenceCypher);
-    expect(params).toEqual({ skill: 'React\") DETACH DELETE n //', limit: 20 });
+    expect(params).toEqual({ skill: 'React") DETACH DELETE n //', limit: 20 });
     expect(cypher).not.toContain('DELETE n //');
   });
 
