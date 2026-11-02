@@ -1,5 +1,21 @@
 # F3.2 — Neo4j optional DEV (in progress)
 
+## Driver / seed / disposable CI verification
+
+- Official npm workspace dependency: `neo4j-driver@6.2.0` with a generated lockfile.
+- `Neo4jGraphStore` uses managed read/write transactions and closes each session.
+  A constraint is created separately; the four PPKS operations share one atomic write transaction.
+- The maintenance-only `graph-seed` Compose profile reads a local Docker secret and is never
+  invoked by the public Orbe API. Community RBAC cannot enforce least-privilege read-only:
+  **do not give the application the seed credentials**.
+- `compose.graphrag.test.yaml` runs an ephemeral Neo4j test project with synthetic
+  authentication, no published ports, and no durable graph volume.
+- The `neo4j` CI job must pass before the Docker qualification gate. Normal DEV/MAIN
+  deployment remains manual-only and unchanged.
+- All environment names, data volumes, and network namespaces remain scoped to
+  `COMPOSE_PROJECT_NAME`. No live Neo4j rollout has been authorized.
+
+
 The Neo4j graph is a rebuildable **read model**. PPKS stays canonical and PostgreSQL
 continues to own conversations and transactional state. Nothing is wired into Orbe
 runtime yet; the F3.1 baseline remains the default behavior.

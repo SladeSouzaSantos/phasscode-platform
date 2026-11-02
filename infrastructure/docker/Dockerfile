@@ -14,6 +14,7 @@ COPY tsconfig.json vitest.config.ts vitest.integration.config.ts ./
 COPY apps apps
 COPY packages packages
 COPY tests tests
+COPY scripts scripts
 COPY knowledge knowledge
 COPY infrastructure/postgres/migrations infrastructure/postgres/migrations
 CMD ["npm", "run", "test:integration"]

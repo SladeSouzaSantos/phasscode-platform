@@ -32,9 +32,9 @@ export const graphRelationsCypher = [
 
 /** Remove stale relationships first, then stale nodes; only under our own label/type. */
 export const graphPruneRelationsCypher =
-  'MATCH (:OrbeEvidence)-[edge:ORBE_RELATION]->(:OrbeEvidence) WHERE edge.snapshot <> $snapshot DELETE edge';
+  'MATCH (:OrbeEvidence)-[edge:ORBE_RELATION]->(:OrbeEvidence) WHERE edge.snapshot IS NULL OR edge.snapshot <> $snapshot DELETE edge';
 export const graphPruneNodesCypher =
-  'MATCH (n:OrbeEvidence) WHERE n.snapshot <> $snapshot DETACH DELETE n';
+  'MATCH (n:OrbeEvidence) WHERE n.snapshot IS NULL OR n.snapshot <> $snapshot DETACH DELETE n';
 
 /**
  * A production seed executor must execute all items inside a single write transaction.
@@ -96,8 +96,7 @@ export const graphFindEvidenceCypher = [
   'MATCH (skill:OrbeEvidence {kind: "skill"})',
   'WHERE toLower(skill.label) = toLower($skill)',
   'MATCH (claim:OrbeEvidence {kind: "claim", predicate: "USES_TECHNOLOGY"})',
-  'WHERE claim.objectId = skill.id',
-  'WHERE claim.scope IN ["professional", "mixed_role", "professional_project", "personal_project", "study"]',
+  'WHERE claim.objectId = skill.id AND claim.scope IN ["professional", "mixed_role", "professional_project", "personal_project", "study"]',
   'WITH claim ORDER BY claim.id LIMIT $limit',
   'MATCH (source:OrbeEvidence {kind: "source"})',
   'WHERE source.id IN claim.sourceIds',

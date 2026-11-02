@@ -22,6 +22,22 @@ services:
     restart: unless-stopped
     mem_limit: 768m
     cpus: 1.0
+  graph-seed:
+    profiles: [graphrag-seed]
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+      target: test
+    command: [node, --import, tsx, scripts/seed-neo4j.ts]
+    environment:
+      GRAPHRAG_SEED_ENABLED: 'true'
+      NEO4J_AUTH_FILE: /run/secrets/neo4j_auth
+      NEO4J_URI: bolt://neo4j:7687
+    secrets: [neo4j_auth]
+    networks: [backend]
+    depends_on:
+      neo4j: { condition: service_healthy }
+    restart: 'no'
 secrets:
   neo4j_auth:
     file: ${PHASSCODE_NEO4J_AUTH_FILE:-.secrets/neo4j_auth}

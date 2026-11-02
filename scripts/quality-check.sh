@@ -9,10 +9,7 @@ cd "$ROOT"
 test -f infrastructure/docker/Dockerfile.quality
 command -v docker >/dev/null || { echo '[PHASSCODE] Docker CLI is required.' >&2; exit 1; }
 
-docker build \
-  -f infrastructure/docker/Dockerfile.quality \
-  -t phasscode-quality:node24 \
-  .
+docker build -t phasscode-quality:node24 - < infrastructure/docker/Dockerfile.quality
 
 docker run --rm \
   --user "$(id -u):$(id -g)" \
