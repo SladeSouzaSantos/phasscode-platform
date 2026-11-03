@@ -2,7 +2,8 @@ name: Qualify F3.4 programming tenure
 on:
   push:
     branches: [dev]
-    paths: [.github/workflows/qualify-professional-duration.yml]
+    paths:
+      - .github/workflows/qualify-professional-duration.yml
 permissions:
   contents: write
 jobs:
