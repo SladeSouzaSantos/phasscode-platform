@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { isInScope, isProgrammingProfileQuestion, scopeRefusal } from '../apps/orbe-node/src/domain/security.js';
+import {
+  isInScope,
+  isProgrammingProfileQuestion,
+  scopeRefusal,
+} from '../apps/orbe-node/src/domain/security.js';
 import {
   ellipticalTechnology,
   rewriteEllipticalTechnologyQuestion,
@@ -17,7 +21,8 @@ afterEach(async () => {
 
 function fakeProvider() {
   const generate = vi.fn(async (input: GenerationInput) => ({
-    answer: 'Verificado nos documentos públicos: ' + input.documents.map((doc) => doc.title).join('; '),
+    answer:
+      'Verificado nos documentos públicos: ' + input.documents.map((doc) => doc.title).join('; '),
     sources: input.documents.slice(0, 4).map(({ type, id, title, url }) => ({
       type,
       id,
@@ -113,12 +118,12 @@ describe('F3.4 post-deploy recruiter intent regressions', () => {
     expect(
       rewriteEllipticalTechnologyQuestion('Pedro tem experiência profissional com Java?', 'Go'),
     ).toBe('Pedro tem experiência profissional com Go?');
-    expect(
-      rewriteEllipticalTechnologyQuestion('Quais projetos do Pedro usam Java?', 'React'),
-    ).toBe('Quais projetos de Pedro utilizam React?');
-    expect(
-      rewriteEllipticalTechnologyQuestion('Pedro fez cursos de Java?', 'Flutter'),
-    ).toBe('Quais formações ou cursos documentados Pedro possui sobre Flutter?');
+    expect(rewriteEllipticalTechnologyQuestion('Quais projetos do Pedro usam Java?', 'React')).toBe(
+      'Quais projetos de Pedro utilizam React?',
+    );
+    expect(rewriteEllipticalTechnologyQuestion('Pedro fez cursos de Java?', 'Flutter')).toBe(
+      'Quais formações ou cursos documentados Pedro possui sobre Flutter?',
+    );
   });
 
   it('answers short Go follow-up with verified absent Go experience and transferable evidence', async () => {
@@ -145,34 +150,36 @@ describe('F3.4 post-deploy recruiter intent regressions', () => {
     ['E com React?', 'React', 'web-portfolio-v2'],
     ['E com Flutter?', 'Flutter', 'greencity-sdgp'],
     ['E SQL Server?', 'SQL Server', 'experiencia-sig'],
-  ])('routes a second-turn technology question with original employment intent: %s', async (
-    followUp,
-    technology,
-    expectedDoc,
-  ) => {
-    const { provider, generate } = fakeProvider();
-    const app = await open({ provider });
-    const first = await ask(app, 'Pedro tem experiência profissional com Java?');
-    const second = await ask(app, followUp, {
-      conversationId: first.conversationId,
-      conversationToken: first.conversationToken!,
-    });
-    expect(second.answer).not.toBe(scopeRefusal);
-    expect(generate).toHaveBeenCalledTimes(2);
-    const input = generate.mock.calls[1]![0];
-    expect(input.message).toBe(`Pedro tem experiência profissional com ${technology}?`);
-    expect(input.message).not.toContain('Java');
-    expect(input.documents.map((doc) => doc.id)).toContain(expectedDoc);
-    expect(input.history.map((message) => message.content)).toContain(
-      'Pedro tem experiência profissional com Java?',
-    );
-  });
+  ])(
+    'routes a second-turn technology question with original employment intent: %s',
+    async (followUp, technology, expectedDoc) => {
+      const { provider, generate } = fakeProvider();
+      const app = await open({ provider });
+      const first = await ask(app, 'Pedro tem experiência profissional com Java?');
+      const second = await ask(app, followUp, {
+        conversationId: first.conversationId,
+        conversationToken: first.conversationToken!,
+      });
+      expect(second.answer).not.toBe(scopeRefusal);
+      expect(generate).toHaveBeenCalledTimes(2);
+      const input = generate.mock.calls[1]![0];
+      expect(input.message).toBe(`Pedro tem experiência profissional com ${technology}?`);
+      expect(input.message).not.toContain('Java');
+      expect(input.documents.map((doc) => doc.id)).toContain(expectedDoc);
+      expect(input.history.map((message) => message.content)).toContain(
+        'Pedro tem experiência profissional com Java?',
+      );
+    },
+  );
 
   it('holds a three-turn thread and skips an elliptical turn as its original intent anchor', async () => {
     const { provider, generate } = fakeProvider();
     const app = await open({ provider });
     const first = await ask(app, 'Pedro tem experiência profissional com Java?');
-    const state = { conversationId: first.conversationId, conversationToken: first.conversationToken! };
+    const state = {
+      conversationId: first.conversationId,
+      conversationToken: first.conversationToken!,
+    };
     const go = await ask(app, 'E com Go?', state);
     const flutter = await ask(app, 'E com Flutter?', state);
     expect(go.answer).toContain('Não há experiência profissional com Go');
