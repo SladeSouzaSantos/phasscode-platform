@@ -6,8 +6,18 @@ import { isExperienceDurationQuestion } from './experience-context.js';
 import { documentSource } from './sources.js';
 
 const calendarMonths = [
-  'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
-  'jul', 'ago', 'set', 'out', 'nov', 'dez',
+  'jan',
+  'fev',
+  'mar',
+  'abr',
+  'mai',
+  'jun',
+  'jul',
+  'ago',
+  'set',
+  'out',
+  'nov',
+  'dez',
 ] as const;
 
 function monthLabel(value: string): string {
@@ -67,20 +77,22 @@ export function buildVerifiedExperienceDurationResponse(
   const normalized = normalize(query);
   // A role-specific engineering question has different semantics; allow the
   // ordinary evidence-backed provider to interpret it.
-  if (/\b(?:engenharia|fotovoltaic[ao]|mud logging)\b/.test(normalized) &&
-      !/\b(?:software|programa\w*|desenvolv\w*|codig\w*)\b/.test(normalized)) {
+  if (
+    /\b(?:engenharia|fotovoltaic[ao]|mud logging)\b/.test(normalized) &&
+    !/\b(?:software|programa\w*|desenvolv\w*|codig\w*)\b/.test(normalized)
+  ) {
     return undefined;
   }
   // Questions about one named employer are not an invitation to present a
   // global career total. The normal answerer already has company-level dates.
-  if (/\b(?:geowellex|greencity|sigaa|sig software|acrux)\b/.test(normalized) &&
-      !/\b(?:todas|quatro|empresas|carreira|trajetoria)\b/.test(normalized)) {
+  if (
+    /\b(?:geowellex|greencity|sigaa|sig software|acrux)\b/.test(normalized) &&
+    !/\b(?:todas|quatro|empresas|carreira|trajetoria)\b/.test(normalized)
+  ) {
     return undefined;
   }
   const all = documents
-    .filter((document) =>
-      document.experiencePeriod?.areas.includes('software-development'),
-    )
+    .filter((document) => document.experiencePeriod?.areas.includes('software-development'))
     .sort((a, b) =>
       (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''),
     );
@@ -93,10 +105,8 @@ export function buildVerifiedExperienceDurationResponse(
   // "Total de carreira e com Java" asks for two different quantities. Do
   // not collapse these into a Java-only number; let the provider receive both
   // the complete mixed-role employment scope and the Java-specific subset.
-  if (
-    technologyNames.length > 0 &&
-    /\b(?:total|carreira|trajetoria)\b/.test(normalized)
-  ) return undefined;
+  if (technologyNames.length > 0 && /\b(?:total|carreira|trajetoria)\b/.test(normalized))
+    return undefined;
   if (technologyNames.length === 1) {
     const technology = technologyNames[0]!;
     const matching = all.filter((doc) =>
@@ -108,21 +118,21 @@ export function buildVerifiedExperienceDurationResponse(
       scope: 'software-development',
     });
     const includedIds = new Set(exclusive.periodsUsed.map((entry) => entry.id));
-    const mixed = matching.filter((doc) =>
-      doc.experiencePeriod?.areas.includes('engineering'),
-    );
+    const mixed = matching.filter((doc) => doc.experiencePeriod?.areas.includes('engineering'));
     if (!exclusive.periodsUsed.length && !mixed.length) return undefined;
     const pureText = exclusive.periodsUsed.length
-      ? `Nos vínculos exclusivamente de software com ${technology}, os registros permitem estimar ${formatApproximateExperience(exclusive.approximateMonths)} de intervalos profissionais (${exclusive.periodsUsed.map((period) => {
-          const document = matching.find((doc) => doc.id === period.id)!;
-          return employerName(document);
-        }).join(' e ')}).`
+      ? `Nos vínculos exclusivamente de software com ${technology}, os registros permitem estimar ${formatApproximateExperience(exclusive.approximateMonths)} de intervalos profissionais (${exclusive.periodsUsed
+          .map((period) => {
+            const document = matching.find((doc) => doc.id === period.id)!;
+            return employerName(document);
+          })
+          .join(' e ')}).`
       : `Os registros não permitem quantificar um período exclusivamente dedicado a ${technology}.`;
     const mixedText = mixed.length
       ? ` Também há atuação profissional com ${technology} em funções híbridas: ${mixed.map((doc) => employerName(doc)).join(' e ')}. Não é correto converter todo o período desses vínculos em anos de dedicação exclusiva à tecnologia.`
       : '';
-    const cited = matching.filter((doc) =>
-      includedIds.has(doc.id) || mixed.some((other) => other.id === doc.id),
+    const cited = matching.filter(
+      (doc) => includedIds.has(doc.id) || mixed.some((other) => other.id === doc.id),
     );
     return {
       answer: `${pureText}${mixedText} As durações são aproximações por mês de vínculo, não medidas de horas de programação.`,
@@ -143,9 +153,7 @@ export function buildVerifiedExperienceDurationResponse(
     asOf,
     scope: 'software-development',
   });
-  const covered = included.map(({ record, period }) =>
-    describeEmployment(record, period),
-  );
+  const covered = included.map(({ record, period }) => describeEmployment(record, period));
   const latestConfirmed = involved.periodsUsed
     .filter((period) => period.confirmedCurrent)
     .map((period) => period.end)
@@ -161,7 +169,9 @@ export function buildVerifiedExperienceDurationResponse(
         : `Há atividades profissionais de desenvolvimento documentadas em vínculos híbridos.`,
       `Esse total é uma estimativa de tempo de vínculo com atividades de software, não equivale a anos de dedicação integral à programação, não elimina lacunas entre empregos e não define senioridade.`,
       ...(latestConfirmed
-        ? [`Para o vínculo em andamento, o cálculo foi limitado à última confirmação registrada (${monthLabel(latestConfirmed)}).`]
+        ? [
+            `Para o vínculo em andamento, o cálculo foi limitado à última confirmação registrada (${monthLabel(latestConfirmed)}).`,
+          ]
         : []),
     ].join(' '),
     sources: included.map(({ record }) => documentSource(record)).slice(0, 10),

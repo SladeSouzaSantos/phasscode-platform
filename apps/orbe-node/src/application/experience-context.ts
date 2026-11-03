@@ -30,7 +30,10 @@ export function experienceContext(
     periods: summary.periodsUsed,
   });
   const software = summarizeExperiencePeriods(periods, { asOf, scope: 'software-development' });
-  const softwareInvolved = summarizeExperiencePeriods(periods, { asOf, scope: 'software-involved' });
+  const softwareInvolved = summarizeExperiencePeriods(periods, {
+    asOf,
+    scope: 'software-involved',
+  });
   const technologyPeriods = [...mentionedTechnologies(query)]
     .map((technology) => ({
       technology,

@@ -2,10 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { summarizeExperiencePeriods } from '../apps/orbe-node/src/domain/experience.js';
-import type {
-  ChatProvider,
-  KnowledgeDocument,
-} from '../apps/orbe-node/src/domain/ports.js';
+import type { ChatProvider, KnowledgeDocument } from '../apps/orbe-node/src/domain/ports.js';
 import {
   buildVerifiedExperienceDurationResponse,
   formatApproximateExperience,
@@ -25,10 +22,14 @@ const employmentIds = [
   'experiencia-greencity',
 ] as const;
 const readEmployment = async () => {
-  const knowledge = JSON.parse(await readFile('knowledge/portfolio.json', 'utf8')) as KnowledgeDocument[];
+  const knowledge = JSON.parse(
+    await readFile('knowledge/portfolio.json', 'utf8'),
+  ) as KnowledgeDocument[];
   return knowledge
     .filter((item) => employmentIds.includes(item.id as (typeof employmentIds)[number]))
-    .sort((a, b) => (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''));
+    .sort((a, b) =>
+      (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''),
+    );
 };
 
 describe('F3.4 recruiter duration: complete, mixed-role professional software experience', () => {
@@ -53,20 +54,27 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
     'Há quantos anos Pedro programa?',
     'Qual o tempo de experiência com desenvolvimento de software?',
     'Quantos anos de experiência em programação?',
-  ])('uses all four documented software-involved employers for broad recruiting question: %s', async (question) => {
-    expect(isExperienceDurationQuestion(question)).toBe(true);
-    const answer = buildVerifiedExperienceDurationResponse(question, await readEmployment(), asOf);
-    expect(answer?.answer).toContain('aproximadamente 10 anos e 10 meses');
-    expect(answer?.answer).toContain('ACRUX');
-    expect(answer?.answer).toContain('SIG Software');
-    expect(answer?.answer).toContain('Geowellex');
-    expect(answer?.answer).toContain('Greencity');
-    expect(answer?.answer).toContain('atuação híbrida');
-    expect(answer?.answer).toContain('não equivale a anos de dedicação integral à programação');
-    expect(answer?.answer).toContain('out / 2026');
-    expect(answer?.answer).not.toContain('19 meses');
-    expect(answer?.sources.map((source) => source.id)).toEqual(employmentIds);
-  });
+  ])(
+    'uses all four documented software-involved employers for broad recruiting question: %s',
+    async (question) => {
+      expect(isExperienceDurationQuestion(question)).toBe(true);
+      const answer = buildVerifiedExperienceDurationResponse(
+        question,
+        await readEmployment(),
+        asOf,
+      );
+      expect(answer?.answer).toContain('aproximadamente 10 anos e 10 meses');
+      expect(answer?.answer).toContain('ACRUX');
+      expect(answer?.answer).toContain('SIG Software');
+      expect(answer?.answer).toContain('Geowellex');
+      expect(answer?.answer).toContain('Greencity');
+      expect(answer?.answer).toContain('atuação híbrida');
+      expect(answer?.answer).toContain('não equivale a anos de dedicação integral à programação');
+      expect(answer?.answer).toContain('out / 2026');
+      expect(answer?.answer).not.toContain('19 meses');
+      expect(answer?.sources.map((source) => source.id)).toEqual(employmentIds);
+    },
+  );
 
   it('reports Java-specific, exclusive-technology employment separately from hybrid roles', async () => {
     const answer = buildVerifiedExperienceDurationResponse(
@@ -121,12 +129,9 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
 
   it('exposes correct broad and pure scopes in LLM context for other duration routes', async () => {
     const documents = await readEmployment();
-    const ctx = experienceContext(
-      documents,
-      'Quantos anos de experiência profissional?',
-      asOf,
-      [...employmentIds],
-    );
+    const ctx = experienceContext(documents, 'Quantos anos de experiência profissional?', asOf, [
+      ...employmentIds,
+    ]);
     expect(ctx).toContain('"softwareInvolvedPeriods":{"approximateMonths":130');
     expect(ctx).toContain('"exclusivelySoftwarePeriods":{"approximateMonths":19');
     expect(ctx).toContain('Geowellex e Greencity');
