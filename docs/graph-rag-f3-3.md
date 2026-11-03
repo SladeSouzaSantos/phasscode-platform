@@ -99,7 +99,6 @@ vetted PPKS catalog and preserve unknown or job-specific requirements
 rather than claiming full semantic coverage. `createSnapshotRequirementIdentifier`
 extracts real skill vocabulary from the canonical PPKS graph snapshot.
 
-
 ## F3.3 — PPKS transfer planning, structured vacancy coverage and factual selection
 
 - `graph-transfer-planner.ts` consumes the **curated**
@@ -113,7 +112,7 @@ extracts real skill vocabulary from the canonical PPKS graph snapshot.
   An arbitrary request cannot add edges or infer transitive proficiency.
 - `graph-vacancy-plan.ts` accepts **structured, explicitly extracted** vacancy
   items with an individual `mandatory` bit. Exact catalog/alias matching
-  preserves desirable and required flags, keeps *all* unknown items (Go,
+  preserves desirable and required flags, keeps _all_ unknown items (Go,
   certifications, unfamiliar frameworks), and deduplicates repeated items
   without dropping a required classification. It is **not** a classifier for
   arbitrary vacancy prose; extracting those items reliably is a separate
@@ -123,8 +122,8 @@ extracts real skill vocabulary from the canonical PPKS graph snapshot.
   PPKS fallback before querying Neo4j, with
   `reason='unrecognized_requirements'` and the unknown labels retained in
   this **offline-only** result. No artificial 29-item cutoff is introduced.
-- `graph-narrative-verifier.ts` accepts only a *structured plan of verified
-  claim IDs*, not arbitrary LLM-written factual sentences. Each selected
+- `graph-narrative-verifier.ts` accepts only a _structured plan of verified
+  claim IDs_, not arbitrary LLM-written factual sentences. Each selected
   claim must exist in the appropriate requirement match with all public
   source IDs and a known scope. Final natural-language prose is generated
   by the existing controlled professional-advocacy renderer. Extra unsupported

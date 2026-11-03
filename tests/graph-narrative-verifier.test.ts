@@ -22,16 +22,18 @@ const source: EvidenceSource = {
 };
 const match: EvidenceGraphMatch = {
   requirementId: java.id,
-  claims: [{
-    kind: 'claim',
-    id: 'claim-java',
-    label: 'Desenvolvimento Java no SIGAA',
-    subjectId: 'project-sig',
-    objectId: 'skill-java',
-    predicate: 'USES_TECHNOLOGY',
-    scope: 'professional',
-    sourceIds: [source.id],
-  }],
+  claims: [
+    {
+      kind: 'claim',
+      id: 'claim-java',
+      label: 'Desenvolvimento Java no SIGAA',
+      subjectId: 'project-sig',
+      objectId: 'skill-java',
+      predicate: 'USES_TECHNOLOGY',
+      scope: 'professional',
+      sourceIds: [source.id],
+    },
+  ],
   sources: [source],
 };
 const choice = {
@@ -54,36 +56,38 @@ describe('F3.3 claim-identifier verification before recruiter prose', () => {
       }),
     ).toBeUndefined();
     const unsupportedProse = {
-      statements: [{
-        requirementId: java.id,
-        claimIds: ['claim-java'],
-        text: 'Pedro trabalhou com Go durante 10 anos',
-      }],
+      statements: [
+        {
+          requirementId: java.id,
+          claimIds: ['claim-java'],
+          text: 'Pedro trabalhou com Go durante 10 anos',
+        },
+      ],
     };
-    expect(
-      verifyAndRenderNarrativeSelection([java], [match], unsupportedProse),
-    ).toBeUndefined();
+    expect(verifyAndRenderNarrativeSelection([java], [match], unsupportedProse)).toBeUndefined();
   });
 
   it('rejects private or incomplete source chains', () => {
     const privateSource: EvidenceSource = {
-      ...source, id: 'source-private', visibility: 'private',
+      ...source,
+      id: 'source-private',
+      visibility: 'private',
     };
     expect(
       verifyAndRenderNarrativeSelection(
         [java],
-        [{ ...match, sources: [source, privateSource], claims: [
-          { ...match.claims[0]!, sourceIds: [source.id, privateSource.id] },
-        ] }],
+        [
+          {
+            ...match,
+            sources: [source, privateSource],
+            claims: [{ ...match.claims[0]!, sourceIds: [source.id, privateSource.id] }],
+          },
+        ],
         choice,
       ),
     ).toBeUndefined();
     expect(
-      verifyAndRenderNarrativeSelection(
-        [java],
-        [{ ...match, sources: [] }],
-        choice,
-      ),
+      verifyAndRenderNarrativeSelection([java], [{ ...match, sources: [] }], choice),
     ).toBeUndefined();
   });
 

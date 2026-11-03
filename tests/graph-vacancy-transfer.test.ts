@@ -112,24 +112,28 @@ describe('F3.3 no-loss structured vacancy requirements', () => {
     const findEvidence = vi.fn(async (items: readonly VacancyRequirement[]) =>
       items.map((r) => ({
         requirementId: r.id,
-        claims: [{
-          kind: 'claim' as const,
-          id: 'claim-' + r.id,
-          label: 'Projeto em ' + r.label,
-          subjectId: 'project-one',
-          predicate: 'USES_TECHNOLOGY' as const,
-          objectId: r.id,
-          scope: 'personal_project' as const,
-          sourceIds: ['public-id'],
-        }],
-        sources: [{
-          kind: 'source' as const,
-          id: 'public-id',
-          label: 'Projeto público',
-          origin: 'github' as const,
-          visibility: 'public' as const,
-          verificationStatus: 'code_reviewed' as const,
-        }],
+        claims: [
+          {
+            kind: 'claim' as const,
+            id: 'claim-' + r.id,
+            label: 'Projeto em ' + r.label,
+            subjectId: 'project-one',
+            predicate: 'USES_TECHNOLOGY' as const,
+            objectId: r.id,
+            scope: 'personal_project' as const,
+            sourceIds: ['public-id'],
+          },
+        ],
+        sources: [
+          {
+            kind: 'source' as const,
+            id: 'public-id',
+            label: 'Projeto público',
+            origin: 'github' as const,
+            visibility: 'public' as const,
+            verificationStatus: 'code_reviewed' as const,
+          },
+        ],
       })),
     );
     const output = await evaluateGraphRecruiterPreview('Descrição estruturada', {
@@ -174,7 +178,10 @@ describe('F3.3 transferable foundations from the real PPKS graph', () => {
     expect(() =>
       deriveCuratedTransferableSkills(snapshot, {
         schemaVersion: '1.0',
-        nodes: [{ id: 'a', skill: 'Java' }, { id: 'b', skill: 'Go' }],
+        nodes: [
+          { id: 'a', skill: 'Java' },
+          { id: 'b', skill: 'Go' },
+        ],
         edges: [{ from: 'a', to: 'b', relation: 'transferable_foundation' }],
       }),
     ).toThrow('GRAPH_TRANSFER_UNMAPPED_ENDPOINT');
@@ -206,16 +213,18 @@ describe('F3.3 transferable foundations from the real PPKS graph', () => {
         r.id === 'skill-java'
           ? {
               requirementId: r.id,
-              claims: [{
-                kind: 'claim' as const,
-                id: 'claim-java',
-                label: 'Java no SIGAA',
-                subjectId: 'project-sig',
-                predicate: 'USES_TECHNOLOGY' as const,
-                objectId: 'skill-java',
-                scope: 'professional' as const,
-                sourceIds: [publicSource.id],
-              }],
+              claims: [
+                {
+                  kind: 'claim' as const,
+                  id: 'claim-java',
+                  label: 'Java no SIGAA',
+                  subjectId: 'project-sig',
+                  predicate: 'USES_TECHNOLOGY' as const,
+                  objectId: 'skill-java',
+                  scope: 'professional' as const,
+                  sourceIds: [publicSource.id],
+                },
+              ],
               sources: [publicSource],
             }
           : { requirementId: r.id, claims: [], sources: [] },
