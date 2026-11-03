@@ -116,7 +116,8 @@ describe('F3.3 budget-aware semantic vacancy label normalizer', () => {
     });
     const result = await planner(sourceText);
     expect(result.requirements.map((x) => x.id)).not.toContain('skill-sql');
-    expect(result.unknown).toContainEqual({ label: 'SQL Server', mandatory: true });
+    expect(result.requirements.map((x) => x.id)).toContain('skill-sql-server');
+    expect(result.unknown).toEqual([{ label: 'Go', mandatory: true }]);
   });
 
   it('rejects missing, duplicated and extra model labels rather than accepting partial vacancy coverage', async () => {

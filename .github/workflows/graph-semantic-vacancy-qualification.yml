@@ -1,4 +1,5 @@
 # One-time DEV-only qualification for budget-aware semantic label selection.
+# Repeat after asserting SQL Server is retained instead of discarded.
 # Remove after success; no API routes, secrets or remote deployment actions.
 name: Graph semantic vacancy budget qualification
 on:
