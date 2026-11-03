@@ -1,5 +1,6 @@
 # One-time formatter and test qualification for offline recruiter advocacy.
 # Retry with corrected strict TypeScript checks for aliases and filtering.
+# Assert human-readable scope labels in the recruiting output.
 # Remove from DEV immediately after the verification run.
 name: Graph professional advocacy qualification
 on:

@@ -156,7 +156,7 @@ describe('F3.3 graph-backed answer with source-of-truth fallback, offline', () =
       evidence: reader(async (requirements) => matching(requirements)),
       canonicalPpks: () => 'Não deveria ser executado',
     });
-    expect(output.answer).toContain('personal_project');
+    expect(output.answer).toContain('projeto autoral');
     expect(output.answer).not.toMatch(/\b\d+\s+anos\b/i);
   });
 });
