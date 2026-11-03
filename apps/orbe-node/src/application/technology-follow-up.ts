@@ -16,7 +16,12 @@ export function ellipticalTechnology(text: string): string | undefined {
     .trim();
   const match = /^e\s+(?:com\s+)?(.{1,42})$/i.exec(clean);
   if (!match) return undefined;
-  const candidate = match[1]!.trim();
+  // Short recruiter follow-ups often contain a definite article:
+  // "E com o Go?", "E com a AWS?", "E com os bancos SQL?".
+  // Remove only a leading Portuguese article before checking whether the
+  // remaining phrase is a technical identifier. This does not admit ordinary
+  // off-topic phrases or imply proficiency in an unknown technology.
+  const candidate = match[1]!.trim().replace(/^(?:o|a|os|as)\s+/i, '');
   if (!/^[\p{L}\p{N}+#.\-/ ]+$/u.test(candidate)) return undefined;
   const words = candidate.split(/\s+/);
   if (words.length > 3) return undefined;
