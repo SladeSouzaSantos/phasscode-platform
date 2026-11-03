@@ -1,8 +1,5 @@
 import { z } from 'zod';
-import {
-  vacancyRequirementSchema,
-  type VacancyRequirement,
-} from '../domain/evidence-graph.js';
+import { vacancyRequirementSchema, type VacancyRequirement } from '../domain/evidence-graph.js';
 
 /**
  * F3.3: a catalog-driven explicit requirement recognizer, NOT an LLM.
@@ -68,7 +65,10 @@ export function createCatalogRequirementIdentifier(skills: readonly RequirementS
         // Space padding and canonical punctuation establish true word boundaries.
         const start = at;
         const end = at + needle.length - 1;
-        if (!seen.has(pattern.id) && !occupied.some((span) => start < span.end && end > span.start)) {
+        if (
+          !seen.has(pattern.id) &&
+          !occupied.some((span) => start < span.end && end > span.start)
+        ) {
           occupied.push({ start, end });
           found.push({
             start,

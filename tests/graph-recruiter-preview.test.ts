@@ -42,15 +42,18 @@ const matching = (requirements: readonly VacancyRequirement[]) =>
     ],
     sources: [source],
   }));
-const reader = (findEvidence: EvidenceGraphRepository['findEvidence']): EvidenceGraphRepository => ({
+const reader = (
+  findEvidence: EvidenceGraphRepository['findEvidence'],
+): EvidenceGraphRepository => ({
   findEvidence,
   getSource: vi.fn(async () => source),
 });
 
 describe('F3.3 catalog-driven requirement planning (no invented equivalences)', () => {
   it('distinguishes Java from JavaScript and SQL Server from SQL', () => {
-    expect(identifyRequirements('Precisa de JavaScript, SQL Server e ReactJS?').map((r) => r.id))
-      .toEqual(['skill-javascript', 'skill-sql-server', 'skill-react']);
+    expect(
+      identifyRequirements('Precisa de JavaScript, SQL Server e ReactJS?').map((r) => r.id),
+    ).toEqual(['skill-javascript', 'skill-sql-server', 'skill-react']);
     expect(identifyRequirements('Experiência com Java e SQL').map((r) => r.id)).toEqual([
       'skill-java',
       'skill-sql',
@@ -106,9 +109,11 @@ describe('F3.3 graph-backed answer with source-of-truth fallback, offline', () =
     const canonical = vi.fn(() => 'PPKS completo para Java e React');
     const output = await evaluateGraphRecruiterPreview('Java, React', {
       identifyRequirements,
-      evidence: reader(async (requirements) => matching(requirements).map((match) =>
-        match.requirementId === 'skill-react' ? { ...match, claims: [], sources: [] } : match,
-      )),
+      evidence: reader(async (requirements) =>
+        matching(requirements).map((match) =>
+          match.requirementId === 'skill-react' ? { ...match, claims: [], sources: [] } : match,
+        ),
+      ),
       canonicalPpks: canonical,
     });
     expect(output.mode).toBe('canonical_ppks');
@@ -120,7 +125,9 @@ describe('F3.3 graph-backed answer with source-of-truth fallback, offline', () =
     const canonical = vi.fn(() => 'Fonte PPKS');
     const output = await evaluateGraphRecruiterPreview('Java', {
       identifyRequirements,
-      evidence: reader(async () => { throw new Error('private-db-password'); }),
+      evidence: reader(async () => {
+        throw new Error('private-db-password');
+      }),
       canonicalPpks: canonical,
     });
     expect(output).toMatchObject({ mode: 'canonical_ppks', answer: 'Fonte PPKS' });
@@ -136,7 +143,9 @@ describe('F3.3 graph-backed answer with source-of-truth fallback, offline', () =
       canonicalPpks: () => 'Resposta geral PPKS',
     });
     expect(output).toMatchObject({
-      mode: 'canonical_ppks', reason: 'no_requirements', answer: 'Resposta geral PPKS',
+      mode: 'canonical_ppks',
+      reason: 'no_requirements',
+      answer: 'Resposta geral PPKS',
     });
     expect(remote).not.toHaveBeenCalled();
   });

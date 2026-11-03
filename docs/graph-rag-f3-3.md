@@ -59,14 +59,14 @@ fallback to the canonical PPKS without escalating the public app's privilege.
 PPKS skill labels and optional curated aliases. Its bounded matching uses
 whole normalized phrases and longest-first overlap resolution (SQL Server
 does not imply generic SQL; JavaScript does not imply Java). It preserves all
-explicit matches, including lists longer than 29 requirements. It is *not*
+explicit matches, including lists longer than 29 requirements. It is _not_
 an LLM-driven semantic parser: unknown concepts, synonyms and job descriptions
 must not be silently declared fully covered; later milestones require a vetted
 semantic extraction path with unrecognized requirements surfaced.
 
 `graph-recruiter-preview.ts` executes LangGraph as an **offline opt-in preview**
 and uses a caller-provided canonical PPKS response if graph retrieval fails,
-nothing matches, or *any* requested requirement lacks public direct evidence.
+nothing matches, or _any_ requested requirement lacks public direct evidence.
 The canonical callback is explicit: no separate LLM request is initiated by
 the adapter and no fallback is fabricated. No app route, config flag, HTTP
 server or main bootstrap has been changed. There is no new Mac Mini deploy.
