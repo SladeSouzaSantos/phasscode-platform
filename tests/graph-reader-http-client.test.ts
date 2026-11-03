@@ -167,9 +167,11 @@ describe('F3.2/F3.3 private HTTP evidence client, not wired to public chat', () 
       'GRAPH_HTTP_INVALID_RESPONSE',
     );
 
-    const observed = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
-      Response.json({ matches: [{ requirementId: 'java', claims: [], sources: [] }] }),
-    );
+    const observed = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      expect(String(input)).toBe('http://graph-reader:8765/internal/evidence');
+      expect(init?.redirect).toBe('error');
+      return Response.json({ matches: [{ requirementId: 'java', claims: [], sources: [] }] });
+    });
     const valid = new GraphReaderHttpRepository({ token, transport: observed });
     await valid.findEvidence([requirement]);
     expect(observed.mock.calls[0]?.[0]).toBe('http://graph-reader:8765/internal/evidence');

@@ -1,4 +1,5 @@
 # Temporary DEV-only formatter/qualifier. Remove immediately after completion.
+# Retry after stricter spy assertions replaced unused mock parameters.
 name: Graph HTTP adapter qualification
 on:
   push:
