@@ -1,4 +1,4 @@
-# One-time DEV-only qualification, remove after success.
+# One-time DEV-only qualification, rerun after fixture approval-state correction.
 name: Qualify GraphRAG DEV shadow secrets and preflight
 on:
   push:
