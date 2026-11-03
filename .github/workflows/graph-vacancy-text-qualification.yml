@@ -1,0 +1,50 @@
+# One-time DEV-only qualification for evidence-anchored vacancy parsing.
+# Delete promptly after tests succeed. Does not deploy to a remote host.
+name: Graph vacancy text extraction qualification
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/graph-vacancy-text-qualification.yml
+permissions:
+  contents: write
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: true }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format only new F3.3 files
+        run: |
+          npx prettier --write \
+            apps/orbe-node/src/application/graph-vacancy-text.ts \
+            tests/graph-vacancy-text.test.ts \
+            docs/graph-rag-f3-3.md
+      - name: Verify lint and typecheck
+        run: |
+          npm run lint
+          npm run typecheck
+      - name: Verify vacancy, PPKS and LangGraph regressions
+        run: |
+          npx vitest run \
+            tests/graph-vacancy-text.test.ts \
+            tests/graph-vacancy-transfer.test.ts \
+            tests/graph-narrative-verifier.test.ts \
+            tests/graph-professional-advocacy.test.ts \
+            tests/graph-recruiter-preview.test.ts \
+            tests/grounded-recruiter-graph.test.ts \
+            tests/graph-reader-http-client.test.ts \
+            tests/ppks-evidence-graph.test.ts
+      - name: Commit formatting into existing dev branch
+        run: |
+          git add -- \
+            apps/orbe-node/src/application/graph-vacancy-text.ts \
+            tests/graph-vacancy-text.test.ts \
+            docs/graph-rag-f3-3.md
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(graphrag): format and qualify grounded vacancy extraction (#30)'
+            git push origin HEAD:dev
+          fi
