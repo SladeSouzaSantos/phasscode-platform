@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { createGroundedRecruiterGraph } from './grounded-recruiter-graph.js';
+import { PublicGraphEvidenceGateway } from './graph-public-policy.js';
+import { renderProfessionalAdvocacy } from './graph-professional-advocacy.js';
 import type { EvidenceGraphRepository, VacancyRequirement } from '../domain/evidence-graph.js';
 
 /**
@@ -13,12 +15,14 @@ export interface GraphRecruiterPreviewOptions {
     question: string,
   ): readonly VacancyRequirement[] | Promise<readonly VacancyRequirement[]>;
   canonicalPpks(question: string): string | Promise<string>;
+  /** Explicitly approved related skills, never inferred from visitor text. */
+  transferableSkills?: Readonly<Record<string, readonly VacancyRequirement[]>>;
 }
 
 export type GraphRecruiterPreviewResult = {
-  mode: 'verified_graph' | 'canonical_ppks';
+  mode: 'verified_graph' | 'transferable_graph' | 'canonical_ppks';
   answer: string;
-  reason: 'verified' | 'no_requirements' | 'unavailable_or_incomplete';
+  reason: 'verified' | 'transferable' | 'no_requirements' | 'unavailable_or_incomplete';
   matchedRequirements: number;
 };
 
@@ -45,13 +49,58 @@ export async function evaluateGraphRecruiterPreview(
     // Failed graph lookup is an explicit abstention, not an invented answer.
     return fallback('unavailable_or_incomplete');
   }
-  if (result.decision !== 'verified' || !result.requirements.length) {
-    return fallback(result.requirements.length ? 'unavailable_or_incomplete' : 'no_requirements');
+  if (!result.requirements.length) return fallback('no_requirements');
+  if (result.retrievalFailed || result.matches.length !== result.requirements.length) {
+    return fallback('unavailable_or_incomplete');
   }
+  if (result.decision === 'verified') {
+    const answer = renderProfessionalAdvocacy(result.requirements, result.matches);
+    if (!answer) return fallback('unavailable_or_incomplete');
+    return {
+      mode: 'verified_graph',
+      answer,
+      reason: 'verified',
+      matchedRequirements: result.requirements.length,
+    };
+  }
+
+  // A gap may be presented constructively only when a vetted, explicit
+  // transfer rule can retrieve public evidence about an adjacent skill.
+  const missing = result.requirements.filter(
+    (item, index) => !result.matches[index]?.claims.length,
+  );
+  const available = options.transferableSkills;
+  if (!missing.length || !available) return fallback('unavailable_or_incomplete');
+  const anchors = new Map<string, readonly VacancyRequirement[]>();
+  for (const item of missing) {
+    const related = available[item.id] ?? [];
+    if (!related.length || related.some((anchor) => anchor.id === item.id)) {
+      return fallback('unavailable_or_incomplete');
+    }
+    anchors.set(item.id, related);
+  }
+  const unique = [...new Map([...anchors.values()].flat().map((item) => [item.id, item])).values()];
+  let transferMatches;
+  try {
+    transferMatches = await new PublicGraphEvidenceGateway(options.evidence).findEvidence(unique);
+  } catch {
+    return fallback('unavailable_or_incomplete');
+  }
+  const verified = new Map(transferMatches.map((match) => [match.requirementId, match]));
+  const usable = new Map(
+    [...anchors].map(([id, related]) => [
+      id,
+      related
+        .map((anchor) => verified.get(anchor.id))
+        .filter((match): match is NonNullable<typeof match> => Boolean(match?.claims.length)),
+    ]),
+  );
+  const answer = renderProfessionalAdvocacy(result.requirements, result.matches, usable);
+  if (!answer) return fallback('unavailable_or_incomplete');
   return {
-    mode: 'verified_graph',
-    answer: result.answer,
-    reason: 'verified',
+    mode: 'transferable_graph',
+    answer,
+    reason: 'transferable',
     matchedRequirements: result.requirements.length,
   };
 }

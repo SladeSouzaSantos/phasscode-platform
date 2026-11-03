@@ -72,3 +72,30 @@ the adapter and no fallback is fabricated. No app route, config flag, HTTP
 server or main bootstrap has been changed. There is no new Mac Mini deploy.
 Tests verify Java versus JavaScript, SQL Server versus SQL, 40-item parsing,
 complete coverage, unavailable reader and canonical fallback exactly once.
+
+
+## Professional advocacy — positive but evidence-bound (offline)
+
+The Orbe assistant represents a candidate to recruiters, not an auditor
+enumerating missing credentials. The deterministic
+`graph-professional-advocacy.ts` renderer prioritizes validated employment
+and project claims, preserves their scope and source identifiers, and never
+converts a study project into paid professional experience. It distinguishes:
+
+- **Direct support:** positive presentation of an explicitly evidenced skill.
+- **Transferable foundation:** if a skill such as Go lacks direct evidence,
+  only a curated rule with **separately documented** adjacent skills can
+  support a qualified explanation of learning/adaptation potential.
+- **Unresolved:** missing or private sources, unsupported transfer rules and
+  graph failures return to the canonical PPKS callback. Missing graph data
+  never warrants the absolute claim that the candidate has never studied
+  a technology.
+
+`graph-recruiter-preview.ts` now distinguishes `verified_graph`,
+`transferable_graph` and `canonical_ppks`. Transfer rules are optional,
+trusted configuration only; neither arbitrary questions nor taxonomic links
+can promote unrelated technologies into claimed proficiency. No LLM,
+public route or runtime flag is activated. For real deployment, use a
+vetted PPKS catalog and preserve unknown or job-specific requirements
+rather than claiming full semantic coverage. `createSnapshotRequirementIdentifier`
+extracts real skill vocabulary from the canonical PPKS graph snapshot.

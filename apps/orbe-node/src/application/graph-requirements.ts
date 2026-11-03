@@ -87,3 +87,26 @@ export function createCatalogRequirementIdentifier(skills: readonly RequirementS
     return found.sort((a, b) => a.start - b.start).map(({ item }) => item);
   };
 }
+
+
+/**
+ * Build the explicit vocabulary from the real PPKS graph projection. Records
+ * identify skills, not personal competency or proof of employment.
+ */
+export function createSnapshotRequirementIdentifier(
+  snapshot: import('../domain/evidence-graph.js').EvidenceGraphSnapshot,
+  approvedAliases: Readonly<Record<string, readonly string[]>> = {},
+) {
+  const catalog = snapshot.nodes
+    .filter((node): node is Extract<typeof node, { kind: 'skill' }> => node.kind === 'skill')
+    .map((skill) => ({
+      id: skill.id,
+      label: skill.label,
+      ...(approvedAliases[skill.id] ? { aliases: [...approvedAliases[skill.id]] } : {}),
+    }));
+  const ids = new Set(catalog.map((entry) => entry.id));
+  if (Object.keys(approvedAliases).some((id) => !ids.has(id))) {
+    throw new Error('GRAPH_UNKNOWN_SKILL_ALIAS_TARGET');
+  }
+  return createCatalogRequirementIdentifier(catalog);
+}
