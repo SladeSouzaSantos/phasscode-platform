@@ -1,0 +1,46 @@
+name: Qualify recruiter dialogue generalization (DEV only)
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/qualify-recruiter-dialogue-dev.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format-and-qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format only recruiter intent and regression files
+        run: |
+          npx prettier --write \
+            apps/orbe-node/src/application/technology-follow-up.ts \
+            apps/orbe-node/src/application/experience-response.ts \
+            apps/orbe-node/src/application/chat.ts \
+            tests/orbe-professional-duration.test.ts
+      - name: Check backend app and full test suite (no remote deploy)
+        run: npm run check
+      - name: Commit formatting on DEV
+        run: |
+          git add -- \
+            apps/orbe-node/src/application/technology-follow-up.ts \
+            apps/orbe-node/src/application/experience-response.ts \
+            apps/orbe-node/src/application/chat.ts \
+            tests/orbe-professional-duration.test.ts
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' \
+                -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+                commit -m 'style(orbe): format recruiter dialogue intent guards (#31)'
+            git push origin HEAD:dev
+          fi
