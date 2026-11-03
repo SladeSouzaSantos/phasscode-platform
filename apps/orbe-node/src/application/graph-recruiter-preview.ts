@@ -8,9 +8,9 @@ import type { VacancyRequirementPlan } from './graph-vacancy-plan.js';
 import type { EvidenceGraphRepository, VacancyRequirement } from '../domain/evidence-graph.js';
 
 /**
- * F3.3 offline orchestration preview. This adapter is intentionally not wired
- * into chat/main.ts or any HTTP route, and cannot initiate extra LLM calls.
- * The caller owns the canonical PPKS response on all abstentions/failures.
+ * F3.3 evidence-first evaluation: used by offline tests and the default-OFF
+ * DEV shadow observer. Shadow never replaces public chat output or invokes
+ * extra LLMs; the caller owns the canonical PPKS response on abstentions.
  */
 export interface GraphRecruiterPreviewOptions {
   evidence: EvidenceGraphRepository;
