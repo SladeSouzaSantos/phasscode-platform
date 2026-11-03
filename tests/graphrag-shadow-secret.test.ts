@@ -21,7 +21,7 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
     { ORBE_GRAPHRAG_MODE: undefined },
     { ORBE_GRAPHRAG_MODE: 'off' },
     { ORBE_GRAPHRAG_MODE: 'shadow', ORBE_GRAPHRAG_STAGE: 'production' },
-    { ORBE_GRAPHRAG_MODE: 'shadow', ORBE_GRAPHRAG_STAGE: 'dev' },
+    { ORBE_GRAPHRAG_MODE: 'shadow', ORBE_GRAPHRAG_STAGE: 'dev', ORBE_GRAPHRAG_DEV_APPROVED: 'false' },
   ])('never reads the token without approved DEV shadow credentials (%#)', async (overrides) => {
     const read = vi.fn(async () => 'A'.repeat(43));
     await expect(loadDevGraphReaderToken({ ...approved, ...overrides }, read)).rejects.toThrow(
