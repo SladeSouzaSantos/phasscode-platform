@@ -1,0 +1,44 @@
+# One-time formatter and test qualification for offline recruiter advocacy.
+# Remove from DEV immediately after the verification run.
+name: Graph professional advocacy qualification
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/graph-advocacy-qualification.yml
+permissions:
+  contents: write
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: true }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format only new GraphRAG advocacy changes
+        run: |
+          npx prettier --write \
+            apps/orbe-node/src/application/graph-professional-advocacy.ts \
+            apps/orbe-node/src/application/graph-recruiter-preview.ts \
+            apps/orbe-node/src/application/graph-requirements.ts \
+            tests/graph-professional-advocacy.test.ts \
+            docs/graph-rag-f3-3.md
+      - name: Validate eslint, typecheck and recruiter tests
+        run: |
+          npm run lint
+          npm run typecheck
+          npx vitest run tests/graph-professional-advocacy.test.ts tests/graph-recruiter-preview.test.ts tests/grounded-recruiter-graph.test.ts tests/graph-reader-http-client.test.ts
+      - name: Commit formatted files to the existing dev branch
+        run: |
+          git add -- \
+            apps/orbe-node/src/application/graph-professional-advocacy.ts \
+            apps/orbe-node/src/application/graph-recruiter-preview.ts \
+            apps/orbe-node/src/application/graph-requirements.ts \
+            tests/graph-professional-advocacy.test.ts \
+            docs/graph-rag-f3-3.md
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(graphrag): format and qualify recruiter advocacy (#30)'
+            git push origin HEAD:dev
+          fi
