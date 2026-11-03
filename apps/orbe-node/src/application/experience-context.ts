@@ -7,7 +7,7 @@ export function isExperienceDurationQuestion(query: string): boolean {
   const text = normalize(query);
   return (
     /\b(?:tempo|anos?|meses?|duracao|desde quando)\b/.test(text) &&
-    /\b(?:experienc\w*|trajetoria|carreira|atuac\w*|empresa|greencity|sigaa|acrux|geowellex)\b/.test(
+    /\b(?:experienc\w*|trajetoria|carreira|atuac\w*|empresa|greencity|sigaa|acrux|geowellex|software|programa\w*|desenvolv\w*|codific\w*)\b/.test(
       text,
     )
   );
@@ -30,6 +30,7 @@ export function experienceContext(
     periods: summary.periodsUsed,
   });
   const software = summarizeExperiencePeriods(periods, { asOf, scope: 'software-development' });
+  const softwareInvolved = summarizeExperiencePeriods(periods, { asOf, scope: 'software-involved' });
   const technologyPeriods = [...mentionedTechnologies(query)]
     .map((technology) => ({
       technology,
@@ -51,7 +52,8 @@ export function experienceContext(
         : 'Apenas os períodos fornecidos; não constitui total da trajetória.',
       ...(complete
         ? {
-            softwarePeriods: compact(software),
+            softwareInvolvedPeriods: compact(softwareInvolved),
+            exclusivelySoftwarePeriods: compact(software),
             technologyPeriods,
             ...(careers ? { careerPeriods: careers } : {}),
           }
@@ -64,7 +66,7 @@ export function experienceContext(
         areas: document.experiencePeriod!.areas,
       })),
       interpretation:
-        'Tempo de vínculo não equivale a tempo integral com uma tecnologia. Atuação mista de engenharia/software fica fora da soma de vínculos exclusivamente de software, mas sua experiência continua válida. A soma desses vínculos não é um total exaustivo de desenvolvimento nem define senioridade. Vínculo atual calculado somente até a última confirmação do proprietário.',
+        'Em perguntas gerais sobre anos de experiência com programação, considerar softwareInvolvedPeriods, que inclui vínculos com atividades profissionais de software em cargos híbridos, como Geowellex e Greencity. exclusivelySoftwarePeriods é apenas um subconjunto de ACRUX/SIGAA e NÃO deve ser apresentado como experiência total de desenvolvimento. Expressar duração como aproximação em anos e meses (não apenas 19 meses). Duração de vínculo misto NÃO representa dedicação integral ao código nem domínio contínuo de uma tecnologia. Não somar sobreposições ou lacunas, não deduzir senioridade. Limitar vínculo atual à confirmação registrada.',
     })
   );
 }
