@@ -19,12 +19,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "SIGAA",
-                  "Java",
-                  "Flutter",
-                  "PHASSCODE"
-                ],
+                "anyOf": ["SIGAA", "Java", "Flutter", "PHASSCODE"],
                 "missing": "review"
               }
             ],
@@ -51,12 +46,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "Java",
-                  "SIGAA",
-                  "desenvolvimento",
-                  "Python"
-                ],
+                "anyOf": ["Java", "SIGAA", "desenvolvimento", "Python"],
                 "missing": "review"
               }
             ],
@@ -84,10 +74,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "SIGAA",
-                  "Java"
-                ],
+                "anyOf": ["SIGAA", "Java"],
                 "missing": "review"
               }
             ],
@@ -104,10 +91,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "Go",
-                  "Golang"
-                ],
+                "anyOf": ["Go", "Golang"],
                 "missing": "review"
               }
             ],
@@ -135,10 +119,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "SIGAA",
-                  "Java"
-                ],
+                "anyOf": ["SIGAA", "Java"],
                 "missing": "review"
               }
             ],
@@ -155,9 +136,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "React"
-                ],
+                "anyOf": ["React"],
                 "missing": "review"
               }
             ],
@@ -185,10 +164,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "SIGAA",
-                  "Java"
-                ],
+                "anyOf": ["SIGAA", "Java"],
                 "missing": "review"
               }
             ],
@@ -205,9 +181,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "SQL Server"
-                ],
+                "anyOf": ["SQL Server"],
                 "missing": "review"
               }
             ],
@@ -222,9 +196,7 @@
       "id": "contexto-java-flutter",
       "category": "continuity",
       "title": "Java → Flutter",
-      "humanReview": [
-        "Referenciar projetos Flutter (SDGP/Greencity), sem confundir com SIGAA."
-      ],
+      "humanReview": ["Referenciar projetos Flutter (SDGP/Greencity), sem confundir com SIGAA."],
       "turns": [
         {
           "message": "Pedro tem experiência profissional com Java?",
@@ -234,10 +206,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "SIGAA",
-                  "Java"
-                ],
+                "anyOf": ["SIGAA", "Java"],
                 "missing": "review"
               }
             ],
@@ -254,9 +223,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "Flutter"
-                ],
+                "anyOf": ["Flutter"],
                 "missing": "review"
               }
             ],
@@ -293,9 +260,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "React"
-                ],
+                "anyOf": ["React"],
                 "missing": "review"
               }
             ],
@@ -323,10 +288,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "SIGAA",
-                  "Java"
-                ],
+                "anyOf": ["SIGAA", "Java"],
                 "missing": "review"
               }
             ],
@@ -343,10 +305,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "Go",
-                  "Golang"
-                ],
+                "anyOf": ["Go", "Golang"],
                 "missing": "review"
               }
             ],
@@ -363,9 +322,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "Flutter"
-                ],
+                "anyOf": ["Flutter"],
                 "missing": "review"
               }
             ],
@@ -392,9 +349,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "Java"
-                ],
+                "anyOf": ["Java"],
                 "missing": "review"
               }
             ],
@@ -409,9 +364,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "Angular"
-                ],
+                "anyOf": ["Angular"],
                 "missing": "review"
               }
             ],
@@ -439,11 +392,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "Gestão",
-                  "Tecnólogo",
-                  "ETEP"
-                ],
+                "anyOf": ["Gestão", "Tecnólogo", "ETEP"],
                 "missing": "review"
               }
             ],
@@ -460,10 +409,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "UNISUL",
-                  "Ciência da Computação"
-                ],
+                "anyOf": ["UNISUL", "Ciência da Computação"],
                 "missing": "review"
               }
             ],
@@ -510,10 +456,7 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "SIGAA",
-                  "Java"
-                ],
+                "anyOf": ["SIGAA", "Java"],
                 "missing": "review"
               }
             ],
@@ -550,23 +493,17 @@
             "concepts": [
               {
                 "label": "evidence-1",
-                "anyOf": [
-                  "Java"
-                ],
+                "anyOf": ["Java"],
                 "missing": "review"
               },
               {
                 "label": "evidence-2",
-                "anyOf": [
-                  "SQL Server"
-                ],
+                "anyOf": ["SQL Server"],
                 "missing": "review"
               },
               {
                 "label": "evidence-3",
-                "anyOf": [
-                  "Flutter"
-                ],
+                "anyOf": ["Flutter"],
                 "missing": "review"
               }
             ],

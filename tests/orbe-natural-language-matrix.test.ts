@@ -2,8 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import { matrixSchema } from '../evaluation/schema.js';
 
-const load = async (path: string) =>
-  matrixSchema.parse(JSON.parse(await readFile(path, 'utf8')));
+const load = async (path: string) => matrixSchema.parse(JSON.parse(await readFile(path, 'utf8')));
 
 describe('F3.4 new natural-language recruiter evaluation matrix', () => {
   it('has 13 diverse bounded cases, including 2/3-turn follow-ups', async () => {
@@ -12,7 +11,9 @@ describe('F3.4 new natural-language recruiter evaluation matrix', () => {
     expect(new Set(matrix.cases.map((scenario) => scenario.id)).size).toBe(13);
     expect(matrix.cases.reduce((count, scenario) => count + scenario.turns.length, 0)).toBe(23);
     expect(matrix.cases.some((scenario) => scenario.turns.length === 3)).toBe(true);
-    expect(matrix.cases.filter((scenario) => scenario.turns.length === 2).length).toBeGreaterThan(6);
+    expect(matrix.cases.filter((scenario) => scenario.turns.length === 2).length).toBeGreaterThan(
+      6,
+    );
     for (const scenario of matrix.cases) {
       expect(scenario.humanReview.length).toBeGreaterThan(0);
       for (const turn of scenario.turns) {
@@ -48,9 +49,7 @@ describe('F3.4 new natural-language recruiter evaluation matrix', () => {
     expect(original.cases).toHaveLength(9);
     expect(original.cases.reduce((count, item) => count + item.turns.length, 0)).toBe(9);
     const expanded = await load('evaluation/orbe-natural-language-v1.json');
-    expect(
-      expanded.cases.some((item) => item.id === original.cases[0]?.id),
-    ).toBe(false);
+    expect(expanded.cases.some((item) => item.id === original.cases[0]?.id)).toBe(false);
   });
 
   it('rejects spurious claims of a completed degree and preserves explicit source checks', async () => {
