@@ -1,7 +1,7 @@
 import type { GenerationResult, KnowledgeDocument } from '../domain/ports.js';
 import { summarizeExperiencePeriods } from '../domain/experience.js';
 import { normalize } from '../domain/security.js';
-import { mentionedTechnologies } from '../knowledge-matching.js';
+import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
 import { documentSource } from './sources.js';
 
@@ -57,6 +57,73 @@ function describeEmployment(
     : 'função de desenvolvimento de software';
   const technologies = document.technologies?.slice(0, 5).join(', ') ?? '';
   return `${employerName(document)} (${period}; ${role}${technologies ? `; ${technologies}` : ''})`;
+}
+
+/**
+ * An unrestricted question about the candidate's professional experience is
+ * NOT the same as a question about "exclusive software" tenure. Do not let a
+ * short model-generated overview implicitly downgrade mixed-role programming
+ * (Geowellex and Greencity) to "not development".
+ *
+ * This is a category-level intent, not a spelling correction: "Pedtro têm
+ * experiência?" and "Pedro tem experiência?" behave the same. Technology,
+ * employer, vacancy and duration-specific questions keep their own routes.
+ */
+export function isBroadProfessionalExperienceQuestion(query: string): boolean {
+  const phrase = knowledgePhrase(query);
+  if (!phrase || phrase.length > 170) return false;
+  if (mentionedTechnologies(query).size || /\b(?:go|golang|vaga|requisitos?|projetos?|cursos?|formacao|graduacao|entrevista|geowellex|greencity|acrux|sigaa)\b/.test(phrase)) {
+    return false;
+  }
+  if (/\b(?:quantos?|anos?|meses?|tempo|duracao|desde quando)\b/.test(phrase)) return false;
+
+  // Also supports misspelled candidate names without adding a growing list of
+  // typo-specific aliases. The subject must be short and the question bare.
+  const bare = /^(.*?)\b(?:tem|possui)\s+(?:alguma\s+)?experiencia(?: profissional)?$/.exec(phrase);
+  if (bare) {
+    const subject = bare[1]!.trim();
+    return subject.split(/\s+/).filter(Boolean).length <= 4 &&
+      !/\b(?:empresa|companhia|produto|projeto|tecnologia)\b/.test(subject);
+  }
+  return /^(?:quais? (?:sao )?(?:as )?experiencias? profissionais? (?:de|do) |qual (?:e )?a (?:experiencia|trajetoria|carreira) profissional (?:de|do) |(?:fale|conte|resuma|apresente) (?:sobre )?(?:a |as )?(?:experiencia|trajetoria|carreira) profissional (?:de|do) )pedro(?: santos)?$/.test(phrase);
+}
+
+/**
+ * Verified overview for open-ended recruiter questions, without an
+ * unsolicited exclusive-software subtotal masquerading as the full career.
+ * All dates and technology-to-employer attribution come from public PPKS
+ * employment records. Mixed roles count as professional software work, but
+ * not as full-time coding hours.
+ */
+export function buildVerifiedProfessionalOverviewResponse(
+  query: string,
+  documents: readonly KnowledgeDocument[],
+  asOf: Date,
+): GenerationResult | undefined {
+  if (!isBroadProfessionalExperienceQuestion(query)) return undefined;
+  const available = documents.filter((document) =>
+    document.experiencePeriod?.areas.includes('software-development'),
+  );
+  const summary = summarizeExperiencePeriods(available, { asOf, scope: 'software-involved' });
+  const included = summary.periodsUsed.flatMap((period) => {
+    const document = available.find((value) => value.id === period.id);
+    return document ? [{ document, period }] : [];
+  });
+  if (!included.length) return undefined;
+  const mixed = included.filter(({ document }) =>
+    document.experiencePeriod?.areas.includes('engineering'),
+  );
+  const answer = [
+    'Sim. Pedro possui experiência profissional documentada em desenvolvimento de software, com registros a partir de ' +
+      included[0]!.period.start.slice(0, 4) + ':',
+    ...included.map(({ document, period }) => '- ' + describeEmployment(document, period)),
+    mixed.length
+      ? 'As experiências em ' + mixed.map(({ document }) => employerName(document)).join(' e ') +
+        ' incluem programação em paralelo a outras responsabilidades técnicas. Elas fazem parte da experiência profissional de desenvolvimento, sem representar dedicação integral ao código.'
+      : 'Esses vínculos documentam atuação profissional com software.',
+    'A experiência com cada linguagem deve ser avaliada pelas atividades e fontes do respectivo vínculo.',
+  ].join('\n');
+  return { answer, sources: included.map(({ document }) => documentSource(document)).slice(0, 10) };
 }
 
 /**
