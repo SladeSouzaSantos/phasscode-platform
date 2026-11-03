@@ -1,6 +1,9 @@
 # DEV-only OPTIONAL API overlay. Never part of the regular deploy.sh/compose.sh path.
 # Requires explicit approval, an already running private graph-reader, and a
-# scoped token in .secrets/graph_reader_token. Never combine with PROD.
+# separate node-owned, mode 0400 secret file in .secrets/graph_api_reader_token.
+# The same bearer token bytes are held in the reader-owned secret, but the
+# public API cannot read that UID 7474 / mode 0400 host file as UID 1000.
+# Never change the reader file to 0644 or put the token in .env. NEVER use PROD.
 #
 # Compose files must be in the same project (phasscode-platform-dev):
 #   -f compose.yaml -f compose.graphrag.dev.yaml \
@@ -15,5 +18,12 @@ services:
       ORBE_GRAPHRAG_STAGE: dev
       ORBE_GRAPHRAG_DEV_APPROVED: 'true'
       ORBE_GRAPH_READER_TOKEN_FILE: /run/secrets/graph_reader_token
-    secrets: [graph_reader_token]
-# The graph-reader overlay declares the same named, local-only secret.
+    secrets:
+      - source: graph_api_reader_token
+        target: graph_reader_token
+
+# Keep the API file separate from the reader-owned 0400 secret. A private
+# operator operation must copy the identical value with owner node (1000).
+secrets:
+  graph_api_reader_token:
+    file: ${PHASSCODE_GRAPH_API_READER_TOKEN_FILE:-.secrets/graph_api_reader_token}
