@@ -1,4 +1,4 @@
-# Temporary DEV-only qualification. Remove after success.
+# Temporary DEV-only qualification, rerun after corrected Zod/unknown-text tests. Remove after success.
 name: Qualify F3.3 vacancy coverage
 on:
   push:
