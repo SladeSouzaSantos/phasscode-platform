@@ -180,7 +180,7 @@ describe('F3.4 initial offline recruiter corpus (not a live baseline comparison)
       },
     ];
     const evidence: EvidenceGraphRepository = {
-      findEvidence: vi.fn(async (requested) =>
+      findEvidence: vi.fn(async (requested: readonly VacancyRequirement[]) =>
         requested.map((req) => ({
           requirementId: req.id,
           claims: [
