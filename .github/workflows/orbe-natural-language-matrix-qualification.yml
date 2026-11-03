@@ -1,0 +1,39 @@
+# Temporary DEV-only matrix qualification. Remove after success.
+name: Qualify Orbe recruiter natural language matrix
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/orbe-natural-language-matrix-qualification.yml
+permissions:
+  contents: write
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: true }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format new matrix, evaluator and tests
+        run: |
+          npx prettier --write \
+            evaluation/orbe-natural-language-v1.json \
+            scripts/evaluate-orbe.ts \
+            tests/orbe-natural-language-matrix.test.ts
+      - name: Validate all application gates and dry-run the new matrix
+        run: |
+          npm run check
+          npm run eval:orbe -- --matrix=evaluation/orbe-natural-language-v1.json --max-calls=24
+      - name: Commit formatting exclusively on DEV
+        run: |
+          git add -- \
+            evaluation/orbe-natural-language-v1.json \
+            scripts/evaluate-orbe.ts \
+            tests/orbe-natural-language-matrix.test.ts
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(orbe): qualify natural-language recruiter evaluation matrix (#31)'
+            git push origin HEAD:dev
+          fi
