@@ -33,6 +33,7 @@ import {
 } from '../domain/security.js';
 import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
+import { buildVerifiedExperienceDurationResponse } from './experience-response.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
 import { graphShadowObservationSchema, type GraphShadowPort } from './graph-rag-shadow.js';
 import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
@@ -179,6 +180,14 @@ export class ChatService {
           });
         traceEvidence('retrieved', retrieved, 'initial', evidenceTraceId);
         const verifiedMatrix = buildVerifiedRecruiterMatrix(query, retrieved);
+        // A source-complete, transparent duration answer must not discard
+        // professional programming performed in mixed engineering/software roles.
+        // Compute independently of LLM context truncation, using the canonical
+        // structured employment records only (never external page content).
+        const verifiedDuration =
+          durationQuestion && experienceDocuments.length
+            ? buildVerifiedExperienceDurationResponse(query, experienceDocuments, this.now())
+            : undefined;
         const verifiedGo = buildDirectGoExperienceResponse(
           technologyFollowUp ? query : request.message,
           this.knowledge,
@@ -194,6 +203,7 @@ export class ChatService {
         else if (isOffTopicTask(request.message)) result = { answer: scopeRefusal, sources: [] };
         else if (isPersonalLifeQuestion(request.message))
           result = { answer: personalLifeAnswer, sources: [] };
+        else if (verifiedDuration) result = verifiedDuration;
         else if (verifiedGo) result = verifiedGo;
         else if (isMeetingRequest(request.message) && !meetingActions)
           result = {
@@ -406,7 +416,9 @@ export class ChatService {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
             promptVersion: PROMPT_VERSION,
-            ...(verifiedMatrix || verifiedAcademic || verifiedGo ? { deterministic: true } : {}),
+            ...(verifiedMatrix || verifiedAcademic || verifiedGo || verifiedDuration
+              ? { deterministic: true }
+              : {}),
           },
         });
         return {
