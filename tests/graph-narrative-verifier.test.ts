@@ -53,14 +53,15 @@ describe('F3.3 claim-identifier verification before recruiter prose', () => {
         statements: [{ requirementId: java.id, claimIds: ['claim-invented'] }],
       }),
     ).toBeUndefined();
+    const unsupportedProse = {
+      statements: [{
+        requirementId: java.id,
+        claimIds: ['claim-java'],
+        text: 'Pedro trabalhou com Go durante 10 anos',
+      }],
+    };
     expect(
-      verifyAndRenderNarrativeSelection([java], [match], {
-        statements: [{
-          requirementId: java.id,
-          claimIds: ['claim-java'],
-          text: 'Pedro trabalhou com Go durante 10 anos',
-        }],
-      }),
+      verifyAndRenderNarrativeSelection([java], [match], unsupportedProse),
     ).toBeUndefined();
   });
 

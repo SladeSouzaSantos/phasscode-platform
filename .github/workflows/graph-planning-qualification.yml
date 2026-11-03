@@ -1,4 +1,5 @@
 # One-time DEV-only qualification: automated formatting plus offline tests.
+# Retry with the invalid-field security test represented as runtime input.
 # Delete immediately once the job is green; no remote deployment permitted.
 name: Graph planning and evidence qualification
 on:
