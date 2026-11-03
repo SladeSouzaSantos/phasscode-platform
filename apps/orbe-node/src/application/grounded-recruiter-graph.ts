@@ -85,6 +85,9 @@ export function createGroundedRecruiterGraph(options: GroundedRecruiterGraphOpti
     .addNode('verifyClaims', (state) => {
       const verified =
         !state.retrievalFailed &&
+        state.requirements.length > 0 &&
+        state.matches.length === state.requirements.length &&
+        state.matches.every((match) => match.claims.length > 0) &&
         hasCompletePublicProvenance(state.matches) &&
         state.draft === renderVerifiedMatches(state.matches) &&
         state.draft !== refusal;

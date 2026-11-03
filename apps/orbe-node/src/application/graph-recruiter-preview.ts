@@ -1,0 +1,57 @@
+import { z } from 'zod';
+import { createGroundedRecruiterGraph } from './grounded-recruiter-graph.js';
+import type { EvidenceGraphRepository, VacancyRequirement } from '../domain/evidence-graph.js';
+
+/**
+ * F3.3 offline orchestration preview. This adapter is intentionally not wired
+ * into chat/main.ts or any HTTP route, and cannot initiate extra LLM calls.
+ * The caller owns the canonical PPKS response on all abstentions/failures.
+ */
+export interface GraphRecruiterPreviewOptions {
+  evidence: EvidenceGraphRepository;
+  identifyRequirements(
+    question: string,
+  ): readonly VacancyRequirement[] | Promise<readonly VacancyRequirement[]>;
+  canonicalPpks(question: string): string | Promise<string>;
+}
+
+export type GraphRecruiterPreviewResult = {
+  mode: 'verified_graph' | 'canonical_ppks';
+  answer: string;
+  reason: 'verified' | 'no_requirements' | 'unavailable_or_incomplete';
+  matchedRequirements: number;
+};
+
+export async function evaluateGraphRecruiterPreview(
+  question: string,
+  options: GraphRecruiterPreviewOptions,
+): Promise<GraphRecruiterPreviewResult> {
+  const cleanQuestion = z.string().trim().min(1).max(20_000).parse(question);
+  const fallback = async (
+    reason: 'no_requirements' | 'unavailable_or_incomplete',
+  ): Promise<GraphRecruiterPreviewResult> => {
+    const raw = await options.canonicalPpks(cleanQuestion);
+    const answer = z.string().trim().min(1).parse(raw);
+    return { mode: 'canonical_ppks', answer, reason, matchedRequirements: 0 };
+  };
+  try {
+    const graph = createGroundedRecruiterGraph({
+      evidence: options.evidence,
+      identifyRequirements: options.identifyRequirements,
+    });
+    const result = await graph.invoke({ question: cleanQuestion }, { recursionLimit: 12 });
+    if (result.decision !== 'verified' || !result.requirements.length) {
+      return await fallback(result.requirements.length ? 'unavailable_or_incomplete' : 'no_requirements');
+    }
+    return {
+      mode: 'verified_graph',
+      answer: result.answer,
+      reason: 'verified',
+      matchedRequirements: result.requirements.length,
+    };
+  } catch {
+    // The canonical fallback may itself fail; do not swallow its error or
+    // silently claim a verified answer when both paths are unavailable.
+    return fallback('unavailable_or_incomplete');
+  }
+}
