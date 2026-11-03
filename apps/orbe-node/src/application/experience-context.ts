@@ -125,11 +125,8 @@ export function reconcileExperienceAttribution(
   });
   const employerIds = new Set(java.periodsUsed.map(({ id }) => id));
   const months = java.approximateMonths;
-  if (
-    months < 12 ||
-    !employerIds.has('experiencia-acrux') ||
-    !employerIds.has('experiencia-sig')
-  ) return reconciled;
+  if (months < 12 || !employerIds.has('experiencia-acrux') || !employerIds.has('experiencia-sig'))
+    return reconciled;
 
   const years = Math.floor(months / 12);
   const rest = months % 12;

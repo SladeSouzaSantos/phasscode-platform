@@ -152,21 +152,27 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
 
   it('does not rewrite unrelated month claims or infer Java time from an incomplete record', async () => {
     const records = await readEmployment();
-    expect(reconcileExperienceAttribution(
-      'Na Geowellex, há 19 meses de trabalho profissional em PHP.',
-      records,
-      asOf,
-    )).toContain('19 meses');
-    expect(reconcileExperienceAttribution(
-      'O SIGAA e ACRUX são citados em uma resposta Java com 19 meses.',
-      records.slice(0, 1),
-      asOf,
-    )).toContain('19 meses');
-    expect(reconcileExperienceAttribution(
-      'Java na ACRUX e no SIGAA: 99 meses de vínculo.',
-      records,
-      asOf,
-    )).toContain('99 meses');
+    expect(
+      reconcileExperienceAttribution(
+        'Na Geowellex, há 19 meses de trabalho profissional em PHP.',
+        records,
+        asOf,
+      ),
+    ).toContain('19 meses');
+    expect(
+      reconcileExperienceAttribution(
+        'O SIGAA e ACRUX são citados em uma resposta Java com 19 meses.',
+        records.slice(0, 1),
+        asOf,
+      ),
+    ).toContain('19 meses');
+    expect(
+      reconcileExperienceAttribution(
+        'Java na ACRUX e no SIGAA: 99 meses de vínculo.',
+        records,
+        asOf,
+      ),
+    ).toContain('99 meses');
   });
 
   it('merges overlapping roles once for employment contexts that include coding', () => {
