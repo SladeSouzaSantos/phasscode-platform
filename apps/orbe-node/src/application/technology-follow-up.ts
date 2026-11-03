@@ -18,9 +18,12 @@ export function ellipticalTechnology(text: string): string | undefined {
   if (!match) return undefined;
   const candidate = match[1]!.trim();
   if (!/^[\p{L}\p{N}+#.\-/ ]+$/u.test(candidate)) return undefined;
-  if (candidate.split(/\s+/).length > 3) return undefined;
+  const words = candidate.split(/\s+/);
+  if (words.length > 3) return undefined;
+  // A complete question, such as "E quais projetos React?", must retain its
+  // own project intent, not be reinterpreted as a technology-name ellipsis.
   if (
-    /\b(?:senha|token|segredo|receita|clima|sistema|prompt|instrucoes|passaporte)\b/i.test(
+    /\b(?:qual|quais|como|por|que|projetos?|repositorios?|experiencia|profissional|cursos?|formacao|sobre|utiliza|usa|sabe|domina|senhas?|tokens?|segredo|receita|clima|sistema|prompt|instrucoes|passaporte)\b/i.test(
       knowledgePhrase(candidate),
     )
   )
@@ -32,7 +35,7 @@ export function ellipticalTechnology(text: string): string | undefined {
     /^(?:[A-Z][a-zA-Z0-9+#.-]{1,32}|[A-Z][a-zA-Z0-9+#.-]{1,22}(?:\s+[A-Z][a-zA-Z0-9+#.-]{1,22}){1,2})$/.test(
       candidate,
     );
-  if (!knownTechnology && !technicalIdentifier) return undefined;
+  if (!technicalIdentifier && !(knownTechnology && words.length <= 2)) return undefined;
   return candidate;
 }
 
