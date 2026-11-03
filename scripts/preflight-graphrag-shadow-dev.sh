@@ -44,12 +44,32 @@ done
   fail 'NEO4J_SECRET_TOO_SHORT'
 
 command -v docker >/dev/null || fail 'DOCKER_NOT_FOUND'
+[[ -f .deployment/project-name && ! -L .deployment/project-name &&
+   -f .deployment/http-port && ! -L .deployment/http-port &&
+   -f .deployment/use-proxy && ! -L .deployment/use-proxy ]] ||
+  fail 'INCOMPLETE_PINNED_DEV_METADATA'
+[[ "$(cat .deployment/project-name)" == phasscode-platform-dev ]] ||
+  fail 'WRONG_DEPLOYMENT_PROJECT'
+[[ "$(cat .deployment/http-port)" == 3001 ]] ||
+  fail 'WRONG_DEV_HTTP_PORT'
+proxy_mode=$(cat .deployment/use-proxy)
+[[ "$proxy_mode" == true || "$proxy_mode" == false ]] ||
+  fail 'INVALID_PROXY_MODE'
+image_revision=$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$image_ref" 2>/dev/null) ||
+  fail 'PINNED_DEV_IMAGE_NOT_AVAILABLE'
+[[ "$image_revision" == "$expected_sha" ]] ||
+  fail 'PINNED_IMAGE_SHA_NOT_CURRENT_DEV'
+
 export COMPOSE_PROJECT_NAME=phasscode-platform-dev
 export PHASSCODE_IMAGE="$image_ref"
+export PHASSCODE_HTTP_PORT=3001
+files=(-f compose.yaml)
+if [[ "$proxy_mode" == true ]]; then
+  files+=(-f compose.proxy.yaml)
+fi
+files+=(-f compose.graphrag.dev.yaml -f compose.graphrag.reader.dev.yaml -f compose.graphrag.shadow.dev.yaml)
 docker compose --project-name phasscode-platform-dev --env-file .env \
-  -f compose.yaml -f compose.graphrag.dev.yaml \
-  -f compose.graphrag.reader.dev.yaml -f compose.graphrag.shadow.dev.yaml \
-  config --quiet || fail 'DEV_COMPOSE_CONFIG_INVALID'
+  "${files[@]}" config --quiet || fail 'DEV_COMPOSE_CONFIG_INVALID'
 
 if [[ $# -eq 2 ]]; then
   for service in neo4j graph-reader; do
