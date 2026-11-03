@@ -33,7 +33,11 @@ import {
 } from '../domain/security.js';
 import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
-import { buildVerifiedExperienceDurationResponse } from './experience-response.js';
+import {
+  buildVerifiedExperienceDurationResponse,
+  buildVerifiedProfessionalOverviewResponse,
+  isBroadProfessionalExperienceQuestion,
+} from './experience-response.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
 import { graphShadowObservationSchema, type GraphShadowPort } from './graph-rag-shadow.js';
 import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
@@ -120,8 +124,9 @@ export class ChatService {
             normalizedQuery,
           );
         const durationQuestion = isExperienceDurationQuestion(query);
+        const broadProfessionalOverview = isBroadProfessionalExperienceQuestion(query);
         const experienceDocuments =
-          durationQuestion || chronologicalOverview
+          durationQuestion || chronologicalOverview || broadProfessionalOverview
             ? (this.knowledge.experienceDocuments?.() ?? []).sort((a, b) =>
                 (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''),
               )
@@ -188,6 +193,10 @@ export class ChatService {
           durationQuestion && experienceDocuments.length
             ? buildVerifiedExperienceDurationResponse(query, experienceDocuments, this.now())
             : undefined;
+        const verifiedOverview =
+          broadProfessionalOverview && experienceDocuments.length
+            ? buildVerifiedProfessionalOverviewResponse(query, experienceDocuments, this.now())
+            : undefined;
         const verifiedGo = buildDirectGoExperienceResponse(
           technologyFollowUp ? query : request.message,
           this.knowledge,
@@ -204,6 +213,7 @@ export class ChatService {
         else if (isPersonalLifeQuestion(request.message))
           result = { answer: personalLifeAnswer, sources: [] };
         else if (verifiedDuration) result = verifiedDuration;
+        else if (verifiedOverview) result = verifiedOverview;
         else if (verifiedGo) result = verifiedGo;
         else if (isMeetingRequest(request.message) && !meetingActions)
           result = {
@@ -416,7 +426,7 @@ export class ChatService {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
             promptVersion: PROMPT_VERSION,
-            ...(verifiedMatrix || verifiedAcademic || verifiedGo || verifiedDuration
+            ...(verifiedMatrix || verifiedAcademic || verifiedGo || verifiedDuration || verifiedOverview
               ? { deterministic: true }
               : {}),
           },
