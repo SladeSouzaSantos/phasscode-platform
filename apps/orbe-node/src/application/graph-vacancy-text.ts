@@ -39,12 +39,22 @@ const normalize = (text: string) =>
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
-const requiredHeading =
-  /^(?:requisitos(?: obrigatorios| tecnicos)?|qualificacoes(?: obrigatorias)?|conhecimentos(?: obrigatorios)?|habilidades(?: obrigatorias)?|must have|requirements|required skills)\s*:?(.*)$/;
-const optionalHeading =
-  /^(?:desejaveis|desejavel|diferenciais|sera um diferencial|nice to have|preferred qualifications|requisitos desejaveis)\s*:?(.*)$/;
-const endHeading =
-  /^(?:beneficios|sobre a empresa|quem somos|responsabilidades|atividades|atribuicoes|o que oferecemos|local de trabalho|remuneracao|salario|modelo de trabalho)\s*:?/;
+const requiredHeadings = new Set([
+  'requisitos', 'requisitos obrigatorios', 'requisitos tecnicos',
+  'qualificacoes', 'qualificacoes obrigatorias',
+  'conhecimentos', 'conhecimentos obrigatorios',
+  'habilidades', 'habilidades obrigatorias',
+  'must have', 'requirements', 'required skills',
+]);
+const optionalHeadings = new Set([
+  'desejaveis', 'desejavel', 'diferenciais', 'sera um diferencial',
+  'nice to have', 'preferred qualifications', 'requisitos desejaveis',
+]);
+const endHeadings = new Set([
+  'beneficios', 'sobre a empresa', 'quem somos',
+  'responsabilidades', 'atividades', 'atribuicoes', 'o que oferecemos',
+  'local de trabalho', 'remuneracao', 'salario', 'modelo de trabalho',
+]);
 const inlineRequired =
   /^(?:exigimos|precisamos de|requeremos|requisitos para a vaga|buscamos experiencia em|buscamos conhecimento em)\s*:?\s*(.+)$/;
 const inlineOptional =
@@ -85,18 +95,18 @@ export function extractVacancyEvidenceFragments(input: string): VacancyEvidenceF
     const trimmed = original.trim();
     if (!trimmed) continue;
     const line = trimmed.replace(bullet, '').trim();
-    const key = normalize(line);
-    if (endHeading.test(key)) {
+    const colon = line.indexOf(':');
+    const heading = normalize(colon >= 0 ? line.slice(0, colon) : line);
+    if (endHeadings.has(heading)) {
       section = undefined;
       continue;
     }
-    const required = requiredHeading.exec(key);
-    const optional = optionalHeading.exec(key);
+    const required = requiredHeadings.has(heading);
+    const optional = optionalHeadings.has(heading);
     if (required || optional) {
       section = optional ? 'optional' : 'required';
-      // Use the original text to retain punctuation and literal evidence.
-      const colon = line.indexOf(':');
-      if (colon >= 0) add(line.slice(colon + 1), section === 'required');
+      // An inline list is parsed from original text, never a normalized paraphrase.
+      if (colon >= 0) add(line.slice(colon + 1), required);
       continue;
     }
 
