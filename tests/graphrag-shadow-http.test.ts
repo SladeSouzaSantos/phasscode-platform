@@ -131,8 +131,8 @@ describe('F3.3/F3.5 DEV-only graph shadow: existing HTTP contract always wins', 
 
   it('rejects untrusted shadow metrics without logging the malicious content', async () => {
     const inspect: GraphShadowPort['inspect'] = vi.fn(async () => ({
-      mode: 'verified_graph',
-      reason: 'verified',
+      mode: 'verified_graph' as const,
+      reason: 'verified' as const,
       matchedRequirements: 1,
       unknownRequirements: 0,
       question: 'private-vacancy-text',
