@@ -14,6 +14,9 @@ import { buildApp } from './http/app.js';
 import { RestrictedPublicEvidenceReader } from './application/public-evidence.js';
 import { PROMPT_VERSION } from './application/chat.js';
 import { assertPublicOrbeGraphIsolation } from './application/graph-public-policy.js';
+import { createGraphRagShadow } from './application/graph-rag-shadow.js';
+import { GraphReaderHttpRepository } from './adapters/graph-reader-http.js';
+import { projectPpksEvidenceGraph } from './adapters/ppks-evidence-graph.js';
 
 try {
   assertPublicOrbeGraphIsolation(process.env);
@@ -26,6 +29,16 @@ try {
     WORKER_ENABLED: 'false',
   });
   const knowledge = await JsonKnowledgeRepository.load();
+  // Explicitly approved DEV-only shadow mode. Public Orbe never receives
+  // Neo4j Bolt/admin credentials; this token authorizes only the private
+  // read-only HTTP graph reader. No result may replace the PPKS reply.
+  const graphShadow =
+    config.ORBE_GRAPHRAG_MODE === 'shadow'
+      ? createGraphRagShadow(
+          await projectPpksEvidenceGraph(),
+          new GraphReaderHttpRepository({ token: process.env.ORBE_GRAPH_READER_TOKEN ?? '' }),
+        )
+      : undefined;
   const pool = config.PERSISTENCE === 'postgres' ? createPool(config.DATABASE_URL!) : undefined;
   const store =
     config.PERSISTENCE === 'memory'
@@ -89,6 +102,7 @@ try {
   }
   const app = await buildApp({
     evidenceReader: new RestrictedPublicEvidenceReader(),
+    ...(graphShadow ? { graphShadow } : {}),
     config,
     knowledge,
     provider,
