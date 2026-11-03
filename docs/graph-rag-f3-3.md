@@ -98,3 +98,39 @@ public route or runtime flag is activated. For real deployment, use a
 vetted PPKS catalog and preserve unknown or job-specific requirements
 rather than claiming full semantic coverage. `createSnapshotRequirementIdentifier`
 extracts real skill vocabulary from the canonical PPKS graph snapshot.
+
+
+## F3.3 — PPKS transfer planning, structured vacancy coverage and factual selection
+
+- `graph-transfer-planner.ts` consumes the **curated**
+  `knowledge/ppks/semantic-relations.json` and the real PPKS evidence
+  projection. Only explicit **directional** `transferable_foundation` edges
+  whose two endpoints have real PPKS skill IDs create a transferable-skill
+  suggestion. The Java → React foundation edge is usable if Java has
+  independently sourced claims; SQL/NoSQL `is_a`, `uses_language`, and
+  `offers_service` relations never become experience with another tool.
+  Go currently has no such curated edge, so the preview must defer to PPKS.
+  An arbitrary request cannot add edges or infer transitive proficiency.
+- `graph-vacancy-plan.ts` accepts **structured, explicitly extracted** vacancy
+  items with an individual `mandatory` bit. Exact catalog/alias matching
+  preserves desirable and required flags, keeps *all* unknown items (Go,
+  certifications, unfamiliar frameworks), and deduplicates repeated items
+  without dropping a required classification. It is **not** a classifier for
+  arbitrary vacancy prose; extracting those items reliably is a separate
+  future task.
+- `graph-recruiter-preview.ts` accepts an optional trusted vacancy plan. A
+  plan containing even one unknown item triggers the existing canonical
+  PPKS fallback before querying Neo4j, with
+  `reason='unrecognized_requirements'` and the unknown labels retained in
+  this **offline-only** result. No artificial 29-item cutoff is introduced.
+- `graph-narrative-verifier.ts` accepts only a *structured plan of verified
+  claim IDs*, not arbitrary LLM-written factual sentences. Each selected
+  claim must exist in the appropriate requirement match with all public
+  source IDs and a known scope. Final natural-language prose is generated
+  by the existing controlled professional-advocacy renderer. Extra unsupported
+  fields or invented IDs are rejected. This design does not claim to solve
+  open-ended semantic truth checking; free prose generation remains gated.
+
+No files in the public Orbe startup, chat route, Compose secrets or deployment
+have been changed for this increment. The real DEV graph-reader continues
+running unchanged; this is offline code and test qualification only.
