@@ -41,28 +41,30 @@ export function createSharedGraphTurnLlmBudget(
   let semanticCalls = 0;
   let answerCalls = 0;
 
-  const wrap = (kind: 'semantic' | 'answer'): LlmInvocationFactory => (tools, signal) => {
-    // Underlying fallback controllers and their physical budgets are reused;
-    // this wrapper only guards the logical invocation count.
-    const invoke = invocationFactory(tools, signal);
-    return async (messages) => {
-      signal.throwIfAborted();
-      // A semantic pre-call is optional. With only one slot, preserve it for
-      // the canonical recruiter response instead of consuming it for parsing.
-      if (kind === 'semantic' && (semanticCalls >= 1 || used >= maxCallsPerTurn - 1)) {
-        throw new Error('GRAPH_TURN_SEMANTIC_BUDGET_UNAVAILABLE');
-      }
-      if (used >= maxCallsPerTurn) {
-        throw new Error('GRAPH_TURN_MODEL_CALL_LIMIT');
-      }
-      // Synchronous reservation makes concurrent invocations safe within one
-      // event loop. No await occurs between checking and decrementing capacity.
-      used += 1;
-      if (kind === 'semantic') semanticCalls += 1;
-      else answerCalls += 1;
-      return invoke(messages);
+  const wrap =
+    (kind: 'semantic' | 'answer'): LlmInvocationFactory =>
+    (tools, signal) => {
+      // Underlying fallback controllers and their physical budgets are reused;
+      // this wrapper only guards the logical invocation count.
+      const invoke = invocationFactory(tools, signal);
+      return async (messages) => {
+        signal.throwIfAborted();
+        // A semantic pre-call is optional. With only one slot, preserve it for
+        // the canonical recruiter response instead of consuming it for parsing.
+        if (kind === 'semantic' && (semanticCalls >= 1 || used >= maxCallsPerTurn - 1)) {
+          throw new Error('GRAPH_TURN_SEMANTIC_BUDGET_UNAVAILABLE');
+        }
+        if (used >= maxCallsPerTurn) {
+          throw new Error('GRAPH_TURN_MODEL_CALL_LIMIT');
+        }
+        // Synchronous reservation makes concurrent invocations safe within one
+        // event loop. No await occurs between checking and decrementing capacity.
+        used += 1;
+        if (kind === 'semantic') semanticCalls += 1;
+        else answerCalls += 1;
+        return invoke(messages);
+      };
     };
-  };
 
   return {
     semanticFactory: wrap('semantic'),

@@ -231,7 +231,6 @@ exactly once. Next gates: larger recruiter corpus including realistic LinkedIn
 descriptions, review of false-positive/false-negative clauses, and the shared
 per-turn model-call budget before any DEV public runtime flag.
 
-
 ## F3.3 — Shared logical model-call budget for future GraphRAG composition
 
 `graph-turn-llm-budget.ts` adds a **per-chat-turn** admission guard in front
