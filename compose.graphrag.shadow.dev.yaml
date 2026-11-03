@@ -1,0 +1,19 @@
+# DEV-only OPTIONAL API overlay. Never part of the regular deploy.sh/compose.sh path.
+# Requires explicit approval, an already running private graph-reader, and a
+# scoped token in .secrets/graph_reader_token. Never combine with PROD.
+#
+# Compose files must be in the same project (phasscode-platform-dev):
+#   -f compose.yaml -f compose.graphrag.dev.yaml \
+#   -f compose.graphrag.reader.dev.yaml -f compose.graphrag.shadow.dev.yaml
+#
+# Do not attach neo4j_auth to the API. The only secret exposed to the public
+# Orbe process is the bearer token of its fixed private HTTP graph reader.
+services:
+  api:
+    environment:
+      ORBE_GRAPHRAG_MODE: shadow
+      ORBE_GRAPHRAG_STAGE: dev
+      ORBE_GRAPHRAG_DEV_APPROVED: 'true'
+      ORBE_GRAPH_READER_TOKEN_FILE: /run/secrets/graph_reader_token
+    secrets: [graph_reader_token]
+# The graph-reader overlay declares the same named, local-only secret.

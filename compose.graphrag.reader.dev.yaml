@@ -1,0 +1,26 @@
+# F3.2 optional internal reader, off by default. Use only alongside
+# compose.yaml and compose.graphrag.dev.yaml, in project phasscode-platform-dev.
+# No host ports; public Orbe does not receive neo4j_auth.
+services:
+  graph-reader:
+    profiles: [graphrag-reader]
+    image: ${PHASSCODE_IMAGE:-phasscode-platform-dev:local}
+    command: [node, dist/apps/orbe-node/src/graph-reader/main.js]
+    user: '7474:7474'
+    environment:
+      GRAPHRAG_READER_ENABLED: 'true'
+      GRAPH_READER_TOKEN_FILE: /run/secrets/graph_reader_token
+      NEO4J_AUTH_FILE: /run/secrets/neo4j_auth
+      NEO4J_URI: bolt://neo4j:7687
+      GRAPH_READER_PORT: '8765'
+    secrets: [neo4j_auth, graph_reader_token]
+    networks: [backend]
+    expose: ['8765']
+    depends_on:
+      neo4j: { condition: service_healthy }
+    mem_limit: 192m
+    cpus: 0.5
+    restart: 'no'
+secrets:
+  graph_reader_token:
+    file: ${PHASSCODE_GRAPH_READER_TOKEN_FILE:-.secrets/graph_reader_token}

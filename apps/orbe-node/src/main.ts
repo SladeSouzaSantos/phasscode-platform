@@ -13,8 +13,14 @@ import type { ChatProvider } from './domain/ports.js';
 import { buildApp } from './http/app.js';
 import { RestrictedPublicEvidenceReader } from './application/public-evidence.js';
 import { PROMPT_VERSION } from './application/chat.js';
+import { assertPublicOrbeGraphIsolation } from './application/graph-public-policy.js';
+import { createGraphRagShadow } from './application/graph-rag-shadow.js';
+import { loadDevGraphReaderToken } from './application/graph-reader-secret.js';
+import { GraphReaderHttpRepository } from './adapters/graph-reader-http.js';
+import { projectPpksEvidenceGraph } from './adapters/ppks-evidence-graph.js';
 
 try {
+  assertPublicOrbeGraphIsolation(process.env);
   // The public Orbe cannot activate the retired auth/meetings/notification subsystems,
   // including when a legacy Mac Mini .env still contains their old flags.
   const config = loadConfig({
@@ -24,6 +30,17 @@ try {
     WORKER_ENABLED: 'false',
   });
   const knowledge = await JsonKnowledgeRepository.load();
+  // Explicitly approved DEV-only shadow mode. Public Orbe never receives
+  // Neo4j Bolt/admin credentials; this token authorizes only the private
+  // read-only HTTP graph reader. The bearer token is loaded only from
+  // /run/secrets/graph_reader_token. No result may replace the PPKS reply.
+  const graphShadow =
+    config.ORBE_GRAPHRAG_MODE === 'shadow'
+      ? createGraphRagShadow(
+          await projectPpksEvidenceGraph(),
+          new GraphReaderHttpRepository({ token: await loadDevGraphReaderToken(process.env) }),
+        )
+      : undefined;
   const pool = config.PERSISTENCE === 'postgres' ? createPool(config.DATABASE_URL!) : undefined;
   const store =
     config.PERSISTENCE === 'memory'
@@ -87,6 +104,7 @@ try {
   }
   const app = await buildApp({
     evidenceReader: new RestrictedPublicEvidenceReader(),
+    ...(graphShadow ? { graphShadow } : {}),
     config,
     knowledge,
     provider,

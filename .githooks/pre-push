@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# PHASSCODE local quality gate: opt-in via scripts/install-prepush-hook.sh.
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
+  echo '[PHASSCODE] Bloqueado: finalize as alteracoes antes do push.' >&2
+  exit 1
+fi
+
+bash scripts/quality-check.sh
+
+if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
+  echo '[PHASSCODE] Bloqueado: validacao alterou arquivos versionados.' >&2
+  exit 1
+fi
+
+echo '[PHASSCODE] Pre-push aprovado.'

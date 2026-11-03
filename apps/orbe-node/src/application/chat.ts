@@ -34,6 +34,7 @@ import {
 import { eligibleHistory } from './context.js';
 import { isExperienceDurationQuestion } from './experience-context.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
+import { graphShadowObservationSchema, type GraphShadowPort } from './graph-rag-shadow.js';
 import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
@@ -52,6 +53,7 @@ export class ChatService {
     private readonly meetingsEnabled = false,
     private readonly now: () => Date = () => new Date(),
     private readonly evidenceReader?: PublicEvidenceReader,
+    private readonly graphShadow?: GraphShadowPort,
   ) {}
 
   async execute(
@@ -324,6 +326,43 @@ export class ChatService {
                 traceId: evidenceTraceId,
                 rules: canonical.rules,
                 sourceIds: canonical.sourceIds,
+              }),
+            );
+          }
+        }
+        // Optional DEV-approved shadow comparison: the canonical response
+        // above is always retained. Never log visitor prompts, answers,
+        // provenance URLs, credentials or exception details.
+        if (
+          this.graphShadow &&
+          !meetingTurn &&
+          !isInjection(request.message) &&
+          !isOffTopicTask(request.message) &&
+          !isGreeting(request.message)
+        ) {
+          const shadowStartedAt = performance.now();
+          // Measure only elapsed duration, never prompt, answer or source.
+          const shadowDurationMs = () =>
+            Math.min(60_000, Math.max(0, Math.round(performance.now() - shadowStartedAt)));
+          try {
+            const observation = graphShadowObservationSchema.parse(
+              await this.graphShadow.inspect(query),
+            );
+            console.info(
+              JSON.stringify({
+                event: 'orbe_graphrag_shadow',
+                traceId: evidenceTraceId,
+                ...observation,
+                durationMs: shadowDurationMs(),
+              }),
+            );
+          } catch {
+            console.info(
+              JSON.stringify({
+                event: 'orbe_graphrag_shadow',
+                traceId: evidenceTraceId,
+                mode: 'error',
+                durationMs: shadowDurationMs(),
               }),
             );
           }

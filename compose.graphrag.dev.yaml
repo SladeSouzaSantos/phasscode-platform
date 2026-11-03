@@ -1,0 +1,49 @@
+# Optional GraphRAG DEV overlay. Never included in the production deployment.
+# docker compose -f compose.yaml -f compose.graphrag.dev.yaml --profile graphrag up -d neo4j
+# Create .secrets/neo4j_auth locally with "neo4j/<random password>" (chmod 600).
+services:
+  neo4j:
+    image: neo4j:5.26
+    profiles: [graphrag]
+    environment:
+      NEO4J_AUTH_FILE: /run/secrets/neo4j_auth
+      # Constrain JVM reservations below the cgroup memory limit.
+      NEO4J_server_memory_heap_initial__size: 256m
+      NEO4J_server_memory_heap_max__size: 256m
+      NEO4J_server_memory_pagecache_size: 128m
+    secrets: [neo4j_auth]
+    networks: [backend]
+    volumes: [neo4j-dev-data:/data]
+    # No host ports: Bolt 7687 and Browser 7474 stay inside the Compose network.
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'cypher-shell -u neo4j -p "$$(cut -d/ -f2- /run/secrets/neo4j_auth)" "RETURN 1" >/dev/null 2>&1'
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 45s
+    restart: unless-stopped
+    mem_limit: 1024m
+    cpus: 1.0
+  graph-seed:
+    profiles: [graphrag-seed]
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+      target: test
+    command: [node, --import, tsx, scripts/seed-neo4j.ts]
+    environment:
+      GRAPHRAG_SEED_ENABLED: 'true'
+      NEO4J_AUTH_FILE: /run/secrets/neo4j_auth
+      NEO4J_URI: bolt://neo4j:7687
+    secrets: [neo4j_auth]
+    networks: [backend]
+    depends_on:
+      neo4j: { condition: service_healthy }
+    restart: 'no'
+secrets:
+  neo4j_auth:
+    file: ${PHASSCODE_NEO4J_AUTH_FILE:-.secrets/neo4j_auth}
+volumes:
+  neo4j-dev-data:
