@@ -109,9 +109,12 @@ describe('F3.4 post-deploy recruiter intent regressions', () => {
     'E quais tecnologias Java?',
     'E como Pedro utiliza React?',
     'E com experiência em Go?',
-  ])('does not mistake a complete recruiter question for a technology-name ellipsis: %s', (message) => {
-    expect(ellipticalTechnology(message)).toBeUndefined();
-  });
+  ])(
+    'does not mistake a complete recruiter question for a technology-name ellipsis: %s',
+    (message) => {
+      expect(ellipticalTechnology(message)).toBeUndefined();
+    },
+  );
 
   it.each([
     'E com a receita de bolo?',
