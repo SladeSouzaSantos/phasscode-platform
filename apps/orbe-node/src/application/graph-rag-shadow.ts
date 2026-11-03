@@ -41,9 +41,10 @@ export function createGraphRagShadow(
   const structured = createCoverageAwareVacancyPlanner(catalog);
   return {
     async inspect(question) {
-      const signposted = /(?:^|\n)\s*(?:requisitos?|diferenciais|desej[aá]veis|must have|required skills)\s*:/i.test(
-        question,
-      );
+      const signposted =
+        /(?:^|\n)\s*(?:requisitos?|diferenciais|desej[aá]veis|must have|required skills)\s*:/i.test(
+          question,
+        );
       const result = await evaluateGraphRecruiterPreview(question, {
         evidence,
         identifyRequirements,

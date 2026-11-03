@@ -23,7 +23,7 @@ Do not set these values in production. Do not copy NEO4J_AUTH,
 NEO4J_PASSWORD, NEO4J_URI, Bolt credentials, or seed privileges into Orbe.
 The existing assertPublicOrbeGraphIsolation guard still forbids them.
 
-These are *configuration instructions*, not a deployment. The repository's
+These are _configuration instructions_, not a deployment. The repository's
 Compose manifests, environment files and Mac Mini services are unchanged.
 
 ## Behavior, privacy and resilience
