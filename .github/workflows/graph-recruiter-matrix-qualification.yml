@@ -1,4 +1,4 @@
-# One-time DEV-only F3.4 qualification; remove after successful run.
+# One-time DEV-only F3.4 qualification; rerun after explicit mock typing fix.
 name: Qualify F3.4 recruiter matrix
 on:
   push:
