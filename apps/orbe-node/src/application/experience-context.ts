@@ -93,7 +93,7 @@ export function reconcileExperienceAttribution(
     'experiencia-geowellex': /\bGeowellex\b/i,
     'experiencia-greencity': /\bGreencity\b/i,
   };
-  return answer.replace(
+  const reconciled = answer.replace(
     /(\d{1,3})\s+meses?\s+de vínculo(?:\s+exclusivamente\s+no desenvolvimento de software)?/gi,
     (statement, amount: string, offset: number) => {
       const tail = answer.slice(offset + statement.length, offset + statement.length + 130);
@@ -111,5 +111,33 @@ export function reconcileExperienceAttribution(
         return statement;
       return 'vínculo de desenvolvimento de software';
     },
+  );
+
+  // Format a verifiable Java-employment subtotal as a readable approximate
+  // duration even when the model independently mentions it in a question that
+  // does not explicitly ask for a duration (e.g. "Pedro trabalhou com Java?").
+  // Never apply this to an unsupported month number or another technology.
+  if (!/\bJava\b/i.test(reconciled)) return reconciled;
+  const java = summarizeExperiencePeriods([...documents], {
+    asOf,
+    scope: 'software-development',
+    technology: 'Java',
+  });
+  const employerIds = new Set(java.periodsUsed.map(({ id }) => id));
+  const months = java.approximateMonths;
+  if (
+    months < 12 ||
+    !employerIds.has('experiencia-acrux') ||
+    !employerIds.has('experiencia-sig')
+  ) return reconciled;
+
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  const formatted = [
+    `${years} ${years === 1 ? 'ano' : 'anos'}`,
+    ...(rest ? [`${rest} ${rest === 1 ? 'mês' : 'meses'}`] : []),
+  ].join(' e ');
+  return reconciled.replace(/\b(\d{1,3})\s+meses?\b/gi, (text, count: string) =>
+    Number(count) === months ? `aproximadamente ${formatted}` : text,
   );
 }
