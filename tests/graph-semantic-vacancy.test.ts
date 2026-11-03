@@ -45,7 +45,9 @@ function modelFactory(response: (messages: readonly BaseMessage[]) => unknown): 
   factory: LlmInvocationFactory;
   invoke: ReturnType<typeof vi.fn>;
 } {
-  const invoke = vi.fn(async (messages: BaseMessage[]) => new AIMessage(JSON.stringify(response(messages))));
+  const invoke = vi.fn(
+    async (messages: BaseMessage[]) => new AIMessage(JSON.stringify(response(messages))),
+  );
   const factory: LlmInvocationFactory = (tools, signal) => {
     if (tools.length) throw new Error('GRAPH_SEMANTIC_FORBIDS_TOOLS');
     return async (messages) => {
@@ -85,9 +87,9 @@ describe('F3.3 budget-aware semantic vacancy label normalizer', () => {
   it('rejects model proposals that invent a technology or manipulate the source excerpt', async () => {
     const invented = modelFactory((messages) => {
       const result = normalise(messages);
-      return { proposals: result.proposals.map((p) =>
-        p.excerpt === 'Go' ? { ...p, label: 'Java' } : p,
-      ) };
+      return {
+        proposals: result.proposals.map((p) => (p.excerpt === 'Go' ? { ...p, label: 'Java' } : p)),
+      };
     });
     const planner = createEvidenceAnchoredVacancyPlanner(skills, {
       proposeLabels: createBudgetedSemanticVacancyProposer(options(invented.factory)),
@@ -96,13 +98,17 @@ describe('F3.3 budget-aware semantic vacancy label normalizer', () => {
 
     const tampered = modelFactory((messages) => {
       const result = normalise(messages);
-      return { proposals: result.proposals.map((p) =>
-        p.excerpt === 'Go' ? { ...p, excerpt: 'Java' } : p,
-      ) };
+      return {
+        proposals: result.proposals.map((p) =>
+          p.excerpt === 'Go' ? { ...p, excerpt: 'Java' } : p,
+        ),
+      };
     });
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: createBudgetedSemanticVacancyProposer(options(tampered.factory)),
-    })(sourceText)).rejects.toThrow('GRAPH_VACANCY_UNGROUNDED_PROPOSAL');
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, {
+        proposeLabels: createBudgetedSemanticVacancyProposer(options(tampered.factory)),
+      })(sourceText),
+    ).rejects.toThrow('GRAPH_VACANCY_UNGROUNDED_PROPOSAL');
   });
 
   it('keeps SQL Server unknown if an LLM deceptively chooses generic SQL', async () => {
@@ -121,83 +127,97 @@ describe('F3.3 budget-aware semantic vacancy label normalizer', () => {
   });
 
   it('rejects missing, duplicated and extra model labels rather than accepting partial vacancy coverage', async () => {
-    const omit = modelFactory((messages) => ({ proposals: normalise(messages).proposals.slice(1) }));
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: createBudgetedSemanticVacancyProposer(options(omit.factory)),
-    })(sourceText)).rejects.toThrow('GRAPH_VACANCY_PROPOSAL_OMISSION');
+    const omit = modelFactory((messages) => ({
+      proposals: normalise(messages).proposals.slice(1),
+    }));
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, {
+        proposeLabels: createBudgetedSemanticVacancyProposer(options(omit.factory)),
+      })(sourceText),
+    ).rejects.toThrow('GRAPH_VACANCY_PROPOSAL_OMISSION');
 
     const duplicate = modelFactory((messages) => {
       const { proposals } = normalise(messages);
       return { proposals: proposals.map((p) => ({ ...p, id: proposals[0]!.id })) };
     });
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: createBudgetedSemanticVacancyProposer(options(duplicate.factory)),
-    })(sourceText)).rejects.toThrow('GRAPH_VACANCY_DUPLICATE_PROPOSAL');
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, {
+        proposeLabels: createBudgetedSemanticVacancyProposer(options(duplicate.factory)),
+      })(sourceText),
+    ).rejects.toThrow('GRAPH_VACANCY_DUPLICATE_PROPOSAL');
 
     const extra = modelFactory((messages) => ({
       proposals: normalise(messages).proposals.map((p) => ({ ...p, experienceYears: 10 })),
     }));
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: createBudgetedSemanticVacancyProposer(options(extra.factory)),
-    })(sourceText)).rejects.toThrow('GRAPH_SEMANTIC_INVALID_RESPONSE');
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, {
+        proposeLabels: createBudgetedSemanticVacancyProposer(options(extra.factory)),
+      })(sourceText),
+    ).rejects.toThrow('GRAPH_SEMANTIC_INVALID_RESPONSE');
   });
 
   it('refuses non-JSON, markdown fences and model tool calls', async () => {
     const bad = modelFactory(() => 'not json');
     // Return an AIMessage with literal non-JSON text, not a JSON encoded string.
     const badFactory: LlmInvocationFactory = () => async () => new AIMessage('not json');
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: createBudgetedSemanticVacancyProposer(options(badFactory)),
-    })(sourceText)).rejects.toThrow('GRAPH_SEMANTIC_INVALID_JSON');
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, {
+        proposeLabels: createBudgetedSemanticVacancyProposer(options(badFactory)),
+      })(sourceText),
+    ).rejects.toThrow('GRAPH_SEMANTIC_INVALID_JSON');
     expect(bad.invoke).not.toHaveBeenCalled();
 
-    const toolFactory: LlmInvocationFactory = () => async () => new AIMessage({
-      content: JSON.stringify({ proposals: [] }),
-      tool_calls: [{ id: 'call_1', name: 'shell', args: { command: 'rm -rf /' } }],
-    });
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: createBudgetedSemanticVacancyProposer(options(toolFactory)),
-    })(sourceText)).rejects.toThrow('GRAPH_SEMANTIC_INVALID_RESPONSE');
+    const toolFactory: LlmInvocationFactory = () => async () =>
+      new AIMessage({
+        content: JSON.stringify({ proposals: [] }),
+        tool_calls: [{ id: 'call_1', name: 'shell', args: { command: 'rm -rf /' } }],
+      });
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, {
+        proposeLabels: createBudgetedSemanticVacancyProposer(options(toolFactory)),
+      })(sourceText),
+    ).rejects.toThrow('GRAPH_SEMANTIC_INVALID_RESPONSE');
   });
 
   it('blocks context overflow before any provider or global budget reservation', async () => {
     const { factory, invoke } = modelFactory(normalise);
     const proposer = createBudgetedSemanticVacancyProposer({
-      ...options(factory), maxContextChars: 2_000,
+      ...options(factory),
+      maxContextChars: 2_000,
     });
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: proposer,
-    })('Requisitos:\n' + '- experiência sólida com Java\n'.repeat(100))).rejects.toThrow(
-      'GRAPH_SEMANTIC_CONTEXT_LIMIT',
-    );
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, {
+        proposeLabels: proposer,
+      })('Requisitos:\n' + '- experiência sólida com Java\n'.repeat(100)),
+    ).rejects.toThrow('GRAPH_SEMANTIC_CONTEXT_LIMIT');
     expect(invoke).not.toHaveBeenCalled();
   });
 
   it('uses the real fallback factory: provider and global quotas are each reserved once', async () => {
     const globalReserve = vi.fn(async () => {});
     const providerReserve = vi.fn(async () => {});
-    const invoke = vi.fn(async (messages: BaseMessage[]) =>
-      new AIMessage(JSON.stringify(normalise(messages))),
+    const invoke = vi.fn(
+      async (messages: BaseMessage[]) => new AIMessage(JSON.stringify(normalise(messages))),
     );
     const factory = createFallbackInvocationFactory({
       config: {
         enabled: true,
-        providers: [{
-          id: 'gemini',
-          apiKey: 'synthetic-never-sent',
-          model: 'local-unit-model',
-          timeoutMs: 1_500,
-          maxCalls: 10,
-          windowMs: 60_000,
-        }],
+        providers: [
+          {
+            id: 'gemini',
+            apiKey: 'synthetic-never-sent',
+            model: 'local-unit-model',
+            timeoutMs: 1_500,
+            maxCalls: 10,
+            windowMs: 60_000,
+          },
+        ],
         cooldownMs: 100,
         maxCooldownMs: 1_000,
         maxAttemptsPerTurn: 1,
       },
       models: {
-        bindTools: () => new Map<LlmFallbackProviderId, BoundModelPort>([
-          ['gemini', { invoke }],
-        ]),
+        bindTools: () => new Map<LlmFallbackProviderId, BoundModelPort>([['gemini', { invoke }]]),
       },
       globalBudget: { reserve: globalReserve },
       providerBudgets: new Map([['gemini', { reserve: providerReserve }]]),
@@ -219,11 +239,11 @@ describe('F3.3 budget-aware semantic vacancy label normalizer', () => {
 
   it('does not issue a model request when no eligible vacancy evidence fragments exist', async () => {
     const { factory, invoke } = modelFactory(normalise);
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: createBudgetedSemanticVacancyProposer(options(factory)),
-    })('Nossa equipe utiliza Java e React.')).rejects.toThrow(
-      'GRAPH_VACANCY_NO_EXPLICIT_REQUIREMENTS',
-    );
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, {
+        proposeLabels: createBudgetedSemanticVacancyProposer(options(factory)),
+      })('Nossa equipe utiliza Java e React.'),
+    ).rejects.toThrow('GRAPH_VACANCY_NO_EXPLICIT_REQUIREMENTS');
     expect(invoke).not.toHaveBeenCalled();
   });
 
@@ -251,22 +271,23 @@ describe('F3.3 budget-aware semantic vacancy label normalizer', () => {
   });
 
   it('rejects oversized responses or absent model output, without exposing private content', async () => {
-    const oversize: LlmInvocationFactory = () => async () => new AIMessage(
-      'x'.repeat(1_100),
-    );
+    const oversize: LlmInvocationFactory = () => async () => new AIMessage('x'.repeat(1_100));
     const proposer = createBudgetedSemanticVacancyProposer({
       ...options(oversize),
       maxResponseChars: 1_000,
     });
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, { proposeLabels: proposer })(
-      'Requisitos: Java',
-    )).rejects.toThrow('GRAPH_SEMANTIC_INVALID_RESPONSE');
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, { proposeLabels: proposer })('Requisitos: Java'),
+    ).rejects.toThrow('GRAPH_SEMANTIC_INVALID_RESPONSE');
 
-    const invalid: LlmInvocationFactory = () => async () => new AIMessage({
-      content: [{ type: 'text', text: 'private-prompt-canary' }],
-    });
-    await expect(createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: createBudgetedSemanticVacancyProposer(options(invalid)),
-    })('Requisitos: Java')).rejects.toThrow('GRAPH_SEMANTIC_INVALID_RESPONSE');
+    const invalid: LlmInvocationFactory = () => async () =>
+      new AIMessage({
+        content: [{ type: 'text', text: 'private-prompt-canary' }],
+      });
+    await expect(
+      createEvidenceAnchoredVacancyPlanner(skills, {
+        proposeLabels: createBudgetedSemanticVacancyProposer(options(invalid)),
+      })('Requisitos: Java'),
+    ).rejects.toThrow('GRAPH_SEMANTIC_INVALID_RESPONSE');
   });
 });

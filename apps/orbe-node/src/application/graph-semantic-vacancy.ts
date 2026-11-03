@@ -1,10 +1,7 @@
 import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { z } from 'zod';
 import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
-import type {
-  VacancyEvidenceFragment,
-  VacancyLabelProposal,
-} from './graph-vacancy-text.js';
+import type { VacancyEvidenceFragment, VacancyLabelProposal } from './graph-vacancy-text.js';
 
 const fragmentSchema = z.strictObject({
   id: z.string().regex(/^fragment-[0-9]+$/),
