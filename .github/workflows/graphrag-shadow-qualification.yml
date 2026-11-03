@@ -1,4 +1,4 @@
-# One-time DEV-only qualification, remove after success.
+# One-time DEV-only qualification; rerun after shadow fixture typing fix.
 name: Qualify F3.3 F3.5 GraphRAG shadow
 on:
   push:
