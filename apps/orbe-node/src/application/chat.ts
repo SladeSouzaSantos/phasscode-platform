@@ -340,6 +340,10 @@ export class ChatService {
           !isOffTopicTask(request.message) &&
           !isGreeting(request.message)
         ) {
+          const shadowStartedAt = performance.now();
+          // Measure only elapsed duration, never prompt, answer or source.
+          const shadowDurationMs = () =>
+            Math.min(60_000, Math.max(0, Math.round(performance.now() - shadowStartedAt)));
           try {
             const observation = graphShadowObservationSchema.parse(
               await this.graphShadow.inspect(query),
@@ -349,6 +353,7 @@ export class ChatService {
                 event: 'orbe_graphrag_shadow',
                 traceId: evidenceTraceId,
                 ...observation,
+                durationMs: shadowDurationMs(),
               }),
             );
           } catch {
@@ -357,6 +362,7 @@ export class ChatService {
                 event: 'orbe_graphrag_shadow',
                 traceId: evidenceTraceId,
                 mode: 'error',
+                durationMs: shadowDurationMs(),
               }),
             );
           }
