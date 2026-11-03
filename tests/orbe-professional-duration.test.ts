@@ -5,6 +5,8 @@ import { summarizeExperiencePeriods } from '../apps/orbe-node/src/domain/experie
 import type { ChatProvider, KnowledgeDocument } from '../apps/orbe-node/src/domain/ports.js';
 import {
   buildVerifiedExperienceDurationResponse,
+  buildVerifiedProfessionalOverviewResponse,
+  isBroadProfessionalExperienceQuestion,
   formatApproximateExperience,
 } from '../apps/orbe-node/src/application/experience-response.js';
 import {
@@ -13,6 +15,7 @@ import {
   reconcileExperienceAttribution,
 } from '../apps/orbe-node/src/application/experience-context.js';
 import { chatResponseSchema } from '../packages/contracts/src/index.js';
+import { ellipticalTechnology, rewriteEllipticalTechnologyQuestion } from '../apps/orbe-node/src/application/technology-follow-up.js';
 import { testApp } from './helpers.js';
 
 const asOf = new Date('2026-11-03T12:00:00.000Z');
@@ -34,6 +37,58 @@ const readEmployment = async () => {
 };
 
 describe('F3.4 recruiter duration: complete, mixed-role professional software experience', () => {
+  it.each([
+    'Pedtro têm experiência?',
+    'Pedro tem experiência?',
+    'Pedro possui experiência profissional?',
+    'Ele tem alguma experiência?',
+  ])('recognizes broad professional experience regardless of candidate-name typo: %s', async (question) => {
+    expect(isBroadProfessionalExperienceQuestion(question)).toBe(true);
+    const result = buildVerifiedProfessionalOverviewResponse(question, await readEmployment(), asOf);
+    expect(result?.sources.map((source) => source.id)).toEqual(employmentIds);
+    for (const employer of ['ACRUX', 'SIG Software', 'Geowellex', 'Greencity']) {
+      expect(result?.answer).toContain(employer);
+    }
+    expect(result?.answer).toContain('atuação híbrida');
+    expect(result?.answer).not.toMatch(/19 meses|1 ano e 7 meses/);
+    expect(result?.answer).toContain('sem representar dedicação integral ao código');
+  });
+
+  it.each([
+    'Pedro tem experiência profissional com Java?',
+    'Pedro tem experiência com Golang?',
+    'Qual o tempo de experiência com programação?',
+    'Pedro tem experiência com Kotlin?',
+    'Pedro tem experiência na Greencity?',
+    'Quais projetos React Pedro criou?',
+  ])('preserves specialized question intent instead of forcing career overview: %s', (question) => {
+    expect(isBroadProfessionalExperienceQuestion(question)).toBe(false);
+  });
+
+  it.each([
+    ['E com Go?', 'Go'],
+    ['E com o GO?', 'GO'],
+    ['E com o Go?', 'Go'],
+    ['E com a AWS?', 'AWS'],
+    ['E com o PHP?', 'PHP'],
+    ['E com a Flutter?', 'Flutter'],
+    ['E com os bancos SQL?', 'bancos SQL'],
+  ])('recognizes article-qualified technical ellipsis %s', (question, technology) => {
+    expect(ellipticalTechnology(question)).toBe(technology);
+    expect(rewriteEllipticalTechnologyQuestion('Pedtro têm experiência?', technology))
+      .toContain('experiência profissional com ' + technology);
+  });
+
+  it.each([
+    'E com a receita?',
+    'E com o clima?',
+    'E com as senhas?',
+    'E com o passaporte?',
+    'E quais projetos React?',
+  ])('does not misclassify off-topic or complete follow-up %s', (question) => {
+    expect(ellipticalTechnology(question)).toBeUndefined();
+  });
+
   it('keeps distinct union semantics: 19 months pure software, 130 months software-involved employment', async () => {
     const documents = await readEmployment();
     const pure = summarizeExperiencePeriods(documents, { asOf, scope: 'software-development' });
@@ -228,6 +283,46 @@ afterEach(async () => {
 });
 
 describe('Orbe HTTP duration route', () => {
+  it('handles exact recruiter conversation: misspelled broad career then "E com o GO?"', async () => {
+    const generate = vi.fn(async () => ({
+      answer: 'Resposta simulada do provedor não deveria ser necessária.',
+      sources: [],
+    }));
+    const app = await testApp({ provider: { name: 'mock', generate } });
+    apps.push(app);
+    const first = await app.inject({
+      method: 'POST',
+      url: '/api/v1/chat',
+      payload: { message: 'Pedtro têm experiência?' },
+    });
+    expect(first.statusCode, first.body.slice(0, 300)).toBe(200);
+    const overview = chatResponseSchema.parse(first.json());
+    expect(overview.meta.deterministic).toBe(true);
+    expect(overview.sources.map((source) => source.id)).toEqual(employmentIds);
+    expect(overview.answer).toContain('Geowellex');
+    expect(overview.answer).toContain('Greencity');
+    expect(overview.answer).not.toContain('1 ano e 7 meses');
+
+    const followUp = await app.inject({
+      method: 'POST',
+      url: '/api/v1/chat',
+      headers: { 'x-conversation-token': overview.conversationToken! },
+      payload: { message: 'E com o GO?', conversationId: overview.conversationId },
+    });
+    expect(followUp.statusCode, followUp.body.slice(0, 300)).toBe(200);
+    const go = chatResponseSchema.parse(followUp.json());
+    expect(go.conversationId).toBe(overview.conversationId);
+    expect(go.meta.deterministic).toBe(true);
+    expect(go.answer).toMatch(/Go \(Golang\)/);
+    expect(go.answer).toMatch(/não há experiência profissional com Go/i);
+    expect(go.answer).not.toMatch(/^Posso apresentar a experiência profissional/i);
+    expect(go.sources.map((source) => source.id)).toEqual([
+      'experiencia-sig',
+      'phasscode-platform',
+    ]);
+    expect(generate).not.toHaveBeenCalled();
+  });
+
   it('answers general experience with four real sources without fabricating LLM tenure', async () => {
     const generate = vi.fn(async () => ({
       answer: 'A LLM não deve inventar uma soma de meses.',
