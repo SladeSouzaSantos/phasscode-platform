@@ -40,6 +40,10 @@ import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
 import { buildCompleteAcademicResponse } from './academic-response.js';
 import { buildDirectGoExperienceResponse } from './go-experience-response.js';
+import {
+  ellipticalTechnology,
+  rewriteEllipticalTechnologyQuestion,
+} from './technology-follow-up.js';
 import { reconcileCanonicalAcademicClaims } from './canonical-claims.js';
 import { documentSource } from './sources.js';
 
@@ -77,9 +81,25 @@ export class ChatService {
         const eligible = eligibleHistory(history);
         const previous = [...eligible]
           .reverse()
-          .find((message) => message.role === 'user' && !isContextualFollowUp(message.content));
-        const followUp = Boolean(previous && isContextualFollowUp(request.message));
-        const query = followUp ? `${previous!.content}\n${request.message}` : request.message;
+          .find(
+            (message) =>
+              message.role === 'user' &&
+              !isContextualFollowUp(message.content) &&
+              !ellipticalTechnology(message.content),
+          );
+        const technologyFollowUp = previous ? ellipticalTechnology(request.message) : undefined;
+        const followUp = Boolean(
+          previous && (isContextualFollowUp(request.message) || technologyFollowUp),
+        );
+        // A recruiter who asks "Java?" then "E com Go?" is changing the
+        // technology, not requesting evidence from Java and Go together.
+        // Preserve only the previous intent and the new technical subject.
+        const query =
+          previous && technologyFollowUp
+            ? rewriteEllipticalTechnologyQuestion(previous.content, technologyFollowUp)
+            : followUp
+              ? `${previous!.content}\n${request.message}`
+              : request.message;
         const evidenceTraceId = randomUUID();
         const meetingTurn =
           meetingActions &&
@@ -159,7 +179,10 @@ export class ChatService {
           });
         traceEvidence('retrieved', retrieved, 'initial', evidenceTraceId);
         const verifiedMatrix = buildVerifiedRecruiterMatrix(query, retrieved);
-        const verifiedGo = buildDirectGoExperienceResponse(request.message, this.knowledge);
+        const verifiedGo = buildDirectGoExperienceResponse(
+          technologyFollowUp ? query : request.message,
+          this.knowledge,
+        );
         const academicListing = this.knowledge.academicCourseListing?.(query);
         const verifiedAcademic = academicListing
           ? buildCompleteAcademicResponse(query, academicListing, retrieved)
@@ -260,7 +283,7 @@ export class ChatService {
           try {
             result = await Promise.race([
               this.provider.generate({
-                message: request.message,
+                message: technologyFollowUp ? query : request.message,
                 history: bounded,
                 documents,
                 evidenceTraceId,
