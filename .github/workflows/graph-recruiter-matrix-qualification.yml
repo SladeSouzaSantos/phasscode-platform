@@ -35,7 +35,7 @@ jobs:
             tests/graph-turn-llm-budget.test.ts \
             tests/ppks-evidence-graph.test.ts \
             tests/graph-professional-advocacy.test.ts
-          npm run eval:orbe:graphrag:offline >/tmp/graphrag-matrix-report.json
+          npm run --silent eval:orbe:graphrag:offline >/tmp/graphrag-matrix-report.json
           node -e "const r = require('/tmp/graphrag-matrix-report.json'); if(r.totals.cases!==9||r.liveLlmCalls!==0||r.baselineComparison!=='not_run') process.exit(1); console.log('GRAPH_MATRIX_REPLAY_OK cases='+r.totals.cases+' turns='+r.totals.turns)"
       - name: Commit qualified formatting on DEV
         run: |
