@@ -10,6 +10,7 @@ import {
 import {
   experienceContext,
   isExperienceDurationQuestion,
+  reconcileExperienceAttribution,
 } from '../apps/orbe-node/src/application/experience-context.js';
 import { chatResponseSchema } from '../packages/contracts/src/index.js';
 import { testApp } from './helpers.js';
@@ -136,6 +137,36 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
     expect(ctx).toContain('"exclusivelySoftwarePeriods":{"approximateMonths":19');
     expect(ctx).toContain('Geowellex e Greencity');
     expect(ctx).toMatch(/não representa dedicação integral/i);
+  });
+
+  it('formats only verified 19-month Java employment as approximately 1 year and 7 months', async () => {
+    const records = await readEmployment();
+    const reply =
+      'Pedro desenvolveu Java na ACRUX e no SIGAA, totalizando 19 meses de vínculos exclusivamente em software.';
+    const reconciled = reconcileExperienceAttribution(reply, records, asOf);
+    expect(reconciled).toContain('aproximadamente 1 ano e 7 meses');
+    expect(reconciled).not.toContain('19 meses');
+    expect(reconciled).toContain('ACRUX');
+    expect(reconciled).toContain('SIGAA');
+  });
+
+  it('does not rewrite unrelated month claims or infer Java time from an incomplete record', async () => {
+    const records = await readEmployment();
+    expect(reconcileExperienceAttribution(
+      'Na Geowellex, há 19 meses de trabalho profissional em PHP.',
+      records,
+      asOf,
+    )).toContain('19 meses');
+    expect(reconcileExperienceAttribution(
+      'O SIGAA e ACRUX são citados em uma resposta Java com 19 meses.',
+      records.slice(0, 1),
+      asOf,
+    )).toContain('19 meses');
+    expect(reconcileExperienceAttribution(
+      'Java na ACRUX e no SIGAA: 99 meses de vínculo.',
+      records,
+      asOf,
+    )).toContain('99 meses');
   });
 
   it('merges overlapping roles once for employment contexts that include coding', () => {
