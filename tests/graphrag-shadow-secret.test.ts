@@ -75,9 +75,10 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
       services: {
         api: {
           environment: Record<string, string>;
-          secrets: string[];
+          secrets: { source: string; target: string }[];
         };
       };
+      secrets: Record<string, { file: string }>;
     };
     const reader = parse(readerText) as {
       services: { 'graph-reader': { secrets: string[]; ports?: unknown } };
@@ -86,7 +87,11 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
     const graph = parse(graphText) as {
       services: { neo4j: { ports?: unknown } };
     };
-    expect(shadow.services.api.secrets).toEqual(['graph_reader_token']);
+    expect(shadow.services.api.secrets).toEqual([
+      { source: 'graph_api_reader_token', target: 'graph_reader_token' },
+    ]);
+    expect(shadow.secrets.graph_api_reader_token?.file).toContain('graph_api_reader_token');
+    expect(shadow.secrets).not.toHaveProperty('neo4j_auth');
     expect(shadow.services.api.environment).toMatchObject({
       ORBE_GRAPHRAG_MODE: 'shadow',
       ORBE_GRAPHRAG_STAGE: 'dev',
@@ -108,6 +113,11 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
     expect(text).toContain('PINNED_IMAGE_SHA_NOT_CURRENT_DEV');
     expect(text).toContain('SHADOW_MUST_BE_OPT_IN_OVERLAY_NOT_BASE_ENV');
     expect(text).toContain('DEV_COMPOSE_CONFIG_INVALID');
+    expect(text).toContain('GRAPH_API_READER_TOKEN_MISMATCH');
+    expect(text).toContain('GRAPH_API_SECRET_OWNER_NOT_NODE');
+    expect(text).toContain('GRAPH_READER_REVISION_NOT_PINNED_DEV');
+    expect(text).toContain('stat -c %s .secrets/graph_reader_token');
+    expect(text).not.toContain('wc -c < .secrets/graph_reader_token');
     const executable = text
       .split('\n')
       .filter((line) => !line.trimStart().startsWith('#'))
