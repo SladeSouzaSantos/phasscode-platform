@@ -18,12 +18,14 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Format only F3.4 changed application/test files
         run: |
-          npx prettier --write             apps/orbe-node/src/domain/experience.ts             apps/orbe-node/src/application/experience-context.ts             apps/orbe-node/src/application/experience-response.ts             apps/orbe-node/src/application/chat.ts             tests/orbe-professional-duration.test.ts
+          npx prettier --write             apps/orbe-node/src/domain/experience.ts             apps/orbe-node/src/application/experience-context.ts             apps/orbe-node/src/application/experience-response.ts             apps/orbe-node/src/application/chat.ts             tests/orbe-professional-duration.test.ts \
+            tests/orbe-professional.test.ts
       - name: Verify full application (no remote deploy)
         run: npm run check
       - name: Commit formatting only on dev
         run: |
-          git add --             apps/orbe-node/src/domain/experience.ts             apps/orbe-node/src/application/experience-context.ts             apps/orbe-node/src/application/experience-response.ts             apps/orbe-node/src/application/chat.ts             tests/orbe-professional-duration.test.ts
+          git add --             apps/orbe-node/src/domain/experience.ts             apps/orbe-node/src/application/experience-context.ts             apps/orbe-node/src/application/experience-response.ts             apps/orbe-node/src/application/chat.ts             tests/orbe-professional-duration.test.ts \
+            tests/orbe-professional.test.ts
           if ! git diff --cached --quiet; then
             git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(orbe): format professional tenure evidence adjustments (#31)'
             git push origin HEAD:dev
