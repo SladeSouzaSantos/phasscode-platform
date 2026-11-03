@@ -21,7 +21,11 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
     { ORBE_GRAPHRAG_MODE: undefined },
     { ORBE_GRAPHRAG_MODE: 'off' },
     { ORBE_GRAPHRAG_MODE: 'shadow', ORBE_GRAPHRAG_STAGE: 'production' },
-    { ORBE_GRAPHRAG_MODE: 'shadow', ORBE_GRAPHRAG_STAGE: 'dev', ORBE_GRAPHRAG_DEV_APPROVED: 'false' },
+    {
+      ORBE_GRAPHRAG_MODE: 'shadow',
+      ORBE_GRAPHRAG_STAGE: 'dev',
+      ORBE_GRAPHRAG_DEV_APPROVED: 'false',
+    },
   ])('never reads the token without approved DEV shadow credentials (%#)', async (overrides) => {
     const read = vi.fn(async () => 'A'.repeat(43));
     await expect(loadDevGraphReaderToken({ ...approved, ...overrides }, read)).rejects.toThrow(
@@ -100,11 +104,14 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
 
   it('keeps Mac Mini preflight read-only and requires full SHA', async () => {
     const text = await readFile('scripts/preflight-graphrag-shadow-dev.sh', 'utf8');
-    expect(text).toContain("WRONG_DIRECTORY_NOT_DEV");
-    expect(text).toContain("PINNED_IMAGE_SHA_NOT_CURRENT_DEV");
-    expect(text).toContain("SHADOW_MUST_BE_OPT_IN_OVERLAY_NOT_BASE_ENV");
-    expect(text).toContain("DEV_COMPOSE_CONFIG_INVALID");
-    const executable = text.split('\n').filter((line) => !line.trimStart().startsWith('#')).join('\n');
+    expect(text).toContain('WRONG_DIRECTORY_NOT_DEV');
+    expect(text).toContain('PINNED_IMAGE_SHA_NOT_CURRENT_DEV');
+    expect(text).toContain('SHADOW_MUST_BE_OPT_IN_OVERLAY_NOT_BASE_ENV');
+    expect(text).toContain('DEV_COMPOSE_CONFIG_INVALID');
+    const executable = text
+      .split('\n')
+      .filter((line) => !line.trimStart().startsWith('#'))
+      .join('\n');
     expect(executable).not.toMatch(/\bdocker\s+(?:compose\s+)?(?:up|down|rm|restart|run|exec)\b/);
     expect(executable).not.toMatch(/\bgit\s+(?:pull|push|merge|checkout|reset|clean)\b/);
   });

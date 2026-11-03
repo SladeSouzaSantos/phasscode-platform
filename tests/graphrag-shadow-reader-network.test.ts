@@ -130,7 +130,15 @@ describe('F3.5 socket-level shadow to internal Graph Reader (no real Neo4j)', ()
     });
     expect(observation.durationMs).toEqual(expect.any(Number));
     expect(Object.keys(observation).sort()).toEqual(
-      ['durationMs', 'event', 'matchedRequirements', 'mode', 'reason', 'traceId', 'unknownRequirements'].sort(),
+      [
+        'durationMs',
+        'event',
+        'matchedRequirements',
+        'mode',
+        'reason',
+        'traceId',
+        'unknownRequirements',
+      ].sort(),
     );
     expect(JSON.stringify(observation)).not.toContain(question);
     expect(JSON.stringify(observation)).not.toContain('PRIVATE_');

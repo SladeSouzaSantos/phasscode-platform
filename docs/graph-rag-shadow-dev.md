@@ -81,7 +81,6 @@ profiling, multi-turn recruiter evaluation, exact active deployment SHA and
 documented rollback rehearsal. Promotion of DEV to MAIN requires separate
 user approval after F3.4 and F3.5 acceptance.
 
-
 ## Deployment readiness discovery and current blocker
 
 The private reader's DEV-only overlay already mounts
