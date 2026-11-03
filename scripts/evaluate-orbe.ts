@@ -34,7 +34,7 @@ async function main(): Promise<void> {
   }
   if (args.includes('--help')) {
     console.info(
-      'Uso: npm run eval:orbe -- --live [--matrix=evaluation/vacancies-ppks-v12.json] [--case=id] [--category=nome] [--max-calls=24] [--timeout-ms=70000] [--output=evaluation/reports] [--allow-remote]\nSem --live, apenas lista o plano; nenhuma chamada é feita.',
+      'Uso: npm run eval:orbe -- --live [--matrix=evaluation/orbe-natural-language-v1.json] [--case=id] [--category=nome] [--max-calls=24] [--timeout-ms=70000] [--output=evaluation/reports] [--allow-remote]\nSem --live, apenas lista o plano; nenhuma chamada é feita.',
     );
     return;
   }
@@ -53,6 +53,7 @@ async function main(): Promise<void> {
       'evaluation/cases.json',
       'evaluation/recruiter-cases.json',
       'evaluation/vacancies-ppks-v12.json',
+      'evaluation/orbe-natural-language-v1.json',
     ].includes(selectedMatrix)
   )
     throw new Error('Matriz não permitida.');
