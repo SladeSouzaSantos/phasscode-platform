@@ -121,8 +121,9 @@ describe('F3.3 audited, conservative vacancy coverage', () => {
     expect(report.status).toBe('no_requirements');
     expect(report.fragments).toEqual([]);
     expect(report.segments).toMatchObject([{ kind: 'context' }]);
-    await expect(createCoverageAwareVacancyPlanner(skills).plan('Nossa empresa utiliza Java e Go.'))
-      .rejects.toThrow('GRAPH_VACANCY_NO_EXPLICIT_REQUIREMENTS');
+    await expect(
+      createCoverageAwareVacancyPlanner(skills).plan('Nossa empresa utiliza Java e Go.'),
+    ).rejects.toThrow('GRAPH_VACANCY_NO_EXPLICIT_REQUIREMENTS');
   });
 
   it('keeps OR-alternatives as one unknown requirement and never asserts both technologies', async () => {

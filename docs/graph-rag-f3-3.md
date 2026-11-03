@@ -193,7 +193,6 @@ and declines unsignposted prose rather than claiming full coverage.
 Unit tests use offline synthetic models, including the real
 `createFallbackInvocationFactory` with mocked provider/global budgets.
 
-
 ## F3.3 — Audited coverage for free-form vacancy prose (offline opt-in)
 
 The additional graph-vacancy-coverage.ts adapter conservatively recognizes
