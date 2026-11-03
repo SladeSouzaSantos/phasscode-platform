@@ -70,6 +70,7 @@ export function createGroundedRecruiterGraph(options: GroundedRecruiterGraphOpti
         .parse(await options.identifyRequirements(state.question)),
     }))
     .addNode('retrieveGraphEvidence', async (state) => {
+      if (!state.requirements.length) return { matches: [], retrievalFailed: false };
       try {
         const matches = await publicEvidence.findEvidence(state.requirements);
         return { matches: [...matches], retrievalFailed: false };

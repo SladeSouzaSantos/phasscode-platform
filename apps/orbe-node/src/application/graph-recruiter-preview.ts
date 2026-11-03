@@ -34,24 +34,24 @@ export async function evaluateGraphRecruiterPreview(
     const answer = z.string().trim().min(1).parse(raw);
     return { mode: 'canonical_ppks', answer, reason, matchedRequirements: 0 };
   };
+  let result;
   try {
     const graph = createGroundedRecruiterGraph({
       evidence: options.evidence,
       identifyRequirements: options.identifyRequirements,
     });
-    const result = await graph.invoke({ question: cleanQuestion }, { recursionLimit: 12 });
-    if (result.decision !== 'verified' || !result.requirements.length) {
-      return await fallback(result.requirements.length ? 'unavailable_or_incomplete' : 'no_requirements');
-    }
-    return {
-      mode: 'verified_graph',
-      answer: result.answer,
-      reason: 'verified',
-      matchedRequirements: result.requirements.length,
-    };
+    result = await graph.invoke({ question: cleanQuestion }, { recursionLimit: 12 });
   } catch {
-    // The canonical fallback may itself fail; do not swallow its error or
-    // silently claim a verified answer when both paths are unavailable.
+    // Failed graph lookup is an explicit abstention, not an invented answer.
     return fallback('unavailable_or_incomplete');
   }
+  if (result.decision !== 'verified' || !result.requirements.length) {
+    return fallback(result.requirements.length ? 'unavailable_or_incomplete' : 'no_requirements');
+  }
+  return {
+    mode: 'verified_graph',
+    answer: result.answer,
+    reason: 'verified',
+    matchedRequirements: result.requirements.length,
+  };
 }
