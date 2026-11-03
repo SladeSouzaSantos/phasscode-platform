@@ -29,7 +29,6 @@ generateGroundedAnswer → verifyClaims → respond`.
 3. Add an explicit DEV-only flag with default `false` and the existing PPKS
    fallback; keep MAIN unaffected pending functional sign-off.
 
-
 ## F3.3 — typed HTTP reader client (offline integration)
 
 `apps/orbe-node/src/adapters/graph-reader-http.ts` implements the same
@@ -45,7 +44,7 @@ The adapter is **not instantiated in public `main.ts`**: no API route,
 public feature flag, additional provider call or Mac Mini deployment was
 introduced by this increment. Tests use Fastify `inject` as the private
 transport and pass the client to LangGraph offline. The reader's token can be
-mounted into a *separate unprivileged consumer* in a later rollout; do not
+mounted into a _separate unprivileged consumer_ in a later rollout; do not
 copy `neo4j_auth` or seed credentials into public API. The verified DEV
 `graph-reader` is left running and unchanged.
 

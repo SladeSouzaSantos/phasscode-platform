@@ -61,9 +61,7 @@ const backend: EvidenceGraphRepository = {
   getSource: async (id) => [publicSource, privateSource].find((source) => source.id === id),
 };
 
-function testTransport(
-  app: ReturnType<typeof buildInternalGraphReader>,
-): typeof fetch {
+function testTransport(app: ReturnType<typeof buildInternalGraphReader>): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const response = await app.inject({
       method: init?.method ?? 'GET',
@@ -125,16 +123,12 @@ describe('F3.2/F3.3 private HTTP evidence client, not wired to public chat', () 
     });
     try {
       const good = new GraphReaderHttpRepository({ token, transport: testTransport(server) });
-      await expect(good.findEvidence([requirement])).rejects.toThrow(
-        'GRAPH_HTTP_UNAVAILABLE',
-      );
+      await expect(good.findEvidence([requirement])).rejects.toThrow('GRAPH_HTTP_UNAVAILABLE');
       const wrong = new GraphReaderHttpRepository({
         token: 'B'.repeat(64),
         transport: testTransport(server),
       });
-      await expect(wrong.findEvidence([requirement])).rejects.toThrow(
-        'GRAPH_HTTP_UNAVAILABLE',
-      );
+      await expect(wrong.findEvidence([requirement])).rejects.toThrow('GRAPH_HTTP_UNAVAILABLE');
     } finally {
       await server.close();
     }
