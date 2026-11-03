@@ -1,0 +1,48 @@
+# One-time DEV-only qualification, remove after success.
+name: Qualify F3.3 F3.5 GraphRAG shadow
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/graphrag-shadow-qualification.yml
+permissions:
+  contents: write
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: true }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format scoped files
+        run: |
+          npx prettier --write \
+            apps/orbe-node/src/application/graph-rag-shadow.ts \
+            apps/orbe-node/src/application/graph-recruiter-preview.ts \
+            apps/orbe-node/src/application/chat.ts \
+            apps/orbe-node/src/http/app.ts \
+            apps/orbe-node/src/main.ts \
+            packages/shared-config/src/index.ts \
+            tests/graphrag-shadow-http.test.ts \
+            docs/graph-rag-shadow-dev.md
+      - name: Validate all application quality gates and HTTP regression
+        run: |
+          npm run check
+          npx vitest run tests/graphrag-shadow-http.test.ts tests/graphrag-recruiter-offline.test.ts
+      - name: Apply formatted files to dev only
+        run: |
+          git add -- \
+            apps/orbe-node/src/application/graph-rag-shadow.ts \
+            apps/orbe-node/src/application/graph-recruiter-preview.ts \
+            apps/orbe-node/src/application/chat.ts \
+            apps/orbe-node/src/http/app.ts \
+            apps/orbe-node/src/main.ts \
+            packages/shared-config/src/index.ts \
+            tests/graphrag-shadow-http.test.ts \
+            docs/graph-rag-shadow-dev.md
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(graphrag): qualify F3.3 DEV shadow integration (#30 #32)'
+            git push origin HEAD:dev
+          fi
