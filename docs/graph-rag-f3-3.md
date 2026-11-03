@@ -133,3 +133,32 @@ extracts real skill vocabulary from the canonical PPKS graph snapshot.
 No files in the public Orbe startup, chat route, Compose secrets or deployment
 have been changed for this increment. The real DEV graph-reader continues
 running unchanged; this is offline code and test qualification only.
+
+
+## F3.3 — evidence-anchored extraction of signposted vacancy prose
+
+`graph-vacancy-text.ts` extracts individual candidate requirements from
+**explicitly signposted** requirements / must-have / desired-skills sections,
+and from recognized `Exigimos:`, `Diferenciais:` etc. It preserves mandatory
+versus desirable classification, verbatim excerpts and unknown items. It does
+not assume that every arbitrary paragraph in a LinkedIn job posting was
+exhaustively parsed; if no structured sections are present it aborts to the
+existing PPKS fallback.
+
+For richer semantic interpretation, a caller can inject a separately
+budgeted `proposeLabels(fragments)` function (potential future LLM).
+Its output is **untrusted data**: there must be one proposal for every
+fragment, with exactly matching verbatim source excerpts and unique IDs.
+A proposed label must occur literally in its source. If it only covers
+part of an inseparable phrase (e.g. interpreting `SQL Server` as `SQL`
+or `Java ou C#` as `Java`), the full phrase is preserved instead of
+discarding the remainder. Model-proposed seniority, ungrounded requirements,
+and extra output fields are rejected.
+
+No actual model is invoked by this increment; the default label selector is
+conservative and local. Existing `createStructuredVacancyPlanner` maps
+those grounded labels to PPKS skills and retains every unknown item; the
+`evaluateGraphRecruiterPreview` callback supports this planner without
+changing any public Orbe route. This is a safe staging gate, not a claim of
+open-ended semantic completeness. No server/Compose/secrets changes or
+remote deployments were made.
