@@ -22,6 +22,7 @@ import {
   type AcademicEvidence,
 } from './academic.js';
 import { SemanticKnowledgeGraph } from './semantic-graph.js';
+import { isProgrammingProfileQuestion } from '../domain/security.js';
 import {
   knowledgePhrase,
   knowledgeTerms,
@@ -64,6 +65,7 @@ const broadTerms = new Set(['portfolio', 'projeto', 'tecnologia', 'competencia',
 
 /** Broad recruiting questions need concrete evidence instead of falling through lexical search. */
 function isCareerOverview(query: string): boolean {
+  if (isProgrammingProfileQuestion(query)) return true;
   const text = knowledgePhrase(query);
   return /\b(?:qualificad\w*|qualificac\w*|habilidad\w*|diferencia\w*|pontos? fortes?|aptidao|recrutad\w*|recruiter\w*|contrat\w*|vaga\w*|candidat\w*|oportunidad\w*|programador\w*|desenvolvedor\w*|juniors?|juniores|plenos?|seniors?|seniores|senioridade|nivel\w*|compatib\w*)\b/.test(
     text,
