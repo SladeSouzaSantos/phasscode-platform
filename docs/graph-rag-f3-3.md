@@ -192,3 +192,42 @@ The gate currently accepts only explicitly signposted requirement sections
 and declines unsignposted prose rather than claiming full coverage.
 Unit tests use offline synthetic models, including the real
 `createFallbackInvocationFactory` with mocked provider/global budgets.
+
+
+## F3.3 — Audited coverage for free-form vacancy prose (offline opt-in)
+
+The additional graph-vacancy-coverage.ts adapter conservatively recognizes
+candidate-facing clauses in free prose, such as "Buscamos ... experiência em
+Java", "Conhecimento de PostgreSQL é necessário", and "Experiência com Docker
+será um diferencial". It reuses the existing signposted parser for explicit
+headings and never infers candidate proficiency from employer descriptions
+(e.g., "Nossa empresa utiliza Go").
+
+The analyzeVacancyEvidenceCoverage report distinguishes:
+
+- **requirement**: source line/sentence, classification, and exact fragment IDs;
+- **context**: non-requirement employer, benefits or responsibility descriptions;
+- **uninterpreted**: candidate-facing clauses not covered by the conservative grammar.
+
+Each fragment retains its original quoted wording and mandatory/desirable
+classification. No numeric coverage percentage is invented. The status
+"eligible" means **only** that the supported grammar encountered no unresolved
+candidate-facing clause; it is not a universal guarantee of exhaustive
+understanding of any job advertisement.
+
+The opt-in createCoverageAwareVacancyPlanner exposes inspect(text) for audit
+and plan(text) for compatibility with the existing offline
+evaluateGraphRecruiterPreview callback. On "needs_review", planning fails closed
+with GRAPH_VACANCY_UNINTERPRETED_TEXT **before any LLM call or Neo4j lookup**.
+When eligible, source snippets are replayed into the original evidence-anchored
+planner, which continues validating literal quotations, source-grounded label
+proposals, composite alternatives, unknown items, and existing provider/global
+LLM budgets. This is a staging adapter: no change to public chat.ts, main.ts,
+API, feature flag, secrets or Compose.
+
+Regression tests cover mixed sections and prose, Go as an unknown desirable
+skill, Java/C# alternatives, SQL Server versus SQL, 42 items, ambiguous
+candidate-facing text, prompt injection, and canonical PPKS fallback invoked
+exactly once. Next gates: larger recruiter corpus including realistic LinkedIn
+descriptions, review of false-positive/false-negative clauses, and the shared
+per-turn model-call budget before any DEV public runtime flag.
