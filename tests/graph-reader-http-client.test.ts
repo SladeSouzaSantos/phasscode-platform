@@ -68,7 +68,7 @@ function testTransport(
     const response = await app.inject({
       method: init?.method ?? 'GET',
       url: new URL(String(input)).pathname,
-      headers: init?.headers as Record<string, string>,
+      ...(init?.headers ? { headers: init.headers as Record<string, string> } : {}),
       ...(init?.body ? { payload: String(init.body) } : {}),
     });
     return new Response(response.body, {
@@ -167,7 +167,7 @@ describe('F3.2/F3.3 private HTTP evidence client, not wired to public chat', () 
       'GRAPH_HTTP_INVALID_RESPONSE',
     );
 
-    const observed = vi.fn(async () =>
+    const observed = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
       Response.json({ matches: [{ requirementId: 'java', claims: [], sources: [] }] }),
     );
     const valid = new GraphReaderHttpRepository({ token, transport: observed });
