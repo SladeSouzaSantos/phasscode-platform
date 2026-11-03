@@ -40,20 +40,40 @@ const normalize = (text: string) =>
     .trim();
 
 const requiredHeadings = new Set([
-  'requisitos', 'requisitos obrigatorios', 'requisitos tecnicos',
-  'qualificacoes', 'qualificacoes obrigatorias',
-  'conhecimentos', 'conhecimentos obrigatorios',
-  'habilidades', 'habilidades obrigatorias',
-  'must have', 'requirements', 'required skills',
+  'requisitos',
+  'requisitos obrigatorios',
+  'requisitos tecnicos',
+  'qualificacoes',
+  'qualificacoes obrigatorias',
+  'conhecimentos',
+  'conhecimentos obrigatorios',
+  'habilidades',
+  'habilidades obrigatorias',
+  'must have',
+  'requirements',
+  'required skills',
 ]);
 const optionalHeadings = new Set([
-  'desejaveis', 'desejavel', 'diferenciais', 'sera um diferencial',
-  'nice to have', 'preferred qualifications', 'requisitos desejaveis',
+  'desejaveis',
+  'desejavel',
+  'diferenciais',
+  'sera um diferencial',
+  'nice to have',
+  'preferred qualifications',
+  'requisitos desejaveis',
 ]);
 const endHeadings = new Set([
-  'beneficios', 'sobre a empresa', 'quem somos',
-  'responsabilidades', 'atividades', 'atribuicoes', 'o que oferecemos',
-  'local de trabalho', 'remuneracao', 'salario', 'modelo de trabalho',
+  'beneficios',
+  'sobre a empresa',
+  'quem somos',
+  'responsabilidades',
+  'atividades',
+  'atribuicoes',
+  'o que oferecemos',
+  'local de trabalho',
+  'remuneracao',
+  'salario',
+  'modelo de trabalho',
 ]);
 const inlineRequired =
   /^(?:exigimos|precisamos de|requeremos|requisitos para a vaga|buscamos experi[eê]ncia em|buscamos conhecimento em)\s*:?\s*(.+)$/i;
@@ -67,7 +87,12 @@ function splitRequirements(raw: string): string[] {
   return raw
     .replace(/[.!?]+$/g, '')
     .split(/\s*[,;]\s*|\s+e\s+(?=[\p{L}#])/iu)
-    .map((part) => part.trim().replace(/[.!?]+$/g, '').trim())
+    .map((part) =>
+      part
+        .trim()
+        .replace(/[.!?]+$/g, '')
+        .trim(),
+    )
     .filter(Boolean);
 }
 
@@ -126,15 +151,38 @@ export function extractVacancyEvidenceFragments(input: string): VacancyEvidenceF
 // Only these non-technical modifiers may be stripped around a proposed
 // skill name. Anything substantive left unaccounted for is preserved as
 // an UNKNOWN requirement (e.g. SQL Server proposed as "SQL").
-const modifierWords = new Set(
-  [
-    'conhecimento', 'conhecimentos', 'em', 'de', 'com', 'experiencia',
-    'profissional', 'previa', 'solida', 'pratica', 'dominio', 'familiaridade',
-    'bons', 'boas', 'nivel', 'basico', 'intermediario', 'avancado',
-    'requerido', 'requerida', 'obrigatorio', 'obrigatoria', 'desejavel',
-    'vivencia', 'utilizacao', 'uso', 'da', 'do', 'na', 'no',
-  ],
-);
+const modifierWords = new Set([
+  'conhecimento',
+  'conhecimentos',
+  'em',
+  'de',
+  'com',
+  'experiencia',
+  'profissional',
+  'previa',
+  'solida',
+  'pratica',
+  'dominio',
+  'familiaridade',
+  'bons',
+  'boas',
+  'nivel',
+  'basico',
+  'intermediario',
+  'avancado',
+  'requerido',
+  'requerida',
+  'obrigatorio',
+  'obrigatoria',
+  'desejavel',
+  'vivencia',
+  'utilizacao',
+  'uso',
+  'da',
+  'do',
+  'na',
+  'no',
+]);
 
 function proposalCoversFragment(excerpt: string, label: string): boolean {
   const full = normalize(excerpt);
@@ -143,8 +191,7 @@ function proposalCoversFragment(excerpt: string, label: string): boolean {
   const bounded = ' ' + full + ' ';
   const at = bounded.indexOf(' ' + selected + ' ');
   if (at < 0) return false;
-  const remainder =
-    (bounded.slice(0, at) + ' ' + bounded.slice(at + selected.length + 2)).trim();
+  const remainder = (bounded.slice(0, at) + ' ' + bounded.slice(at + selected.length + 2)).trim();
   return remainder.split(/\s+/).every((word) => !word || modifierWords.has(word));
 }
 

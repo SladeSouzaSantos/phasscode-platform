@@ -114,9 +114,7 @@ describe('F3.3 evidence-anchored extraction from signposted vacancy text', () =>
       proposeLabels: (fragments) =>
         fragments.map((r) => ({ id: r.id, excerpt: 'Go', label: 'Java' })),
     });
-    await expect(modified('Requisitos: Java')).rejects.toThrow(
-      'GRAPH_VACANCY_UNGROUNDED_PROPOSAL',
-    );
+    await expect(modified('Requisitos: Java')).rejects.toThrow('GRAPH_VACANCY_UNGROUNDED_PROPOSAL');
 
     const extra = createEvidenceAnchoredVacancyPlanner(skills, {
       proposeLabels: (fragments) =>
@@ -129,9 +127,7 @@ describe('F3.3 evidence-anchored extraction from signposted vacancy text', () =>
         { id: 'fragment-42', excerpt: 'Java', label: 'Java' },
       ],
     });
-    await expect(wrongId('Requisitos: Java')).rejects.toThrow(
-      'GRAPH_VACANCY_UNGROUNDED_PROPOSAL',
-    );
+    await expect(wrongId('Requisitos: Java')).rejects.toThrow('GRAPH_VACANCY_UNGROUNDED_PROPOSAL');
   });
 
   it('does not infer a skill from job prose outside explicit requirement sections', async () => {
@@ -144,10 +140,9 @@ describe('F3.3 evidence-anchored extraction from signposted vacancy text', () =>
 
   it('recognizes inline must-have and nice-to-have clauses without changing importance', async () => {
     const planner = createEvidenceAnchoredVacancyPlanner(skills);
-    const plan = await planner([
-      'Exigimos: conhecimento em Java e Docker',
-      'Desejável: ReactJS, inglês avançado',
-    ].join('\n'));
+    const plan = await planner(
+      ['Exigimos: conhecimento em Java e Docker', 'Desejável: ReactJS, inglês avançado'].join('\n'),
+    );
     expect(plan.requirements).toEqual([
       { kind: 'vacancy_requirement', id: 'skill-java', label: 'Java', mandatory: true },
       { kind: 'vacancy_requirement', id: 'skill-docker', label: 'Docker', mandatory: true },

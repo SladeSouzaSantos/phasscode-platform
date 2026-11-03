@@ -134,7 +134,6 @@ No files in the public Orbe startup, chat route, Compose secrets or deployment
 have been changed for this increment. The real DEV graph-reader continues
 running unchanged; this is offline code and test qualification only.
 
-
 ## F3.3 — evidence-anchored extraction of signposted vacancy prose
 
 `graph-vacancy-text.ts` extracts individual candidate requirements from
