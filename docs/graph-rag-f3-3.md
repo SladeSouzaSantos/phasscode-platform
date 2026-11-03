@@ -161,3 +161,35 @@ those grounded labels to PPKS skills and retains every unknown item; the
 changing any public Orbe route. This is a safe staging gate, not a claim of
 open-ended semantic completeness. No server/Compose/secrets changes or
 remote deployments were made.
+
+
+## F3.3 — budgeted LLM interpretation of evidence-anchored vacancy labels
+
+`graph-semantic-vacancy.ts` introduces an **injected** semantic label
+proposer for `createEvidenceAnchoredVacancyPlanner`. It accepts ONLY an
+existing `LlmInvocationFactory` (not API keys, bare clients, raw URLs or
+direct provider calls). With the Orbe factory in
+`adapters/fallback-llm.ts`, every actual attempt reserves the *existing*
+provider-local and global Redis budgets and respects cooldowns, quotas and
+per-provider deadlines. This increment makes one logical, tool-free model
+request per signposted vacancy; configured provider fallback can attempt
+further candidates, charging each attempt normally.
+
+The system message restricts output to JSON with IDs, exact quoted fragments
+and literal labels. The user/vacancy text is passed as untrusted data only;
+no chat history, candidate private files, Neo4j passwords, API keys or
+meeting tools enter the request. The model response is checked for valid
+JSON, a strict schema, maximum response size and prohibited tool calls.
+Then the existing *independent* source-anchoring planner checks that every
+fragment is present once, quotes are verbatim, labels occur in the source,
+and no composite or unknown requirement is silently discarded.
+Bad proposals and unavailable models result in the canonical PPKS fallback,
+not fabricated evidence. There is no LLM action or new HTTP route in the
+public Orbe; composing the factory with a production app requires a later
+explicit rollout and accounting of shared per-turn logical call limits.
+
+An LLM is not a guaranteed exhaustive parser of arbitrary job descriptions.
+The gate currently accepts only explicitly signposted requirement sections
+and declines unsignposted prose rather than claiming full coverage.
+Unit tests use offline synthetic models, including the real
+`createFallbackInvocationFactory` with mocked provider/global budgets.
