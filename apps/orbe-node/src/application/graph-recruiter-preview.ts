@@ -2,6 +2,9 @@ import { z } from 'zod';
 import { createGroundedRecruiterGraph } from './grounded-recruiter-graph.js';
 import { PublicGraphEvidenceGateway } from './graph-public-policy.js';
 import { renderProfessionalAdvocacy } from './graph-professional-advocacy.js';
+import { verifyAndRenderNarrativeSelection } from './graph-narrative-verifier.js';
+import { vacancyRequirementSchema } from '../domain/evidence-graph.js';
+import type { VacancyRequirementPlan } from './graph-vacancy-plan.js';
 import type { EvidenceGraphRepository, VacancyRequirement } from '../domain/evidence-graph.js';
 
 /**
@@ -15,6 +18,8 @@ export interface GraphRecruiterPreviewOptions {
     question: string,
   ): readonly VacancyRequirement[] | Promise<readonly VacancyRequirement[]>;
   canonicalPpks(question: string): string | Promise<string>;
+  /** Optional structured, audited vacancy analysis: never omit unknown items. */
+  requirementPlan?: (question: string) => VacancyRequirementPlan | Promise<VacancyRequirementPlan>;
   /** Explicitly approved related skills, never inferred from visitor text. */
   transferableSkills?: Readonly<Record<string, readonly VacancyRequirement[]>>;
 }
@@ -22,8 +27,14 @@ export interface GraphRecruiterPreviewOptions {
 export type GraphRecruiterPreviewResult = {
   mode: 'verified_graph' | 'transferable_graph' | 'canonical_ppks';
   answer: string;
-  reason: 'verified' | 'transferable' | 'no_requirements' | 'unavailable_or_incomplete';
+  reason:
+    | 'verified'
+    | 'transferable'
+    | 'no_requirements'
+    | 'unrecognized_requirements'
+    | 'unavailable_or_incomplete';
   matchedRequirements: number;
+  unrecognizedRequirements?: readonly string[];
 };
 
 export async function evaluateGraphRecruiterPreview(
@@ -32,17 +43,51 @@ export async function evaluateGraphRecruiterPreview(
 ): Promise<GraphRecruiterPreviewResult> {
   const cleanQuestion = z.string().trim().min(1).max(20_000).parse(question);
   const fallback = async (
-    reason: 'no_requirements' | 'unavailable_or_incomplete',
+    reason: 'no_requirements' | 'unrecognized_requirements' | 'unavailable_or_incomplete',
+    unrecognized: readonly string[] = [],
   ): Promise<GraphRecruiterPreviewResult> => {
     const raw = await options.canonicalPpks(cleanQuestion);
     const answer = z.string().trim().min(1).parse(raw);
-    return { mode: 'canonical_ppks', answer, reason, matchedRequirements: 0 };
+    return {
+      mode: 'canonical_ppks',
+      answer,
+      reason,
+      matchedRequirements: 0,
+      ...(unrecognized.length ? { unrecognizedRequirements: [...unrecognized] } : {}),
+    };
   };
+
+  let plan: VacancyRequirementPlan | undefined;
+  if (options.requirementPlan) {
+    try {
+      const raw = await options.requirementPlan(cleanQuestion);
+      plan = z
+        .strictObject({
+          requirements: z.array(vacancyRequirementSchema),
+          unknown: z.array(
+            z.strictObject({ label: z.string().trim().min(1), mandatory: z.boolean() }),
+          ),
+        })
+        .parse(raw);
+      if (new Set(plan.requirements.map((item) => item.id)).size !== plan.requirements.length) {
+        throw new Error('GRAPH_DUPLICATE_PLANNED_REQUIREMENT');
+      }
+    } catch {
+      return fallback('unavailable_or_incomplete');
+    }
+    if (plan.unknown.length) {
+      return fallback(
+        'unrecognized_requirements',
+        plan.unknown.map((item) => item.label),
+      );
+    }
+  }
+
   let result;
   try {
     const graph = createGroundedRecruiterGraph({
       evidence: options.evidence,
-      identifyRequirements: options.identifyRequirements,
+      identifyRequirements: plan ? () => plan.requirements : options.identifyRequirements,
     });
     result = await graph.invoke({ question: cleanQuestion }, { recursionLimit: 12 });
   } catch {
@@ -54,7 +99,19 @@ export async function evaluateGraphRecruiterPreview(
     return fallback('unavailable_or_incomplete');
   }
   if (result.decision === 'verified') {
-    const answer = renderProfessionalAdvocacy(result.requirements, result.matches);
+    // Only claim IDs may be proposed; the final prose is rendered from
+    // the source-complete public graph records, never copied from a model.
+    const selection = {
+      statements: result.requirements.map((item, index) => ({
+        requirementId: item.id,
+        claimIds: result.matches[index]?.claims.map((claim) => claim.id) ?? [],
+      })),
+    };
+    const answer = verifyAndRenderNarrativeSelection(
+      result.requirements,
+      result.matches,
+      selection,
+    );
     if (!answer) return fallback('unavailable_or_incomplete');
     return {
       mode: 'verified_graph',
