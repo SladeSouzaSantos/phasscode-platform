@@ -1,0 +1,47 @@
+# DEV-only one-time requalification after identifying an overbroad ellipsis gate.
+name: Qualify Orbe contextual recruiter correction
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/orbe-recruiter-followups-qualification.yml
+permissions:
+  contents: write
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: true }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format changed DEV files
+        run: |
+          npx prettier --write \
+            apps/orbe-node/src/application/technology-follow-up.ts \
+            apps/orbe-node/src/application/chat.ts \
+            apps/orbe-node/src/domain/security.ts \
+            apps/orbe-node/src/adapters/knowledge.ts \
+            tests/recruiter-intent-followups.test.ts
+      - name: Qualify full application and specific recruiter paths
+        run: |
+          npm run check
+          npx vitest run \
+            tests/recruiter-intent-followups.test.ts \
+            tests/context.test.ts \
+            tests/http.test.ts \
+            tests/recruiter-matrix.test.ts
+      - name: Commit code formatting on DEV only
+        run: |
+          git add -- \
+            apps/orbe-node/src/application/technology-follow-up.ts \
+            apps/orbe-node/src/application/chat.ts \
+            apps/orbe-node/src/domain/security.ts \
+            apps/orbe-node/src/adapters/knowledge.ts \
+            tests/recruiter-intent-followups.test.ts
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(orbe): qualify distinction between technology ellipsis and full question (#31)'
+            git push origin HEAD:dev
+          fi
