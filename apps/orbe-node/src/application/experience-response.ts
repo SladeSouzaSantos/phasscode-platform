@@ -90,6 +90,13 @@ export function buildVerifiedExperienceDurationResponse(
   // Multiple independent requirements need a matrix, not a single combined
   // duration that could misleadingly imply years with every technology.
   if (technologyNames.length > 1) return undefined;
+  // "Total de carreira e com Java" asks for two different quantities. Do
+  // not collapse these into a Java-only number; let the provider receive both
+  // the complete mixed-role employment scope and the Java-specific subset.
+  if (
+    technologyNames.length > 0 &&
+    /\b(?:total|carreira|trajetoria)\b/.test(normalized)
+  ) return undefined;
   if (technologyNames.length === 1) {
     const technology = technologyNames[0]!;
     const matching = all.filter((doc) =>
