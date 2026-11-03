@@ -230,3 +230,31 @@ candidate-facing text, prompt injection, and canonical PPKS fallback invoked
 exactly once. Next gates: larger recruiter corpus including realistic LinkedIn
 descriptions, review of false-positive/false-negative clauses, and the shared
 per-turn model-call budget before any DEV public runtime flag.
+
+
+## F3.3 — Shared logical model-call budget for future GraphRAG composition
+
+`graph-turn-llm-budget.ts` adds a **per-chat-turn** admission guard in front
+of the existing `LlmInvocationFactory`. The current public ceiling is
+`MAX_MODEL_CALLS_PER_TURN = 3`, and the same maximum applies to combined
+semantic vacancy parsing and subsequent answer-generation model rounds.
+The optional vacancy parser is admitted at most once, and always leaves
+at least one model slot for the actual recruiter response. When the total
+limit is one, parsing is skipped entirely. A failed invocation consumes
+its logical slot so retries cannot bypass the cap. Synchronous reservations
+also prevent concurrent calls from oversubscribing the turn.
+
+This guard **does not replace physical provider/global quotas**: the
+underlying fallback factory continues reserving existing Redis budgets on
+every attempted upstream provider, including fallback attempts. Therefore
+"logical model calls" and "provider attempts" are separate metrics. A
+new guard instance must be created for each HTTP chat turn, never shared
+between visitors. The optional `usage()` snapshot contains counts only,
+not prompts, response text, secrets, or identifying fields.
+
+The adapter exposes `semanticFactory` and `answerFactory` for a
+**future DEV-only orchestration layer**. Nothing in public `main.ts`,
+`chat.ts`, configuration, Compose or credentials is modified. Integration
+into actual chat turns still requires feature-flag-off rollout and a
+functional E2E regression; this commit does not claim that the public chat
+already shares its budgets with the staged GraphRAG.
