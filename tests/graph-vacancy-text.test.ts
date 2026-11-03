@@ -125,7 +125,7 @@ describe('F3.3 evidence-anchored extraction from signposted vacancy text', () =>
     await expect(extra('Requisitos: Java')).rejects.toThrow();
 
     const wrongId = createEvidenceAnchoredVacancyPlanner(skills, {
-      proposeLabels: (_fragments): VacancyLabelProposal[] => [
+      proposeLabels: (): VacancyLabelProposal[] => [
         { id: 'fragment-42', excerpt: 'Java', label: 'Java' },
       ],
     });

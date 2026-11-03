@@ -1,4 +1,5 @@
 # One-time DEV-only qualification for evidence-anchored vacancy parsing.
+# Rerun: remove unused test callback parameter.
 # Delete promptly after tests succeed. Does not deploy to a remote host.
 name: Graph vacancy text extraction qualification
 on:
