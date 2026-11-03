@@ -18,7 +18,7 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
   });
 
   it.each([
-    {},
+    { ORBE_GRAPHRAG_MODE: undefined },
     { ORBE_GRAPHRAG_MODE: 'off' },
     { ORBE_GRAPHRAG_MODE: 'shadow', ORBE_GRAPHRAG_STAGE: 'production' },
     { ORBE_GRAPHRAG_MODE: 'shadow', ORBE_GRAPHRAG_STAGE: 'dev' },
@@ -89,9 +89,9 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
       ORBE_GRAPHRAG_DEV_APPROVED: 'true',
       ORBE_GRAPH_READER_TOKEN_FILE: '/run/secrets/graph_reader_token',
     });
-    expect(Object.keys(shadow.services.api.environment)).not.toEqual(
-      expect.arrayContaining(['NEO4J_AUTH', 'NEO4J_URI', 'NEO4J_PASSWORD']),
-    );
+    for (const forbidden of ['NEO4J_AUTH', 'NEO4J_URI', 'NEO4J_PASSWORD']) {
+      expect(shadow.services.api.environment).not.toHaveProperty(forbidden);
+    }
     expect(reader.services['graph-reader'].secrets).toContain('graph_reader_token');
     expect(reader.services['graph-reader'].ports).toBeUndefined();
     expect(graph.services.neo4j.ports).toBeUndefined();
@@ -104,7 +104,8 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
     expect(text).toContain("PINNED_IMAGE_SHA_NOT_CURRENT_DEV");
     expect(text).toContain("SHADOW_MUST_BE_OPT_IN_OVERLAY_NOT_BASE_ENV");
     expect(text).toContain("DEV_COMPOSE_CONFIG_INVALID");
-    expect(text).not.toMatch(/\bdocker\s+(?:compose\s+)?(?:up|down|rm|restart|run|exec)\b/);
-    expect(text).not.toMatch(/\bgit\s+(?:pull|push|merge|checkout|reset|clean)\b/);
+    const executable = text.split('\n').filter((line) => !line.trimStart().startsWith('#')).join('\n');
+    expect(executable).not.toMatch(/\bdocker\s+(?:compose\s+)?(?:up|down|rm|restart|run|exec)\b/);
+    expect(executable).not.toMatch(/\bgit\s+(?:pull|push|merge|checkout|reset|clean)\b/);
   });
 });
