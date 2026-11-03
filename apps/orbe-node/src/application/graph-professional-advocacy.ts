@@ -28,14 +28,16 @@ function supportingFacts(match: EvidenceGraphMatch, maxClaims = 3): string[] {
   return [...match.claims]
     .filter(
       (claim) =>
-        claim.sourceIds.length > 0 &&
-        claim.sourceIds.every((sourceId) => publicIds.has(sourceId)),
+        claim.sourceIds.length > 0 && claim.sourceIds.every((sourceId) => publicIds.has(sourceId)),
     )
     .sort((a, b) => rank[a.scope] - rank[b.scope] || a.id.localeCompare(b.id))
     .slice(0, maxClaims)
     .map((claim) => {
       // Source text is evidence data, not executable instructions or Markdown markup.
-      const label = claim.label.replace(/[\r\n]+/g, ' ').trim().slice(0, 300);
+      const label = claim.label
+        .replace(/[\r\n]+/g, ' ')
+        .trim()
+        .slice(0, 300);
       return `${label} (${scopeLabels[claim.scope]}; fontes: ${claim.sourceIds.join(', ')})`;
     });
 }

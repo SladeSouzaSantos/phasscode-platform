@@ -73,7 +73,6 @@ server or main bootstrap has been changed. There is no new Mac Mini deploy.
 Tests verify Java versus JavaScript, SQL Server versus SQL, 40-item parsing,
 complete coverage, unavailable reader and canonical fallback exactly once.
 
-
 ## Professional advocacy — positive but evidence-bound (offline)
 
 The Orbe assistant represents a candidate to recruiters, not an auditor

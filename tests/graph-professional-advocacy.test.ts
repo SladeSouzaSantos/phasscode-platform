@@ -105,7 +105,9 @@ describe('F3.3 professional advocacy with verified evidence', () => {
       claims: [claim('claim-mixed', 'Informação privada', 'professional', [src.id, secret.id])],
       sources: [src, secret],
     };
-    expect(renderProfessionalAdvocacy([go], [goMissing], new Map([[go.id, [mixed]]]))).toBeUndefined();
+    expect(
+      renderProfessionalAdvocacy([go], [goMissing], new Map([[go.id, [mixed]]])),
+    ).toBeUndefined();
     expect(renderProfessionalAdvocacy([java], [mixed])).toBeUndefined();
   });
 
@@ -141,9 +143,7 @@ describe('F3.3 professional advocacy with verified evidence', () => {
   });
 
   it('never confuses study evidence with professional experience', () => {
-    const onlyStudy = match(java, [
-      claim('claim-study', 'Exercício em Java', 'study'),
-    ]);
+    const onlyStudy = match(java, [claim('claim-study', 'Exercício em Java', 'study')]);
     const answer = renderProfessionalAdvocacy([java], [onlyStudy]);
     expect(answer).toContain('projeto ou atividade de estudo');
     expect(answer).not.toContain('Java no desenvolvimento do SIGAA');

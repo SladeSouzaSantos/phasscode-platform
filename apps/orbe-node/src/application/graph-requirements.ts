@@ -88,7 +88,6 @@ export function createCatalogRequirementIdentifier(skills: readonly RequirementS
   };
 }
 
-
 /**
  * Build the explicit vocabulary from the real PPKS graph projection. Records
  * identify skills, not personal competency or proof of employment.
