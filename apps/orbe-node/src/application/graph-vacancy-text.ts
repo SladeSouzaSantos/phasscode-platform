@@ -56,9 +56,9 @@ const endHeadings = new Set([
   'local de trabalho', 'remuneracao', 'salario', 'modelo de trabalho',
 ]);
 const inlineRequired =
-  /^(?:exigimos|precisamos de|requeremos|requisitos para a vaga|buscamos experiencia em|buscamos conhecimento em)\s*:?\s*(.+)$/;
+  /^(?:exigimos|precisamos de|requeremos|requisitos para a vaga|buscamos experi[eê]ncia em|buscamos conhecimento em)\s*:?\s*(.+)$/i;
 const inlineOptional =
-  /^(?:desejavel|ser[aá] um diferencial|diferencial|nice to have|preferencialmente)\s*:?\s*(.+)$/;
+  /^(?:desej[aá]vel|ser[aá] um diferencial|diferencial|nice to have|preferencialmente)\s*:?\s*(.+)$/i;
 const bullet = /^(?:[-*•]\s+|[0-9]+[.)]\s+)/;
 
 function splitRequirements(raw: string): string[] {
