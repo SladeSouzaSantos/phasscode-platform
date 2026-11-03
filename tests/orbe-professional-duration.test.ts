@@ -4,7 +4,6 @@ import type { FastifyInstance } from 'fastify';
 import { summarizeExperiencePeriods } from '../apps/orbe-node/src/domain/experience.js';
 import type {
   ChatProvider,
-  GenerationInput,
   KnowledgeDocument,
 } from '../apps/orbe-node/src/domain/ports.js';
 import {
@@ -186,7 +185,7 @@ afterEach(async () => {
 
 describe('Orbe HTTP duration route', () => {
   it('answers general experience with four real sources without fabricating LLM tenure', async () => {
-    const generate = vi.fn(async (_input: GenerationInput) => ({
+    const generate = vi.fn(async () => ({
       answer: 'A LLM não deve inventar uma soma de meses.',
       sources: [],
     }));
