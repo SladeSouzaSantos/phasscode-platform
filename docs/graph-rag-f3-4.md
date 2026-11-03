@@ -58,7 +58,7 @@ it **does not** demonstrate conversational follow-up memory.
 
 1. F3.3: finish safe DEV-only chat composition behind a flag that defaults
    OFF, with a shared per-turn model-call budget and canonical PPKS fallback.
-2. F3.4: run equivalent *actual responses* against baseline v0.1.0 and
+2. F3.4: run equivalent _actual responses_ against baseline v0.1.0 and
    GraphRAG in a controlled environment; report source/claim correctness,
    persuasive professional tone, studies versus jobs, requirements coverage,
    and per-model costs without comparing unrelated environments.

@@ -56,10 +56,7 @@ describe('F3.4 initial offline recruiter corpus (not a live baseline comparison)
         {
           id: 'java-then-go',
           category: 'smoke',
-          turns: [
-            { message: 'Java no SIGAA?' },
-            { message: 'E quanto a Go?' },
-          ],
+          turns: [{ message: 'Java no SIGAA?' }, { message: 'E quanto a Go?' }],
         },
         {
           id: 'academic-followup',
@@ -72,10 +69,7 @@ describe('F3.4 initial offline recruiter corpus (not a live baseline comparison)
         },
       ],
     });
-    const report = await evaluateOfflineRecruiterMatrix(
-      fixture,
-      await projectPpksEvidenceGraph(),
-    );
+    const report = await evaluateOfflineRecruiterMatrix(fixture, await projectPpksEvidenceGraph());
     expect(report.totals).toMatchObject({ cases: 2, turns: 5 });
     expect(report.cases[0]?.turns.map((turn) => turn.index)).toEqual([0, 1]);
     expect(report.cases[1]?.turns.map((turn) => turn.index)).toEqual([0, 1, 2]);
@@ -128,11 +122,39 @@ describe('F3.4 initial offline recruiter corpus (not a live baseline comparison)
 
   it('preserves 33 named technologies and one unknown Go without falsely completing a vacancy', async () => {
     const named = [
-      'Java', 'Hibernate', 'JBoss', 'Spring Boot', 'JPA', 'PostgreSQL', 'MySQL',
-      'SQL', 'SQL Server', 'Angular', 'React', 'TypeScript', 'Node.js', 'Python',
-      'FastAPI', 'Flutter', 'Firebase', 'Redis', 'Docker', 'Docker Swarm', 'Git',
-      'GitHub Actions', 'CI/CD', 'Vitest', 'Playwright', 'CodeQL', 'OWASP ZAP',
-      'Nginx', 'Dart', 'PHP', 'Linux', 'REST', 'GraphQL',
+      'Java',
+      'Hibernate',
+      'JBoss',
+      'Spring Boot',
+      'JPA',
+      'PostgreSQL',
+      'MySQL',
+      'SQL',
+      'SQL Server',
+      'Angular',
+      'React',
+      'TypeScript',
+      'Node.js',
+      'Python',
+      'FastAPI',
+      'Flutter',
+      'Firebase',
+      'Redis',
+      'Docker',
+      'Docker Swarm',
+      'Git',
+      'GitHub Actions',
+      'CI/CD',
+      'Vitest',
+      'Playwright',
+      'CodeQL',
+      'OWASP ZAP',
+      'Nginx',
+      'Dart',
+      'PHP',
+      'Linux',
+      'REST',
+      'GraphQL',
     ];
     const skills = named.map((label, index) => ({ id: 'skill-' + index, label }));
     const planner = createCoverageAwareVacancyPlanner(skills);
@@ -188,9 +210,7 @@ describe('F3.4 initial offline recruiter corpus (not a live baseline comparison)
               kind: 'claim' as const,
               id: 'claim-' + req.id,
               label:
-                req.id === 'skill-java'
-                  ? 'Atuação Java no SIGAA'
-                  : 'Projeto didático Spring Boot',
+                req.id === 'skill-java' ? 'Atuação Java no SIGAA' : 'Projeto didático Spring Boot',
               subjectId: req.id === 'skill-java' ? 'engagement-sig' : 'project-study',
               predicate: 'USES_TECHNOLOGY' as const,
               objectId: req.id,
@@ -260,9 +280,9 @@ describe('F3.4 initial offline recruiter corpus (not a live baseline comparison)
   });
 
   it('keeps original recruiter fixture data unchanged and present', async () => {
-    const raw = JSON.parse(
-      await readFile('evaluation/vacancies-ppks-v12.json', 'utf8'),
-    ) as { cases: Array<{ id: string; turns: Array<{ message: string }> }> };
+    const raw = JSON.parse(await readFile('evaluation/vacancies-ppks-v12.json', 'utf8')) as {
+      cases: Array<{ id: string; turns: Array<{ message: string }> }>;
+    };
     expect(raw.cases).toHaveLength(9);
     expect(raw.cases.some((item) => item.id === 'foursys-java-ia')).toBe(true);
     expect(raw.cases.every((item) => item.turns[0]?.message)).toBe(true);
