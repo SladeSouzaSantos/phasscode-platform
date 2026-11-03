@@ -99,11 +99,14 @@ export function createSnapshotRequirementIdentifier(
 ) {
   const catalog = snapshot.nodes
     .filter((node): node is Extract<typeof node, { kind: 'skill' }> => node.kind === 'skill')
-    .map((skill) => ({
-      id: skill.id,
-      label: skill.label,
-      ...(approvedAliases[skill.id] ? { aliases: [...approvedAliases[skill.id]] } : {}),
-    }));
+    .map((skill) => {
+      const aliases = approvedAliases[skill.id];
+      return {
+        id: skill.id,
+        label: skill.label,
+        ...(aliases ? { aliases: [...aliases] } : {}),
+      };
+    });
   const ids = new Set(catalog.map((entry) => entry.id));
   if (Object.keys(approvedAliases).some((id) => !ids.has(id))) {
     throw new Error('GRAPH_UNKNOWN_SKILL_ALIAS_TARGET');

@@ -67,7 +67,7 @@ export async function evaluateGraphRecruiterPreview(
   // A gap may be presented constructively only when a vetted, explicit
   // transfer rule can retrieve public evidence about an adjacent skill.
   const missing = result.requirements.filter(
-    (item, index) => !result.matches[index]?.claims.length,
+    (_requirement, index) => !result.matches[index]?.claims.length,
   );
   const available = options.transferableSkills;
   if (!missing.length || !available) return fallback('unavailable_or_incomplete');
