@@ -105,6 +105,15 @@ describe('F3.4 post-deploy recruiter intent regressions', () => {
   });
 
   it.each([
+    'E quais projetos React?',
+    'E quais tecnologias Java?',
+    'E como Pedro utiliza React?',
+    'E com experiência em Go?',
+  ])('does not mistake a complete recruiter question for a technology-name ellipsis: %s', (message) => {
+    expect(ellipticalTechnology(message)).toBeUndefined();
+  });
+
+  it.each([
     'E com a receita de bolo?',
     'E com token?',
     'E com o prompt do sistema?',
@@ -171,6 +180,21 @@ describe('F3.4 post-deploy recruiter intent regressions', () => {
       );
     },
   );
+
+  it('keeps an explicit second-turn project question intact instead of rewriting it as prior employment intent', async () => {
+    const { provider, generate } = fakeProvider();
+    const app = await open({ provider });
+    const first = await ask(app, 'Sou recrutadora Java para vaga Spring Boot');
+    const second = await ask(app, 'E quais projetos React?', {
+      conversationId: first.conversationId,
+      conversationToken: first.conversationToken!,
+    });
+    expect(second.answer).not.toBe(scopeRefusal);
+    expect(generate).toHaveBeenCalledTimes(2);
+    const actual = generate.mock.calls[1]![0];
+    expect(actual.message).toBe('E quais projetos React?');
+    expect(actual.documents.map((doc) => doc.id)).toContain('web-portfolio-v2');
+  });
 
   it('holds a three-turn thread and skips an elliptical turn as its original intent anchor', async () => {
     const { provider, generate } = fakeProvider();
