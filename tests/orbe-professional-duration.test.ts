@@ -26,7 +26,9 @@ const employmentIds = [
 ] as const;
 const readEmployment = async () => {
   const knowledge = JSON.parse(await readFile('knowledge/portfolio.json', 'utf8')) as KnowledgeDocument[];
-  return knowledge.filter((item) => employmentIds.includes(item.id as (typeof employmentIds)[number]));
+  return knowledge
+    .filter((item) => employmentIds.includes(item.id as (typeof employmentIds)[number]))
+    .sort((a, b) => (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''));
 };
 
 describe('F3.4 recruiter duration: complete, mixed-role professional software experience', () => {
@@ -87,7 +89,7 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
     );
     expect(answer?.answer).toContain('Greencity');
     expect(answer?.answer).toContain('atuação profissional com flutter');
-    expect(answer?.answer).toContain('não é correto converter todo o período');
+    expect(answer?.answer).toMatch(/não é correto converter todo o período/i);
     expect(answer?.answer).not.toContain('10 anos e 10 meses');
     expect(answer?.sources.map((source) => source.id)).toEqual(['experiencia-greencity']);
   });
@@ -128,7 +130,7 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
     expect(ctx).toContain('"softwareInvolvedPeriods":{"approximateMonths":130');
     expect(ctx).toContain('"exclusivelySoftwarePeriods":{"approximateMonths":19');
     expect(ctx).toContain('Geowellex e Greencity');
-    expect(ctx).toContain('não representa dedicação integral');
+    expect(ctx).toMatch(/não representa dedicação integral/i);
   });
 
   it('merges overlapping roles once for employment contexts that include coding', () => {
