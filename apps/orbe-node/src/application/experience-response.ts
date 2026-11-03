@@ -72,7 +72,12 @@ function describeEmployment(
 export function isBroadProfessionalExperienceQuestion(query: string): boolean {
   const phrase = knowledgePhrase(query);
   if (!phrase || phrase.length > 170) return false;
-  if (mentionedTechnologies(query).size || /\b(?:go|golang|vaga|requisitos?|projetos?|cursos?|formacao|graduacao|entrevista|geowellex|greencity|acrux|sigaa)\b/.test(phrase)) {
+  if (
+    mentionedTechnologies(query).size ||
+    /\b(?:go|golang|vaga|requisitos?|projetos?|cursos?|formacao|graduacao|entrevista|geowellex|greencity|acrux|sigaa)\b/.test(
+      phrase,
+    )
+  ) {
     return false;
   }
   if (/\b(?:quantos?|anos?|meses?|tempo|duracao|desde quando)\b/.test(phrase)) return false;
@@ -82,10 +87,14 @@ export function isBroadProfessionalExperienceQuestion(query: string): boolean {
   const bare = /^(.*?)\b(?:tem|possui)\s+(?:alguma\s+)?experiencia(?: profissional)?$/.exec(phrase);
   if (bare) {
     const subject = bare[1]!.trim();
-    return subject.split(/\s+/).filter(Boolean).length <= 4 &&
-      !/\b(?:empresa|companhia|produto|projeto|tecnologia)\b/.test(subject);
+    return (
+      subject.split(/\s+/).filter(Boolean).length <= 4 &&
+      !/\b(?:empresa|companhia|produto|projeto|tecnologia)\b/.test(subject)
+    );
   }
-  return /^(?:quais? (?:sao )?(?:as )?experiencias? profissionais? (?:de|do) |qual (?:e )?a (?:experiencia|trajetoria|carreira) profissional (?:de|do) |(?:fale|conte|resuma|apresente) (?:sobre )?(?:a |as )?(?:experiencia|trajetoria|carreira) profissional (?:de|do) )pedro(?: santos)?$/.test(phrase);
+  return /^(?:quais? (?:sao )?(?:as )?experiencias? profissionais? (?:de|do) |qual (?:e )?a (?:experiencia|trajetoria|carreira) profissional (?:de|do) |(?:fale|conte|resuma|apresente) (?:sobre )?(?:a |as )?(?:experiencia|trajetoria|carreira) profissional (?:de|do) )pedro(?: santos)?$/.test(
+    phrase,
+  );
 }
 
 /**
@@ -115,10 +124,12 @@ export function buildVerifiedProfessionalOverviewResponse(
   );
   const answer = [
     'Sim. Pedro possui experiência profissional documentada em desenvolvimento de software, com registros a partir de ' +
-      included[0]!.period.start.slice(0, 4) + ':',
+      included[0]!.period.start.slice(0, 4) +
+      ':',
     ...included.map(({ document, period }) => '- ' + describeEmployment(document, period)),
     mixed.length
-      ? 'As experiências em ' + mixed.map(({ document }) => employerName(document)).join(' e ') +
+      ? 'As experiências em ' +
+        mixed.map(({ document }) => employerName(document)).join(' e ') +
         ' incluem programação em paralelo a outras responsabilidades técnicas. Elas fazem parte da experiência profissional de desenvolvimento, sem representar dedicação integral ao código.'
       : 'Esses vínculos documentam atuação profissional com software.',
     'A experiência com cada linguagem deve ser avaliada pelas atividades e fontes do respectivo vínculo.',

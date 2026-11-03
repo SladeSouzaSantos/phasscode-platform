@@ -15,7 +15,10 @@ import {
   reconcileExperienceAttribution,
 } from '../apps/orbe-node/src/application/experience-context.js';
 import { chatResponseSchema } from '../packages/contracts/src/index.js';
-import { ellipticalTechnology, rewriteEllipticalTechnologyQuestion } from '../apps/orbe-node/src/application/technology-follow-up.js';
+import {
+  ellipticalTechnology,
+  rewriteEllipticalTechnologyQuestion,
+} from '../apps/orbe-node/src/application/technology-follow-up.js';
 import { testApp } from './helpers.js';
 
 const asOf = new Date('2026-11-03T12:00:00.000Z');
@@ -42,17 +45,24 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
     'Pedro tem experiência?',
     'Pedro possui experiência profissional?',
     'Ele tem alguma experiência?',
-  ])('recognizes broad professional experience regardless of candidate-name typo: %s', async (question) => {
-    expect(isBroadProfessionalExperienceQuestion(question)).toBe(true);
-    const result = buildVerifiedProfessionalOverviewResponse(question, await readEmployment(), asOf);
-    expect(result?.sources.map((source) => source.id)).toEqual(employmentIds);
-    for (const employer of ['ACRUX', 'SIG Software', 'Geowellex', 'Greencity']) {
-      expect(result?.answer).toContain(employer);
-    }
-    expect(result?.answer).toContain('atuação híbrida');
-    expect(result?.answer).not.toMatch(/19 meses|1 ano e 7 meses/);
-    expect(result?.answer).toContain('sem representar dedicação integral ao código');
-  });
+  ])(
+    'recognizes broad professional experience regardless of candidate-name typo: %s',
+    async (question) => {
+      expect(isBroadProfessionalExperienceQuestion(question)).toBe(true);
+      const result = buildVerifiedProfessionalOverviewResponse(
+        question,
+        await readEmployment(),
+        asOf,
+      );
+      expect(result?.sources.map((source) => source.id)).toEqual(employmentIds);
+      for (const employer of ['ACRUX', 'SIG Software', 'Geowellex', 'Greencity']) {
+        expect(result?.answer).toContain(employer);
+      }
+      expect(result?.answer).toContain('atuação híbrida');
+      expect(result?.answer).not.toMatch(/19 meses|1 ano e 7 meses/);
+      expect(result?.answer).toContain('sem representar dedicação integral ao código');
+    },
+  );
 
   it.each([
     'Pedro tem experiência profissional com Java?',
@@ -75,8 +85,9 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
     ['E com os bancos SQL?', 'bancos SQL'],
   ])('recognizes article-qualified technical ellipsis %s', (question, technology) => {
     expect(ellipticalTechnology(question)).toBe(technology);
-    expect(rewriteEllipticalTechnologyQuestion('Pedtro têm experiência?', technology))
-      .toContain('experiência profissional com ' + technology);
+    expect(rewriteEllipticalTechnologyQuestion('Pedtro têm experiência?', technology)).toContain(
+      'experiência profissional com ' + technology,
+    );
   });
 
   it.each([

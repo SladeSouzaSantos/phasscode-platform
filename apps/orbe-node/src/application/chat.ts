@@ -426,7 +426,11 @@ export class ChatService {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
             promptVersion: PROMPT_VERSION,
-            ...(verifiedMatrix || verifiedAcademic || verifiedGo || verifiedDuration || verifiedOverview
+            ...(verifiedMatrix ||
+            verifiedAcademic ||
+            verifiedGo ||
+            verifiedDuration ||
+            verifiedOverview
               ? { deterministic: true }
               : {}),
           },
