@@ -13,6 +13,7 @@ import type { Config } from '../../../../packages/shared-config/src/index.js';
 import type { ChatProvider, ConversationStore, KnowledgeRepository } from '../domain/ports.js';
 import { ChatService } from '../application/chat.js';
 import type { PublicEvidenceReader } from '../application/public-evidence.js';
+import type { GraphShadowPort } from '../application/graph-rag-shadow.js';
 import { AppError } from '../domain/errors.js';
 import { AuthService } from '../auth/service.js';
 import { registerAuthRoutes } from '../auth/routes.js';
@@ -30,6 +31,7 @@ export interface AppOptions {
   phase3Ready?: () => Promise<void>;
   publicOnly?: boolean;
   evidenceReader?: PublicEvidenceReader;
+  graphShadow?: GraphShadowPort;
 }
 export async function buildApp({
   config,
@@ -42,9 +44,12 @@ export async function buildApp({
   phase3Ready,
   publicOnly = false,
   evidenceReader,
+  graphShadow,
 }: AppOptions) {
   if (publicOnly && (config.auth.enabled || meetings))
     throw new Error('Orbe público não aceita autenticação ou reuniões.');
+  if (config.ORBE_GRAPHRAG_MODE === 'shadow' && !graphShadow)
+    throw new Error('GRAPH_SHADOW_MISSING_PORT');
   if (config.auth.enabled && !auth) throw new Error('Autenticação habilitada sem serviço.');
   if (config.meetings.enabled && !meetings) throw new Error('Reuniões habilitadas sem serviço.');
   const app = Fastify({
@@ -90,6 +95,7 @@ export async function buildApp({
     Boolean(meetings),
     () => new Date(),
     evidenceReader,
+    config.ORBE_GRAPHRAG_MODE === 'shadow' ? graphShadow : undefined,
   );
   await app.register(helmet);
   app.addHook('onRequest', async (request, reply) => {
