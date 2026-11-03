@@ -54,6 +54,9 @@ export function experienceContext(
         ? {
             softwareInvolvedPeriods: compact(softwareInvolved),
             exclusivelySoftwarePeriods: compact(software),
+            // Retain the old scoped field for existing LLM adapters and
+            // reports; it is explicitly NOT the complete programming career.
+            softwarePeriods: compact(software),
             technologyPeriods,
             ...(careers ? { careerPeriods: careers } : {}),
           }
