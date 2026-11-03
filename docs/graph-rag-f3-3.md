@@ -28,3 +28,28 @@ generateGroundedAnswer → verifyClaims → respond`.
    recruiter scenarios without extra LLM calls.
 3. Add an explicit DEV-only flag with default `false` and the existing PPKS
    fallback; keep MAIN unaffected pending functional sign-off.
+
+
+## F3.3 — typed HTTP reader client (offline integration)
+
+`apps/orbe-node/src/adapters/graph-reader-http.ts` implements the same
+`EvidenceGraphRepository` port used by the offline LangGraph. It uses
+`http://graph-reader:8765` exclusively, with a separate bearer secret;
+neither a Neo4j URI nor a Bolt admin credential is supplied to the client.
+The client uses a bounded request size, response streaming size limit, 5 s
+request deadline, no redirects, strict response schemas and verification
+of the complete **public** source chain for each claim. Remote errors and
+private response details never appear in exception text.
+
+The adapter is **not instantiated in public `main.ts`**: no API route,
+public feature flag, additional provider call or Mac Mini deployment was
+introduced by this increment. Tests use Fastify `inject` as the private
+transport and pass the client to LangGraph offline. The reader's token can be
+mounted into a *separate unprivileged consumer* in a later rollout; do not
+copy `neo4j_auth` or seed credentials into public API. The verified DEV
+`graph-reader` is left running and unchanged.
+
+Further promotion gates: verify HTTP client/reader integration on isolated
+Docker services, application-level cost and timeout budgets, semantic
+requirements extraction, free-prose claim verification and explicit
+fallback to the canonical PPKS without escalating the public app's privilege.
