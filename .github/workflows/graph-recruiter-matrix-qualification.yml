@@ -1,0 +1,51 @@
+# One-time DEV-only F3.4 qualification; remove after successful run.
+name: Qualify F3.4 recruiter matrix
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/graph-recruiter-matrix-qualification.yml
+permissions:
+  contents: write
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: true }
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Apply repository formatter
+        run: |
+          npx prettier --write \
+            evaluation/graphrag-recruiter-offline.ts \
+            tests/graphrag-recruiter-offline.test.ts \
+            scripts/evaluate-graphrag-recruiter-offline.ts \
+            docs/graph-rag-f3-4.md \
+            package.json
+      - name: Qualify code, tests and deterministic report
+        run: |
+          npm run lint
+          npm run typecheck
+          npx vitest run \
+            tests/graphrag-recruiter-offline.test.ts \
+            tests/graph-recruiter-preview.test.ts \
+            tests/graph-vacancy-coverage.test.ts \
+            tests/graph-turn-llm-budget.test.ts \
+            tests/ppks-evidence-graph.test.ts \
+            tests/graph-professional-advocacy.test.ts
+          npm run eval:orbe:graphrag:offline >/tmp/graphrag-matrix-report.json
+          node -e "const r = require('/tmp/graphrag-matrix-report.json'); if(r.totals.cases!==9||r.liveLlmCalls!==0||r.baselineComparison!=='not_run') process.exit(1); console.log('GRAPH_MATRIX_REPLAY_OK cases='+r.totals.cases+' turns='+r.totals.turns)"
+      - name: Commit qualified formatting on DEV
+        run: |
+          git add -- \
+            evaluation/graphrag-recruiter-offline.ts \
+            tests/graphrag-recruiter-offline.test.ts \
+            scripts/evaluate-graphrag-recruiter-offline.ts \
+            docs/graph-rag-f3-4.md \
+            package.json
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'style(graphrag): qualify recruiter matrix audit (#31)'
+            git push origin HEAD:dev
+          fi
