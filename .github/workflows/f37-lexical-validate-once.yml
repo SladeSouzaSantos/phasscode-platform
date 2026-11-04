@@ -73,3 +73,5 @@ jobs:
             git commit -m 'style(F3.7): apply pinned Prettier to lexical reference (#42)'
             git push origin HEAD:dev
           fi
+
+# Re-run after fixing the source-offset test fixture; delete this workflow when green.
