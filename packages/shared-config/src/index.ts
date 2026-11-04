@@ -57,7 +57,7 @@ const envSchema = z.object({
   CHAT_RETENTION_DAYS: z.coerce.number().int().min(1).max(90).default(7),
   CHAT_MAX_CONVERSATIONS: z.coerce.number().int().min(1).max(10000).default(1000),
   // Explicit two-stage DEV-only opt-in. Docker uses NODE_ENV=production even in DEV.
-  ORBE_GRAPHRAG_MODE: z.enum(['off', 'shadow']).default('off'),
+  ORBE_GRAPHRAG_MODE: z.enum(['off', 'shadow', 'active']).default('off'),
   ORBE_GRAPHRAG_STAGE: z.enum(['none', 'dev']).default('none'),
   ORBE_GRAPHRAG_DEV_APPROVED: optionalBoolean,
   LLM_PROVIDER: z.enum(['mock', 'openai', 'openai-compatible']).default('mock'),
@@ -97,10 +97,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   }
   const config = parsed.data;
   if (
-    config.ORBE_GRAPHRAG_MODE === 'shadow' &&
+    config.ORBE_GRAPHRAG_MODE !== 'off' &&
     (config.ORBE_GRAPHRAG_STAGE !== 'dev' || config.ORBE_GRAPHRAG_DEV_APPROVED !== true)
   ) {
-    throw new Error('GRAPH_SHADOW_REQUIRES_EXPLICIT_DEV_APPROVAL');
+    throw new Error(
+      config.ORBE_GRAPHRAG_MODE === 'shadow'
+        ? 'GRAPH_SHADOW_REQUIRES_EXPLICIT_DEV_APPROVAL'
+        : 'GRAPH_ACTIVE_REQUIRES_EXPLICIT_DEV_APPROVAL',
+    );
   }
   const corsOrigins = config.CORS_ORIGINS.split(',')
     .map((item) => item.trim())
