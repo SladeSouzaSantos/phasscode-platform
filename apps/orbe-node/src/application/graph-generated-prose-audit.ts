@@ -92,7 +92,9 @@ export function auditGeneratedRecruiterProse(
   const allClaims = snapshot.nodes.filter(
     (node): node is EvidenceClaim => node.kind === 'claim',
   );
-  const supportedClaims = allClaims.filter((claim) => publicSources(claim, sourceById).length > 0);
+  const supportedClaims = allClaims.filter(
+    (claim) => publicSources(claim, sourceById).length > 0,
+  );
   const engagements = snapshot.nodes.filter((node) => node.kind === 'engagement');
   const degrees = snapshot.nodes.filter((node) => node.kind === 'degree');
   const projects = snapshot.nodes.filter((node) => node.kind === 'project');
