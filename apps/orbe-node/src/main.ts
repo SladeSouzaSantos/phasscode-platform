@@ -10,6 +10,7 @@ import { LangChainChatProvider } from './adapters/langchain-provider.js';
 import { RedisLlmCallBudget } from './adapters/redis-llm-budget.js';
 import { createRedisFallbackInvocationFactory } from './adapters/fallback-llm.js';
 import type { ChatProvider } from './domain/ports.js';
+import type { LlmInvocationFactory } from './domain/llm-invocation.js';
 import { buildApp } from './http/app.js';
 import { RestrictedPublicEvidenceReader } from './application/public-evidence.js';
 import { PROMPT_VERSION } from './application/chat.js';
@@ -78,6 +79,7 @@ try {
     /* Readiness reporta falhas sem registrar credenciais do driver. */
   });
   let provider: ChatProvider;
+  let graphModelFactory: LlmInvocationFactory | undefined;
   try {
     await store.ready();
     if (redis) {
@@ -92,7 +94,7 @@ try {
         maxCalls: config.LLM_GLOBAL_MAX_CALLS!,
         windowMs: config.LLM_GLOBAL_WINDOW_MS,
       });
-      const invocationFactory = config.llmFallback.enabled
+      graphModelFactory = config.llmFallback.enabled
         ? createRedisFallbackInvocationFactory(config, redis!, budget, (event) => {
             app.log.info({ llm: event }, 'Invocação LLM concluída.');
           })
@@ -103,7 +105,7 @@ try {
         await readFile(`apps/orbe-node/prompts/${PROMPT_VERSION.replace('orbe-', '')}.md`, 'utf8'),
         budget,
         undefined,
-        invocationFactory,
+        graphModelFactory,
       );
     }
   } catch {
@@ -115,6 +117,7 @@ try {
     evidenceReader: new RestrictedPublicEvidenceReader(),
     ...(graphShadow ? { graphShadow } : {}),
     ...(graphActive ? { graphActive } : {}),
+    ...(graphActive && graphModelFactory ? { graphModelFactory } : {}),
     config,
     knowledge,
     provider,
