@@ -88,12 +88,12 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
 
   it('does not alter duration assertions about combined employers without attribution', () => {
     const result = auditGeneratedRecruiterProse(
-      'Entre ACRUX e SIGAA, há um total combinado de 19 meses.',
+      'O conjunto dos vínculos de programação soma 19 meses.',
       snapshot,
     );
     // This guard is limited to identifiable employer-specific statements,
     // not a claim that every combined total has been verified.
-    expect(result.corrected).toBe(1);
+    expect(result.corrected).toBe(0);
   });
 
   it('rejects promotion of study into professional Spring Boot experience', () => {
