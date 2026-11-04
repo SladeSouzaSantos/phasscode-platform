@@ -227,9 +227,7 @@ describe('F3.5 fallback diagnostics (sanitized, no extra LLM requests)', () => {
           ]),
       },
       globalBudget: { reserve: async () => undefined },
-      providerBudgets: new Map([
-        ['openrouter' as const, { reserve: async () => undefined }],
-      ]),
+      providerBudgets: new Map([['openrouter' as const, { reserve: async () => undefined }]]),
       cooldownStore: {
         remainingMs: async () => 0,
         block: async () => undefined,
