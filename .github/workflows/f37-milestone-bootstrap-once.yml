@@ -1,0 +1,31 @@
+name: F3.7 one-time milestone bootstrap
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/f37-milestone-bootstrap-once.yml
+permissions:
+  contents: read
+  issues: write
+jobs:
+  create-f37-milestone:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or reuse F3.7 milestone and link only six scoped issues
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO='SladeSouzaSantos/phasscode-platform'
+          TITLE='Orbe — Fase 3.7: Semântica híbrida local (Embeddings + Laya)'
+          NUMBER=$(gh api --paginate "repos/$REPO/milestones?state=all&per_page=100"             --jq '.[] | select(.title == "Orbe — Fase 3.7: Semântica híbrida local (Embeddings + Laya)") | .number' | head -n 1)
+          if [ -z "$NUMBER" ]; then
+            NUMBER=$(gh api -X POST "repos/$REPO/milestones"               -f title="$TITLE"               -f description='Trilha experimental DEV, com gold set, PoCs locais de embeddings e Laya multilingual, integração shadow, benchmark e rollout opcional. Não substitui a F3.4 nem a Fase 4 HydraDB.'               --jq '.number')
+          fi
+          [[ "$NUMBER" =~ ^[0-9]+$ ]]
+          for ISSUE in 40 41 42 43 44 45; do
+            gh api -X PATCH "repos/$REPO/issues/$ISSUE" -F milestone="$NUMBER" --silent
+          done
+          echo "F37_MILESTONE_LINKED number=$NUMBER scoped_issues=6"
