@@ -32,6 +32,10 @@ const snapshot: EvidenceGraphSnapshot = {
       startedAt: '2017-03',
       endedAt: '2018-10',
     },
+    { kind: 'project', id: 'project-phasscode', label: 'PHASSCODE Platform', category: 'professional' },
+    { kind: 'project', id: 'project-greencity', label: 'Greencity OS', category: 'professional' },
+    { kind: 'skill', id: 'skill-gemini', label: 'Gemini' },
+    { kind: 'skill', id: 'skill-groq', label: 'Groq' },
     { kind: 'skill', id: 'skill-java', label: 'Java' },
     { kind: 'skill', id: 'skill-spring', label: 'Spring Boot' },
     {
@@ -56,6 +60,16 @@ const snapshot: EvidenceGraphSnapshot = {
       origin: 'academic_record',
       visibility: 'private',
       verificationStatus: 'document_verified',
+    },
+    {
+      kind: 'claim',
+      id: 'claim-greencity-gemini',
+      label: 'Greencity OS utiliza Gemini',
+      subjectId: 'project-greencity',
+      objectId: 'skill-gemini',
+      predicate: 'USES_TECHNOLOGY',
+      scope: 'professional_project',
+      sourceIds: ['source-public'],
     },
     {
       kind: 'claim',
@@ -177,6 +191,31 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
     expect(result.sources).toEqual([]);
     expect(result.corrected).toBe(1);
     expect(result.answer).toContain('não pôde ser validada em fontes públicas');
+  });
+
+  it('does not transfer a provider from Greencity OS to PHASSCODE Platform', () => {
+    const result = auditGeneratedRecruiterProse(
+      'PHASSCODE Platform utiliza Gemini.', snapshot,
+    );
+    expect(result.rules).toContain('project_scope');
+    expect(result.answer).not.toContain('PHASSCODE Platform utiliza Gemini');
+    expect(result.sources).toEqual([]);
+  });
+
+  it('preserves a publicly supported provider attribution to the correct project', () => {
+    const text = 'Greencity OS utiliza Gemini.';
+    const result = auditGeneratedRecruiterProse(text, snapshot);
+    expect(result.answer).toBe(text);
+    expect(result.corrected).toBe(0);
+  });
+
+  it('does not infer an undocumented second provider from a supported first provider', () => {
+    const result = auditGeneratedRecruiterProse(
+      'Greencity OS utiliza Gemini e Groq.', snapshot,
+    );
+    expect(result.rules).toContain('project_scope');
+    expect(result.answer).toContain('Groq');
+    expect(result.answer).not.toContain('utiliza Gemini e Groq');
   });
 
   it('rejects the attribution of verified Java work to the wrong employer', () => {
