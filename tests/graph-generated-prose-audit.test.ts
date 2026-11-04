@@ -32,7 +32,12 @@ const snapshot: EvidenceGraphSnapshot = {
       startedAt: '2017-03',
       endedAt: '2018-10',
     },
-    { kind: 'project', id: 'project-phasscode', label: 'PHASSCODE Platform', category: 'professional' },
+    {
+      kind: 'project',
+      id: 'project-phasscode',
+      label: 'PHASSCODE Platform',
+      category: 'professional',
+    },
     { kind: 'project', id: 'project-greencity', label: 'Greencity OS', category: 'professional' },
     { kind: 'skill', id: 'skill-gemini', label: 'Gemini' },
     { kind: 'skill', id: 'skill-groq', label: 'Groq' },
@@ -195,7 +200,8 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
 
   it('does not transfer a provider from Greencity OS to PHASSCODE Platform', () => {
     const result = auditGeneratedRecruiterProse(
-      'PHASSCODE Platform utiliza Gemini.', snapshot,
+      'PHASSCODE Platform utiliza Gemini.',
+      snapshot,
     );
     expect(result.rules).toContain('project_scope');
     expect(result.answer).not.toContain('PHASSCODE Platform utiliza Gemini');
@@ -211,7 +217,8 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
 
   it('does not infer an undocumented second provider from a supported first provider', () => {
     const result = auditGeneratedRecruiterProse(
-      'Greencity OS utiliza Gemini e Groq.', snapshot,
+      'Greencity OS utiliza Gemini e Groq.',
+      snapshot,
     );
     expect(result.rules).toContain('project_scope');
     expect(result.answer).toContain('Groq');
