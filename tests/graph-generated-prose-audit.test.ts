@@ -104,6 +104,28 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
     expect(result.sources.map((s) => s.id)).toEqual(['source-public']);
   });
 
+  it('corrects the same SIGAA duration when expressed in years and months', () => {
+    const result = auditGeneratedRecruiterProse(
+      'No SIGAA, Pedro trabalhou por 1 ano e 7 meses.',
+      snapshot,
+    );
+    expect(result.rules).toContain('duration');
+    expect(result.answer).toContain('junho/2016 a fevereiro/2017');
+    expect(result.answer).not.toContain('1 ano e 7 meses');
+    expect(result.sources.map((source) => source.id)).toEqual(['source-public']);
+  });
+
+  it('keeps independent factual statements while correcting an employer-specific duration', () => {
+    const result = auditGeneratedRecruiterProse(
+      'Pedro trabalhou no SIGAA durante 19 meses. Também desenvolveu com Java.',
+      snapshot,
+    );
+    expect(result.corrected).toBe(1);
+    expect(result.answer).toContain('junho/2016 a fevereiro/2017');
+    expect(result.answer).toContain('Também desenvolveu com Java.');
+    expect(result.answer).not.toContain('19 meses');
+  });
+
   it('does not alter duration assertions about combined employers without attribution', () => {
     const result = auditGeneratedRecruiterProse(
       'O conjunto dos vínculos de programação soma 19 meses.',
