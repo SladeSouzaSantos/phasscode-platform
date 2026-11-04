@@ -199,10 +199,7 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
   });
 
   it('does not transfer a provider from Greencity OS to PHASSCODE Platform', () => {
-    const result = auditGeneratedRecruiterProse(
-      'PHASSCODE Platform utiliza Gemini.',
-      snapshot,
-    );
+    const result = auditGeneratedRecruiterProse('PHASSCODE Platform utiliza Gemini.', snapshot);
     expect(result.rules).toContain('project_scope');
     expect(result.answer).not.toContain('PHASSCODE Platform utiliza Gemini');
     expect(result.sources).toEqual([]);
@@ -216,10 +213,7 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
   });
 
   it('does not infer an undocumented second provider from a supported first provider', () => {
-    const result = auditGeneratedRecruiterProse(
-      'Greencity OS utiliza Gemini e Groq.',
-      snapshot,
-    );
+    const result = auditGeneratedRecruiterProse('Greencity OS utiliza Gemini e Groq.', snapshot);
     expect(result.rules).toContain('project_scope');
     expect(result.answer).toContain('Groq');
     expect(result.answer).not.toContain('utiliza Gemini e Groq');
