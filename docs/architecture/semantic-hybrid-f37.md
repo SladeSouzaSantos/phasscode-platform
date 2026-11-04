@@ -47,11 +47,14 @@ type SemanticSpan = Readonly<{
   text: string;  // deve ser === source.slice(start, end)
   role: 'mandatory' | 'desirable' | 'alternative' | 'context' | 'negated' | 'uncertain';
   relation: 'candidate_requirement' | 'company_stack' | 'future_stack' | 'project_claim' | 'unrelated';
+  priority: 'mandatory' | 'desirable' | 'none'; // independe de ser alternativa
   alternativeGroup?: string;
   candidates: readonly { skillId: string; score: number; method: 'lexical' | 'embedding' }[];
   classification?: { label: string; confidence: number; modelRevision: string };
 }>;
 ```
+
+O fixture preliminar em `evaluation/semantic-hybrid-corpus-v0.json` contém **16 casos sintéticos e 31 spans anotados**, ainda com `reviewStatus=draft_not_human_approved`. Ele usa `candidateLabels` legíveis; a integração futura deverá resolvê-los para IDs de skill do PPKS. **Não usar esse fixture como acurácia final antes de auditoria humana**.
 
 Este é **contrato candidato**, não autorização para atribuir competências. Toda consulta ao grafo ainda requer `sourceIds` públicos íntegros, fonte HTTPS e escopo profissional/projeto/estudo correto. Nomes de tecnologias novas no texto da vaga permanecem desconhecidos até corresponderem à fonte literal ou terem equivalência curada; nunca inferir por semelhança.
 
