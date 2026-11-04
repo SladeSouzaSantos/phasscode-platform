@@ -215,27 +215,36 @@ export function auditGeneratedRecruiterProse(
         containsName(original, project.label),
       );
       const technologyAssertion =
-        /\\b(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\\b/i.test(original) &&
-        !/\\b(?:n[aã]o|nunca|sem)\\s+(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\\b/i.test(original);
+        /\b(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\b/i.test(
+          original,
+        ) &&
+        !/\b(?:n[aã]o|nunca|sem)\s+(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\b/i.test(
+          original,
+        );
       if (projectAttributions.length === 1 && technologyAssertion) {
         const project = projectAttributions[0]!;
         const namedSkills = skills.filter((skill) => containsName(original, skill.label));
-        const unsupported = namedSkills.filter((skill) =>
-          !supportedClaims.some((claim) =>
-            claim.subjectId === project.id &&
-            claim.objectId === skill.id &&
-            claim.predicate === 'USES_TECHNOLOGY',
-          ),
+        const unsupported = namedSkills.filter(
+          (skill) =>
+            !supportedClaims.some(
+              (claim) =>
+                claim.subjectId === project.id &&
+                claim.objectId === skill.id &&
+                claim.predicate === 'USES_TECHNOLOGY',
+            ),
         );
         if (unsupported.length) {
-          const supported = supportedClaims.filter((claim) =>
-            claim.subjectId === project.id &&
-            claim.predicate === 'USES_TECHNOLOGY' &&
-            namedSkills.some((skill) => skill.id === claim.objectId),
+          const supported = supportedClaims.filter(
+            (claim) =>
+              claim.subjectId === project.id &&
+              claim.predicate === 'USES_TECHNOLOGY' &&
+              namedSkills.some((skill) => skill.id === claim.objectId),
           );
           correction =
-            'A atribuição de ' + unsupported.map((skill) => skill.label).join(', ') +
-            ' ao projeto ' + project.label +
+            'A atribuição de ' +
+            unsupported.map((skill) => skill.label).join(', ') +
+            ' ao projeto ' +
+            project.label +
             ' não está comprovada pelas fontes públicas disponíveis.';
           cite(supported);
           rules.push('project_scope');
