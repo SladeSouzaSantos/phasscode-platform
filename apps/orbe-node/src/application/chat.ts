@@ -104,7 +104,7 @@ export class ChatService {
             : undefined;
         const followUp = Boolean(
           previous &&
-            (isContextualFollowUp(request.message) || technologyFollowUp || durationFollowUp),
+          (isContextualFollowUp(request.message) || technologyFollowUp || durationFollowUp),
         );
         // A recruiter who asks "Java?" then "E com Go?" is changing the
         // technology, not requesting evidence from Java and Go together.
@@ -115,8 +115,8 @@ export class ChatService {
             : durationFollowUp
               ? durationFollowUp
               : followUp
-              ? `${previous!.content}\n${request.message}`
-              : request.message;
+                ? `${previous!.content}\n${request.message}`
+                : request.message;
         const evidenceTraceId = randomUUID();
         const meetingTurn =
           meetingActions &&

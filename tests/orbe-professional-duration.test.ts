@@ -115,12 +115,15 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
     },
   );
 
-  it.each(['Quantos anos Pedro tem?', 'E quantos anos de vida?', 'Quais anos?', 'Quanto custa?', 'Quantos anos na faculdade?'])(
-    'rejects unrelated duration expressions: %s',
-    (question) => {
-      expect(isCareerDurationEllipsis(question)).toBe(false);
-    },
-  );
+  it.each([
+    'Quantos anos Pedro tem?',
+    'E quantos anos de vida?',
+    'Quais anos?',
+    'Quanto custa?',
+    'Quantos anos na faculdade?',
+  ])('rejects unrelated duration expressions: %s', (question) => {
+    expect(isCareerDurationEllipsis(question)).toBe(false);
+  });
 
   it('preserves professional context but not unrelated skills/employers', () => {
     expect(rewriteCareerDurationEllipsis('Pedro têm experiência com programação?')).toBe(
@@ -134,17 +137,22 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
   });
 
   it('replays programming experience followed by "Quabtos anos?"', async () => {
-    const generate = vi.fn(async () => ({ answer: 'Pedro desenvolve software profissionalmente.', sources: [] }));
+    const generate = vi.fn(async () => ({
+      answer: 'Pedro desenvolve software profissionalmente.',
+      sources: [],
+    }));
     const app = await testApp({ provider: { name: 'mock', generate } });
     apps.push(app);
     const first = await app.inject({
-      method: 'POST', url: '/api/v1/chat',
+      method: 'POST',
+      url: '/api/v1/chat',
       payload: { message: 'Pedro têm experiência com programação?' },
     });
     expect(first.statusCode, first.body.slice(0, 300)).toBe(200);
     const initial = chatResponseSchema.parse(first.json());
     const second = await app.inject({
-      method: 'POST', url: '/api/v1/chat',
+      method: 'POST',
+      url: '/api/v1/chat',
       headers: { 'x-conversation-token': initial.conversationToken! },
       payload: { message: 'Quabtos anos?', conversationId: initial.conversationId },
     });
@@ -163,13 +171,15 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
     const app = await testApp({ provider: { name: 'mock', generate } });
     apps.push(app);
     const first = await app.inject({
-      method: 'POST', url: '/api/v1/chat',
+      method: 'POST',
+      url: '/api/v1/chat',
       payload: { message: 'Pedro tem experiência profissional com Java?' },
     });
     expect(first.statusCode, first.body.slice(0, 300)).toBe(200);
     const initial = chatResponseSchema.parse(first.json());
     const second = await app.inject({
-      method: 'POST', url: '/api/v1/chat',
+      method: 'POST',
+      url: '/api/v1/chat',
       headers: { 'x-conversation-token': initial.conversationToken! },
       payload: { message: 'E sobre Go?', conversationId: initial.conversationId },
     });
@@ -178,7 +188,10 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
     expect(reply.meta.deterministic).toBe(true);
     expect(reply.answer).toMatch(/Go \(Golang\)/);
     expect(reply.answer).toMatch(/não há experiência profissional com Go/i);
-    expect(reply.sources.map((source) => source.id)).toEqual(['experiencia-sig', 'phasscode-platform']);
+    expect(reply.sources.map((source) => source.id)).toEqual([
+      'experiencia-sig',
+      'phasscode-platform',
+    ]);
     expect(reply.answer).not.toMatch(/^Posso apresentar a experiência profissional/i);
   });
 

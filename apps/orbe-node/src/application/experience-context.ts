@@ -33,10 +33,12 @@ export function isCareerDurationEllipsis(question: string): boolean {
 export function rewriteCareerDurationEllipsis(previousQuestion: string): string | undefined {
   const previous = normalize(previousQuestion);
   if (
-    !/\b(?:experienc\w*|programa\w*|desenvolv\w*|software|carreira|profission\w*|atuac\w*|trabalh\w*)\b/.test(previous)
-  ) return undefined;
-  if (/\b(?:acrux|sigaa|sig software|geowellex|greencity)\b/.test(previous))
+    !/\b(?:experienc\w*|programa\w*|desenvolv\w*|software|carreira|profission\w*|atuac\w*|trabalh\w*)\b/.test(
+      previous,
+    )
+  )
     return undefined;
+  if (/\b(?:acrux|sigaa|sig software|geowellex|greencity)\b/.test(previous)) return undefined;
   const technologies = [...mentionedTechnologies(previousQuestion)];
   if (technologies.length > 1) return undefined;
   if (technologies.length === 1)
