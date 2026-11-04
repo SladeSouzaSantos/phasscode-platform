@@ -1,0 +1,45 @@
+name: PPKS F3.6 formatting once (DEV)
+on:
+  push:
+    branches: [dev]
+    paths: [.github/workflows/f36-format-once.yml]
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Format only F3.6 offline diff source and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin dev
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/dev)"
+          npx prettier --write \
+            apps/orbe-node/src/application/graph-snapshot-diff.ts \
+            tests/graph-snapshot-diff.test.ts
+          git diff --check
+      - name: Commit formatting to existing DEV branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            apps/orbe-node/src/application/graph-snapshot-diff.ts \
+            tests/graph-snapshot-diff.test.ts
+          if ! git diff --cached --quiet; then
+            git commit -m 'style(ppks): format F3.6 graph snapshot dry-run'
+            git push origin HEAD:dev
+          fi
