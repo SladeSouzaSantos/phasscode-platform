@@ -15,6 +15,7 @@ import { ChatService } from '../application/chat.js';
 import type { PublicEvidenceReader } from '../application/public-evidence.js';
 import type { GraphShadowPort } from '../application/graph-rag-shadow.js';
 import type { GraphActivePort } from '../application/graph-active-answer.js';
+import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
 import { AppError } from '../domain/errors.js';
 import { AuthService } from '../auth/service.js';
 import { registerAuthRoutes } from '../auth/routes.js';
@@ -34,6 +35,7 @@ export interface AppOptions {
   evidenceReader?: PublicEvidenceReader;
   graphShadow?: GraphShadowPort;
   graphActive?: GraphActivePort;
+  graphModelFactory?: LlmInvocationFactory;
 }
 export async function buildApp({
   config,
@@ -48,6 +50,7 @@ export async function buildApp({
   evidenceReader,
   graphShadow,
   graphActive,
+  graphModelFactory,
 }: AppOptions) {
   if (publicOnly && (config.auth.enabled || meetings))
     throw new Error('Orbe público não aceita autenticação ou reuniões.');
@@ -102,6 +105,7 @@ export async function buildApp({
     evidenceReader,
     config.ORBE_GRAPHRAG_MODE === 'shadow' ? graphShadow : undefined,
     config.ORBE_GRAPHRAG_MODE === 'active' ? graphActive : undefined,
+    config.ORBE_GRAPHRAG_MODE === 'active' ? graphModelFactory : undefined,
   );
   await app.register(helmet);
   app.addHook('onRequest', async (request, reply) => {
