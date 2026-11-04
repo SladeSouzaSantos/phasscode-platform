@@ -1,0 +1,467 @@
+{
+  "schemaVersion": "semantic-hybrid-corpus-v0",
+  "reviewStatus": "draft_not_human_approved",
+  "provenance": "synthetic_examples_only",
+  "purpose": "Initial contract and negative-control fixtures for F3.7; NOT a validated accuracy benchmark. Does not encode candidate employment evidence.",
+  "cases": [
+    {
+      "id": "pt-java-or-kotlin",
+      "language": "pt",
+      "text": "Requisitos: Java ou Kotlin. Diferenciais: React.",
+      "annotations": [
+        {
+          "start": 12,
+          "end": 26,
+          "text": "Java ou Kotlin",
+          "role": "alternative",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Java",
+            "Kotlin"
+          ],
+          "alternativeGroup": "alt-1"
+        },
+        {
+          "start": 42,
+          "end": 47,
+          "text": "React",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": [
+            "React"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-docker-rest",
+      "language": "pt",
+      "text": "Buscamos conhecimento de Docker e APIs REST.",
+      "annotations": [
+        {
+          "start": 25,
+          "end": 31,
+          "text": "Docker",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Docker"
+          ]
+        },
+        {
+          "start": 34,
+          "end": 43,
+          "text": "APIs REST",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "REST"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-priorities",
+      "language": "pt",
+      "text": "Kotlin é diferencial; Java é obrigatório.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 6,
+          "text": "Kotlin",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": [
+            "Kotlin"
+          ]
+        },
+        {
+          "start": 22,
+          "end": 26,
+          "text": "Java",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Java"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-company-stack",
+      "language": "pt",
+      "text": "Usamos Go internamente, mas precisamos de Java.",
+      "annotations": [
+        {
+          "start": 7,
+          "end": 9,
+          "text": "Go",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": [
+            "Go"
+          ]
+        },
+        {
+          "start": 42,
+          "end": 46,
+          "text": "Java",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Java"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-future-stack",
+      "language": "pt",
+      "text": "Go poderá ser utilizado em projetos futuros. Experiência atual com Docker é obrigatória.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 2,
+          "text": "Go",
+          "role": "context",
+          "relation": "future_stack",
+          "priority": "none",
+          "candidateLabels": [
+            "Go"
+          ]
+        },
+        {
+          "start": 67,
+          "end": 73,
+          "text": "Docker",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Docker"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-negated",
+      "language": "pt",
+      "text": "Não exigimos Kotlin. Java é desejável.",
+      "annotations": [
+        {
+          "start": 13,
+          "end": 19,
+          "text": "Kotlin",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": [
+            "Kotlin"
+          ]
+        },
+        {
+          "start": 21,
+          "end": 25,
+          "text": "Java",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": [
+            "Java"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-javascript-not-java",
+      "language": "pt",
+      "text": "Experiência em JavaScript, não Java.",
+      "annotations": [
+        {
+          "start": 15,
+          "end": 25,
+          "text": "JavaScript",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "JavaScript"
+          ]
+        },
+        {
+          "start": 31,
+          "end": 35,
+          "text": "Java",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": [
+            "Java"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-sql-server",
+      "language": "pt",
+      "text": "SQL Server é requisito obrigatório; SQL genérico não é suficiente.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 10,
+          "text": "SQL Server",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "SQL Server"
+          ]
+        },
+        {
+          "start": 36,
+          "end": 48,
+          "text": "SQL genérico",
+          "role": "context",
+          "relation": "unrelated",
+          "priority": "none",
+          "candidateLabels": [
+            "SQL"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-alternative-db",
+      "language": "pt",
+      "text": "Aceitamos PostgreSQL ou MySQL como experiência em banco relacional.",
+      "annotations": [
+        {
+          "start": 10,
+          "end": 29,
+          "text": "PostgreSQL ou MySQL",
+          "role": "alternative",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "PostgreSQL",
+            "MySQL"
+          ],
+          "alternativeGroup": "alt-1"
+        }
+      ]
+    },
+    {
+      "id": "pt-react-team-angular-vacancy",
+      "language": "pt",
+      "text": "A equipe utiliza React, mas a vaga exige Angular.",
+      "annotations": [
+        {
+          "start": 17,
+          "end": 22,
+          "text": "React",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": [
+            "React"
+          ]
+        },
+        {
+          "start": 41,
+          "end": 48,
+          "text": "Angular",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Angular"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-flutter-desirable",
+      "language": "pt",
+      "text": "Será um diferencial ter experiência com Flutter.",
+      "annotations": [
+        {
+          "start": 40,
+          "end": 47,
+          "text": "Flutter",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": [
+            "Flutter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-current-stack-python",
+      "language": "pt",
+      "text": "Stack atual: Node.js, TypeScript e Redis. Contrataremos para trabalhar com Python.",
+      "annotations": [
+        {
+          "start": 13,
+          "end": 20,
+          "text": "Node.js",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": [
+            "Node.js"
+          ]
+        },
+        {
+          "start": 22,
+          "end": 32,
+          "text": "TypeScript",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": [
+            "TypeScript"
+          ]
+        },
+        {
+          "start": 35,
+          "end": 40,
+          "text": "Redis",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": [
+            "Redis"
+          ]
+        },
+        {
+          "start": 75,
+          "end": 81,
+          "text": "Python",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Python"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-aws-negation",
+      "language": "pt",
+      "text": "Não precisa de experiência com AWS. Docker é obrigatório.",
+      "annotations": [
+        {
+          "start": 31,
+          "end": 34,
+          "text": "AWS",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": [
+            "AWS"
+          ]
+        },
+        {
+          "start": 36,
+          "end": 42,
+          "text": "Docker",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Docker"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-project-attribution",
+      "language": "pt",
+      "text": "Pedro usou Flutter no backend PHASSCODE Platform?",
+      "annotations": [
+        {
+          "start": 11,
+          "end": 18,
+          "text": "Flutter",
+          "role": "context",
+          "relation": "project_claim",
+          "priority": "none",
+          "candidateLabels": [
+            "Flutter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "en-alternatives",
+      "language": "en",
+      "text": "Experience with Java or Kotlin is required. Docker is a nice-to-have.",
+      "annotations": [
+        {
+          "start": 16,
+          "end": 30,
+          "text": "Java or Kotlin",
+          "role": "alternative",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Java",
+            "Kotlin"
+          ],
+          "alternativeGroup": "alt-1"
+        },
+        {
+          "start": 44,
+          "end": 50,
+          "text": "Docker",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": [
+            "Docker"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pt-tech-transfer",
+      "language": "pt",
+      "text": "Buscamos alguém familiarizado com programação orientada a objetos e desenvolvimento de APIs.",
+      "annotations": [
+        {
+          "start": 34,
+          "end": 65,
+          "text": "programação orientada a objetos",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "POO"
+          ]
+        },
+        {
+          "start": 68,
+          "end": 91,
+          "text": "desenvolvimento de APIs",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "REST APIs"
+          ]
+        }
+      ]
+    }
+  ]
+}
