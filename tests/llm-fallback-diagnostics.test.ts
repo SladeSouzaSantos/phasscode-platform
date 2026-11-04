@@ -210,7 +210,7 @@ describe('F3.5 fallback diagnostics (sanitized, no extra LLM requests)', () => {
       LLM_GLOBAL_MAX_CALLS: '20',
       LLM_FALLBACK_ENABLED: 'true',
       LLM_OPENROUTER_API_KEY: 'synthetic',
-      LLM_OPENROUTER_MODEL: 'test-model',
+      LLM_OPENROUTER_MODEL: 'test/model:free',
       LLM_OPENROUTER_MAX_CALLS: '10',
     });
     if (!config.llmFallback.enabled) throw new Error('Fallback test setup is disabled.');
