@@ -44,6 +44,7 @@ import {
 } from './experience-response.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
 import { graphShadowObservationSchema, type GraphShadowPort } from './graph-rag-shadow.js';
+import type { GraphActivePort } from './graph-active-answer.js';
 import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
@@ -67,6 +68,7 @@ export class ChatService {
     private readonly now: () => Date = () => new Date(),
     private readonly evidenceReader?: PublicEvidenceReader,
     private readonly graphShadow?: GraphShadowPort,
+    private readonly graphActive?: GraphActivePort,
   ) {}
 
   async execute(
@@ -217,6 +219,41 @@ export class ChatService {
         const verifiedAcademic = academicListing
           ? buildCompleteAcademicResponse(query, academicListing, retrieved)
           : undefined;
+        // Opt-in DEV-only graph generation: preserve all canonical safety,
+        // academic, duration, matrix and conversation-specific fast paths.
+        // On abstention or reader outage, the existing PPKS path runs once.
+        let graphAnswer: GenerationResult | undefined;
+        if (
+          this.graphActive &&
+          !meetingTurn &&
+          !isInjection(request.message) &&
+          !isOffTopicTask(request.message) &&
+          !isGreeting(request.message) &&
+          !isSimpleTest(request.message) &&
+          !isPersonalLifeQuestion(request.message) &&
+          !isMeetingRequest(request.message) &&
+          !verifiedDuration &&
+          !verifiedOverview &&
+          !verifiedGo &&
+          !verifiedAcademic &&
+          !verifiedMatrix &&
+          isInScope(request.message, retrieved.flatMap((doc) => doc.keywords))
+        ) {
+          const started = performance.now();
+          try {
+            graphAnswer = await this.graphActive.answer(query);
+          } catch {
+            // A private reader/graph error is never reflected to visitors.
+          }
+          console.info(
+            JSON.stringify({
+              event: 'orbe_graphrag_active',
+              traceId: evidenceTraceId,
+              mode: graphAnswer ? 'verified_graph' : 'canonical_ppks',
+              durationMs: Math.min(60_000, Math.max(0, Math.round(performance.now() - started))),
+            }),
+          );
+        }
         let result: GenerationResult;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
@@ -256,6 +293,8 @@ export class ChatService {
             answer: verifiedMatrix.answer,
             sources: verifiedMatrix.sourceDocuments.slice(0, 10).map(documentSource),
           };
+        } else if (graphAnswer) {
+          result = graphAnswer;
         } else {
           const bounded: Message[] = [];
           // Reserva fixa para prompt, metadados JSON e protocolo das ferramentas.
@@ -444,7 +483,7 @@ export class ChatService {
             verifiedDuration ||
             verifiedOverview
               ? { deterministic: true }
-              : {}),
+              : graphAnswer ? { deterministic: true } : {}),
           },
         });
         return {
