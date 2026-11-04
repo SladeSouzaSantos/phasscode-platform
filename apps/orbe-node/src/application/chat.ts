@@ -271,6 +271,7 @@ export class ChatService {
           );
         }
         let result: GenerationResult;
+        let llmGenerated = false;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
         else if (isSimpleTest(request.message)) result = { answer: simpleTestAnswer, sources: [] };
@@ -399,6 +400,7 @@ export class ChatService {
                 }, this.config.LLM_TIMEOUT_MS);
               }),
             ]);
+            llmGenerated = true;
           } catch (error) {
             if (error instanceof AppError) throw error;
             throw new AppError(
@@ -408,6 +410,31 @@ export class ChatService {
             );
           } finally {
             if (timer) clearTimeout(timer);
+          }
+        }
+        // Bound, source-scoped audit of high-risk model prose. Never promote
+        // a study into employment, a pending degree into a completed one, or
+        // a duration to a single employer without public evidence.
+        if (llmGenerated && this.graphActive?.auditGenerated && !result.actions?.length) {
+          const audit = this.graphActive.auditGenerated(result.answer);
+          if (audit.corrected) {
+            result = {
+              ...result,
+              answer: audit.answer,
+              sources: [
+                ...new Map(
+                  [...audit.sources, ...result.sources].map((source) => [source.id, source]),
+                ).values(),
+              ].slice(0, 10),
+            };
+            console.info(
+              JSON.stringify({
+                event: 'orbe_graphrag_claim_audit',
+                traceId: evidenceTraceId,
+                corrected: audit.corrected,
+                rules: audit.rules,
+              }),
+            );
           }
         }
         // The model can invent incidental academic details even when the
