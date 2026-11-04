@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { projectPpksEvidenceGraph } from '../apps/orbe-node/src/adapters/ppks-evidence-graph.js';
 import { auditGeneratedRecruiterProse } from '../apps/orbe-node/src/application/graph-generated-prose-audit.js';
 import type { EvidenceGraphSnapshot } from '../apps/orbe-node/src/domain/evidence-graph.js';
 
@@ -35,10 +36,11 @@ const snapshot: EvidenceGraphSnapshot = {
     {
       kind: 'project',
       id: 'project-phasscode',
-      label: 'PHASSCODE Platform',
+      label: 'PHASSCODE Platform — backend do Orbe Mágico',
       category: 'professional',
     },
-    { kind: 'project', id: 'project-greencity', label: 'Greencity OS', category: 'professional' },
+    { kind: 'project', id: 'project-greencity', label: 'GREENCITY OS — projeto do portfólio', category: 'personal' },
+    { kind: 'skill', id: 'skill-typescript', label: 'TypeScript' },
     { kind: 'skill', id: 'skill-gemini', label: 'Gemini' },
     { kind: 'skill', id: 'skill-groq', label: 'Groq' },
     { kind: 'skill', id: 'skill-java', label: 'Java' },
@@ -65,6 +67,16 @@ const snapshot: EvidenceGraphSnapshot = {
       origin: 'academic_record',
       visibility: 'private',
       verificationStatus: 'document_verified',
+    },
+    {
+      kind: 'claim',
+      id: 'claim-phasscode-typescript',
+      label: 'PHASSCODE Platform utiliza TypeScript',
+      subjectId: 'project-phasscode',
+      objectId: 'skill-typescript',
+      predicate: 'USES_TECHNOLOGY',
+      scope: 'personal_project',
+      sourceIds: ['source-public'],
     },
     {
       kind: 'claim',
@@ -230,4 +242,25 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
     expect(result.answer).toContain('não a atribui a esse vínculo');
     expect(result.sources).toHaveLength(1);
   });
+  it('audits actual PPKS project labels, not only synthetic short labels', async () => {
+    const real = await projectPpksEvidenceGraph();
+    const mismatch = auditGeneratedRecruiterProse('PHASSCODE Platform utiliza Flutter.', real);
+    expect(mismatch.rules).toContain('project_scope');
+    expect(mismatch.answer).not.toContain('PHASSCODE Platform utiliza Flutter');
+    expect(mismatch.sources).toEqual([]);
+
+    const verified = 'PHASSCODE Platform utiliza Docker.';
+    const supported = auditGeneratedRecruiterProse(verified, real);
+    expect(supported.answer).toBe(verified);
+    expect(supported.corrected).toBe(0);
+  });
+
+  it('does not mistake catalogue-only Greencity evidence for proof of absence', async () => {
+    const real = await projectPpksEvidenceGraph();
+    const claimed = 'Greencity OS utiliza Flutter.';
+    const result = auditGeneratedRecruiterProse(claimed, real);
+    expect(result.answer).toBe(claimed);
+    expect(result.corrected).toBe(0);
+  });
+
 });

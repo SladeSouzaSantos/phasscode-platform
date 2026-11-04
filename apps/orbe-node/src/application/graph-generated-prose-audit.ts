@@ -28,6 +28,13 @@ const containsName = (text: string, name: string) => {
   return needle.length >= 2 && (' ' + normalize(text) + ' ').includes(' ' + needle + ' ');
 };
 
+// Project labels in the real PPKS include an explanatory subtitle after an em dash.
+// A recruiter often refers only to the short name; never match arbitrary substrings.
+const containsProjectReference = (text: string, label: string) => {
+  const shortName = label.split(/\s+[—–]\s+/u)[0] ?? label;
+  return containsName(text, label) || containsName(text, shortName);
+};
+
 const monthLabel = (value: string) => {
   const [year, month] = value.split('-').map(Number);
   const names = [
@@ -214,7 +221,7 @@ export function auditGeneratedRecruiterProse(
     // different project, or about the candidate generally, is not sufficient.
     if (!correction) {
       const projectAttributions = projects.filter((project) =>
-        containsName(original, project.label),
+        containsProjectReference(original, project.label),
       );
       const technologyAssertion =
         /\b(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\b/i.test(original) &&
@@ -233,7 +240,15 @@ export function auditGeneratedRecruiterProse(
                 claim.predicate === 'USES_TECHNOLOGY',
             ),
         );
-        if (unsupported.length) {
+        // The source set may be incomplete (e.g., a catalogue-only project
+        // without public HTTPS evidence). Lack of a verified link is not proof
+        // that the project does not use a given technology.
+        if (
+          unsupported.length &&
+          supportedClaims.some(
+            (claim) => claim.subjectId === project.id && claim.predicate === 'USES_TECHNOLOGY',
+          )
+        ) {
           const supported = supportedClaims.filter(
             (claim) =>
               claim.subjectId === project.id &&
