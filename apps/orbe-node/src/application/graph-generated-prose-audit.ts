@@ -86,7 +86,7 @@ export function auditGeneratedRecruiterProse(
           id: source.id,
           type: source.origin === 'github' ? 'project' : 'profile',
           title: source.label,
-          url: source.sourceUrl,
+          url: source.sourceUrl!,
         });
       }
     }
