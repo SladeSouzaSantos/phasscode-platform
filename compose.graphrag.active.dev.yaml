@@ -1,0 +1,21 @@
+# F3.3 DEV-only GraphRAG active answer overlay, opt-in and default OFF.
+# NEVER include this file with production/main or the shadow overlay.
+# Use the existing project phasscode-platform-dev together with:
+# compose.yaml, compose.graphrag.dev.yaml, compose.graphrag.reader.dev.yaml
+# and (optionally, when required by the deployment) compose.proxy.yaml.
+# Require the reader and Neo4j to be healthy before any manual activation.
+# API gets only its dedicated reader token, never a Neo4j Bolt credential.
+services:
+  api:
+    environment:
+      ORBE_GRAPHRAG_MODE: active
+      ORBE_GRAPHRAG_STAGE: dev
+      ORBE_GRAPHRAG_DEV_APPROVED: 'true'
+      ORBE_GRAPH_READER_TOKEN_FILE: /run/secrets/graph_reader_token
+    secrets:
+      - source: graph_api_reader_token
+        target: graph_reader_token
+
+secrets:
+  graph_api_reader_token:
+    file: ${PHASSCODE_GRAPH_API_READER_TOKEN_FILE:-.secrets/graph_api_reader_token}
