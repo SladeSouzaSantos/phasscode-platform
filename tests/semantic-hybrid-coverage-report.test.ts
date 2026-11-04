@@ -31,9 +31,9 @@ describe('F3.7 offline review and coverage diagnostic', () => {
     expect(report.cases.filter((item) => item.kind === 'academic_query')).toHaveLength(3);
     expect(report.cases.filter((item) => item.kind === 'recruiter_vacancy')).toHaveLength(6);
     expect(report.cases.every((item) => item.reviewedSpans > 0)).toBe(true);
-    expect(
-      report.cases.reduce((total, item) => total + item.uninterpretedSegments, 0),
-    ).toBe(report.totals.uninterpretedSegments);
+    expect(report.cases.reduce((total, item) => total + item.uninterpretedSegments, 0)).toBe(
+      report.totals.uninterpretedSegments,
+    );
     expect(JSON.stringify(report)).not.toContain('Sou recrutador');
     expect(JSON.stringify(report)).not.toContain('Pedro possui graduação');
   });
@@ -50,9 +50,9 @@ describe('F3.7 offline review and coverage diagnostic', () => {
       cases: Array<{ spans: Array<{ text: string }> }>;
     };
     modified.cases[0]!.spans[0]!.text = 'INVENTED_REQUIREMENT_CANARY';
-    await expect(
-      auditSemanticHybridCoverage(original, JSON.stringify(modified)),
-    ).rejects.toThrow('SEMANTIC_REVIEW_LITERAL_SPAN_MISMATCH');
+    await expect(auditSemanticHybridCoverage(original, JSON.stringify(modified))).rejects.toThrow(
+      'SEMANTIC_REVIEW_LITERAL_SPAN_MISMATCH',
+    );
   });
 
   it('rejects corpus drift and duplicated case IDs before any coverage claims', async () => {
@@ -69,8 +69,8 @@ describe('F3.7 offline review and coverage diagnostic', () => {
       cases: Array<{ id: string }>;
     };
     repeated.cases[1]!.id = repeated.cases[0]!.id;
-    await expect(
-      auditSemanticHybridCoverage(original, JSON.stringify(repeated)),
-    ).rejects.toThrow('SEMANTIC_REVIEW_DUPLICATE_REVIEW_ID');
+    await expect(auditSemanticHybridCoverage(original, JSON.stringify(repeated))).rejects.toThrow(
+      'SEMANTIC_REVIEW_DUPLICATE_REVIEW_ID',
+    );
   });
 });

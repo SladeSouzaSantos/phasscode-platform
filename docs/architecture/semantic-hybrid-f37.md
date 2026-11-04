@@ -14,11 +14,11 @@ Um pipeline de **extração estruturada + recuperação semântica local + class
 
 ## Modelos candidatos (revisão/licença/consumo a confirmar no laboratório)
 
-| Finalidade | Checkpoint inicial | Papel estrito |
-| --- | --- | --- |
-| Recuperação e ranking de candidatos | [Horizon-Labs/multilingual-embedding-small](https://huggingface.co/Horizon-Labs/multilingual-embedding-small) (141M, 1024 dimensões; ONNX int8 candidato) | Aproximar **rótulos públicos do PPKS**, nunca afirmar comprovação |
-| Decisão semântica ambígua | [convaiinnovations/laya-multilingual](https://huggingface.co/convaiinnovations/laya-multilingual) (322M) | Classificar modalidade, negação e relação para **spans originais** |
-| Síntese textual | LLM canônica + fallback atual do Orbe | Formular narrativa **após** verificar evidências, sob auditoria factual |
+| Finalidade                          | Checkpoint inicial                                                                                                                                        | Papel estrito                                                           |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Recuperação e ranking de candidatos | [Horizon-Labs/multilingual-embedding-small](https://huggingface.co/Horizon-Labs/multilingual-embedding-small) (141M, 1024 dimensões; ONNX int8 candidato) | Aproximar **rótulos públicos do PPKS**, nunca afirmar comprovação       |
+| Decisão semântica ambígua           | [convaiinnovations/laya-multilingual](https://huggingface.co/convaiinnovations/laya-multilingual) (322M)                                                  | Classificar modalidade, negação e relação para **spans originais**      |
+| Síntese textual                     | LLM canônica + fallback atual do Orbe                                                                                                                     | Formular narrativa **após** verificar evidências, sob auditoria factual |
 
 Ambos os cartões indicam licença Apache-2.0; **pin de revisão, checksum, revisão de dependências, precisão em PT/EN e requisitos de CPU/RAM** são gates de laboratório. A confiança de Laya é pontuação do classificador em uma tarefa; não é a probabilidade de Pedro possuir competência. Similaridade cosseno de embeddings **não é probabilidade**.
 
@@ -43,10 +43,11 @@ Vaga original (imutável)
 ```ts
 type SemanticSpan = Readonly<{
   start: number; // índice na string original, inclusivo
-  end: number;   // exclusivo
-  text: string;  // deve ser === source.slice(start, end)
+  end: number; // exclusivo
+  text: string; // deve ser === source.slice(start, end)
   role: 'mandatory' | 'desirable' | 'alternative' | 'context' | 'negated' | 'uncertain';
-  relation: 'candidate_requirement' | 'company_stack' | 'future_stack' | 'project_claim' | 'unrelated';
+  relation:
+    'candidate_requirement' | 'company_stack' | 'future_stack' | 'project_claim' | 'unrelated';
   priority: 'mandatory' | 'desirable' | 'none'; // independe de ser alternativa
   alternativeGroup?: string;
   candidates: readonly { skillId: string; score: number; method: 'lexical' | 'embedding' }[];

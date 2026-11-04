@@ -30,7 +30,14 @@ const reviewCorpus = z.object({
           start: z.number().int().nonnegative(),
           end: z.number().int().positive(),
           text: z.string().min(1),
-          role: z.enum(['mandatory', 'desirable', 'alternative', 'context', 'negated', 'uncertain']),
+          role: z.enum([
+            'mandatory',
+            'desirable',
+            'alternative',
+            'context',
+            'negated',
+            'uncertain',
+          ]),
           relation: z.enum(['candidate_requirement', 'academic_question']),
           reviewStatus: z.literal('assistant_provisional_not_human_validated'),
           uncertainty: z.string().optional(),
@@ -40,16 +47,16 @@ const reviewCorpus = z.object({
   ),
 });
 
-export async function auditSemanticHybridCoverage(
-  originalJson: string,
-  reviewJson: string,
-) {
+export async function auditSemanticHybridCoverage(originalJson: string, reviewJson: string) {
   const original = originalCorpus.parse(JSON.parse(originalJson) as unknown);
   const review = reviewCorpus.parse(JSON.parse(reviewJson) as unknown);
-  if (review.sourceVersion !== original.version) throw new Error('SEMANTIC_REVIEW_SOURCE_VERSION_MISMATCH');
-  if (review.cases.length !== original.cases.length) throw new Error('SEMANTIC_REVIEW_CASE_COUNT_MISMATCH');
+  if (review.sourceVersion !== original.version)
+    throw new Error('SEMANTIC_REVIEW_SOURCE_VERSION_MISMATCH');
+  if (review.cases.length !== original.cases.length)
+    throw new Error('SEMANTIC_REVIEW_CASE_COUNT_MISMATCH');
   const originalById = new Map(original.cases.map((item) => [item.id, item]));
-  if (originalById.size !== original.cases.length) throw new Error('SEMANTIC_REVIEW_DUPLICATE_ORIGINAL_ID');
+  if (originalById.size !== original.cases.length)
+    throw new Error('SEMANTIC_REVIEW_DUPLICATE_ORIGINAL_ID');
   if (new Set(review.cases.map((item) => item.id)).size !== review.cases.length) {
     throw new Error('SEMANTIC_REVIEW_DUPLICATE_REVIEW_ID');
   }
