@@ -25,6 +25,8 @@
     "eval:orbe": "node --env-file-if-exists=.env --import tsx scripts/evaluate-orbe.ts",
     "eval:orbe:phase3": "node --env-file-if-exists=.env --import tsx scripts/evaluate-orbe-phase3.ts",
     "eval:orbe:graphrag:offline": "node --import tsx scripts/evaluate-graphrag-recruiter-offline.ts",
+    "eval:orbe:semantic:coverage": "node --import tsx scripts/audit-semantic-hybrid-coverage.ts",
+    "eval:orbe:semantic:lexical": "node --import tsx scripts/evaluate-semantic-lexical.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
