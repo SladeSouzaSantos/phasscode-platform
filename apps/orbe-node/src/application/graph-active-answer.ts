@@ -5,6 +5,10 @@ import {
 } from './graph-vacancy-coverage.js';
 import { createBudgetedSemanticVacancyProposer } from './graph-semantic-vacancy.js';
 import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
+import {
+  auditGeneratedRecruiterProse,
+  type GeneratedClaimAudit,
+} from './graph-generated-prose-audit.js';
 import { createSnapshotRequirementIdentifier } from './graph-requirements.js';
 import type { EvidenceGraphRepository, EvidenceGraphSnapshot } from '../domain/evidence-graph.js';
 import type { GenerationResult } from '../domain/ports.js';
@@ -19,6 +23,7 @@ export interface GraphActiveTurn {
 /** Only fully grounded graph output is eligible to replace a canonical answer. */
 export interface GraphActivePort {
   answer(question: string, turn?: GraphActiveTurn): Promise<GenerationResult | undefined>;
+  auditGenerated?(answer: string): GeneratedClaimAudit;
 }
 
 const normalize = (text: string) =>
@@ -97,7 +102,7 @@ export function createGraphRagActive(
   const labels = new Map<string, string>(
     snapshot.nodes
       .filter((node) => node.kind !== 'claim' && node.kind !== 'source')
-      .map((node) => {
+      .map((node): [string, string] => {
         if (node.kind !== 'engagement') return [node.id, node.label];
         const company = byId.get(node.companyId);
         const organization = company?.kind === 'company' ? company.label : node.label;
@@ -142,6 +147,9 @@ export function createGraphRagActive(
   };
 
   return {
+    auditGenerated(answer) {
+      return auditGeneratedRecruiterProse(answer, snapshot);
+    },
     async answer(question, turn) {
       const signposted =
         /(?:^|\n)\s*(?:requisitos?|diferenciais|desej[aá]veis|must have|required skills)\s*:/i.test(
