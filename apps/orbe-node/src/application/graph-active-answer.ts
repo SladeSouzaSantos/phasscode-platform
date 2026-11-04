@@ -81,6 +81,42 @@ export function createGraphRagActive(
     .filter((node): node is Extract<typeof node, { kind: 'skill' }> => node.kind === 'skill')
     .map((node) => ({ id: node.id, label: node.label }));
   const structured = createCoverageAwareVacancyPlanner(catalog);
+  // A claim is eligible only if ALL its cited public sources have real
+  // HTTPS URLs. Do not discard individual source IDs from the same claim:
+  // losing one source would make its provenance misleading.
+  const linkedEvidence: EvidenceGraphRepository = {
+    async findEvidence(requirements, options) {
+      const matches = await evidence.findEvidence(requirements, options);
+      return matches.map((match) => {
+        const linkedIds = new Set(
+          match.sources
+            .filter(
+              (source) =>
+                source.visibility === 'public' && source.sourceUrl?.startsWith('https://'),
+            )
+            .map((source) => source.id),
+        );
+        const claims = match.claims.filter(
+          (claim) =>
+            claim.scope !== 'unknown' &&
+            claim.sourceIds.length > 0 &&
+            claim.sourceIds.every((id) => linkedIds.has(id)),
+        );
+        const citedIds = new Set(claims.flatMap((claim) => claim.sourceIds));
+        return {
+          requirementId: match.requirementId,
+          claims,
+          sources: match.sources.filter((source) => citedIds.has(source.id)),
+        };
+      });
+    },
+    async getSource(id) {
+      const source = await evidence.getSource(id);
+      return source?.visibility === 'public' && source.sourceUrl?.startsWith('https://')
+        ? source
+        : undefined;
+    },
+  };
 
   return {
     async answer(question) {
@@ -92,7 +128,7 @@ export function createGraphRagActive(
         return undefined;
       }
       const result = await evaluateGraphRecruiterPreview(question, {
-        evidence,
+        evidence: linkedEvidence,
         identifyRequirements,
         canonicalPpks: () => 'PPKS_FALLBACK_NOT_FOR_DISPLAY',
         ...(signposted ? { requirementPlan: structured.plan } : {}),
