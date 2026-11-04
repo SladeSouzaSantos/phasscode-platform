@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { EvidenceGraphMatch, VacancyRequirement } from '../domain/evidence-graph.js';
-import { renderProfessionalAdvocacy } from './graph-professional-advocacy.js';
+import { renderProfessionalAdvocacy, type ProfessionalRenderOptions } from './graph-professional-advocacy.js';
 
 const narrativePlanSchema = z.strictObject({
   statements: z.array(
@@ -25,6 +25,7 @@ export function verifyAndRenderNarrativeSelection(
   requirements: readonly VacancyRequirement[],
   matches: readonly EvidenceGraphMatch[],
   input: GroundedNarrativeSelection,
+  renderOptions: ProfessionalRenderOptions = {},
 ): string | undefined {
   const result = narrativePlanSchema.safeParse(input);
   if (!result.success || matches.length !== requirements.length) return undefined;
@@ -71,5 +72,5 @@ export function verifyAndRenderNarrativeSelection(
     });
   }
 
-  return renderProfessionalAdvocacy(requirements, selected);
+  return renderProfessionalAdvocacy(requirements, selected, new Map(), renderOptions);
 }
