@@ -4,6 +4,13 @@ import type {
   VacancyRequirement,
 } from '../domain/evidence-graph.js';
 
+export interface ProfessionalRenderOptions {
+  /** Curated PPKS entity names, never IDs shown to the visitor. */
+  readonly labels?: ReadonlyMap<string, string>;
+  /** Preserve must-have vs nice-to-have classification in parsed vacancies. */
+  readonly showPriority?: boolean;
+}
+
 const scopeLabels: Readonly<Record<EvidenceClaim['scope'], string>> = {
   professional: 'experiência profissional',
   mixed_role: 'atuação profissional com responsabilidades mistas',
@@ -21,7 +28,11 @@ const rank: Readonly<Record<EvidenceClaim['scope'], number>> = {
   unknown: 5,
 };
 
-function supportingFacts(match: EvidenceGraphMatch, maxClaims = 3): string[] {
+function supportingFacts(
+  match: EvidenceGraphMatch,
+  maxClaims = 3,
+  options: ProfessionalRenderOptions = {},
+): string[] {
   const publicIds = new Set(
     match.sources.filter((source) => source.visibility === 'public').map((source) => source.id),
   );
@@ -38,7 +49,20 @@ function supportingFacts(match: EvidenceGraphMatch, maxClaims = 3): string[] {
         .replace(/[\r\n]+/g, ' ')
         .trim()
         .slice(0, 300);
-      return `${label} (${scopeLabels[claim.scope]}; fontes: ${claim.sourceIds.join(', ')})`;
+      const technicalPrefix = claim.subjectId + ': ';
+      const fact = label.startsWith(technicalPrefix)
+        ? label.slice(technicalPrefix.length)
+        : label;
+      const subject = options.labels?.get(claim.subjectId);
+      const skill = options.labels?.get(claim.objectId);
+      // Human readable employer/project name comes from typed PPKS identity,
+      // not from the technical source ID or an LLM inference.
+      const description =
+        subject && skill && label.startsWith(technicalPrefix)
+          ? `${subject}: ${skill}`
+          : fact;
+      // Source identifiers remain only in the structured HTTP sources array.
+      return `${description} (${scopeLabels[claim.scope]})`;
     });
 }
 
@@ -51,6 +75,7 @@ export function renderProfessionalAdvocacy(
   requirements: readonly VacancyRequirement[],
   directMatches: readonly EvidenceGraphMatch[],
   transferable: ReadonlyMap<string, readonly EvidenceGraphMatch[]> = new Map(),
+  options: ProfessionalRenderOptions = {},
 ): string | undefined {
   if (requirements.length !== directMatches.length) return undefined;
   const positive: string[] = [];
@@ -59,16 +84,19 @@ export function renderProfessionalAdvocacy(
   for (const [index, requirement] of requirements.entries()) {
     const direct = directMatches[index];
     if (direct?.requirementId !== requirement.id) return undefined;
-    const facts = supportingFacts(direct);
+    const facts = supportingFacts(direct, 3, options);
     if (facts.length > 0) {
+      const heading = options.showPriority
+        ? `${requirement.mandatory ? 'Requisito obrigatório' : 'Diferencial'} — ${requirement.label}`
+        : requirement.label;
       positive.push(
-        `**${requirement.label}:** Pedro possui evidências documentadas: ${facts.join('; ')}.`,
+        `**${heading}:** Pedro apresenta evidências documentadas: ${facts.join('; ')}.`,
       );
       continue;
     }
     const related = transferable.get(requirement.id) ?? [];
     const anchors = related.flatMap((match) =>
-      supportingFacts(match, 2).map((fact) => `${match.requirementId}: ${fact}`),
+      supportingFacts(match, 2, options).map((fact) => fact),
     );
     if (anchors.length === 0) return undefined;
     adaptation.push(
