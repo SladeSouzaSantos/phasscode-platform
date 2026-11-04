@@ -10,7 +10,7 @@ export interface GeneratedClaimAudit {
   readonly answer: string;
   readonly sources: GenerationResult['sources'];
   readonly corrected: number;
-  readonly rules: readonly ('duration' | 'professional_scope' | 'degree_status')[];
+  readonly rules: readonly ('duration' | 'professional_scope' | 'project_scope' | 'degree_status')[];
 }
 
 const normalize = (value: string) =>
@@ -86,6 +86,7 @@ export function auditGeneratedRecruiterProse(
   );
   const engagements = snapshot.nodes.filter((node) => node.kind === 'engagement');
   const degrees = snapshot.nodes.filter((node) => node.kind === 'degree');
+  const projects = snapshot.nodes.filter((node) => node.kind === 'project');
   const skills = snapshot.nodes.filter((node) => node.kind === 'skill');
   const companies = new Map(
     snapshot.nodes.filter((node) => node.kind === 'company').map((node) => [node.id, node.label]),
@@ -203,6 +204,42 @@ export function auditGeneratedRecruiterProse(
         cite(studied);
         rules.push('professional_scope');
         break;
+      }
+    }
+
+    // A technology attributed to a named project must have an explicit
+    // public claim linking THAT project to THAT technology. A claim about a
+    // different project, or about the candidate generally, is not sufficient.
+    if (!correction) {
+      const projectAttributions = projects.filter((project) =>
+        containsName(original, project.label),
+      );
+      const technologyAssertion =
+        /\\b(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\\b/i.test(original) &&
+        !/\\b(?:n[aã]o|nunca|sem)\\s+(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\\b/i.test(original);
+      if (projectAttributions.length === 1 && technologyAssertion) {
+        const project = projectAttributions[0]!;
+        const namedSkills = skills.filter((skill) => containsName(original, skill.label));
+        const unsupported = namedSkills.filter((skill) =>
+          !supportedClaims.some((claim) =>
+            claim.subjectId === project.id &&
+            claim.objectId === skill.id &&
+            claim.predicate === 'USES_TECHNOLOGY',
+          ),
+        );
+        if (unsupported.length) {
+          const supported = supportedClaims.filter((claim) =>
+            claim.subjectId === project.id &&
+            claim.predicate === 'USES_TECHNOLOGY' &&
+            namedSkills.some((skill) => skill.id === claim.objectId),
+          );
+          correction =
+            'A atribuição de ' + unsupported.map((skill) => skill.label).join(', ') +
+            ' ao projeto ' + project.label +
+            ' não está comprovada pelas fontes públicas disponíveis.';
+          cite(supported);
+          rules.push('project_scope');
+        }
       }
     }
 
