@@ -129,7 +129,7 @@ export function auditGeneratedRecruiterProse(
     if (duration) {
       if (namedEngagements.length === 1 && namedEngagements[0]!.endedAt) {
         const engagement = namedEngagements[0]!;
-        const expected = monthsInEngagement(engagement.startedAt, engagement.endedAt);
+        const expected = monthsInEngagement(engagement.startedAt, engagement.endedAt!);
         const asserted = Number(duration[1]) * (/^ano/i.test(duration[2]!) ? 12 : 1);
         const evidence = supportedClaims.filter((claim) => claim.subjectId === engagement.id);
         if (Math.abs(expected - asserted) > 1) {
@@ -138,7 +138,7 @@ export function auditGeneratedRecruiterProse(
             correction =
               'Na ' + name + ', o vínculo documentado vai de ' +
               monthLabel(engagement.startedAt) + ' a ' +
-              monthLabel(engagement.endedAt) + '.';
+              monthLabel(engagement.endedAt!) + '.';
             cite(evidence);
           } else {
             correction = 'A duração específica desse vínculo não pôde ser validada em fontes públicas.';
