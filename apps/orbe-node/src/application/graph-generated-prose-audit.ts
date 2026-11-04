@@ -5,12 +5,14 @@ import type {
 } from '../domain/evidence-graph.js';
 import type { GenerationResult } from '../domain/ports.js';
 
+type ClaimAuditRule = 'duration' | 'professional_scope' | 'project_scope' | 'degree_status';
+
 export interface GeneratedClaimAudit {
   /** Only known high-risk assertions are audited; this is not universal semantic entailment. */
   readonly answer: string;
   readonly sources: GenerationResult['sources'];
   readonly corrected: number;
-  readonly rules: readonly ('duration' | 'professional_scope' | 'project_scope' | 'degree_status')[];
+  readonly rules: readonly ClaimAuditRule[];
 }
 
 const normalize = (value: string) =>
@@ -92,7 +94,7 @@ export function auditGeneratedRecruiterProse(
     snapshot.nodes.filter((node) => node.kind === 'company').map((node) => [node.id, node.label]),
   );
   const replacementSources = new Map<string, GenerationResult['sources'][number]>();
-  const rules: Array<'duration' | 'professional_scope' | 'project_scope' | 'degree_status'> = [];
+  const rules: ClaimAuditRule[] = [];
   const cite = (claims: readonly EvidenceClaim[]) => {
     for (const claim of claims) {
       for (const source of publicSources(claim, sourceById)) {
