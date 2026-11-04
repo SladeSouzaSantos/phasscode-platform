@@ -89,10 +89,10 @@ export function auditGeneratedRecruiterProse(
 ): GeneratedClaimAudit {
   const sourceById = new Map<string, EvidenceSource>();
   for (const node of snapshot.nodes) if (node.kind === 'source') sourceById.set(node.id, node);
-  const supportedClaims = snapshot.nodes.filter(
-    (node): node is EvidenceClaim =>
-      node.kind === 'claim' && publicSources(node, sourceById).length > 0,
+  const allClaims = snapshot.nodes.filter(
+    (node): node is EvidenceClaim => node.kind === 'claim',
   );
+  const supportedClaims = allClaims.filter((claim) => publicSources(claim, sourceById).length > 0);
   const engagements = snapshot.nodes.filter((node) => node.kind === 'engagement');
   const degrees = snapshot.nodes.filter((node) => node.kind === 'degree');
   const projects = snapshot.nodes.filter((node) => node.kind === 'project');
@@ -231,9 +231,13 @@ export function auditGeneratedRecruiterProse(
       if (projectAttributions.length === 1 && technologyAssertion) {
         const project = projectAttributions[0]!;
         const namedSkills = skills.filter((skill) => containsName(original, skill.label));
+        // A catalogued project/skill edge with incomplete public links is
+        // NOT evidence that the project lacks that technology. Only dispute
+        // attributions absent from the typed PPKS graph altogether; keep
+        // public-only provenance requirements for cited claims unchanged.
         const unsupported = namedSkills.filter(
           (skill) =>
-            !supportedClaims.some(
+            !allClaims.some(
               (claim) =>
                 claim.subjectId === project.id &&
                 claim.objectId === skill.id &&
