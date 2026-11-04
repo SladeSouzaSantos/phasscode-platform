@@ -39,7 +39,12 @@ const snapshot: EvidenceGraphSnapshot = {
       label: 'PHASSCODE Platform — backend do Orbe Mágico',
       category: 'professional',
     },
-    { kind: 'project', id: 'project-greencity', label: 'GREENCITY OS — projeto do portfólio', category: 'personal' },
+    {
+      kind: 'project',
+      id: 'project-greencity',
+      label: 'GREENCITY OS — projeto do portfólio',
+      category: 'personal',
+    },
     { kind: 'skill', id: 'skill-typescript', label: 'TypeScript' },
     { kind: 'skill', id: 'skill-gemini', label: 'Gemini' },
     { kind: 'skill', id: 'skill-groq', label: 'Groq' },
