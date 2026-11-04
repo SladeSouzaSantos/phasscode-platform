@@ -1,4 +1,8 @@
-import type { EvidenceClaim, EvidenceGraphSnapshot, EvidenceSource } from '../domain/evidence-graph.js';
+import type {
+  EvidenceClaim,
+  EvidenceGraphSnapshot,
+  EvidenceSource,
+} from '../domain/evidence-graph.js';
 import type { GenerationResult } from '../domain/ports.js';
 
 export interface GeneratedClaimAudit {
@@ -25,8 +29,18 @@ const containsName = (text: string, name: string) => {
 const monthLabel = (value: string) => {
   const [year, month] = value.split('-').map(Number);
   const names = [
-    'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+    'janeiro',
+    'fevereiro',
+    'março',
+    'abril',
+    'maio',
+    'junho',
+    'julho',
+    'agosto',
+    'setembro',
+    'outubro',
+    'novembro',
+    'dezembro',
   ];
   return names[month! - 1] + '/' + year;
 };
@@ -42,8 +56,7 @@ function publicSources(claim: EvidenceClaim, sources: ReadonlyMap<string, Eviden
   const actual = claim.sourceIds.map((id) => sources.get(id));
   if (
     actual.some(
-      (item) =>
-        !item || item.visibility !== 'public' || !item.sourceUrl?.startsWith('https://'),
+      (item) => !item || item.visibility !== 'public' || !item.sourceUrl?.startsWith('https://'),
     )
   ) {
     return [];
@@ -111,8 +124,9 @@ export function auditGeneratedRecruiterProse(
       const named = engagements.filter((engagement) => {
         const company = companies.get(engagement.companyId) ?? '';
         const acronym = engagement.label.match(/\b[A-Z]{4,}\b/g) ?? [];
-        return containsName(original, company) ||
-          acronym.some((item) => containsName(original, item));
+        return (
+          containsName(original, company) || acronym.some((item) => containsName(original, item))
+        );
       });
       if (named.length === 1 && named[0]!.endedAt) {
         const engagement = named[0]!;
@@ -121,8 +135,14 @@ export function auditGeneratedRecruiterProse(
         const evidence = supportedClaims.filter((claim) => claim.subjectId === engagement.id);
         if (evidence.length && Math.abs(expected - asserted) > 1) {
           const name = companies.get(engagement.companyId) ?? engagement.label;
-          correction = 'Na ' + name + ', o vínculo documentado vai de ' +
-            monthLabel(engagement.startedAt) + ' a ' + monthLabel(engagement.endedAt) + '.';
+          correction =
+            'Na ' +
+            name +
+            ', o vínculo documentado vai de ' +
+            monthLabel(engagement.startedAt) +
+            ' a ' +
+            monthLabel(engagement.endedAt) +
+            '.';
           cite(evidence);
           rules.push('duration');
         }
@@ -132,7 +152,9 @@ export function auditGeneratedRecruiterProse(
     // "Professional experience with X" needs a professional/mixed-role claim,
     // not just a study/personal project mentioning X.
     const explicitlyProfessional =
-      /\b(?:experi[eê]ncia profissional|atuou profissionalmente|trabalhou profissionalmente|emprego|em produ[cç][aã]o)\b/i.test(original) &&
+      /\b(?:experi[eê]ncia profissional|atuou profissionalmente|trabalhou profissionalmente|emprego|em produ[cç][aã]o)\b/i.test(
+        original,
+      ) &&
       !/\b(?:n[aã]o (?:h[aá]|tem|possui|trabalhou|atuou)|sem experi[eê]ncia)\b/i.test(original);
     if (!correction && explicitlyProfessional) {
       const matchedSkills = skills
@@ -155,10 +177,12 @@ export function auditGeneratedRecruiterProse(
         if (strong.length) continue;
         const studied = supportedClaims.filter((claim) => claim.objectId === skill.id);
         correction = studied.length
-          ? 'Pedro possui atividade documentada com ' + skill.label +
+          ? 'Pedro possui atividade documentada com ' +
+            skill.label +
             ' em escopo de projeto ou estudo; isso não comprova vínculo profissional nessa tecnologia.'
           : 'A documentação pública consultada não confirma atuação profissional em ' +
-            skill.label + '.';
+            skill.label +
+            '.';
         cite(studied);
         rules.push('professional_scope');
         break;
@@ -176,11 +200,14 @@ export function auditGeneratedRecruiterProse(
         if (!containsName(original, degree.label) || degree.status === 'completed') continue;
         const evidence = supportedClaims.filter((claim) => claim.objectId === degree.id);
         if (!evidence.length) continue;
-        const status = degree.status === 'pending_completion'
-          ? 'com conclusão pendente'
-          : degree.status === 'in_progress' ? 'em andamento' : 'não verificada';
-        correction = 'A graduação ' + degree.label + ' consta ' + status +
-          ' nas fontes disponíveis.';
+        const status =
+          degree.status === 'pending_completion'
+            ? 'com conclusão pendente'
+            : degree.status === 'in_progress'
+              ? 'em andamento'
+              : 'não verificada';
+        correction =
+          'A graduação ' + degree.label + ' consta ' + status + ' nas fontes disponíveis.';
         cite(evidence);
         rules.push('degree_status');
         break;

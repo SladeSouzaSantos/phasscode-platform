@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import { createGroundedRecruiterGraph } from './grounded-recruiter-graph.js';
 import { PublicGraphEvidenceGateway } from './graph-public-policy.js';
-import { renderProfessionalAdvocacy, type ProfessionalRenderOptions } from './graph-professional-advocacy.js';
+import {
+  renderProfessionalAdvocacy,
+  type ProfessionalRenderOptions,
+} from './graph-professional-advocacy.js';
 import { verifyAndRenderNarrativeSelection } from './graph-narrative-verifier.js';
 import { vacancyRequirementSchema } from '../domain/evidence-graph.js';
 import type { VacancyRequirementPlan } from './graph-vacancy-plan.js';

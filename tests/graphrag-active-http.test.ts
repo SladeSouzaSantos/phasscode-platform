@@ -214,7 +214,10 @@ describe('F3.3 active GraphRAG: DEV opt-in only', () => {
 
   it('preserves the must-have/differential priority in structured vacancies', async () => {
     const snapshot = await projectPpksEvidenceGraph();
-    const active = createGraphRagActive(snapshot, repository(async (items) => sampleMatch(items)));
+    const active = createGraphRagActive(
+      snapshot,
+      repository(async (items) => sampleMatch(items)),
+    );
     const result = await active.answer('Requisitos: Java\nDiferenciais: Flutter');
     expect(result?.answer).toContain('Requisito obrigatório — Java');
     expect(result?.answer).toContain('Diferencial — Flutter');
@@ -231,13 +234,15 @@ describe('F3.3 active GraphRAG: DEV opt-in only', () => {
       const parsed = JSON.parse(content) as {
         fragments: { id: string; excerpt: string; mandatory: boolean }[];
       };
-      return new AIMessage(JSON.stringify({
-        proposals: parsed.fragments.map((fragment) => ({
-          id: fragment.id,
-          excerpt: fragment.excerpt,
-          label: 'Java',
-        })),
-      }));
+      return new AIMessage(
+        JSON.stringify({
+          proposals: parsed.fragments.map((fragment) => ({
+            id: fragment.id,
+            excerpt: fragment.excerpt,
+            label: 'Java',
+          })),
+        }),
+      );
     });
     const factory: LlmInvocationFactory = (tools, signal) => {
       expect(tools).toHaveLength(0);

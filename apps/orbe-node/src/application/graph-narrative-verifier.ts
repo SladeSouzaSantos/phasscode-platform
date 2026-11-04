@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import type { EvidenceGraphMatch, VacancyRequirement } from '../domain/evidence-graph.js';
-import { renderProfessionalAdvocacy, type ProfessionalRenderOptions } from './graph-professional-advocacy.js';
+import {
+  renderProfessionalAdvocacy,
+  type ProfessionalRenderOptions,
+} from './graph-professional-advocacy.js';
 
 const narrativePlanSchema = z.strictObject({
   statements: z.array(

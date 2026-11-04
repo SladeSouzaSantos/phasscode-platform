@@ -21,7 +21,12 @@ const snapshot: EvidenceGraphSnapshot = {
     },
     { kind: 'skill', id: 'skill-java', label: 'Java' },
     { kind: 'skill', id: 'skill-spring', label: 'Spring Boot' },
-    { kind: 'degree', id: 'degree-cs', label: 'Ciência da Computação', status: 'pending_completion' },
+    {
+      kind: 'degree',
+      id: 'degree-cs',
+      label: 'Ciência da Computação',
+      status: 'pending_completion',
+    },
     {
       kind: 'source',
       id: 'source-public',
@@ -117,10 +122,7 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
   });
 
   it('does not promote a pending degree into completed education', () => {
-    const result = auditGeneratedRecruiterProse(
-      'Pedro concluiu Ciência da Computação.',
-      snapshot,
-    );
+    const result = auditGeneratedRecruiterProse('Pedro concluiu Ciência da Computação.', snapshot);
     expect(result.corrected).toBe(1);
     expect(result.rules).toContain('degree_status');
     expect(result.answer).toContain('com conclusão pendente');

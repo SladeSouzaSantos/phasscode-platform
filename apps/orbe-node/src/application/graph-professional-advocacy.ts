@@ -50,17 +50,13 @@ function supportingFacts(
         .trim()
         .slice(0, 300);
       const technicalPrefix = claim.subjectId + ': ';
-      const fact = label.startsWith(technicalPrefix)
-        ? label.slice(technicalPrefix.length)
-        : label;
+      const fact = label.startsWith(technicalPrefix) ? label.slice(technicalPrefix.length) : label;
       const subject = options.labels?.get(claim.subjectId);
       const skill = options.labels?.get(claim.objectId);
       // Human readable employer/project name comes from typed PPKS identity,
       // not from the technical source ID or an LLM inference.
       const description =
-        subject && skill && label.startsWith(technicalPrefix)
-          ? `${subject}: ${skill}`
-          : fact;
+        subject && skill && label.startsWith(technicalPrefix) ? `${subject}: ${skill}` : fact;
       // Source identifiers remain only in the structured HTTP sources array.
       return `${description} (${scopeLabels[claim.scope]})`;
     });
