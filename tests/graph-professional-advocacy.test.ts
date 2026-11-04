@@ -75,6 +75,23 @@ describe('F3.3 professional advocacy with verified evidence', () => {
     expect(answer).not.toContain('não possui projetos');
   });
 
+  it('renders mandatory/differential headings and curated names, never technical IDs', () => {
+    const labels = new Map([
+      ['project-one', 'SIG Software e Consultoria em TI'],
+      ['skill-java', 'Java'],
+    ]);
+    const answer = renderProfessionalAdvocacy(
+      [java, { ...python, mandatory: false }],
+      [javaProfessional, pythonProject],
+      new Map(),
+      { labels, showPriority: true },
+    );
+    expect(answer).toContain('**Requisito obrigatório — Java:**');
+    expect(answer).toContain('**Diferencial — Python:**');
+    expect(answer).not.toContain('source-public');
+    expect(answer).not.toContain('claim-java-professional');
+  });
+
   it('presents Go as an explicit gap plus substantiated transferable foundations', () => {
     const answer = renderProfessionalAdvocacy(
       [go],
