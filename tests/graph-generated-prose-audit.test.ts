@@ -7,6 +7,7 @@ const snapshot: EvidenceGraphSnapshot = {
   nodes: [
     { kind: 'candidate', id: 'candidate', label: 'Pedro' },
     { kind: 'company', id: 'company-sig', label: 'SIG Software e Consultoria em TI' },
+    { kind: 'company', id: 'company-geowellex', label: 'Geowellex' },
     {
       kind: 'engagement',
       id: 'experiencia-sig',
@@ -18,6 +19,18 @@ const snapshot: EvidenceGraphSnapshot = {
       areas: ['software-development'],
       startedAt: '2016-06',
       endedAt: '2017-02',
+    },
+    {
+      kind: 'engagement',
+      id: 'experiencia-geowellex',
+      label: 'Atuação em engenharia e software',
+      candidateId: 'candidate',
+      companyId: 'company-geowellex',
+      type: 'employee',
+      softwareWorkScope: 'mixed',
+      areas: ['engineering', 'software-development'],
+      startedAt: '2017-03',
+      endedAt: '2018-10',
     },
     { kind: 'skill', id: 'skill-java', label: 'Java' },
     { kind: 'skill', id: 'skill-spring', label: 'Spring Boot' },
@@ -140,6 +153,19 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
       privateOnly,
     );
     expect(result.sources).toEqual([]);
-    expect(result.corrected).toBe(0);
+    expect(result.corrected).toBe(1);
+    expect(result.answer).toContain('não pôde ser validada em fontes públicas');
+  });
+
+  it('rejects the attribution of verified Java work to the wrong employer', () => {
+    const result = auditGeneratedRecruiterProse(
+      'Pedro tem experiência profissional com Java na Geowellex.',
+      snapshot,
+    );
+    expect(result.corrected).toBe(1);
+    expect(result.rules).toContain('professional_scope');
+    expect(result.answer).not.toContain('com Java na Geowellex');
+    expect(result.answer).toContain('não a atribui a esse vínculo');
+    expect(result.sources).toHaveLength(1);
   });
 });
