@@ -128,16 +128,18 @@ describe('F3.3/F3.5 DEV-only Docker secret and graph overlay guardrails', () => 
     const script = await readFile('scripts/graph-reader-dev.sh', 'utf8');
     // A reader token is required for the approved HTTP gateway; its presence
     // must not be confused with prohibited Neo4j Bolt/admin credentials.
-    expect(script).toContain("shadow|active)");
+    expect(script).toContain('shadow|active)');
     expect(script).toContain("''|off)");
-    expect(script).toContain("ORBE_GRAPHRAG_STAGE=dev");
-    expect(script).toContain("ORBE_GRAPHRAG_DEV_APPROVED=true");
-    expect(script).toContain("ORBE_GRAPH_READER_TOKEN_FILE=/run/secrets/graph_reader_token");
-    expect(script).toContain("Neo4j admin secret mounted into public DEV API");
-    expect(script).toContain("Graph API has unexpected or missing secret mounts");
-    expect(script).toContain("Graph API token must originate from the dedicated node-owned DEV file");
-    expect(script).toContain("API reader token must be node-owned and mode 0400");
-    expect(script).toContain("OFF API must not have graph secrets");
+    expect(script).toContain('ORBE_GRAPHRAG_STAGE=dev');
+    expect(script).toContain('ORBE_GRAPHRAG_DEV_APPROVED=true');
+    expect(script).toContain('ORBE_GRAPH_READER_TOKEN_FILE=/run/secrets/graph_reader_token');
+    expect(script).toContain('Neo4j admin secret mounted into public DEV API');
+    expect(script).toContain('Graph API has unexpected or missing secret mounts');
+    expect(script).toContain(
+      'Graph API token must originate from the dedicated node-owned DEV file',
+    );
+    expect(script).toContain('API reader token must be node-owned and mode 0400');
+    expect(script).toContain('OFF API must not have graph secrets');
     expect(script).not.toContain("die 'Graph secret was mounted into public DEV API'");
   });
 
