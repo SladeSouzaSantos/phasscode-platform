@@ -5,7 +5,7 @@ import { renderProfessionalAdvocacy } from './graph-professional-advocacy.js';
 import { verifyAndRenderNarrativeSelection } from './graph-narrative-verifier.js';
 import { vacancyRequirementSchema } from '../domain/evidence-graph.js';
 import type { VacancyRequirementPlan } from './graph-vacancy-plan.js';
-import type { EvidenceGraphRepository, VacancyRequirement } from '../domain/evidence-graph.js';
+import type { EvidenceGraphRepository, EvidenceSource, VacancyRequirement } from '../domain/evidence-graph.js';
 
 /**
  * F3.3 evidence-first evaluation: used by offline tests and the default-OFF
@@ -34,6 +34,8 @@ export type GraphRecruiterPreviewResult = {
     | 'unrecognized_requirements'
     | 'unavailable_or_incomplete';
   matchedRequirements: number;
+  /** Public evidence actually attached to verified graph claims. */
+  sources?: readonly EvidenceSource[];
   unrecognizedRequirements?: readonly string[];
 };
 
@@ -118,6 +120,16 @@ export async function evaluateGraphRecruiterPreview(
       answer,
       reason: 'verified',
       matchedRequirements: result.requirements.length,
+      sources: [...new Map(
+        result.matches
+          .flatMap((match) => match.sources)
+          .filter((source) =>
+            result.matches.some((match) =>
+              match.claims.some((claim) => claim.sourceIds.includes(source.id)),
+            ),
+          )
+          .map((source) => [source.id, source]),
+      ).values()],
     };
   }
 
