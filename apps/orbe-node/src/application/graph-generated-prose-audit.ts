@@ -118,8 +118,9 @@ export function auditGeneratedRecruiterProse(
     const namedEngagements = engagements.filter((engagement) => {
       const company = companies.get(engagement.companyId) ?? '';
       const acronyms = engagement.label.match(/\b[A-Z]{4,}\b/g) ?? [];
-      return containsName(original, company) ||
-        acronyms.some((item) => containsName(original, item));
+      return (
+        containsName(original, company) || acronyms.some((item) => containsName(original, item))
+      );
     });
 
     // A duration can be asserted only for ONE named employment engagement.
@@ -136,12 +137,17 @@ export function auditGeneratedRecruiterProse(
           if (evidence.length) {
             const name = companies.get(engagement.companyId) ?? engagement.label;
             correction =
-              'Na ' + name + ', o vínculo documentado vai de ' +
-              monthLabel(engagement.startedAt) + ' a ' +
-              monthLabel(engagement.endedAt!) + '.';
+              'Na ' +
+              name +
+              ', o vínculo documentado vai de ' +
+              monthLabel(engagement.startedAt) +
+              ' a ' +
+              monthLabel(engagement.endedAt!) +
+              '.';
             cite(evidence);
           } else {
-            correction = 'A duração específica desse vínculo não pôde ser validada em fontes públicas.';
+            correction =
+              'A duração específica desse vínculo não pôde ser validada em fontes públicas.';
           }
           rules.push('duration');
         }
@@ -178,7 +184,9 @@ export function auditGeneratedRecruiterProse(
           continue;
         }
         if (strong.length && namedEngagements.length === 1) {
-          correction = 'A documentação pública sustenta atuação profissional com ' + skill.label +
+          correction =
+            'A documentação pública sustenta atuação profissional com ' +
+            skill.label +
             ', mas não a atribui a esse vínculo específico.';
           cite(strong);
           rules.push('professional_scope');
