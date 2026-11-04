@@ -115,35 +115,34 @@ export function auditGeneratedRecruiterProse(
       continue;
     }
     let correction: string | undefined;
+    const namedEngagements = engagements.filter((engagement) => {
+      const company = companies.get(engagement.companyId) ?? '';
+      const acronyms = engagement.label.match(/\b[A-Z]{4,}\b/g) ?? [];
+      return containsName(original, company) ||
+        acronyms.some((item) => containsName(original, item));
+    });
 
     // A duration can be asserted only for ONE named employment engagement.
     // If the sentence mentions two employers, do not attribute the combined
     // duration to either one.
     const duration = /\b(\d{1,3})\s*(anos?|meses?)\b/i.exec(original);
     if (duration) {
-      const named = engagements.filter((engagement) => {
-        const company = companies.get(engagement.companyId) ?? '';
-        const acronym = engagement.label.match(/\b[A-Z]{4,}\b/g) ?? [];
-        return (
-          containsName(original, company) || acronym.some((item) => containsName(original, item))
-        );
-      });
-      if (named.length === 1 && named[0]!.endedAt) {
-        const engagement = named[0]!;
+      if (namedEngagements.length === 1 && namedEngagements[0]!.endedAt) {
+        const engagement = namedEngagements[0]!;
         const expected = monthsInEngagement(engagement.startedAt, engagement.endedAt);
         const asserted = Number(duration[1]) * (/^ano/i.test(duration[2]!) ? 12 : 1);
         const evidence = supportedClaims.filter((claim) => claim.subjectId === engagement.id);
-        if (evidence.length && Math.abs(expected - asserted) > 1) {
-          const name = companies.get(engagement.companyId) ?? engagement.label;
-          correction =
-            'Na ' +
-            name +
-            ', o vínculo documentado vai de ' +
-            monthLabel(engagement.startedAt) +
-            ' a ' +
-            monthLabel(engagement.endedAt) +
-            '.';
-          cite(evidence);
+        if (Math.abs(expected - asserted) > 1) {
+          if (evidence.length) {
+            const name = companies.get(engagement.companyId) ?? engagement.label;
+            correction =
+              'Na ' + name + ', o vínculo documentado vai de ' +
+              monthLabel(engagement.startedAt) + ' a ' +
+              monthLabel(engagement.endedAt) + '.';
+            cite(evidence);
+          } else {
+            correction = 'A duração específica desse vínculo não pôde ser validada em fontes públicas.';
+          }
           rules.push('duration');
         }
       }
@@ -174,7 +173,17 @@ export function auditGeneratedRecruiterProse(
             claim.objectId === skill.id &&
             (claim.scope === 'professional' || claim.scope === 'mixed_role'),
         );
-        if (strong.length) continue;
+        if (strong.length && namedEngagements.length !== 1) continue;
+        if (strong.length && strong.some((claim) => claim.subjectId === namedEngagements[0]?.id)) {
+          continue;
+        }
+        if (strong.length && namedEngagements.length === 1) {
+          correction = 'A documentação pública sustenta atuação profissional com ' + skill.label +
+            ', mas não a atribui a esse vínculo específico.';
+          cite(strong);
+          rules.push('professional_scope');
+          break;
+        }
         const studied = supportedClaims.filter((claim) => claim.objectId === skill.id);
         correction = studied.length
           ? 'Pedro possui atividade documentada com ' +
@@ -199,7 +208,11 @@ export function auditGeneratedRecruiterProse(
       for (const degree of degrees) {
         if (!containsName(original, degree.label) || degree.status === 'completed') continue;
         const evidence = supportedClaims.filter((claim) => claim.objectId === degree.id);
-        if (!evidence.length) continue;
+        if (!evidence.length) {
+          correction = 'A conclusão da graduação mencionada não foi confirmada por fonte pública.';
+          rules.push('degree_status');
+          break;
+        }
         const status =
           degree.status === 'pending_completion'
             ? 'com conclusão pendente'
