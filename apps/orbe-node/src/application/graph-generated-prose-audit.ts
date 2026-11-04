@@ -215,9 +215,7 @@ export function auditGeneratedRecruiterProse(
         containsName(original, project.label),
       );
       const technologyAssertion =
-        /\b(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\b/i.test(
-          original,
-        ) &&
+        /\b(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\b/i.test(original) &&
         !/\b(?:n[aã]o|nunca|sem)\s+(?:usa|utiliza|integra|implementa|adota|emprega|configura|suporta)\b/i.test(
           original,
         );
