@@ -5,7 +5,7 @@ const TOKEN_FORMAT = /^[A-Za-z0-9_-]{43,128}$/;
 
 /**
  * Load only the dedicated Docker secret for the unprivileged HTTP graph
- * reader. This is called ONLY by the explicitly approved DEV shadow mode,
+ * reader. This is called ONLY by explicitly approved DEV shadow/active modes,
  * never by the canonical/production path or the Neo4j maintenance process.
  *
  * A test may inject an in-memory secret reader. There is no configurable
@@ -16,11 +16,11 @@ export async function loadDevGraphReaderToken(
   readSecret: (path: string) => Promise<string> = (path) => readFile(path, 'utf8'),
 ): Promise<string> {
   if (
-    env.ORBE_GRAPHRAG_MODE !== 'shadow' ||
+    !['shadow', 'active'].includes(env.ORBE_GRAPHRAG_MODE ?? '') ||
     env.ORBE_GRAPHRAG_STAGE !== 'dev' ||
     env.ORBE_GRAPHRAG_DEV_APPROVED !== 'true'
   ) {
-    throw new Error('GRAPH_READER_DEV_SHADOW_ONLY');
+    throw new Error('GRAPH_READER_DEV_ONLY');
   }
   if (env.ORBE_GRAPH_READER_TOKEN !== undefined) {
     throw new Error('GRAPH_READER_PLAINTEXT_ENV_FORBIDDEN');
