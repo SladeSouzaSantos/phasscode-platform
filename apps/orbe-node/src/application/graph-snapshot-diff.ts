@@ -49,12 +49,11 @@ function relationKey(relation: GraphRelation): string {
   return [relation.from, relation.type, relation.to].join('|');
 }
 
-function entries(
-  graph: EvidenceGraphSnapshot,
-): { nodes: Map<string, GraphNode>; relations: Map<string, GraphRelation> } {
-  const nodes = new Map(
-    graph.nodes.map((node) => [node.id, normalizeNode(node)] as const),
-  );
+function entries(graph: EvidenceGraphSnapshot): {
+  nodes: Map<string, GraphNode>;
+  relations: Map<string, GraphRelation>;
+} {
+  const nodes = new Map(graph.nodes.map((node) => [node.id, normalizeNode(node)] as const));
   const relations = new Map<string, GraphRelation>();
   for (const relation of graph.relations) {
     const key = relationKey(relation);
@@ -72,10 +71,7 @@ function stableDigest(parts: ReturnType<typeof entries>): string {
   return createHash('sha256').update(JSON.stringify(ordered)).digest('hex');
 }
 
-function fieldsChanged(
-  before: Record<string, unknown>,
-  after: Record<string, unknown>,
-): string[] {
+function fieldsChanged(before: Record<string, unknown>, after: Record<string, unknown>): string[] {
   return [...new Set([...Object.keys(before), ...Object.keys(after)])]
     .sort()
     .filter((key) => JSON.stringify(before[key]) !== JSON.stringify(after[key]));
@@ -93,10 +89,7 @@ function compare<T extends { kind?: string; type?: string }>(
     const newValue = after.get(key);
     const changedFields =
       oldValue && newValue
-        ? fieldsChanged(
-            oldValue as Record<string, unknown>,
-            newValue as Record<string, unknown>,
-          )
+        ? fieldsChanged(oldValue as Record<string, unknown>, newValue as Record<string, unknown>)
         : [];
     if (oldValue && newValue && changedFields.length === 0) continue;
     const value = newValue ?? oldValue!;

@@ -69,9 +69,11 @@ describe('F3.6 PPKS offline diff requires review before Neo4j mutations', () => 
   it('ignores node/edge ordering and unordered source reference sets', () => {
     const reordered: EvidenceGraphSnapshot = {
       ...baseline,
-      nodes: [...baseline.nodes].reverse().map((node) =>
-        node.kind === 'claim' ? { ...node, sourceIds: [...node.sourceIds].reverse() } : node,
-      ),
+      nodes: [...baseline.nodes]
+        .reverse()
+        .map((node) =>
+          node.kind === 'claim' ? { ...node, sourceIds: [...node.sourceIds].reverse() } : node,
+        ),
       relations: baseline.relations.map((edge) => ({
         ...edge,
         sourceIds: [...edge.sourceIds].reverse(),
