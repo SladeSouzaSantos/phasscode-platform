@@ -38,7 +38,8 @@ function fixture(
       language: 'pt',
       text: item.source,
       annotations: item.fragments.map((part) => {
-        const start = item.source.indexOf(part.text);
+        // The isolated skill may occur after a longer name (Java after JavaScript).
+        const start = item.source.lastIndexOf(part.text);
         if (start < 0) throw new Error('TEST_FIXTURE_MISSING_SPAN');
         return {
           start,
