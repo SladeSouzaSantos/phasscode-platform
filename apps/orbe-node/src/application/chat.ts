@@ -45,6 +45,8 @@ import {
 import type { PublicEvidenceReader } from './public-evidence.js';
 import { graphShadowObservationSchema, type GraphShadowPort } from './graph-rag-shadow.js';
 import type { GraphActivePort } from './graph-active-answer.js';
+import { createSharedGraphTurnLlmBudget } from './graph-turn-llm-budget.js';
+import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
 import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
@@ -69,6 +71,7 @@ export class ChatService {
     private readonly evidenceReader?: PublicEvidenceReader,
     private readonly graphShadow?: GraphShadowPort,
     private readonly graphActive?: GraphActivePort,
+    private readonly graphModelFactory?: LlmInvocationFactory,
   ) {}
 
   async execute(
@@ -223,6 +226,12 @@ export class ChatService {
         // academic, duration, matrix and conversation-specific fast paths.
         // On abstention or reader outage, the existing PPKS path runs once.
         let graphAnswer: GenerationResult | undefined;
+        // One logical limit shared across optional semantic normalization and
+        // canonical model/tool rounds. Physical Redis quota stays unchanged.
+        const graphTurnBudget =
+          this.graphActive && this.graphModelFactory
+            ? createSharedGraphTurnLlmBudget(this.graphModelFactory)
+            : undefined;
         if (
           this.graphActive &&
           !meetingTurn &&
@@ -244,13 +253,17 @@ export class ChatService {
         ) {
           const started = performance.now();
           try {
-            graphAnswer = await this.graphActive.answer(query);
+            graphAnswer = await this.graphActive.answer(query, {
+              ...(graphTurnBudget ? { semanticFactory: graphTurnBudget.semanticFactory } : {}),
+              maxContextChars: Math.min(1_000_000, Math.max(2_000, this.config.CHAT_CONTEXT_CHARS)),
+            });
           } catch {
             // A private reader/graph error is never reflected to visitors.
           }
           console.info(
             JSON.stringify({
               event: 'orbe_graphrag_active',
+              ...(graphTurnBudget ? { semanticCalls: graphTurnBudget.usage().semanticCalls } : {}),
               traceId: evidenceTraceId,
               mode: graphAnswer ? 'verified_graph' : 'canonical_ppks',
               durationMs: Math.min(60_000, Math.max(0, Math.round(performance.now() - started))),
@@ -364,6 +377,9 @@ export class ChatService {
                 signal: controller.signal,
                 meetingActions,
                 asOf: this.now(),
+                ...(graphTurnBudget
+                  ? { invocationFactoryOverride: graphTurnBudget.answerFactory }
+                  : {}),
                 ...(experienceDocuments.length
                   ? { experienceIds: experienceDocuments.map((doc) => doc.id) }
                   : {}),
