@@ -71,9 +71,7 @@ const sampleMatch = (requirements: readonly VacancyRequirement[]): EvidenceGraph
     ],
     sources: [source],
   }));
-const repository = (
-  lookup: EvidenceGraphRepository['findEvidence'],
-): EvidenceGraphRepository => ({
+const repository = (lookup: EvidenceGraphRepository['findEvidence']): EvidenceGraphRepository => ({
   findEvidence: lookup,
   getSource: vi.fn(async () => source),
 });
@@ -83,9 +81,9 @@ describe('F3.3 active GraphRAG: DEV opt-in only', () => {
     expect(() => loadConfig({ ORBE_GRAPHRAG_MODE: 'active' })).toThrow(
       'GRAPH_ACTIVE_REQUIRES_EXPLICIT_DEV_APPROVAL',
     );
-    expect(() =>
-      loadConfig({ ORBE_GRAPHRAG_MODE: 'active', ORBE_GRAPHRAG_STAGE: 'dev' }),
-    ).toThrow('GRAPH_ACTIVE_REQUIRES_EXPLICIT_DEV_APPROVAL');
+    expect(() => loadConfig({ ORBE_GRAPHRAG_MODE: 'active', ORBE_GRAPHRAG_STAGE: 'dev' })).toThrow(
+      'GRAPH_ACTIVE_REQUIRES_EXPLICIT_DEV_APPROVAL',
+    );
     expect(config('off').ORBE_GRAPHRAG_MODE).toBe('off');
     await expect(testApp({ config: config('active') })).rejects.toThrow(
       'GRAPH_ACTIVE_MISSING_PORT',

@@ -76,7 +76,7 @@ Verificar antes de qualquer ativação:
    `GET /internal/health` HTTP 200; API, Neo4j, PostgreSQL e Redis
    saudáveis, sem deploy lock.
 4. Configuração Compose `config --quiet` com os overlays de Neo4j,
-   Reader e **Active** (sem Shadow). Inspecionar a *configuração final*
+   Reader e **Active** (sem Shadow). Inspecionar a _configuração final_
    antes de recriar somente a API com `--no-deps --no-build --pull never`.
    Não executar `down` nem remover volumes.
 5. Teste Playwright real com conversas novas e 2/3 turnos, fontes no

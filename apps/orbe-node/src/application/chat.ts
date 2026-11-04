@@ -237,7 +237,10 @@ export class ChatService {
           !verifiedGo &&
           !verifiedAcademic &&
           !verifiedMatrix &&
-          isInScope(request.message, retrieved.flatMap((doc) => doc.keywords))
+          isInScope(
+            request.message,
+            retrieved.flatMap((doc) => doc.keywords),
+          )
         ) {
           const started = performance.now();
           try {
@@ -483,7 +486,9 @@ export class ChatService {
             verifiedDuration ||
             verifiedOverview
               ? { deterministic: true }
-              : graphAnswer ? { deterministic: true } : {}),
+              : graphAnswer
+                ? { deterministic: true }
+                : {}),
           },
         });
         return {

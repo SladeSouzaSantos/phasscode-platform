@@ -21,10 +21,31 @@ const normalize = (text: string) =>
 // Broader career, project-listing and multi-skill questions stay with PPKS
 // until coverage is established by the separate vacancy planner.
 const questionWords = new Set([
-  'pedro', 'santos', 'tem', 'possui', 'experiencia', 'profissional',
-  'com', 'em', 'de', 'o', 'a', 'do', 'da', 'e', 'sobre', 'sabe',
-  'conhece', 'conhecimento', 'dominio', 'domina', 'trabalhou',
-  'trabalha', 'pratica', 'comprovada', 'comprovado',
+  'pedro',
+  'santos',
+  'tem',
+  'possui',
+  'experiencia',
+  'profissional',
+  'com',
+  'em',
+  'de',
+  'o',
+  'a',
+  'do',
+  'da',
+  'e',
+  'sobre',
+  'sabe',
+  'conhece',
+  'conhecimento',
+  'dominio',
+  'domina',
+  'trabalhou',
+  'trabalha',
+  'pratica',
+  'comprovada',
+  'comprovado',
 ]);
 
 function isFocusedQuestion(
