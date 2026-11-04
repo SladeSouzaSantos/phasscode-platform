@@ -247,6 +247,7 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
     expect(result.answer).toContain('não a atribui a esse vínculo');
     expect(result.sources).toHaveLength(1);
   });
+
   it('audits actual PPKS project labels, not only synthetic short labels', async () => {
     const real = await projectPpksEvidenceGraph();
     const mismatch = auditGeneratedRecruiterProse('PHASSCODE Platform utiliza Flutter.', real);
@@ -267,5 +268,4 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
     expect(result.answer).toBe(claimed);
     expect(result.corrected).toBe(0);
   });
-
 });
