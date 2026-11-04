@@ -261,6 +261,27 @@ describe('F3.3 bounded factual guard for unconstrained model prose', () => {
     expect(supported.corrected).toBe(0);
   });
 
+  it('retains the documented PHASSCODE backend stack even with mixed catalog/HTTPS sources', async () => {
+    const real = await projectPpksEvidenceGraph();
+    const statement =
+      'PHASSCODE Platform utiliza PostgreSQL, Node.js, TypeScript, LangChain, Fastify, Redis e Docker.';
+    const result = auditGeneratedRecruiterProse(statement, real);
+    expect(result.answer).toBe(statement);
+    expect(result.corrected).toBe(0);
+    expect(result.rules).toEqual([]);
+  });
+
+  it('flags only missing project technology and never disparages catalogued skills', async () => {
+    const real = await projectPpksEvidenceGraph();
+    const statement = 'PHASSCODE Platform utiliza PostgreSQL, Node.js, TypeScript e Flutter.';
+    const result = auditGeneratedRecruiterProse(statement, real);
+    expect(result.rules).toContain('project_scope');
+    expect(result.answer).toContain('Flutter');
+    expect(result.answer).not.toContain('atribuição de PostgreSQL');
+    expect(result.answer).not.toContain('atribuição de Node.js');
+    expect(result.answer).not.toContain('atribuição de TypeScript');
+  });
+
   it('does not mistake catalogue-only Greencity evidence for proof of absence', async () => {
     const real = await projectPpksEvidenceGraph();
     const claimed = 'Greencity OS utiliza Flutter.';
