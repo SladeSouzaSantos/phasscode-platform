@@ -168,6 +168,33 @@ describe('F3.3 active GraphRAG: DEV opt-in only', () => {
     expect(lookup).not.toHaveBeenCalled();
   });
 
+  it('keeps valid claims but drops entire claims with incomplete public URLs', async () => {
+    const snapshot = await projectPpksEvidenceGraph();
+    const unreachable = { ...source, id: 'source-without-url', sourceUrl: undefined };
+    const lookup = vi.fn(async (requirements: readonly VacancyRequirement[]) =>
+      sampleMatch(requirements).map((match) => ({
+        ...match,
+        claims: [
+          ...match.claims,
+          {
+            ...match.claims[0]!,
+            id: 'claim-unlinked',
+            label: 'UNLINKED_CLAIM_NEVER_DISPLAY',
+            sourceIds: [unreachable.id],
+          },
+        ],
+        sources: [source, unreachable],
+      })),
+    );
+    const graphActive = createGraphRagActive(snapshot, repository(lookup));
+    const answer = await graphActive.answer('Pedro sabe Java?');
+    expect(answer?.answer).toContain('Projeto Java implementado');
+    expect(answer?.answer).not.toContain('UNLINKED_CLAIM_NEVER_DISPLAY');
+    expect(answer?.sources).toEqual([
+      { id: source.id, type: 'project', title: source.label, url: source.sourceUrl },
+    ]);
+  });
+
   it('never reaches graph generation for injection, greeting or personal life queries', async () => {
     const answer = vi.fn(async () => ({
       answer: 'UNTRUSTED GRAPH OUTPUT',
