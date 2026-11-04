@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { projectPpksEvidenceGraph } from '../apps/orbe-node/src/adapters/ppks-evidence-graph.js';
+import { createGraphRagActive } from '../apps/orbe-node/src/application/graph-active-answer.js';
 import { analyzeVacancyEvidenceCoverage } from '../apps/orbe-node/src/application/graph-vacancy-coverage.js';
 import { evaluateGraphRecruiterPreview } from '../apps/orbe-node/src/application/graph-recruiter-preview.js';
 import { createSnapshotRequirementIdentifier } from '../apps/orbe-node/src/application/graph-requirements.js';
@@ -22,7 +23,7 @@ const corpusSchema = z.object({
 });
 
 export type OfflineRecruiterMatrixReport = {
-  reportVersion: 'orbe-graphrag-offline-matrix-v1';
+  reportVersion: 'orbe-graphrag-offline-matrix-v2';
   mode: 'offline_ppks_projection';
   corpusVersion: string;
   baselineComparison: 'not_run';
@@ -34,6 +35,9 @@ export type OfflineRecruiterMatrixReport = {
     verified: number;
     transferable: number;
     canonicalFallback: number;
+    /** Uses the real Active decision policy on offline PPKS claims, not Neo4j. */
+    activePolicyVerified: number;
+    activePolicyFallback: number;
     unknownRequirements: number;
     uninterpretedClauses: number;
   };
@@ -42,8 +46,12 @@ export type OfflineRecruiterMatrixReport = {
     category: string;
     turns: Array<{
       index: number;
+      /** Legacy preview mode: does not enforce Active free-prose policy. */
       mode: 'verified_graph' | 'transferable_graph' | 'canonical_ppks';
       reason: string;
+      /** Decision of createGraphRagActive with the same offline evidence repository. */
+      activePolicyMode: 'verified_graph' | 'canonical_ppks';
+      activePolicySourceCount: number;
       recognizedRequirements: number;
       vacancyCoverageStatus: 'eligible' | 'needs_review' | 'no_requirements';
       unknownRequirements: number;
@@ -96,6 +104,9 @@ export function createOfflineSnapshotEvidenceRepository(
  * the LLM, Neo4j, HTTP APIs, Redis or the public ChatService.
  *
  * The canonical PPKS callback is a fixed sentinel for routing verification.
+ * The legacy preview and the actual Active policy are reported separately:
+ * a preview can find claims even when the Active parser abstains on a long
+ * recruitment prompt or when full HTTPS provenance is missing.
  * This report MUST NOT be described as an answer-quality or v0.1.0 baseline
  * comparison. It stores IDs/counters, never candidate answers or prompts.
  */
@@ -108,12 +119,15 @@ export async function evaluateOfflineRecruiterMatrix(
   if (new Set(ids).size !== ids.length) throw new Error('GRAPH_MATRIX_DUPLICATE_CASE_ID');
   const identifyRequirements = createSnapshotRequirementIdentifier(snapshot);
   const evidence = createOfflineSnapshotEvidenceRepository(snapshot);
+  const activePolicy = createGraphRagActive(snapshot, evidence);
 
   const cases: OfflineRecruiterMatrixReport['cases'] = [];
   let turns = 0;
   let verified = 0;
   let transferable = 0;
   let canonicalFallback = 0;
+  let activePolicyVerified = 0;
+  let activePolicyFallback = 0;
   let unknownRequirements = 0;
   let uninterpretedClauses = 0;
 
@@ -129,6 +143,13 @@ export async function evaluateOfflineRecruiterMatrix(
         identifyRequirements: () => parsed,
         canonicalPpks: () => 'CANONICAL_PPKS_FALLBACK_OFFLINE',
       });
+      // Same Active gate as the public adapter, but no network, model or Neo4j.
+      // This checks local eligibility only; it does not measure response quality.
+      const activeResponse = await activePolicy.answer(turn.message);
+      const activePolicyMode = activeResponse ? 'verified_graph' : 'canonical_ppks';
+      if (activeResponse) activePolicyVerified += 1;
+      else activePolicyFallback += 1;
+
       if (preview.mode === 'verified_graph') verified += 1;
       else if (preview.mode === 'transferable_graph') transferable += 1;
       else canonicalFallback += 1;
@@ -140,6 +161,8 @@ export async function evaluateOfflineRecruiterMatrix(
         index,
         mode: preview.mode,
         reason: preview.reason,
+        activePolicyMode,
+        activePolicySourceCount: activeResponse?.sources.length ?? 0,
         recognizedRequirements: parsed.length,
         vacancyCoverageStatus: coverage.status,
         unknownRequirements: preview.unrecognizedRequirements?.length ?? 0,
@@ -150,7 +173,7 @@ export async function evaluateOfflineRecruiterMatrix(
   }
 
   return {
-    reportVersion: 'orbe-graphrag-offline-matrix-v1',
+    reportVersion: 'orbe-graphrag-offline-matrix-v2',
     mode: 'offline_ppks_projection',
     corpusVersion: corpus.version,
     baselineComparison: 'not_run',
@@ -162,6 +185,8 @@ export async function evaluateOfflineRecruiterMatrix(
       verified,
       transferable,
       canonicalFallback,
+      activePolicyVerified,
+      activePolicyFallback,
       unknownRequirements,
       uninterpretedClauses,
     },
