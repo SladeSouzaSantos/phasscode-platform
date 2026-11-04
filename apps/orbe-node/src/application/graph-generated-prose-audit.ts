@@ -92,7 +92,7 @@ export function auditGeneratedRecruiterProse(
     snapshot.nodes.filter((node) => node.kind === 'company').map((node) => [node.id, node.label]),
   );
   const replacementSources = new Map<string, GenerationResult['sources'][number]>();
-  const rules: Array<'duration' | 'professional_scope' | 'degree_status'> = [];
+  const rules: Array<'duration' | 'professional_scope' | 'project_scope' | 'degree_status'> = [];
   const cite = (claims: readonly EvidenceClaim[]) => {
     for (const claim of claims) {
       for (const source of publicSources(claim, sourceById)) {
