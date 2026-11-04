@@ -95,9 +95,20 @@ try {
         windowMs: config.LLM_GLOBAL_WINDOW_MS,
       });
       graphModelFactory = config.llmFallback.enabled
-        ? createRedisFallbackInvocationFactory(config, redis!, budget, (event) => {
-            app.log.info({ llm: event }, 'Invocação LLM concluída.');
-          })
+        ? createRedisFallbackInvocationFactory(
+            config,
+            redis!,
+            budget,
+            (event) => {
+              app.log.info({ llm: event }, 'Invocação LLM concluída.');
+            },
+            (diagnostic) => {
+              app.log.info(
+                { event: 'llm_fallback_diagnostic', llm: diagnostic },
+                'Resumo sanitizado do fallback LLM.',
+              );
+            },
+          )
         : undefined;
       provider = new LangChainChatProvider(
         config,
