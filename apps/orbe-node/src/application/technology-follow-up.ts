@@ -14,7 +14,7 @@ export function ellipticalTechnology(text: string): string | undefined {
     .trim()
     .replace(/[?!.,;:]+$/g, '')
     .trim();
-  const match = /^e\s+(?:com\s+)?(.{1,42})$/i.exec(clean);
+  const match = /^e\s+(?:(?:com|sobre|em)\s+)?(.{1,42})$/i.exec(clean);
   if (!match) return undefined;
   // Short recruiter follow-ups often contain a definite article:
   // "E com o Go?", "E com a AWS?", "E com os bancos SQL?".

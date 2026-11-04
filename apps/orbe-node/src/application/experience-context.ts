@@ -13,6 +13,39 @@ export function isExperienceDurationQuestion(query: string): boolean {
   );
 }
 
+/**
+ * A short follow-up containing only a year/month quantity can use the previous
+ * recruiter context. A single typo in "quantos" is tolerated.
+ */
+export function isCareerDurationEllipsis(question: string): boolean {
+  const normalized = normalize(question)
+    .trim()
+    .replace(/[?!.,;:]+$/g, '')
+    .replace(/\s+/g, ' ');
+  const match = /^(?:e )?([a-z]{6,7}) (anos?|meses?)$/.exec(normalized);
+  if (!match) return false;
+  const quantifier = match[1]!;
+  const expected = quantifier.length === 6 ? 'quanto' : 'quantos';
+  return [...quantifier].filter((character, index) => character !== expected[index]).length <= 1;
+}
+
+/** Carry forward the documented career scope, never an unrelated employer. */
+export function rewriteCareerDurationEllipsis(previousQuestion: string): string | undefined {
+  const previous = normalize(previousQuestion);
+  if (
+    !/\b(?:experienc\w*|programa\w*|desenvolv\w*|software|carreira|profission\w*|atuac\w*|trabalh\w*)\b/.test(previous)
+  ) return undefined;
+  if (/\b(?:acrux|sigaa|sig software|geowellex|greencity)\b/.test(previous))
+    return undefined;
+  const technologies = [...mentionedTechnologies(previousQuestion)];
+  if (technologies.length > 1) return undefined;
+  if (technologies.length === 1)
+    return 'Quantos anos de experiência profissional com ' + technologies[0] + ' Pedro tem?';
+  if (/\b(?:programa\w*|desenvolv\w*|software)\b/.test(previous))
+    return 'Quantos anos de experiência Pedro tem com programação?';
+  return 'Quantos anos de experiência profissional Pedro tem?';
+}
+
 /** Recomputed after context trimming, exclusively from records actually sent. */
 export function experienceContext(
   documents: KnowledgeDocument[],

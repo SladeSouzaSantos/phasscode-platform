@@ -12,6 +12,8 @@ import {
 import {
   experienceContext,
   isExperienceDurationQuestion,
+  isCareerDurationEllipsis,
+  rewriteCareerDurationEllipsis,
   reconcileExperienceAttribution,
 } from '../apps/orbe-node/src/application/experience-context.js';
 import { chatResponseSchema } from '../packages/contracts/src/index.js';
@@ -78,6 +80,9 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
   it.each([
     ['E com Go?', 'Go'],
     ['E com o GO?', 'GO'],
+    ['E sobre Go?', 'Go'],
+    ['E sobre o GO?', 'GO'],
+    ['E em Python?', 'Python'],
     ['E com o Go?', 'Go'],
     ['E com a AWS?', 'AWS'],
     ['E com o PHP?', 'PHP'],
@@ -92,12 +97,89 @@ describe('F3.4 recruiter duration: complete, mixed-role professional software ex
 
   it.each([
     'E com a receita?',
+    'E sobre a receita?',
+    'E sobre as senhas?',
+    'E sobre o clima?',
     'E com o clima?',
     'E com as senhas?',
     'E com o passaporte?',
     'E quais projetos React?',
   ])('does not misclassify off-topic or complete follow-up %s', (question) => {
     expect(ellipticalTechnology(question)).toBeUndefined();
+  });
+
+  it.each(['Quantos anos?', 'Quabtos anos?', 'E quantos anos?', 'Quantos meses?'])(
+    'recognizes a bounded duration follow-up: %s',
+    (question) => {
+      expect(isCareerDurationEllipsis(question)).toBe(true);
+    },
+  );
+
+  it.each(['Quantos anos Pedro tem?', 'E quantos anos de vida?', 'Quais anos?', 'Quanto custa?', 'Quantos anos na faculdade?'])(
+    'rejects unrelated duration expressions: %s',
+    (question) => {
+      expect(isCareerDurationEllipsis(question)).toBe(false);
+    },
+  );
+
+  it('preserves professional context but not unrelated skills/employers', () => {
+    expect(rewriteCareerDurationEllipsis('Pedro têm experiência com programação?')).toBe(
+      'Quantos anos de experiência Pedro tem com programação?',
+    );
+    expect(rewriteCareerDurationEllipsis('Pedro tem experiência profissional com Java?')).toMatch(
+      /^Quantos anos de experiência profissional com Java Pedro tem\?$/i,
+    );
+    expect(rewriteCareerDurationEllipsis('Como está o clima?')).toBeUndefined();
+    expect(rewriteCareerDurationEllipsis('Pedro trabalhou na Greencity?')).toBeUndefined();
+  });
+
+  it('replays programming experience followed by "Quabtos anos?"', async () => {
+    const generate = vi.fn(async () => ({ answer: 'Pedro desenvolve software profissionalmente.', sources: [] }));
+    const app = await testApp({ provider: { name: 'mock', generate } });
+    apps.push(app);
+    const first = await app.inject({
+      method: 'POST', url: '/api/v1/chat',
+      payload: { message: 'Pedro têm experiência com programação?' },
+    });
+    expect(first.statusCode, first.body.slice(0, 300)).toBe(200);
+    const initial = chatResponseSchema.parse(first.json());
+    const second = await app.inject({
+      method: 'POST', url: '/api/v1/chat',
+      headers: { 'x-conversation-token': initial.conversationToken! },
+      payload: { message: 'Quabtos anos?', conversationId: initial.conversationId },
+    });
+    expect(second.statusCode, second.body.slice(0, 300)).toBe(200);
+    const reply = chatResponseSchema.parse(second.json());
+    expect(reply.conversationId).toBe(initial.conversationId);
+    expect(reply.meta.deterministic).toBe(true);
+    expect(reply.sources.map((source) => source.id)).toEqual(employmentIds);
+    expect(reply.answer).toContain('aproximadamente 10 anos e 10 meses');
+    expect(reply.answer).toContain('Geowellex');
+    expect(reply.answer).not.toContain('19 meses');
+  });
+
+  it('replays "E sobre Go?" with professional transferable evidence', async () => {
+    const generate = vi.fn(async () => ({ answer: 'Sim, Java está documentado.', sources: [] }));
+    const app = await testApp({ provider: { name: 'mock', generate } });
+    apps.push(app);
+    const first = await app.inject({
+      method: 'POST', url: '/api/v1/chat',
+      payload: { message: 'Pedro tem experiência profissional com Java?' },
+    });
+    expect(first.statusCode, first.body.slice(0, 300)).toBe(200);
+    const initial = chatResponseSchema.parse(first.json());
+    const second = await app.inject({
+      method: 'POST', url: '/api/v1/chat',
+      headers: { 'x-conversation-token': initial.conversationToken! },
+      payload: { message: 'E sobre Go?', conversationId: initial.conversationId },
+    });
+    expect(second.statusCode, second.body.slice(0, 300)).toBe(200);
+    const reply = chatResponseSchema.parse(second.json());
+    expect(reply.meta.deterministic).toBe(true);
+    expect(reply.answer).toMatch(/Go \(Golang\)/);
+    expect(reply.answer).toMatch(/não há experiência profissional com Go/i);
+    expect(reply.sources.map((source) => source.id)).toEqual(['experiencia-sig', 'phasscode-platform']);
+    expect(reply.answer).not.toMatch(/^Posso apresentar a experiência profissional/i);
   });
 
   it('keeps distinct union semantics: 19 months pure software, 130 months software-involved employment', async () => {

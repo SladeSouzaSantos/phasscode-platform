@@ -32,7 +32,11 @@ import {
   personalLifeAnswer,
 } from '../domain/security.js';
 import { eligibleHistory } from './context.js';
-import { isExperienceDurationQuestion } from './experience-context.js';
+import {
+  isExperienceDurationQuestion,
+  isCareerDurationEllipsis,
+  rewriteCareerDurationEllipsis,
+} from './experience-context.js';
 import {
   buildVerifiedExperienceDurationResponse,
   buildVerifiedProfessionalOverviewResponse,
@@ -90,11 +94,17 @@ export class ChatService {
             (message) =>
               message.role === 'user' &&
               !isContextualFollowUp(message.content) &&
-              !ellipticalTechnology(message.content),
+              !ellipticalTechnology(message.content) &&
+              !isCareerDurationEllipsis(message.content),
           );
         const technologyFollowUp = previous ? ellipticalTechnology(request.message) : undefined;
+        const durationFollowUp =
+          previous && isCareerDurationEllipsis(request.message)
+            ? rewriteCareerDurationEllipsis(previous.content)
+            : undefined;
         const followUp = Boolean(
-          previous && (isContextualFollowUp(request.message) || technologyFollowUp),
+          previous &&
+            (isContextualFollowUp(request.message) || technologyFollowUp || durationFollowUp),
         );
         // A recruiter who asks "Java?" then "E com Go?" is changing the
         // technology, not requesting evidence from Java and Go together.
@@ -102,7 +112,9 @@ export class ChatService {
         const query =
           previous && technologyFollowUp
             ? rewriteEllipticalTechnologyQuestion(previous.content, technologyFollowUp)
-            : followUp
+            : durationFollowUp
+              ? durationFollowUp
+              : followUp
               ? `${previous!.content}\n${request.message}`
               : request.message;
         const evidenceTraceId = randomUUID();
