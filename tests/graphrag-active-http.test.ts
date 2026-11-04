@@ -1,3 +1,4 @@
+import { AIMessage, type BaseMessage } from '@langchain/core/messages';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { loadConfig } from '../packages/shared-config/src/index.js';
@@ -6,6 +7,8 @@ import { testApp } from './helpers.js';
 import { projectPpksEvidenceGraph } from '../apps/orbe-node/src/adapters/ppks-evidence-graph.js';
 import { createGraphRagActive } from '../apps/orbe-node/src/application/graph-active-answer.js';
 import type { GraphActivePort } from '../apps/orbe-node/src/application/graph-active-answer.js';
+import { auditGeneratedRecruiterProse } from '../apps/orbe-node/src/application/graph-generated-prose-audit.js';
+import type { LlmInvocationFactory } from '../apps/orbe-node/src/domain/llm-invocation.js';
 import type {
   EvidenceGraphRepository,
   EvidenceGraphMatch,
@@ -193,6 +196,108 @@ describe('F3.3 active GraphRAG: DEV opt-in only', () => {
     expect(answer?.sources).toEqual([
       { id: source.id, type: 'project', title: source.label, url: source.sourceUrl },
     ]);
+  });
+
+  it('routes a fully covered free-prose vacancy to verified claims, without a model call', async () => {
+    const snapshot = await projectPpksEvidenceGraph();
+    const lookup = vi.fn(async (requirements: readonly VacancyRequirement[]) =>
+      sampleMatch(requirements),
+    );
+    const active = createGraphRagActive(snapshot, repository(lookup));
+    const result = await active.answer('Buscamos desenvolvedor com experiência em Java e Flutter.');
+    expect(lookup).toHaveBeenCalledOnce();
+    expect(result?.answer).toContain('Requisito obrigatório — Java');
+    expect(result?.answer).toContain('Requisito obrigatório — Flutter');
+    expect(result?.answer).not.toContain('source-java-project');
+    expect(result?.sources).toHaveLength(1);
+  });
+
+  it('preserves the must-have/differential priority in structured vacancies', async () => {
+    const snapshot = await projectPpksEvidenceGraph();
+    const active = createGraphRagActive(snapshot, repository(async (items) => sampleMatch(items)));
+    const result = await active.answer('Requisitos: Java\nDiferenciais: Flutter');
+    expect(result?.answer).toContain('Requisito obrigatório — Java');
+    expect(result?.answer).toContain('Diferencial — Flutter');
+  });
+
+  it('uses one budgeted label normalization only when deterministic coverage has unknown qualifiers', async () => {
+    const snapshot = await projectPpksEvidenceGraph();
+    const lookup = vi.fn(async (requirements: readonly VacancyRequirement[]) =>
+      sampleMatch(requirements),
+    );
+    const invoke = vi.fn(async (messages: BaseMessage[]) => {
+      const content = messages[1]?.content;
+      if (typeof content !== 'string') throw new Error('SEMANTIC_PAYLOAD_MISSING');
+      const parsed = JSON.parse(content) as {
+        fragments: { id: string; excerpt: string; mandatory: boolean }[];
+      };
+      return new AIMessage(JSON.stringify({
+        proposals: parsed.fragments.map((fragment) => ({
+          id: fragment.id,
+          excerpt: fragment.excerpt,
+          label: 'Java',
+        })),
+      }));
+    });
+    const factory: LlmInvocationFactory = (tools, signal) => {
+      expect(tools).toHaveLength(0);
+      return async (messages) => {
+        signal.throwIfAborted();
+        return invoke(messages);
+      };
+    };
+    const active = createGraphRagActive(snapshot, repository(lookup));
+    const result = await active.answer(
+      'Buscamos desenvolvedor com experiência em Java em nível avançado.',
+      { semanticFactory: factory, signal: new AbortController().signal },
+    );
+    expect(result?.answer).toContain('Java');
+    expect(invoke).toHaveBeenCalledOnce();
+    expect(lookup).toHaveBeenCalledOnce();
+  });
+
+  it('renders curated company names, with no internal claim/source IDs in recruiter prose', async () => {
+    const snapshot = await projectPpksEvidenceGraph();
+    const findEvidence = vi.fn(async (requirements: readonly VacancyRequirement[]) =>
+      sampleMatch(requirements).map((match) => ({
+        ...match,
+        claims: match.claims.map((claim) => ({
+          ...claim,
+          label: 'experiencia-sig: Java',
+          subjectId: 'experiencia-sig',
+          objectId: 'skill-java',
+          scope: 'professional' as const,
+        })),
+      })),
+    );
+    const active = createGraphRagActive(snapshot, repository(findEvidence));
+    const result = await active.answer('Pedro sabe Java?');
+    expect(result?.answer).toContain('SIG Software');
+    expect(result?.answer).not.toContain('experiencia-sig');
+    expect(result?.answer).not.toContain('source-java-project');
+    expect(result?.sources?.[0]?.id).toBe(source.id);
+  });
+
+  it('audits dangerous free-model prose after canonical generation in DEV active', async () => {
+    const snapshot = await projectPpksEvidenceGraph();
+    const active: GraphActivePort = {
+      answer: vi.fn(async () => undefined),
+      auditGenerated: (answer) => auditGeneratedRecruiterProse(answer, snapshot),
+    };
+    const generate = vi.fn(async () => ({
+      answer: 'Pedro trabalhou na SIGAA durante 19 meses.',
+      sources: [],
+    }));
+    const server = await app({
+      config: config('active'),
+      graphActive: active,
+      provider: { name: 'mock', generate },
+    });
+    const response = await ask(server, 'Por que a experiência em Java é relevante para uma vaga?');
+    expect(generate).toHaveBeenCalledOnce();
+    expect(response.answer).not.toContain('19 meses');
+    expect(response.answer).toContain('junho/2016 a fevereiro/2017');
+    expect(response.sources.some((item) => item.url?.startsWith('https://'))).toBe(true);
   });
 
   it('never reaches graph generation for injection, greeting or personal life queries', async () => {
