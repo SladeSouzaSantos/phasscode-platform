@@ -204,14 +204,8 @@ export function evaluateSemanticLexicalBaseline(
       lexicalTruePositives,
       lexicalFalsePositives,
       lexicalFalseNegatives,
-      lexicalPrecision: ratio(
-        lexicalTruePositives,
-        lexicalTruePositives + lexicalFalsePositives,
-      ),
-      lexicalRecall: ratio(
-        lexicalTruePositives,
-        lexicalTruePositives + lexicalFalseNegatives,
-      ),
+      lexicalPrecision: ratio(lexicalTruePositives, lexicalTruePositives + lexicalFalsePositives),
+      lexicalRecall: ratio(lexicalTruePositives, lexicalTruePositives + lexicalFalseNegatives),
       lexicalRecallAt1: ratio(lexicalTop1Hits, expectedCatalogHits),
       lexicalRecallAt3: ratio(lexicalTop3Hits, expectedCatalogHits),
       lexicalMrrFirstKnown: ratio(reciprocalRankSum, rankedSpans),

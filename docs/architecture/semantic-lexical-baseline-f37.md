@@ -33,7 +33,7 @@ npx vitest run tests/semantic-hybrid-lexical-baseline.test.ts
 
 ## Próximos gates
 
-1. Congelar e revisar com pessoa responsável os rótulos do fixture (#41), corrigindo pré-conceitos e casos em que uma barra representa *ou*, *e*, versão ou outro qualificador.
+1. Congelar e revisar com pessoa responsável os rótulos do fixture (#41), corrigindo pré-conceitos e casos em que uma barra representa _ou_, _e_, versão ou outro qualificador.
 2. Executar baseline lexical e registrar relatório com SHA e versão do catálogo PPKS.
 3. Rodar o **mesmo corpus/denominadores** com `Horizon-Labs/multilingual-embedding-small` em laboratório isolado (#42), medindo Recall@k/MRR, FPR, RAM, CPU, latências e termos fora do catálogo.
 4. Avaliar `convaiinnovations/laya-multilingual` em separado como classificador de **papel e relação** (#43), com calibração e restrição de segurança.
