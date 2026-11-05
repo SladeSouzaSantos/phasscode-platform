@@ -42,20 +42,29 @@ def main() -> None:
 
     by_key = {(c["name"], c["key"]): c for c in cases}
     java = by_key[("find_evidence", "Java")]["rows"]
-    assert {row[1] for row in java} == {"professional", "study"}
+    assert {row[1] for row in java} == {"professional", "study"}, \
+        "PPKS_JAVA_PROFESSIONAL_STUDY_SCOPE_MISMATCH"
     assert all(row[3] in {"code_reviewed", "catalog_only"} for row in java)
     flutter = by_key[("find_evidence", "Flutter")]["rows"]
     assert {row[1] for row in flutter} == {
         "mixed_role", "personal_project"
-    }
-    assert not by_key[("find_evidence", "Go")]["rows"]
-    assert not by_key[("get_source", "missing-source-key")]["rows"]
+    }, "PPKS_FLUTTER_MIXED_ROLE_SCOPE_MISMATCH"
+    assert not by_key[("find_evidence", "Go")]["rows"], "PPKS_GO_FALSE_EXPERIENCE"
+    assert not by_key[("get_source", "missing-source-key")]["rows"], \
+        "PPKS_MISSING_SOURCE_WAS_PRESENT"
     assert by_key[("get_source", "phasscode-platform--ports")]["rows"] == [
         ("phasscode-platform--ports", "code_reviewed", "github")
     ]
     assert by_key[("get_source", "phasscode-platform--catalog")]["rows"] == [
         ("phasscode-platform--catalog", "catalog_only", "ppks_catalog")
     ]
+    # Contract source-of-truth: this is a mixed engineering/software
+    # engagement, whereas Java in SIGAA is an exclusively software role.
+    records_by_key = {record["key"]: record for record in records}
+    assert records_by_key["experiencia-greencity"]["scope"] == "mixed_role", \
+        "GREENCITY_MUST_BE_MIXED_ROLE"
+    assert records_by_key["experiencia-sig"]["scope"] == "professional", \
+        "SIGAA_MUST_BE_PROFESSIONAL"
     for case in cases:
         assert case["params"], "A_CONTRACT_QUERY_HAS_NO_PARAMETERS"
         assert "$" in case["query"], "A_QUERY_IS_NOT_PARAMETERIZED"
