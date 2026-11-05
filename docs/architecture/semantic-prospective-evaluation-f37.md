@@ -17,7 +17,7 @@
 - **ONNX, nomes e glossário preexistente:** Recall@1 **67,65%**, Recall@3 **82,35%**, Recall@5 **88,24%**, MRR **0,7548**; **21/26 paráfrases** tiveram o rótulo certo em top-3.
 - Entre as oito consultas explícitas, o ONNX enriquecido recuperou **7/8** em top-3; a versão só com nomes recuperou **8/8**. O enriquecimento pode causar regressões em casos literais e não pode dispensar a busca lexical.
 - **Contextos/negações:** quatro trechos foram excluídos do ranking **porque o fixture já indicava sua modalidade**. Isso **não prova** que o ONNX ou as regras consigam classificar a vaga completa.
-- **OOV:** seis necessidades não existem no catálogo. O ranker ONNX ainda produz top-1 mesmo assim; esse comportamento deve ser tratado como **candidato incerto/unknown**, nunca `verified`. Não há limiar de similaridade calibrado. O relatório não mede taxa de falsos positivos *aceitos*, pois não existe gate de aceitação ativo.
+- **OOV:** seis necessidades não existem no catálogo. O ranker ONNX ainda produz top-1 mesmo assim; esse comportamento deve ser tratado como **candidato incerto/unknown**, nunca `verified`. Não há limiar de similaridade calibrado. O relatório não mede taxa de falsos positivos _aceitos_, pois não existe gate de aceitação ativo.
 
 ## Comparação histórica, mas NÃO pareada
 
@@ -35,7 +35,7 @@ O script [`scripts/audit_f37_gold.py`](../../scripts/audit_f37_gold.py) verifica
 
 ## Decisão e próximos gates
 
-1. **Manter ONNX fora do runtime**, como modelo *candidato* para ranking de labels públicos. Rejeitar seu uso como classificador de requisito ou evidência profissional.
+1. **Manter ONNX fora do runtime**, como modelo _candidato_ para ranking de labels públicos. Rejeitar seu uso como classificador de requisito ou evidência profissional.
 2. **Preservar lexical** para menções inequívocas; planejar avaliação de fusão lexical-first com parâmetros pré-declarados em conjunto separado, garantindo que a fusão não suprima alternativas ou negativos.
 3. **#41:** revisão humana de 56 spans e auditoria de cobertura das seis perguntas de recrutadores; produzir outra amostra independente com hard negatives, OOV e casos longos antes de calibrar thresholds.
 4. **#42:** avaliação de falsos positivos na saída final, orçamento CPU/RAM/cold start no MiniMac e métricas por idioma/consulta de negócio, sem tocar serviço vivo.
