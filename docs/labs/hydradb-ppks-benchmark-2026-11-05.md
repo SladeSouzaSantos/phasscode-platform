@@ -250,3 +250,48 @@ python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py --live
 
 Critério de conclusão: `PPKS_GRAPH_PARITY_CASES 18 PASS` e
 `PPKS_GRAPH_SEMANTIC_PARITY_PASS` em uma nova execução real.
+
+
+## Segundo benchmark semântico — homologação concluída
+
+Após exclusão explícita do próprio projeto na consulta de pares de
+competências, o operador executou a suíte na branch experimental e
+compartilhou o JSON `ppks-provenance-20261105T221106Z.json`
+(2026-11-05 22:11:06 UTC).
+
+**Resultado confirmado:**
+
+```text
+PPKS_GRAPH_PLAN_COUNTS {"claims": 14, "edges": 42, "records": 7, "skills": 10, "sources": 7}
+PPKS_GRAPH_QUERY_CASES 18
+PPKS_GRAPH_BOTH_ENGINES_READY
+PPKS_GRAPH_NEO4J_VERTICES_SEEDED 38
+PPKS_GRAPH_WRITES_PER_ENGINE 42
+PPKS_GRAPH_PARITY_CASES 18 PASS
+PPKS_GRAPH_SEMANTIC_PARITY_PASS
+```
+
+São **18/18 cenários** aprovados por banco, 54 leituras medidas por
+banco (18 cenários × 3 repetições) e os mesmos valores retornados.
+As verificações incluem 4 saltos e validação das fontes sintéticas.
+
+| Leitura (p50 ms) | HydraDB | Neo4j | Amostras por motor |
+|---|---:|---:|---:|
+| Competências do registro | 3,742 | 14,144 | 21 |
+| Proveniência do registro | 4,160 | 14,327 | 21 |
+| Competência compartilhada | 4,607 | 11,429 | 9 |
+| Peer de 4 relacionamentos | 5,471 | 51,800 | 3 |
+
+Escrita p50: HydraDB **7,469 ms**, Neo4j **83,816 ms**
+(42 chamadas por motor, porém **fluxos de escrita diferentes** e
+38 upserts Neo4j fora da medição).
+
+O experimento foi aprovado em **paridade semântica simplificada**.
+As latências não constituem um benchmark controlado dos motores,
+principalmente no caso de quatro relacionamentos (n=3).
+
+O próximo teste foi separado no
+[contrato de claims e fontes específicas](hydradb-ppks-contract.md).
+Ele amplia a representação de 7 fontes sintéticas de registro para
+16 **IDs específicos de evidência** associados individualmente
+a cada claim. Não há integração com o Orbe operacional.
