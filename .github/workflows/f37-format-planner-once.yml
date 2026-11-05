@@ -1,0 +1,50 @@
+name: F3.7 one-time SemanticPlanner format and strict gates
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/f37-format-planner-once.yml
+permissions:
+  contents: write
+jobs:
+  planner-qualification:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Format only F3.7 new files and updated ADR
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx prettier --write \
+            apps/orbe-node/src/application/semantic-planner-port.ts \
+            tests/semantic-planner-port.test.ts \
+            docs/architecture/semantic-planner-no-laya-f37.md
+          git diff --check
+      - name: Complete quality, types, contracts, tests and build
+        run: npm run check
+      - name: Commit validated formatting only to dev
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/orbe-node/src/application/semantic-planner-port.ts \
+            tests/semantic-planner-port.test.ts \
+            docs/architecture/semantic-planner-no-laya-f37.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'style(F3.7): qualify model-agnostic planner contract and Prettier (#44)'
+            git fetch origin dev
+            git rebase origin/dev
+            git push origin HEAD:dev
+          fi
