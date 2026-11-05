@@ -1,0 +1,39 @@
+name: F3.7 one-time report Prettier and final qualification
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/f37-format-prospective-report-once.yml
+permissions:
+  contents: write
+jobs:
+  format-report:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with: { ref: dev, fetch-depth: 0, persist-credentials: true }
+      - uses: actions/setup-node@v7
+        with: { node-version: '24', cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Format only prospective evaluation report
+        run: |
+          set -euo pipefail
+          npx prettier --write docs/architecture/semantic-prospective-evaluation-f37.md
+          git diff --check
+      - name: Full quality/typecheck/tests/contracts/build verification
+        run: npm run check
+      - name: Publish validated report formatting on dev only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/architecture/semantic-prospective-evaluation-f37.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'style(F3.7): format prospective ONNX report after green checks (#42)'
+            git fetch origin dev
+            git rebase origin/dev
+            git push origin HEAD:dev
+          fi
