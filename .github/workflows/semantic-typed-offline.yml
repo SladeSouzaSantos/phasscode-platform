@@ -13,6 +13,11 @@ on:
       - tests/test_f37_lexical_first.py
       - scripts/f37_strict_literal.py
       - tests/test_f37_strict_literal.py
+      - scripts/evaluate_f37_strict_v2.py
+      - tests/test_f37_strict_v2.py
+      - evaluation/semantic-embedding-adversarial-v2.json
+      - evaluation/semantic-embedding-adversarial-v2.manifest.json
+      - scripts/benchmark_f37_minimac.sh
       - evaluation/semantic-embedding-prospective-v1.json
       - evaluation/semantic-embedding-prospective-v1.manifest.json
       - tests/test_audit_f37_gold.py
@@ -48,6 +53,8 @@ jobs:
           python3 -m unittest discover -s tests -p test_f34_review_packet.py -v
           python3 -m unittest discover -s tests -p test_f37_lexical_first.py -v
           python3 -m unittest discover -s tests -p test_f37_strict_literal.py -v
+          python3 -m unittest discover -s tests -p test_f37_strict_v2.py -v
+          bash -n scripts/benchmark_f37_minimac.sh
           python3 -m unittest discover -s tests -p test_compare_semantic_typed_lab.py -v
           python3 -m unittest discover -s tests -p test_laya_semantic_lab.py -v
       - name: Compare frozen corpus using deterministic rules only
