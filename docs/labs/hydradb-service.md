@@ -202,7 +202,7 @@ docker compose -p phasscode-hydradb-lab --env-file .env \
 docker compose -p phasscode-hydradb-lab --env-file .env \
   -f compose.yaml -f compose.hydradb-lab.yaml \
   -f compose.neo4j-compare.lab.yaml --profile neo4j-compare \
-  up -d --no-build --no-deps neo4j-compare
+  up -d --no-build --no-deps --wait neo4j-compare
 ```
 
 `neo4j-compare` utiliza `neo4j:5.26`, limite de 896 MiB RAM, 0,75 CPU,
