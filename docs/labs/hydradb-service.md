@@ -450,3 +450,32 @@ Um `canonical_fallback` durante a prova com
 canônico seguro, mas indica indisponibilidade ou
 divergência da projeção consultada. O fallback não
 autoriza ativar HydraDB no Orbe operacional.
+
+
+## Gate 4 aprovado; Gate 5 TypeScript isolado
+
+O operador homologou o quarto gate: autotestes offline aprovados,
+10 consultas em OFF (`canonical`) e 10 em SHADOW
+(`graph_verified`), inclusive resultados vazios de Go e
+`missing-source-key`.
+
+Agora existe uma implementação TypeScript **fora do runtime do Orbe**:
+`scripts/hydradb-lab-evidence-adapter.ts`, compatível com a interface
+`EvidenceGraphRepository`. A interface recebe um repository PPKS
+canônico por injeção; o resultado permanece canônico e o HydraDB
+apenas valida paridade. A criação de um transporte HTTP real é
+explícita e limitada a loopback. Nenhum componente da API a importa.
+
+**Gate 5 pendente de execução dos testes TypeScript** no MiniMac:
+
+```bash
+cd ~/hydradb-lab/phasscode-platform
+git pull --ff-only origin experiment/hydradb
+npm run typecheck
+npx vitest run tests/hydradb-lab-evidence-adapter.test.ts
+```
+
+Requisitos e limites em
+[hydradb-ppks-ts-shadow-adapter.md](hydradb-ppks-ts-shadow-adapter.md).
+Não habilitar HydraDB no backend DEV/MAIN e não alterar
+`ORBE_GRAPHRAG_MODE` no LAB.
