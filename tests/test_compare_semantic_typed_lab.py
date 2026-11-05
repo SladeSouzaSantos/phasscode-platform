@@ -122,6 +122,17 @@ class ControlledComparisonTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "LABEL_DRIFT"):
             self.with_report(report)
 
+    def test_raw_untrusted_unsafe_prediction_is_not_hidden_by_abstention(self):
+        rows = [dict(id="unsafe:0", language="pt", expectedRole="negated",
+                     expectedRelation="candidate_requirement", predictedRole="mandatory",
+                     predictedRelation="candidate_requirement", abstained=True)]
+        result = lab.scored(rows, "mock")
+        self.assertEqual(result["resolved"], 0)
+        self.assertEqual(result["falseRequirementPromotions"], 0)
+        self.assertEqual(result["rawUngated"]["falseRequirementPromotions"], 1)
+        self.assertEqual(result["rawUngated"]["negationPromotions"], 1)
+        self.assertEqual(result["rawUngated"]["jointCorrect"], 0)
+
     def test_false_requirement_promotion_is_separately_counted(self):
         rows = [dict(id="unsafe:0", language="pt", expectedRole="negated",
                      expectedRelation="candidate_requirement", predictedRole="mandatory",
