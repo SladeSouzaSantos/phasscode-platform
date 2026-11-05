@@ -1,17 +1,17 @@
 # F3.7/#43 — Gate determinístico de papéis e relações (laboratório offline)
 
-**Status:** experimento somente em \`dev\`; não integrado a Fastify, LangGraph, PPKS, Graph Reader, Neo4j, Laya ou aos serviços publicados. Nenhuma flag operacional é alterada.
+**Status:** experimento somente em `dev`; não integrado a Fastify, LangGraph, PPKS, Graph Reader, Neo4j, Laya ou aos serviços publicados. Nenhuma flag operacional é alterada.
 
 ## Motivação
 
-A primeira PoC de \`laya-multilingual\`, com 16 spans sintéticos já delimitados, obteve 2/16 acertos de papel e 7/16 acertos de relação; o limiar diagnóstico de 0,85 levou a 16/16 abstenções. Isso **não** autoriza ativar um classificador zero-shot. Antes de considerar Laya para casos difíceis, precisamos de um **controle determinístico de alta precisão** com abstenção explícita.
+A primeira PoC de `laya-multilingual`, com 16 spans sintéticos já delimitados, obteve 2/16 acertos de papel e 7/16 acertos de relação; o limiar diagnóstico de 0,85 levou a 16/16 abstenções. Isso **não** autoriza ativar um classificador zero-shot. Antes de considerar Laya para casos difíceis, precisamos de um **controle determinístico de alta precisão** com abstenção explícita.
 
-O arquivo \`scripts/semantic_typed_rules_lab.py\` aplica sinais literais e limites de cláusulas para interpretar apenas **spans já fornecidos com offsets corretos**. São duas dimensões separadas:
+O arquivo `scripts/semantic_typed_rules_lab.py` aplica sinais literais e limites de cláusulas para interpretar apenas **spans já fornecidos com offsets corretos**. São duas dimensões separadas:
 
-- Papel: \`mandatory\`, \`desirable\`, \`alternative\`, \`context\`, \`negated\` ou \`uncertain\`.
-- Relação: \`candidate_requirement\`, \`company_stack\`, \`future_stack\`, \`project_claim\`, \`unrelated\`, ou \`null\` em abstenção.
+- Papel: `mandatory`, `desirable`, `alternative`, `context`, `negated` ou `uncertain`.
+- Relação: `candidate_requirement`, `company_stack`, `future_stack`, `project_claim`, `unrelated`, ou `null` em abstenção.
 
-A saída \`needsClassifier=true\` significa **não resolvido**. Ela **não invoca** automaticamente Laya nem descarta a cláusula. A relação \`candidate_requirement\` descreve uma **exigência da vaga** e nunca prova experiência do candidato.
+A saída `needsClassifier=true` significa **não resolvido**. Ela **não invoca** automaticamente Laya nem descarta a cláusula. A relação `candidate_requirement` descreve uma **exigência da vaga** e nunca prova experiência do candidato.
 
 ## Cuidados e limitações
 
@@ -25,16 +25,16 @@ A saída \`needsClassifier=true\` significa **não resolvido**. Ela **não invoc
 
 Da raiz do repositório:
 
-\`\`\`bash
+```bash
 python3 -m unittest discover -s tests -p test_semantic_typed_rules_lab.py -v
 python3 scripts/semantic_typed_rules_lab.py \
   --fixture evaluation/semantic-hybrid-corpus-v0.json
-\`\`\`
+```
 
 O relatório inclui cobertura das decisões, abstenções, acerto conjunto entre casos resolvidos e IDs de discrepâncias — **não inclui o texto das vagas**. Porcentagens são apenas diagnóstico dentro do fixture.
 
 ## Continuação recomendada
 
-Congelar um corpus **independente** PT/EN (sem adaptar os padrões após ver o gabarito), medir \`precision/recall\` por papel/relação e o impacto das abstenções; comparar gate lexical, Laya e composição em **offline**, nunca promovendo similaridade ou \`confidence\` para prova. Somente casos não resolvidos podem ser candidatos à Laya após validação da PoC.
+Congelar um corpus **independente** PT/EN (sem adaptar os padrões após ver o gabarito), medir `precision/recall` por papel/relação e o impacto das abstenções; comparar gate lexical, Laya e composição em **offline**, nunca promovendo similaridade ou `confidence` para prova. Somente casos não resolvidos podem ser candidatos à Laya após validação da PoC.
 
 Issues relacionadas: #40 (épico), #41 (gold set), #42 (ONNX), #43 (Laya e decisões), #44 (contratos shadow).
