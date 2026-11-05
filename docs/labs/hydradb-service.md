@@ -298,8 +298,18 @@ cd ~/hydradb-lab/phasscode-platform
 python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py --live
 ```
 
-O script autentica por HTTP local sem imprimir credenciais. Grava os
-mesmos 42 vínculos em ambos os bancos, testa 18 casos lógicos
+O script autentica por HTTP local sem imprimir credenciais. O Neo4j
+primeiro recebe **38 MERGEs de vértices individuais** (sem cronometrar);
+depois o script grava 42 relações usando `MATCH` dos endpoints antes de
+`MERGE` da relação. Isso é necessário porque `MERGE` de um caminho inteiro
+não vinculado no Neo4j pode **duplicar vértices**, mesmo se nós com as mesmas
+propriedades existirem. No HydraDB os 42 relacionamentos usam upsert
+numérico por ID, segundo o contrato da versão testada. Como os fluxos
+de escrita são diferentes, a latência de escrita **não é comparação justa**
+entre motores. O teste compara **resultados**, não apenas HTTP 200.
+
+Após preparar os nós, grava os mesmos 42 vínculos nos dois bancos,
+testa 18 casos lógicos
 (recuperação de skills e status de fonte por registro, skills
 compartilhadas, peers por caminho de 4 hops), fazendo um aquecimento
 não cronometrado e três leituras medidas por caso e por banco. Verifica
@@ -309,6 +319,7 @@ Critério de aceite:
 
 ```text
 PPKS_GRAPH_BOTH_ENGINES_READY
+PPKS_GRAPH_NEO4J_VERTICES_SEEDED 38
 PPKS_GRAPH_WRITES_PER_ENGINE 42
 PPKS_GRAPH_PARITY_CASES 18 PASS
 PPKS_GRAPH_SEMANTIC_PARITY_PASS
@@ -330,3 +341,33 @@ permanecer nos volumes do LAB.
 **Não alterar DEV/MAIN nem integrar HydraDB ao Orbe** após este teste
 isolado. O próximo gate será a representação fiel de evidências PPKS
 e um adapter dedicado ao HydraDB, com fallback validado.
+
+### Reteste após falha de duplicação Neo4j
+
+Na primeira execução do segundo benchmark, o `dry-run` passou, as
+42 operações por motor retornaram sucesso, mas a primeira consulta
+`record_skills` em `experiencia-greencity` **falhou na validação de
+resultados do Neo4j**. A revisão do código indicou que o teste aplicava
+`MERGE (a)-[:REL]->(b)` com nós não previamente vinculados. O Neo4j
+pode criar duplicatas dos endpoints quando o padrão completo não existe.
+
+O script foi corrigido para garantir nós únicos por ID **em cada nova
+rodada**, usando IDs numéricos aleatórios novos (sem reaproveitar os
+dados da tentativa anterior). Registros sintéticos da tentativa
+anterior permanecem isolados no volume de comparação; não executar
+`down -v` nem apagar dados de DEV/MAIN.
+
+Para reproduzir com diagnóstico de erro contextualizado (sem tokens ou
+payloads completos):
+
+```bash
+cd ~/hydradb-lab/phasscode-platform
+git pull --ff-only origin experiment/hydradb
+python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py
+python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py --live
+```
+
+**Não considerar paridade aprovada** até obter
+`PPKS_GRAPH_PARITY_CASES 18 PASS`. Qualquer falha seguinte, inclusive
+sintaxe Cypher HydraDB, deve ser tratada como bloqueio real de
+compatibilidade para investigar, não como motivo para habilitar o adapter.
