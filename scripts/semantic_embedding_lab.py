@@ -371,6 +371,14 @@ def benchmark(manifest: dict, directory: Path, skills_path: Path, corpus_path: P
         },
         "resource": {"peakRssMiB": round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024, 2)},
         "totals": metrics,
+        # Purely diagnostic public catalog IDs and cosine scores, keyed by synthetic span IDs.
+        # Needed to evaluate fusion without mixing corpora or rerunning / modifying the checkpoint.
+        # Never expose these as factual candidate evidence or as a requirement classifier.
+        "rankingsBySpan": dict(sorted(rankings.items())),
+        "topCosineBySpan": {
+            key: round(float(similarities[i, ids.index(rankings[key][0])]), 6)
+            for i, key in enumerate(query_keys)
+        },
         "lexicalReference": {
             "recallAt1": lexical["totals"]["lexicalRecallAt1"],
             "recallAt3": lexical["totals"]["lexicalRecallAt3"],
