@@ -1,0 +1,69 @@
+name: F3.7 one-time frozen-corpus Prettier reconciliation
+on:
+  push:
+    branches: [dev]
+    paths: [.github/workflows/f37-format-frozen-once.yml]
+permissions:
+  contents: write
+jobs:
+  format-frozen:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with: { node-version: '24', cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Format only failing files and re-pin their byte-level SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs');
+          const { createHash } = require('node:crypto');
+          const { execFileSync } = require('node:child_process');
+          const path = 'evaluation/semantic-typed-holdout-v1.json';
+          const original = fs.readFileSync(path);
+          const oldHash = createHash('sha256').update(original).digest('hex');
+          const manifestPath = 'evaluation/semantic-typed-holdout-v1.manifest.json';
+          const baselinePath = 'evaluation/semantic-typed-holdout-v1-baseline.json';
+          const manifest = JSON.parse(fs.readFileSync(manifestPath,'utf8'));
+          const baseline = JSON.parse(fs.readFileSync(baselinePath,'utf8'));
+          if (oldHash !== '677acf023db687f0b6b2b959cd8959a23d94292383f5b59d6a0062e4cca117bf' ||
+              manifest.sha256 !== oldHash || baseline.corpusSha256 !== oldHash)
+            throw new Error('FROZEN_CORPUS_SHA_DRIFT_ABORT');
+          const originalParsed = JSON.parse(original);
+          execFileSync('npx',['prettier','--write',path,'docs/architecture/semantic-typed-comparison-f37.md'],{stdio:'inherit'});
+          const changed = fs.readFileSync(path);
+          if (JSON.stringify(originalParsed) !== JSON.stringify(JSON.parse(changed)))
+            throw new Error('FROZEN_CORPUS_SEMANTIC_MUTATION_ABORT');
+          const newHash = createHash('sha256').update(changed).digest('hex');
+          manifest.sha256 = newHash;
+          baseline.corpusSha256 = newHash;
+          fs.writeFileSync(manifestPath,JSON.stringify(manifest,null,2)+'\n');
+          fs.writeFileSync(baselinePath,JSON.stringify(baseline,null,2)+'\n');
+          execFileSync('npx',['prettier','--write',manifestPath,baselinePath],{stdio:'inherit'});
+          if (newHash !== createHash('sha256').update(fs.readFileSync(path)).digest('hex'))
+            throw new Error('FROZEN_CORPUS_HASH_MISMATCH');
+          console.log('F3.7_FORMAT_RECONCILED old='+oldHash+' new='+newHash);
+          NODE
+          npx prettier --check docs/architecture/semantic-typed-comparison-f37.md evaluation/semantic-typed-holdout-v1.json evaluation/semantic-typed-holdout-v1.manifest.json evaluation/semantic-typed-holdout-v1-baseline.json
+          python3 -m unittest discover -s tests -p test_compare_semantic_typed_lab.py -v
+          python3 -m unittest discover -s tests -p test_semantic_typed_rules_lab.py -v
+          git diff --check
+      - name: Commit validated formatting to dev only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/architecture/semantic-typed-comparison-f37.md evaluation/semantic-typed-holdout-v1.json evaluation/semantic-typed-holdout-v1.manifest.json evaluation/semantic-typed-holdout-v1-baseline.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'style(F3.7): format frozen fixture and reconcile integrity manifests (#41 #43)'
+            git push origin HEAD:dev
+          fi
