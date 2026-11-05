@@ -46,9 +46,6 @@ describe('F3.7/#44 offline readiness never activates the public runtime', () => 
       shadowRollbackExercised: false,
     });
     expect(result.status).toBe('blocked');
-    expect(result.pending).toEqual([
-      'outOfCatalogAndNegationSafety',
-      'shadowRollbackExercised',
-    ]);
+    expect(result.pending).toEqual(['outOfCatalogAndNegationSafety', 'shadowRollbackExercised']);
   });
 });
