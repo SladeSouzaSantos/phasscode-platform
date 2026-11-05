@@ -138,3 +138,34 @@ e avaliação das respostas dos recrutadores. Nada deve ser integrado
 
 Não rodar `down --volumes`, `--remove-orphans` nem deploy para
 ambientes operacionais.
+
+
+## Homologação do Gate 4 — concluída
+
+O operador executou no MiniMac, após fast-forward para
+`1ba6f12`, os scripts de autoteste, modo OFF e modo SHADOW com
+`--require-graph` apontando ao relatório de paridade
+`ppks-contract-20261105T225141Z.json`.
+
+As verificações passaram:
+
+```text
+SHADOW_OFFLINE_SELFTEST_PASS
+SHADOW_CANONICAL_SAFE_FALLBACK_PASS
+SHADOW_RUN_SCOPING_PASS
+SHADOW_COMPLETE_CLAIM_SOURCES_PASS
+SHADOW_PROBE_CANONICAL_SAFE
+```
+
+No modo OFF, as 10 consultas retornaram `canonical` (Go e fonte
+inexistente tiveram 0 resultados). No modo SHADOW, as 10 consultas
+retornaram `graph_verified` (mesmos resultados esperados).
+
+**Gate 4: APROVADO**, no escopo das 7 fontes públicas selecionadas do
+PPKS e da amostra LAB. Isso confirma leitura e comparação reais, mas
+não um servidor TypeScript ativo, não um adapter do `OrbeEvidence`
+completo e nem equivalência de desempenho entre motores.
+
+Próxima etapa:
+[hydradb-ppks-ts-shadow-adapter.md](hydradb-ppks-ts-shadow-adapter.md),
+TypeScript `EvidenceGraphRepository` injetável e sem conexão à API.
