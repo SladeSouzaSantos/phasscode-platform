@@ -210,3 +210,74 @@ aleatórios isolam os dados da rodada corrigida. Não usar
 Critério de aceite **dos dois aspectos**, sem exceções:
 `PPKS_CONTRACT_OFFLINE_SELFTEST_PASS` e
 `PPKS_CONTRACT_PARITY_CASES 13 PASS` na mesma revisão de código.
+
+
+## Incidente de contaminação entre rodadas (2026-11-05)
+
+Na revalidação posterior à correção de `mixed_role`, o operador
+comprovou:
+
+```text
+PPKS_CONTRACT_OFFLINE_SELFTEST_PASS
+PPKS_CONTRACT_DRY_RUN_OK_NO_WRITES
+PPKS_CONTRACT_NEO4J_VERTICES 47
+PPKS_CONTRACT_WRITES_PER_ENGINE 60
+PPKS_CONTRACT_CASE_FAILED find_evidence Java hydradb ValueError CONTRACT_ROW_MISMATCH_GOT_12_EXPECTED_6
+```
+
+**Gate de execução real ainda bloqueado.** A falha não prova que o
+HydraDB duplicou linhas dentro do mesmo grafo lógico. A causa foi
+encontrada no script: o mesmo banco experimental persiste as rodadas
+anteriores, com novos IDs numéricos por execução, enquanto
+`find_evidence` selecionava **todos** os nós `Skill` cuja propriedade
+`normalized_name` era igual a `java`. Assim os IDs numéricos
+impediam colisões em escritas, **mas não isolavam leituras**.
+O resultado 12/6 é consistente com duas cópias da amostra no banco.
+
+### Correção de isolamento lógico
+
+As duas implementações de teste recebem `lab_run` em **todos os
+47 vértices** de uma rodada. O valor é um identificador aleatório
+decimal exclusivo daquela projeção (não é credencial). O `lab_run`
+é exigido via parâmetro `$run` em **todas as 13 consultas**:
+`find_evidence`, `bounded_claims` e `get_source`.
+
+As consultas recuperam exclusivamente as claims e fontes ligadas à
+amostra com aquele marcador, mesmo que os bancos preservem
+outras rodadas. Os registros e links PPKS continuam os mesmos.
+`validate_run_isolation()` roda antes de qualquer escrita e falha
+fechado quando detectar um vértice não marcado ou consulta sem
+filtro/valor correspondente; o autoteste offline também verifica
+o mesmo requisito e diferentes marcadores por plano.
+
+Nenhum volume deve ser apagado. Não executar `--remove-orphans`,
+`down -v`, `deploy.sh` ou comandos no Neo4j de DEV.
+
+### Revalidação
+
+```bash
+(
+  set -euo pipefail
+  cd ~/hydradb-lab/phasscode-platform
+  git pull --ff-only origin experiment/hydradb
+
+  python3 -m py_compile \
+    scripts/hydradb-neo4j-ppks-provenance-benchmark.py \
+    scripts/hydradb-neo4j-ppks-evidence-contract.py \
+    scripts/hydradb-ppks-contract-selftest.py
+
+  python3 scripts/hydradb-ppks-contract-selftest.py
+  python3 scripts/hydradb-neo4j-ppks-evidence-contract.py
+  python3 scripts/hydradb-neo4j-ppks-evidence-contract.py --live
+)
+```
+
+Critérios: `PPKS_CONTRACT_OFFLINE_SELFTEST_PASS`,
+`PPKS_CONTRACT_DRY_RUN_OK_NO_WRITES`,
+`PPKS_CONTRACT_PARITY_CASES 13 PASS` e
+`PPKS_CONTRACT_PARITY_PASS` na mesma revisão e rodada.
+Após isso, **repetir o `--live`** para confirmar que leituras
+de uma nova execução não incorporam dados da anterior; cada execução
+gera IDs numéricos novos e um `lab_run` distinto.
+A conclusão de compatibilidade funcional segue limitada à
+projeção sintética de 7 registros públicos, não ao GraphRAG real.
