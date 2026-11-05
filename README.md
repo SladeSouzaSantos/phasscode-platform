@@ -24,7 +24,6 @@ O Orbe não finge ser Pedro e não inventa disponibilidade profissional.
 Caso o visitante queira conversar diretamente, aponta os canais
 profissionais públicos que constam na base de conhecimento.
 
-
 ## Arquitetura da resposta ao recrutador
 
 ```text
@@ -57,11 +56,11 @@ retornar ao fluxo canônico.
 
 O GraphRAG (LangGraph, Neo4j e um Reader HTTP interno de leitura) é **opcional**:
 
-| `ORBE_GRAPHRAG_MODE` | Comportamento |
-| --- | --- |
-| `off` (padrão) | Resposta canônica baseada no PPKS e LLM; sem Reader privado. |
-| `shadow` (somente DEV, opt-in) | Compara o caminho do grafo sem substituir a resposta entregue ao visitante. |
-| `active` (somente DEV, opt-in) | Permite respostas verificadas pelo grafo, com fontes públicas completas; dúvidas e falhas retornam ao caminho canônico. |
+- `off` (**padrão**): resposta canônica baseada no PPKS e LLM, sem Reader privado.
+- `shadow` (**somente DEV, opt-in**): compara o caminho do grafo sem substituir
+  a resposta entregue ao visitante.
+- `active` (**somente DEV, opt-in**): permite respostas verificadas pelo grafo,
+  com fontes públicas completas. Dúvidas e falhas retornam ao caminho canônico.
 
 Os modos `shadow` e `active` exigem aprovação explícita e configuração
 separada no ambiente **DEV**, incluindo token do Reader fornecido por secret
