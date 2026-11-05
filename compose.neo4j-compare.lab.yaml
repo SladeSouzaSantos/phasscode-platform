@@ -16,6 +16,16 @@ services:
       - neo4j-compare-data:/data
     ports:
       - '127.0.0.1:17474:7474'
+    healthcheck:
+      # Docker Compose expands $ to $, leaving the secret visible only to
+      # the container shell; healthcheck stdout/stderr is discarded.
+      test:
+        - CMD-SHELL
+        - 'cypher-shell -u neo4j -p "${NEO4J_AUTH#neo4j/}" "RETURN 1" >/dev/null 2>&1'
+      interval: 10s
+      timeout: 8s
+      retries: 20
+      start_period: 30s
     restart: 'no'
     mem_limit: 896m
     cpus: 0.75
