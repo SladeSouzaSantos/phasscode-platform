@@ -55,9 +55,13 @@ sudo chown -R 10001:10001 \
   "$LAB/data/hydradb/store" "$LAB/data/hydradb/cache"
 sudo chmod 700 "$LAB/data/hydradb/store" "$LAB/data/hydradb/cache"
 
-sudo install -o 10001 -g 10001 -m 0400 \
+# Em algumas distribuições, install -o/-g não aceita UID sem passwd.
+# Copiar como root; depois atribuir UID/GID numéricos via chown.
+sudo install -m 0600 \
   "$LAB/secrets/hydradb_auth_token" \
   "$LAB/secrets/hydradb_auth_token_runtime"
+sudo chown 10001:10001 "$LAB/secrets/hydradb_auth_token_runtime"
+sudo chmod 0400 "$LAB/secrets/hydradb_auth_token_runtime"
 
 cd "$LAB/phasscode-platform"
 bash scripts/hydradb-service-preflight.sh
