@@ -49,9 +49,12 @@ class ReviewPacketTests(unittest.TestCase):
             reviewDecision="approved", reviewedRole="mandatory",
             reviewedRelation="candidate_requirement")
         self.assertFalse(self.check(p)["goldSetApproved"])
+        for item in p["cases"][0]["annotations"]:
+            item.update(reviewDecision="approved", reviewedRole=item["sourceRole"],
+                        reviewedRelation=item["sourceRelation"])
         p["cases"][0]["coverage"]["decision"] = "complete"
         p["cases"][0]["coverage"]["notes"] = "Reviewed each line"
-        with self.assertRaisesRegex(ValueError, "PREMATURE_REVIEWER_ATTESTATION"):
+        with self.assertRaisesRegex(ValueError, "MISSING_HUMAN_PR_ATTESTATION"):
             self.check(p)
 
     def test_source_sha_tampering_detected(self):
