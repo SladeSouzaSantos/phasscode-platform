@@ -219,3 +219,39 @@ Vitest e `TS_SHADOW_OFF_CANONICAL_PASS`. A integração HTTP já
 foi aprovada com o script anterior; após o reteste de tipagem,
 repetir a leitura SHADOW é uma verificação adicional recomendada,
 mas sem mudanças de consultas ou credenciais.
+
+
+## Gate 6 — homologação concluída após correção TS2722
+
+Após atualização para `6d519f4`, o operador executou novamente
+o `node:24` em ambiente Docker sem rede:
+
+```text
+> phasscode-platform@0.1.0 typecheck
+> tsc --noEmit
+
+✓ tests/hydradb-lab-evidence-adapter.test.ts (7 tests)
+Test Files 1 passed (1)
+Tests 7 passed (7)
+...
+TS_SHADOW_PROBE skill Java canonical CLAIMS 2 SOURCES 6
+TS_SHADOW_PROBE skill Flutter canonical CLAIMS 2 SOURCES 2
+TS_SHADOW_PROBE skill TypeScript canonical CLAIMS 2 SOURCES 7
+TS_SHADOW_PROBE skill Node.js canonical CLAIMS 1 SOURCES 4
+TS_SHADOW_PROBE skill Go canonical CLAIMS 0 SOURCES 0
+TS_SHADOW_OFF_CANONICAL_PASS
+```
+
+Em execução anterior do mesmo Gate 6, o modo SHADOW TypeScript
+verificou com sucesso **10/10 leituras HTTP reais** no HydraDB
+LAB (`TS_SHADOW_HTTP_ALL_VERIFIED`), incluindo consultas negativas
+de Go e fonte inexistente.
+
+**GATE 6: HOMOLOGADO**, somando typecheck, sete testes com mocks,
+modo OFF sem rede e consultas SHADOW com dados reais do LAB.
+A correção `process.getuid?.()` não modificou a query nem o
+transporte HTTP. O gate continua limitado ao corpus público
+sintético e não comprova integração ao chat ou respostas LLM.
+
+Próximo passo:
+[Gate 7 — replay de evidências de recrutadores](hydradb-ppks-recruiter-eval.md).
