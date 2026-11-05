@@ -281,3 +281,46 @@ de uma nova execução não incorporam dados da anterior; cada execução
 gera IDs numéricos novos e um `lab_run` distinto.
 A conclusão de compatibilidade funcional segue limitada à
 projeção sintética de 7 registros públicos, não ao GraphRAG real.
+
+
+## Terceiro gate — homologação com duas rodadas isoladas
+
+O operador executou, na revisão `bfda98d`, o autoteste offline,
+o dry-run e **duas execuções reais consecutivas** do terceiro contrato
+de evidências. Ambas passaram, sem excluir dados antigos:
+
+```text
+PPKS_CONTRACT_OFFLINE_SELFTEST_PASS
+PPKS_CONTRACT_DRY_RUN_OK_NO_WRITES
+
+=== RODADA 1 ===
+PPKS_CONTRACT_BOTH_ENGINES_READY
+PPKS_CONTRACT_NEO4J_VERTICES 47
+PPKS_CONTRACT_WRITES_PER_ENGINE 60
+PPKS_CONTRACT_PARITY_CASES 13 PASS
+PPKS_CONTRACT_PARITY_PASS
+
+=== RODADA 2 ===
+PPKS_CONTRACT_BOTH_ENGINES_READY
+PPKS_CONTRACT_NEO4J_VERTICES 47
+PPKS_CONTRACT_WRITES_PER_ENGINE 60
+PPKS_CONTRACT_PARITY_CASES 13 PASS
+PPKS_CONTRACT_PARITY_PASS
+```
+
+Relatórios criados no MiniMac (conteúdo dos novos JSONs não foi
+examinado nesta atualização):
+
+- `~/hydradb-lab/benchmarks/ppks-contract-20261105T225133Z.json`
+- `~/hydradb-lab/benchmarks/ppks-contract-20261105T225141Z.json`
+
+**Gate 3 — APROVADO:** offline + 13/13 consultas por motor em cada
+rodada, sem mistura de evidências de execuções anteriores.
+A aceitação refere-se somente aos sete registros públicos e ao
+contrato experimental. Não confere compatibilidade integral com
+`OrbeEvidence` nem equivalência de desempenho entre motores.
+
+A etapa seguinte é um leitor `shadow` **read-only e fora do
+processo do Orbe**, documentado em
+[hydradb-ppks-shadow-reader.md](hydradb-ppks-shadow-reader.md).
+Ainda não existe qualquer ativação de HydraDB na API de recrutamento.
