@@ -1,0 +1,139 @@
+name: One-time F3.7 prospective lexical vs ONNX (frozen PT/EN)
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/f37-onnx-prospective-once.yml
+permissions:
+  contents: read
+concurrency:
+  group: f37-onnx-prospective-once
+  cancel-in-progress: false
+jobs:
+  benchmark:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v7
+        with: { node-version: '24', cache: npm }
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - name: Verify frozen cohort without downloading model
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests -p test_semantic_prospective.py -v
+          python3 -m unittest discover -s tests -p test_semantic_embedding_lab.py -q
+          python3 -m unittest discover -s tests -p test_audit_f37_gold.py -q
+          python3 scripts/audit_f37_gold.py > "$RUNNER_TEMP/f34-preaudit.json"
+      - name: Export same PPKS catalog and lexical baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          node --import tsx scripts/export-semantic-skill-catalog.ts > "$RUNNER_TEMP/catalog.json"
+          node --import tsx scripts/evaluate-semantic-lexical.ts --prospective-v1 > "$RUNNER_TEMP/lexical.json"
+          python3 - <<'PY'
+          import json,os
+          root=os.environ["RUNNER_TEMP"]
+          r=json.load(open(root+"/lexical.json"))
+          t=r["totals"]
+          assert r["reportVersion"]=="semantic-hybrid-lexical-baseline-v0"
+          assert (t["cases"],t["expectedInCatalog"],t["expectedOutOfCatalog"])==(44,34,6)
+          assert t["candidateSpans"]==40
+          assert len(json.load(open(root+"/catalog.json"))["skills"])>=31
+          print("F37_PROSPECTIVE_LEXICAL_DENOMINATOR_VERIFIED")
+          PY
+      - name: Download immutable ONNX and tokenizer artifacts, verifying SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/semantic-model"
+          python3 scripts/semantic_embedding_lab.py prepare --model-dir "$RUNNER_TEMP/semantic-model" > "$RUNNER_TEMP/prepare.json"
+          python3 scripts/semantic_embedding_lab.py verify --model-dir "$RUNNER_TEMP/semantic-model" > "$RUNNER_TEMP/verify.json"
+          echo F37_PROSPECTIVE_ONNX_WEIGHTS_VERIFIED
+      - name: Build disposable isolated ONNX lab without weights
+        run: docker build -f infrastructure/docker/Dockerfile.semantic-embedding-lab -t orbe-f37-onnx-prospective:ephemeral .
+      - name: Compare label-only and frozen-glossary rankings on the same corpus, without network
+        shell: bash
+        run: |
+          set -euo pipefail
+          for MODE in labels descriptions; do
+            ARGS=()
+            if [[ "$MODE" == descriptions ]]; then
+              ARGS+=(--descriptions /lab/descriptions.json)
+            fi
+            docker run --rm --network none --read-only \
+              --cpus 2 --memory 2g --pids-limit 128 \
+              --cap-drop ALL --security-opt no-new-privileges \
+              --user "$(id -u):$(id -g)" \
+              --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+              --mount "type=bind,src=$RUNNER_TEMP/semantic-model,dst=/models,readonly" \
+              --mount "type=bind,src=$RUNNER_TEMP/catalog.json,dst=/lab/catalog.json,readonly" \
+              --mount "type=bind,src=$RUNNER_TEMP/lexical.json,dst=/lab/lexical.json,readonly" \
+              --mount "type=bind,src=$GITHUB_WORKSPACE/evaluation/semantic-embedding-prospective-v1.json,dst=/lab/cohort.json,readonly" \
+              --mount "type=bind,src=$GITHUB_WORKSPACE/evaluation/semantic-skill-descriptions-v0.json,dst=/lab/descriptions.json,readonly" \
+              orbe-f37-onnx-prospective:ephemeral benchmark \
+              --model-dir /models --catalog /lab/catalog.json \
+              --corpus /lab/cohort.json --lexical-report /lab/lexical.json \
+              "${ARGS[@]}" > "$RUNNER_TEMP/embedding-$MODE.json"
+          done
+      - name: Check paired cohorts and generate aggregate-only summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,os
+          root=os.environ["RUNNER_TEMP"]
+          lexical=json.load(open(root+"/lexical.json"))
+          models={k:json.load(open(root+"/embedding-"+k+".json")) for k in ("labels","descriptions")}
+          m=json.load(open("evaluation/semantic-embedding-prospective-v1.manifest.json"))
+          raw=open(m["fixture"],"rb").read()
+          assert hashlib.sha256(raw).hexdigest()==m["sha256"]
+          lt=lexical["totals"]
+          assert (lt["cases"],lt["expectedInCatalog"],lt["expectedOutOfCatalog"])==(44,34,6)
+          assert lt["candidateSpans"]==40
+          for k,r in models.items():
+            t=r["totals"]
+            assert (t["cases"],t["expectedInCatalog"],t["expectedOutOfCatalog"],t["candidateSpans"],t["contextOrNegatedSpansQuarantinedByFixture"])==(44,34,6,40,4)
+            assert r["modelCalls"]==r["neo4jQueries"]==r["networkCallsDuringBenchmark"]==0
+            assert r["modelRevision"]=="033028575b040790aef3064b2a045245ee54d238"
+            assert (r["curatedDescriptionCount"]==0) if k=="labels" else (r["curatedDescriptionCount"]>=20)
+          summary={
+            "reportVersion":"f37-prospective-paired-onnx-v1",
+            "corpusSha256":m["sha256"],"corpusStatus":"synthetic_prospective_not_human_reviewed",
+            "denominators":{"cases":44,"candidateSpans":40,"inCatalogLabels":34,"outOfCatalogLabels":6,"contextNegatedQuarantinedByFixture":4},
+            "lexical":{k:lt[k] for k in ("lexicalPrecision","lexicalRecallAt1","lexicalRecallAt3","lexicalFalsePositives","lexicalFalseNegatives","lexicalMrrFirstKnown")},
+            "onnx":{},
+            "warning":"Model always returns a ranked top1 for out-of-catalog spans; these six cases require abstention, not candidate promotion.",
+            "noPublicApiOrShadowChange":True
+          }
+          for key,r in models.items():
+            t=r["totals"]
+            summary["onnx"][key]={
+              **{k:t[k] for k in ("recallAt1","recallAt3","recallAt5","mrrFirstKnown","top1NotInExpectedLabel")},
+              "peakRssMiB":r["resource"]["peakRssMiB"],"latencyMs":r["latencyMs"],
+              "curatedDescriptionsSha256":r["curatedDescriptionsSha256"],
+              "expectedOutOfCatalog":t["expectedOutOfCatalog"],
+              "paraphraseHitsAt3":sum(x["hitsAt3"] for x in t["casesSummary"] if "-par-" in x["id"]),
+              "paraphraseKnown":sum(x["knownLabels"] for x in t["casesSummary"] if "-par-" in x["id"]),
+              "explicitHitsAt3":sum(x["hitsAt3"] for x in t["casesSummary"] if "-explicit-" in x["id"])
+            }
+          with open(root+"/prospective-paired-summary.json","w") as f:json.dump(summary,f,ensure_ascii=False,indent=2)
+          print("F37_PROSPECTIVE_PAIRED_METRICS",json.dumps(summary,ensure_ascii=False,separators=(",",":")))
+          PY
+      - name: Upload synthetic aggregate reports, no model weights or actual vacancy text
+        uses: actions/upload-artifact@v7
+        with:
+          name: f37-prospective-onnx-paired-reports
+          path: |
+            ${{ runner.temp }}/lexical.json
+            ${{ runner.temp }}/embedding-labels.json
+            ${{ runner.temp }}/embedding-descriptions.json
+            ${{ runner.temp }}/prospective-paired-summary.json
+            ${{ runner.temp }}/f34-preaudit.json
+          retention-days: 14
+          if-no-files-found: error
