@@ -7,7 +7,6 @@
  */
 import { execFileSync } from 'node:child_process';
 import { readFile, lstat, realpath } from 'node:fs/promises';
-import { getuid } from 'node:process';
 import { basename, dirname, join, resolve } from 'node:path';
 import {
   evidenceClaimSchema,
@@ -277,7 +276,7 @@ async function approvedRun(filename: string): Promise<string> {
     'LAB_REPORT_PATH_FORBIDDEN');
   const stat = await lstat(candidate);
   insist(stat.isFile() && !stat.isSymbolicLink() &&
-    (stat.mode & 0o077) === 0 && stat.uid === getuid(),
+    (stat.mode & 0o077) === 0 && stat.uid === process.getuid(),
     'LAB_REPORT_NOT_PRIVATE');
   insist(stat.size > 0 && stat.size < 200_000, 'LAB_REPORT_INVALID_SIZE');
   const data = object(JSON.parse(await readFile(candidate, 'utf8')) as unknown);
@@ -304,7 +303,7 @@ async function readToken(filename: string): Promise<string> {
   );
   const stat = await lstat(requested);
   insist(stat.isFile() && !stat.isSymbolicLink() &&
-    (stat.mode & 0o077) === 0 && stat.uid === getuid(),
+    (stat.mode & 0o077) === 0 && stat.uid === process.getuid(),
     'LAB_TOKEN_FILE_NOT_PRIVATE');
   const raw = (await readFile(requested, 'utf8')).trim();
   insist(raw.length >= 32 && raw.length <= 250, 'LAB_TOKEN_INVALID');
