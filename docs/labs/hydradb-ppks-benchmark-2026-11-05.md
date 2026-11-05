@@ -200,3 +200,53 @@ O reteste utiliza identificadores numéricos aleatórios *novos*, mantendo
 as observações malformadas da primeira tentativa dentro do volume LAB;
 não há modificação ou limpeza de volumes DEV/MAIN. Resultado do reteste
 **pendente**: não marcar paridade de 18 casos como aprovada previamente.
+
+
+## Segundo benchmark — resultado parcial e correção de semântica do peer
+
+Saída após o ajuste de identidade de nós Neo4j (`a82ca38`):
+
+```text
+PPKS_GRAPH_NEO4J_VERTICES_SEEDED 38
+PPKS_GRAPH_WRITES_PER_ENGINE 42
+PPKS_GRAPH_QUERY_FAILED neo4j shared_peer_4_hop greencity-os HTTP - error_class ValueError reason neo4j: result mismatch for shared_peer_4_hop:greencity-os; got 1 rows, expected 2
+```
+
+A execução avançou até o último dos 18 cenários, mas **a suíte completa
+ainda não foi aprovada**. Os resultados intermediários não devem ser
+tratados como confirmação de paridade completa.
+
+**Causa identificada na expectativa:** o planejador calculava
+`peer_keys` incluindo o próprio `greencity-os`. O Cypher 5 do Neo4j
+não reutiliza o mesmo relacionamento na mesma cláusula `MATCH`.
+Na volta `Record→Claim→Skill←Claim←Record`, a autovinculação
+reutilizaria arestas e não entra no resultado padrão. A documentação
+oficial confirma essa regra:
+https://neo4j.com/docs/cypher-manual/5/patterns/unique-relationship-paths/ .
+
+A correção em `experiment/hydradb`, commit `6222536`:
+- exclui o registro de origem do conjunto esperado;
+- inclui `WHERE peer.id <> <numeric_id>` na consulta de 4 hops, para que
+  ambos os bancos executem a **mesma semântica explícita**;
+- mantém os demais 17 cenários e a validação de linhas/colunas intactos.
+
+O único peer esperado para `greencity-os` nessa amostra é
+`experiencia-greencity`, por compartilharem Flutter e Dart.
+Um resultado com zero peers ou com o próprio registro continua sendo
+reprovado. Como HydraDB é um subconjunto de Cypher, essa cláusula
+também precisa ser **verificada em runtime**, não apenas presumida
+por constar no documento upstream.
+
+O reteste usa IDs aleatórios novos; dados sintéticos anteriores
+permanecem isolados no laboratório. Nenhum volume deve ser apagado.
+
+```bash
+cd ~/hydradb-lab/phasscode-platform
+git pull --ff-only origin experiment/hydradb
+python3 -m py_compile scripts/hydradb-neo4j-ppks-provenance-benchmark.py
+python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py
+python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py --live
+```
+
+Critério de conclusão: `PPKS_GRAPH_PARITY_CASES 18 PASS` e
+`PPKS_GRAPH_SEMANTIC_PARITY_PASS` em uma nova execução real.
