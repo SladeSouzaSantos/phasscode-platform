@@ -8,7 +8,7 @@
 
 O [comparador v2](../../scripts/evaluate_f37_strict_v2.py) confronta quatro condições no mesmo corpus, mesmo checkpoint ONNX fixo, mesmo glossário e mesmo catálogo: lexical baseline, ONNX enriquecido, lexical-first ingênuo (histórico) e override lexical estrito (novo). Ele exige 68 labels, modelo e glossário com revisões fixas, coerência de IDs e denominadores. Resultados incluem Recall@1/3/5, MRR, melhorias/regressões de top-1, categorias literal/paráfrase/OOV e controles.
 
-- OONX não reconhece automaticamente OOV. Os oito exemplos OOV ainda produzem sugestões vetoriais arbitrárias; **não é permitido promovê-las** para qualificação profissional.
+- ONNX não reconhece automaticamente OOV. Os oito exemplos OOV ainda produzem sugestões vetoriais arbitrárias; **não é permitido promovê-las** para qualificação profissional.
 - **Contexto e negação são marcados pelo fixture e excluídos antes da recuperação.** Esse controle não prova que o Orbe tenha aprendido a identificar negações.
 - O benchmark é isolado e não altera configurações, endpoint HTTP, fontes PPKS, GraphRAG, Neo4j, quota LLM nem resposta pública.
 - Resultados desta coorte não podem ser usados para alterar a política e depois reivindicar melhora cega. Mudança posterior exigiria um terceiro conjunto não inspecionado e uma revisão humana independente.
