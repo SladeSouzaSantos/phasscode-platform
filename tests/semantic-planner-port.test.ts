@@ -3,6 +3,7 @@ import {
   validateSemanticPlannerProposal,
   type SemanticPlannerPort,
   type SemanticPlannerProposal,
+  type SemanticPlannerRequest,
 } from '../apps/orbe-node/src/application/semantic-planner-port.js';
 
 const sourceText = 'Requisitos: Java ou Kotlin. Usamos Go. React é desejável.';
@@ -10,7 +11,7 @@ const anchors = ['Java ou Kotlin', 'Go', 'React'].map((text, i) => {
   const start = sourceText.indexOf(text);
   return { id: `fragment-${i}`, start, end: start + text.length, text };
 });
-const request = {
+const request: SemanticPlannerRequest = {
   schemaVersion: 'semantic-planner-v1',
   sourceText,
   anchors,
