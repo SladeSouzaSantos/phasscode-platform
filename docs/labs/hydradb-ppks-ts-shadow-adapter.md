@@ -105,3 +105,32 @@ públicos, antes de qualquer integração na API.
   nenhuma resposta inventa experiência nem fonte;
 - aprovação explícita para futura integração em um ambiente de
   avaliação, preservando DEV e MAIN.
+
+
+## Homologação do Gate 5 no MiniMac
+
+O operador atualizou o clone LAB até `8eed10a` e executou os
+comandos dentro de `node:24`, com Node instalado isoladamente
+no contêiner e dependências no checkout do LAB.
+
+Resultados confirmados pelo terminal:
+
+```text
+> phasscode-platform@0.1.0 typecheck
+> tsc --noEmit
+
+✓ tests/hydradb-lab-evidence-adapter.test.ts (7 tests)
+Test Files 1 passed (1)
+Tests 7 passed (7)
+```
+
+**Gate 5: APROVADO**, para interface TypeScript,
+parametrização e mocks de fallback. O teste não acessou o HydraDB
+real a partir de TypeScript, portanto o Gate 6 precisa de execução
+HTTP real.
+
+O próximo procedimento está em
+[hydradb-ppks-ts-http-gate.md](hydradb-ppks-ts-http-gate.md):
+um executor TypeScript sem acesso à formação acadêmica privada,
+com `--mode off` offline e `--mode shadow --require-graph`
+usando o token do LAB por arquivo privado.
