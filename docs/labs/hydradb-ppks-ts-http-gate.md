@@ -149,3 +149,73 @@ Para um futuro Gate 7, ainda faltam (a) replay automatizado
 de perguntas de recrutadores, (b) verificação de ausência de alucinações
 em respostas, (c) recuperação real após queda e (d) decisão explícita
 sobre integração em serviço próprio no LAB. DEV e MAIN seguem intactos.
+
+
+## Primeira execução do Gate 6 — HTTP confirmado; TypeScript corrigido e pendente de reteste
+
+O operador executou os dois comandos documentados no MiniMac, no
+checkout `experiment/hydradb` atualizado até `be88147`.
+
+**Primeiro comando:** o `npm run typecheck` encontrou dois erros
+`TS2722` em `scripts/hydradb-lab-ts-live-check.ts`, linhas
+279 e 306, pois o tipo de `process.getuid` é opcional no Node.
+Como o shell estava em `set -euo pipefail`, o Vitest e o modo OFF
+não foram executados nessa tentativa.
+
+**Segundo comando:** a integração TypeScript → HydraDB real em
+modo `shadow --require-graph` passou:
+
+```text
+TS_SHADOW_PROBE skill Java graph_verified CLAIMS 2 SOURCES 6
+TS_SHADOW_PROBE skill Flutter graph_verified CLAIMS 2 SOURCES 2
+TS_SHADOW_PROBE skill TypeScript graph_verified CLAIMS 2 SOURCES 7
+TS_SHADOW_PROBE skill Node.js graph_verified CLAIMS 1 SOURCES 4
+TS_SHADOW_PROBE skill Go graph_verified CLAIMS 0 SOURCES 0
+TS_SHADOW_PROBE source phasscode-platform--ports graph_verified RESULTS 1
+TS_SHADOW_PROBE source phasscode-platform--catalog graph_verified RESULTS 1
+TS_SHADOW_PROBE source experiencia-sig--catalog graph_verified RESULTS 1
+TS_SHADOW_PROBE source web-portfolio-v2--tests graph_verified RESULTS 1
+TS_SHADOW_PROBE source missing-source-key graph_verified RESULTS 0
+TS_SHADOW_HTTP_CANONICAL_SAFE
+TS_SHADOW_HTTP_ALL_VERIFIED
+```
+
+Isso comprova leitura HTTP real em 10/10 consultas públicas, mas
+**não encerra a homologação completa** enquanto `typecheck` e
+modo OFF não forem aprovados na mesma revisão.
+
+**Correção:** commit `34a7d39` aplica
+`process.getuid?.()`, verifica explicitamente se o runtime suporta
+UID Unix e rejeita (fail-closed) a falta desse recurso antes de
+conferir dono e permissões de token e relatório. Ambas as verificações
+de proprietário `stat.uid` continuam obrigatórias.
+
+### Reteste focado após correção
+
+```bash
+(
+  set -euo pipefail
+  cd ~/hydradb-lab/phasscode-platform
+  git pull --ff-only origin experiment/hydradb
+
+  docker run --rm \
+    --network none \
+    --user "$(id -u):$(id -g)" \
+    -e HOME=/tmp \
+    -v "$PWD:/workspace" \
+    -w /workspace \
+    node:24 \
+    sh -ec '
+      npm run typecheck
+      ./node_modules/.bin/vitest run \
+        tests/hydradb-lab-evidence-adapter.test.ts
+      node --import tsx scripts/hydradb-lab-ts-live-check.ts --mode off
+    '
+)
+```
+
+**Critérios faltantes:** `tsc --noEmit` sem erro, 7/7 testes
+Vitest e `TS_SHADOW_OFF_CANONICAL_PASS`. A integração HTTP já
+foi aprovada com o script anterior; após o reteste de tipagem,
+repetir a leitura SHADOW é uma verificação adicional recomendada,
+mas sem mudanças de consultas ou credenciais.
