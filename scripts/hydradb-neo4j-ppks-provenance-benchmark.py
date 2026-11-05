@@ -112,6 +112,13 @@ def graph_plan(records: list[dict]) -> dict:
     skill_ids = {skill: base + 500 + i for i, skill in enumerate(skills)}
     source_ids = {r["key"]: base + 1000 + i for i, r in enumerate(records)}
     claim_ids = {}
+    # HydraDB MERGE paths identify endpoints by numeric vertex IDs.
+    # Neo4j MERGE of an *entire unbound path* does NOT reuse existing
+    # endpoints when the relationship is absent; it can duplicate vertices.
+    # Therefore Neo4j gets an independent vertex-upsert pass, followed
+    # by MATCH-bound MERGE of relationships. The logical graph is identical.
+    neo4j_vertices: dict[int, str] = {}
+    neo4j_edges: list[str] = []
     writes = []
     count = 0
     for record in records:
@@ -124,6 +131,8 @@ def graph_plan(records: list[dict]) -> dict:
         source_node = node("src", "Source", sid, {
             "record_key": record_key, "verification": record["verification"],
         })
+        neo4j_vertices[rid] = "MERGE " + record_node
+        neo4j_vertices[sid] = "MERGE " + source_node
         for skill in record["skills"]:
             cid = base + 2000 + count
             count += 1
@@ -133,16 +142,35 @@ def graph_plan(records: list[dict]) -> dict:
                 "scope": record["scope"],
             })
             skill_node = node("s", "Skill", skill_ids[skill], {"name": skill})
+            neo4j_vertices[cid] = "MERGE " + claim_node
+            neo4j_vertices[skill_ids[skill]] = "MERGE " + skill_node
+            # HydraDB single-statement path MERGE (numeric-id based).
             writes.extend([
                 f"MERGE {record_node}-[:HAS_CLAIM]->{claim_node}",
                 f"MERGE {claim_node}-[:USES_TECHNOLOGY]->{skill_node}",
                 f"MERGE {claim_node}-[:SUPPORTED_BY]->{source_node}",
             ])
-    assert count == 14 and len(writes) == 42
+            # Neo4j: bind endpoint nodes before MERGE-ing the relationship.
+            # Matching on numeric IDs prevents accidental Cartesian
+            # node recreation that poisoned the first attempt.
+            neo4j_edges.extend([
+                f"MATCH (r:Record {{id: {rid}}}), (c:Claim {{id: {cid}}}) "
+                "MERGE (r)-[:HAS_CLAIM]->(c)",
+                f"MATCH (c:Claim {{id: {cid}}}), "
+                f"(s:Skill {{id: {skill_ids[skill]}}}) "
+                "MERGE (c)-[:USES_TECHNOLOGY]->(s)",
+                f"MATCH (c:Claim {{id: {cid}}}), (src:Source {{id: {sid}}}) "
+                "MERGE (c)-[:SUPPORTED_BY]->(src)",
+            ])
+    assert count == 14 and len(writes) == 42 and len(neo4j_edges) == 42
+    assert len(neo4j_vertices) == 7 + 7 + 14 + len(skills)
     return {
         "records": records,
         "record_ids": record_ids, "skill_ids": skill_ids,
-        "source_ids": source_ids, "claim_ids": claim_ids, "writes": writes,
+        "source_ids": source_ids, "claim_ids": claim_ids,
+        "writes": writes,
+        "neo4j_vertices": list(neo4j_vertices.values()),
+        "neo4j_edges": neo4j_edges,
         "counts": {"records": 7, "skills": len(skills), "claims": 14,
                    "sources": 7, "edges": len(writes)},
     }
@@ -298,18 +326,33 @@ def main() -> None:
         "hydradb": lambda cypher: COMMON["hydradb"](opener, token, cypher),
         "neo4j": lambda cypher: COMMON["neo4j"](opener, auth, cypher),
     }
+    # Seed Neo4j vertices once, then MATCH them explicitly in relationship
+    # writes. Never use unbound MERGE of an entire pattern on Neo4j.
+    for idx, cypher in enumerate(plan["neo4j_vertices"], 1):
+        try:
+            call["neo4j"](cypher)
+        except Exception as exc:
+            raise ValueError(
+                f"Neo4j vertex upsert {idx}/{len(plan['neo4j_vertices'])} failed: "
+                f"{type(exc).__name__}, HTTP={getattr(exc, 'code', '-')}"
+            ) from None
+    print("PPKS_GRAPH_NEO4J_VERTICES_SEEDED", len(plan["neo4j_vertices"]))
     write_latency = {"hydradb": [], "neo4j": []}
-    for idx, cypher in enumerate(plan["writes"], 1):
+    for idx in range(len(plan["writes"])):
         for engine in ("hydradb", "neo4j"):
+            cypher = (
+                plan["writes"][idx] if engine == "hydradb"
+                else plan["neo4j_edges"][idx]
+            )
             try:
                 started = time.perf_counter()
                 call[engine](cypher)
                 write_latency[engine].append((time.perf_counter() - started) * 1000)
             except Exception as exc:
-                raise ValueError(f"Write {idx}/42 failed in {engine}: "
-                                 f"{type(exc).__name__} "
-                                 f"HTTP={getattr(exc, 'code', '-')}"
-                                 ) from None
+                raise ValueError(
+                    f"Relationship write {idx + 1}/42 failed in {engine}: "
+                    f"{type(exc).__name__}, HTTP={getattr(exc, 'code', '-')}"
+                ) from None
     print("PPKS_GRAPH_WRITES_PER_ENGINE", len(plan["writes"]))
 
     reads: dict[str, dict[str, list[float]]] = {
@@ -328,8 +371,12 @@ def main() -> None:
                     print("PPKS_GRAPH_QUERY_FAILED", engine,
                           case["name"], case["key"],
                           "HTTP", getattr(exc, "code", "-"),
-                          "error_class", type(exc).__name__, file=sys.stderr)
-                    # Do not print queries or HTTP bodies; preserve lab credentials.
+                          "error_class", type(exc).__name__,
+                          "reason", str(exc)[:180] if isinstance(exc, ValueError)
+                          else "non-validation-error",
+                          file=sys.stderr)
+                    # Only trusted validation messages are echoed, not HTTP
+                    # bodies, raw queries, credentials or Docker environment.
                     raise ValueError("Semantic parity failed; see preceding case") from None
                 if rep > 0:
                     reads[engine][case["name"]].append(elapsed)
@@ -344,6 +391,12 @@ def main() -> None:
                    "expected_rows": len(c["rows"])} for c in cases],
         "parity": "PASS: exact result sets in both LAB graph stores",
         "write_latency": {e: metrics(values) for e, values in write_latency.items()},
+        "write_comparison_note": (
+            "Neo4j is primed with separate vertex-only MERGEs (not timed), "
+            "then 42 MATCH-bound relationship MERGEs. HydraDB uses 42 "
+            "single-statement numeric-id path MERGEs. Write latencies are "
+            "not directly comparable because workload differs."
+        ),
         "read_latency_by_case": {
             e: {name: metrics(values) for name, values in classes.items()}
             for e, classes in reads.items()
