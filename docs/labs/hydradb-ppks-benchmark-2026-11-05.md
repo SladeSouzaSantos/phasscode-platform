@@ -17,30 +17,79 @@ Não houve acesso direto deste relatório ao host nem ao JSON de resultados.
 - Latência local p50 observada: HydraDB **2,335 ms**; Neo4j **95,119 ms**.
 - Arquivo gerado no host:
   `~/hydradb-lab/benchmarks/ppks-graph-20261105T204432Z.json`.
-  O relatório JSON contém as estatísticas completas; seu conteúdo
-  não foi inspecionado aqui.
+  O operador compartilhou seu conteúdo integral para esta análise.
+- Escrita (14 requisições por motor): HydraDB p50 **11,062 ms** / p95 **14,611 ms**; Neo4j p50 **294,925 ms** / p95 **1.428,592 ms**.
+- Leitura (42 requisições por motor): HydraDB p50 **2,335 ms** / p95 **3,387 ms**; Neo4j p50 **95,119 ms** / p95 **108,664 ms**.
 
-## Anomalia bloqueante para conclusões de desempenho
+## Healthcheck do Neo4j: causa provável identificada
 
-O comando `docker compose ... up -d --wait neo4j-compare` informou
-`container ... is unhealthy` após aguardar. **Apesar disso, a API HTTP
-do Neo4j respondeu e executou as 14 escritas e 42 leituras corretamente.**
+O comando `docker compose ... up -d --wait neo4j-compare` declarou
+`unhealthy`, **mas a API HTTP autenticada executou 14 escritas e
+42 consultas corretamente**. O diagnóstico do operador depois mostrou:
 
-Não atribuir a falha de healthcheck a senha, OOM, JVM, timeout ou
-versão sem evidência de `docker inspect` / healthcheck logs. A API ter
-funcionado não prova que todos os processos do contêiner estejam saudáveis.
+- `NEO4J_LAB_STATE running`, `NEO4J_LAB_HEALTH unhealthy`;
+- cinco healthcheck probes com `ExitCode -1`;
+- `NEO4J_LAB_OOM_KILLED False` e zero reinicializações;
+- binário `cypher-shell` presente;
+- variável `NEO4J_AUTH` presente no contêiner;
+- `cypher-shell` autenticado executou `RETURN 1` com saída 0,
+  levando **16,43 s**;
+- timeout original do healthcheck **8 s** com repetição a cada **10 s**;
+- `docker stats`: CPU do Neo4j **75,80%** com cota **0,75 CPU**, RAM
+  **602,8 MiB / 896 MiB**. HydraDB **1,42%** de CPU e
+  **5,715 MiB / 2 GiB** naquele instante.
 
-Executar somente no LAB:
+Portanto, o mecanismo de verificação tinha um timeout **mais curto do
+que uma consulta autenticada comprovadamente bem-sucedida**. A
+carga de verificações repetidas é uma interferência importante no
+benchmark; não podemos concluir que seja o único motivo das
+latências do Neo4j.
+
+Correção isolada na branch `experiment/hydradb`, commit `e53ea725`:
+
+- healthcheck agora usa uma **checagem TCP leve** da porta HTTP `7474`
+  (sem iniciar JVM via `cypher-shell`);
+- intervalo de 15 s, timeout de 5 s e período inicial de 45 s;
+- a checagem TCP não comprova autenticação: **o benchmark continua
+  executando `RETURN 1` autenticado pela API HTTP antes de gravar**;
+- limites CPU e memória **não foram alterados**, para testar primeiro o
+  efeito da mudança isoladamente.
+
+Para aplicar somente ao serviço de comparação, preservando volumes,
+HydraDB e Orbe LAB:
 
 ```bash
 cd ~/hydradb-lab/phasscode-platform
-python3 scripts/hydradb-neo4j-health-diagnostic.py
+git pull --ff-only origin experiment/hydradb
+
+docker compose -p phasscode-hydradb-lab --env-file .env \
+  -f compose.yaml -f compose.hydradb-lab.yaml \
+  -f compose.neo4j-compare.lab.yaml --profile neo4j-compare \
+  config --quiet
+
+docker compose -p phasscode-hydradb-lab --env-file .env \
+  -f compose.yaml -f compose.hydradb-lab.yaml \
+  -f compose.neo4j-compare.lab.yaml --profile neo4j-compare \
+  up -d --no-build --no-deps --wait neo4j-compare
+
+docker inspect --format '{{.State.Health.Status}}' \
+  phasscode-hydradb-lab-neo4j-compare-1
+
+docker stats --no-stream \
+  phasscode-hydradb-lab-hydradb-1 \
+  phasscode-hydradb-lab-neo4j-compare-1
 ```
 
-O script lê estados e códigos dos últimos probes sem imprimir
-variáveis de ambiente, senha, token ou logs completos. Executa apenas
-`RETURN 1` no `cypher-shell` local com autenticação herdada do
-próprio contêiner. Não modifica configuração ou dados.
+Somente se `healthy`, repetir:
+
+```bash
+python3 scripts/hydradb-neo4j-ppks-benchmark.py --live
+```
+
+O comando `up` pode recriar apenas o serviço `neo4j-compare`; seu
+volume nomeado continua preservado. **Não use `--remove-orphans` ou
+`down --volumes`**. Sem relatório da segunda execução, não reivindicar
+melhoria de latência nem nova relação de velocidade entre bancos.
 
 ## Interpretação correta
 
