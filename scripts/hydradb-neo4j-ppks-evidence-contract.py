@@ -84,6 +84,25 @@ def data_fixture() -> list[dict]:
             "code_reviewed", "catalog_only"
         ):
             fail("PPKS_INVALID_VERIFICATION_STATUS")
+        # Fail closed on an inaccurate professional scope. Stage two used to
+        # mark Greencity as exclusively professional software; canonical
+        # PPKS identifies engineering + software as mixed_role.
+        if directory == "experiences":
+            areas = source.get("areas")
+            if (not isinstance(areas, list) or
+                "software-development" not in areas):
+                fail("PPKS_EXPERIENCE_AREAS_REQUIRED")
+            expected_scope = (
+                "mixed_role" if "engineering" in areas else "professional"
+            )
+        else:
+            expected_scope = {
+                "professional": "professional_project",
+                "personal": "personal_project",
+                "study": "study",
+            }.get(source.get("identity", {}).get("nature"), "unknown")
+        if record["scope"] != expected_scope:
+            fail("PPKS_SCOPE_PROJECTION_DRIFT")
         evidence = {}
         for item in source.get("evidence", []):
             eid = item.get("id")
