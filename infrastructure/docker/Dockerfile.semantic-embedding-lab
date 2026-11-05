@@ -15,3 +15,4 @@ COPY evaluation/semantic-embedding-onnx-manifest.json evaluation/semantic-embedd
 COPY evaluation/semantic-hybrid-corpus-v0.json evaluation/semantic-hybrid-corpus-v0.json
 USER 65532:65532
 ENTRYPOINT ["python", "scripts/semantic_embedding_lab.py"]
+COPY evaluation/semantic-embedding-prospective-v1.json evaluation/semantic-embedding-prospective-v1.json
