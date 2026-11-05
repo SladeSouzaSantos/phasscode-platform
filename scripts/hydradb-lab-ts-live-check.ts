@@ -62,6 +62,14 @@ function insist(condition: unknown, error: string): asserts condition {
   if (!condition) throw new Error(error);
 }
 
+/** On Node runtimes without Unix UID APIs, fail closed for private files. */
+function currentUid(): number {
+  const uid = process.getuid?.();
+  insist(typeof uid === 'number' && Number.isSafeInteger(uid) && uid >= 0,
+    'LAB_UNIX_UID_REQUIRED');
+  return uid;
+}
+
 function object(value: unknown): Obj {
   insist(typeof value === 'object' && value !== null && !Array.isArray(value),
     'LAB_INVALID_PUBLIC_RECORD');
@@ -276,7 +284,7 @@ async function approvedRun(filename: string): Promise<string> {
     'LAB_REPORT_PATH_FORBIDDEN');
   const stat = await lstat(candidate);
   insist(stat.isFile() && !stat.isSymbolicLink() &&
-    (stat.mode & 0o077) === 0 && stat.uid === process.getuid(),
+    (stat.mode & 0o077) === 0 && stat.uid === currentUid(),
     'LAB_REPORT_NOT_PRIVATE');
   insist(stat.size > 0 && stat.size < 200_000, 'LAB_REPORT_INVALID_SIZE');
   const data = object(JSON.parse(await readFile(candidate, 'utf8')) as unknown);
@@ -303,7 +311,7 @@ async function readToken(filename: string): Promise<string> {
   );
   const stat = await lstat(requested);
   insist(stat.isFile() && !stat.isSymbolicLink() &&
-    (stat.mode & 0o077) === 0 && stat.uid === process.getuid(),
+    (stat.mode & 0o077) === 0 && stat.uid === currentUid(),
     'LAB_TOKEN_FILE_NOT_PRIVATE');
   const raw = (await readFile(requested, 'utf8')).trim();
   insist(raw.length >= 32 && raw.length <= 250, 'LAB_TOKEN_INVALID');
