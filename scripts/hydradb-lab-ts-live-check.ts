@@ -8,6 +8,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFile, lstat, realpath } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import {
   evidenceClaimSchema,
   evidenceSourceSchema,
@@ -44,7 +45,7 @@ const SOURCES = [
 type Obj = Record<string, unknown>;
 type EvidenceItem = { id: string; type: string };
 type SkillItem = { name: string; evidenceIds: string[] };
-type RecordFixture = {
+export type RecordFixture = {
   id: string;
   scope: EvidenceClaim['scope'];
   claims: EvidenceClaim[];
@@ -124,7 +125,7 @@ function argList(args: string[]): Cli {
   return opts;
 }
 
-async function assertLabCheckout(root: string): Promise<void> {
+export async function assertLabCheckout(root: string): Promise<void> {
   insist(
     execFileSync('git', ['branch', '--show-current'], {
       cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
@@ -158,7 +159,7 @@ function officialScope(data: Obj, directory: string): EvidenceClaim['scope'] {
   return typeof kind === 'string' ? (scopes[kind] ?? 'unknown') : 'unknown';
 }
 
-async function publicFixture(root: string): Promise<RecordFixture[]> {
+export async function publicFixture(root: string): Promise<RecordFixture[]> {
   const all: RecordFixture[] = [];
   for (const [directory, id] of RECORDS) {
     const filename = join(root, 'knowledge', 'ppks', directory, id + '.json');
@@ -245,7 +246,7 @@ async function publicFixture(root: string): Promise<RecordFixture[]> {
   return all;
 }
 
-function canonicalRepository(records: RecordFixture[]): EvidenceGraphRepository {
+export function canonicalRepository(records: RecordFixture[]): EvidenceGraphRepository {
   const bySource = new Map(records.flatMap((record) =>
     record.sources.map((source) => [source.id, source] as const)));
   return {
@@ -271,7 +272,7 @@ function canonicalRepository(records: RecordFixture[]): EvidenceGraphRepository 
   };
 }
 
-async function approvedRun(filename: string): Promise<string> {
+export async function approvedRun(filename: string): Promise<string> {
   const candidate = resolve(filename);
   const parent = await realpath(dirname(candidate));
   const labHome = resolve(process.cwd(), '..');
@@ -301,7 +302,7 @@ async function approvedRun(filename: string): Promise<string> {
   return run;
 }
 
-async function readToken(filename: string): Promise<string> {
+export async function readToken(filename: string): Promise<string> {
   const requested = resolve(filename);
   const labHome = resolve(process.cwd(), '..');
   insist(
@@ -318,7 +319,7 @@ async function readToken(filename: string): Promise<string> {
   return raw;
 }
 
-function requirement(name: string): VacancyRequirement {
+export function requirement(name: string): VacancyRequirement {
   return {
     kind: 'vacancy_requirement',
     id: 'req-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -404,11 +405,14 @@ async function main(): Promise<void> {
   await checkReader(repo, canonical, decisions, flags.mode, flags.requireGraph);
 }
 
-main().catch((err: unknown) => {
-  // Never echo exceptions from fs/network: they might contain file paths,
-  // request parameters or credential material.
-  console.error('TS_SHADOW_GATE_FAILED',
-    err instanceof Error && err.message.startsWith('LAB_') ? err.message :
-      'INTERNAL_ERROR');
-  process.exitCode = 1;
-});
+// Importing this fixture library must NOT run an integration check.
+if (process.argv[1] &&
+    import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  main().catch((err: unknown) => {
+    // Never echo exceptions from fs/network: they might contain paths or tokens.
+    console.error('TS_SHADOW_GATE_FAILED',
+      err instanceof Error && err.message.startsWith('LAB_') ? err.message :
+        'INTERNAL_ERROR');
+    process.exitCode = 1;
+  });
+}
