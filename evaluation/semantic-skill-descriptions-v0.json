@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "semantic-skill-descriptions-v0",
+  "reviewStatus": "curated_draft_not_independently_validated",
+  "scope": "technology_definitions_only_no_candidate_claims",
+  "origin": "independent_hand_authored_technology_glossary",
+  "skills": [
+    {
+      "label": "Java",
+      "description": "Linguagem de programação orientada a objetos executada na JVM; aplicações corporativas, serviços e ecossistema Spring."
+    },
+    {
+      "label": "JavaScript",
+      "description": "Linguagem dinâmica usada em navegadores para interações de interface e em servidores com Node.js."
+    },
+    {
+      "label": "TypeScript",
+      "description": "Linguagem que adiciona tipagem estática ao JavaScript e transpila para JavaScript."
+    },
+    {
+      "label": "Python",
+      "description": "Linguagem de programação de alto nível usada em automação, dados, APIs, ciência e aprendizado de máquina."
+    },
+    {
+      "label": "React",
+      "description": "Biblioteca JavaScript para interfaces declarativas compostas de componentes, hooks e estado."
+    },
+    {
+      "label": "Flutter",
+      "description": "Kit de desenvolvimento multiplataforma da Google para interfaces móveis e web usando a linguagem Dart."
+    },
+    {
+      "label": "PostgreSQL",
+      "description": "Sistema gerenciador de banco de dados relacional livre com SQL avançado, extensibilidade e suporte a extensões como PostGIS."
+    },
+    {
+      "label": "MySQL",
+      "description": "Sistema gerenciador de banco de dados relacional SQL amplamente utilizado em aplicações web."
+    },
+    {
+      "label": "Redis",
+      "description": "Servidor de armazenamento de estruturas de dados chave-valor em memória, popular para cache, filas e sessões."
+    },
+    {
+      "label": "FastAPI",
+      "description": "Framework web assíncrono de Python para criar APIs HTTP com Pydantic e esquemas OpenAPI."
+    },
+    {
+      "label": "Fastify",
+      "description": "Framework HTTP para aplicações backend Node.js com roteamento, esquemas e validação."
+    },
+    {
+      "label": "Django",
+      "description": "Framework web Python de alto nível com ORM, administração e organização em aplicações."
+    },
+    {
+      "label": "Laravel",
+      "description": "Framework PHP para aplicações web com roteamento, migrations, Eloquent ORM e autenticação."
+    },
+    {
+      "label": "Spring Boot",
+      "description": "Framework Java que simplifica aplicações Spring com autoconfiguração, starters e servidor embutido."
+    },
+    {
+      "label": "GitHub Actions",
+      "description": "Automação de CI/CD que executa workflows YAML de build, testes e deploy em repositórios GitHub."
+    },
+    {
+      "label": "Docker",
+      "description": "Plataforma de empacotamento e execução de aplicações em containers com imagens e isolamento."
+    },
+    {
+      "label": "Docker Swarm",
+      "description": "Orquestração nativa de múltiplos serviços e nós Docker em cluster com overlay networking."
+    },
+    {
+      "label": "Neo4j",
+      "description": "Banco de dados orientado a grafos de propriedades com consultas Cypher e relações entre nós."
+    },
+    {
+      "label": "LangGraph",
+      "description": "Biblioteca de orquestração de agentes e workflows de IA com grafos de estados e execução por etapas."
+    },
+    {
+      "label": "LangChain",
+      "description": "Biblioteca de integração e orquestração de modelos de linguagem, prompts, ferramentas e recuperação."
+    },
+    {
+      "label": "Streamlit",
+      "description": "Framework Python para criar dashboards e aplicações web interativas de dados."
+    },
+    {
+      "label": "Pydantic",
+      "description": "Biblioteca Python de validação e serialização baseada em anotações de tipos."
+    },
+    {
+      "label": "Zod",
+      "description": "Biblioteca TypeScript de schemas para validação e parsing de dados em runtime."
+    },
+    {
+      "label": "pytest",
+      "description": "Framework de testes Python com fixtures, parametrização e funções de teste."
+    },
+    {
+      "label": "pandas",
+      "description": "Biblioteca Python para manipular tabelas e séries com DataFrame e operações analíticas."
+    },
+    {
+      "label": "NumPy",
+      "description": "Biblioteca Python de cálculo numérico com arrays multidimensionais e álgebra vetorial."
+    },
+    {
+      "label": "JPA",
+      "description": "Especificação Jakarta Persistence para mapeamento objeto-relacional na plataforma Java."
+    },
+    {
+      "label": "Spring Data JPA",
+      "description": "Módulo Spring Data que abstrai repositórios e consultas JPA de persistência."
+    },
+    {
+      "label": "Firebase",
+      "description": "Plataforma Google para aplicações com serviços como autenticação, Firestore e backend gerenciado."
+    },
+    {
+      "label": "SQLAlchemy",
+      "description": "Biblioteca Python para SQL e mapeamento objeto-relacional com sessões e modelos."
+    },
+    {
+      "label": "Playwright",
+      "description": "Ferramenta de automação de navegadores e testes ponta a ponta em aplicações web."
+    }
+  ]
+}
