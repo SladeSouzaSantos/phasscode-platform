@@ -1,0 +1,49 @@
+name: F3.7 one-time Docker Node 24 MiniMac script smoke
+on:
+  push:
+    branches: [dev]
+    paths: [.github/workflows/f37-docker-node-smoke-once.yml]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - name: Check syntax and preflight without installing host Node
+        run: |
+          set -euo pipefail
+          bash -n scripts/benchmark_f37_minimac.sh
+          bash scripts/benchmark_f37_minimac.sh --preflight
+      - name: Install public npm packages inside disposable Node 24 container
+        run: bash scripts/benchmark_f37_minimac.sh --install-js-deps
+      - name: Export same public PPKS catalog and v2 lexical baseline OFFLINE
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network none --read-only --cpus 2 --memory 2g \
+            --pids-limit 128 --cap-drop ALL --security-opt no-new-privileges \
+            --user "$(id -u):$(id -g)" --env HOME=/tmp \
+            --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/lab,readonly" --workdir /lab \
+            node:24-bookworm-slim node --import tsx scripts/export-semantic-skill-catalog.ts \
+            > "$RUNNER_TEMP/catalog.json"
+          docker run --rm --network none --read-only --cpus 2 --memory 2g \
+            --pids-limit 128 --cap-drop ALL --security-opt no-new-privileges \
+            --user "$(id -u):$(id -g)" --env HOME=/tmp \
+            --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/lab,readonly" --workdir /lab \
+            node:24-bookworm-slim node --import tsx scripts/evaluate-semantic-lexical.ts --adversarial-v2 \
+            > "$RUNNER_TEMP/lexical.json"
+          python3 - <<'PY'
+          import os,json
+          root=os.environ["RUNNER_TEMP"]
+          skills=json.load(open(root+"/catalog.json"))["skills"]
+          m=json.load(open(root+"/lexical.json"))["totals"]
+          assert len(skills)==68
+          assert (m["cases"],m["expectedInCatalog"],m["expectedOutOfCatalog"])==(40,28,8)
+          print("F37_DOCKER_NODE_SMOKE_PASS no host Node needed; 68 public labels, 40 synthetic v2 cases")
+          PY
