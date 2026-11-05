@@ -126,6 +126,17 @@ function verifiedResult(skill: string, result: EvidenceGraphMatch, max: number):
     }
   }
   check(referenced.size === result.sources.length, 'LAB_EXTRANEOUS_SOURCE');
+  if ((skill === 'Node.js' || skill === 'TypeScript') && result.claims.length > 0) {
+    check(result.sources.some((source) => source.verificationStatus === 'catalog_only') &&
+      result.sources.some((source) => source.verificationStatus === 'code_reviewed'),
+      'LAB_SOURCE_CONFIDENCE_COLLAPSED');
+  }
+  if (skill === 'Java' && result.claims.length > 0) {
+    check(result.claims.some((claim) => claim.subjectId === 'experiencia-sig' &&
+      claim.sourceIds.some((id) =>
+        sources.get(id)?.verificationStatus === 'catalog_only')),
+      'LAB_JAVA_EXPERIENCE_VERIFICATION_INFLATED');
+  }
   if (skill === 'Go' || skill === 'Django') {
     check(result.claims.length === 0 && result.sources.length === 0,
       'LAB_FABRICATED_SKILL');
