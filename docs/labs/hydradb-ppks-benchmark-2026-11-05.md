@@ -129,3 +129,36 @@ nesses valores.
 **Proibição operacional:** jamais montar dados/volumes de `dev` ou
 `main`, exportar arquivos acadêmicos privados para o grafo de
 benchmark ou habilitar HydraDB no Orbe operacional.
+
+
+## Segunda rodada — healthcheck corrigido e serviço saudável
+
+Saída e JSON do operador (2026-11-05 21:24:27 UTC):
+
+- Neo4j: **healthy**, CPU instantânea 3,39%, RAM 341,3 MiB / 896 MiB.
+- HydraDB: CPU instantânea 1,66%, RAM 5,973 MiB / 2 GiB.
+- Sem alterações nas cotas de CPU/RAM entre as duas rodadas.
+- Escrita, 14 requisições por banco:
+  - HydraDB: p50 **9,007 ms**, p95 **12,696 ms**, média **9,088 ms**.
+  - Neo4j: p50 **174,668 ms**, p95 **849,865 ms**, média **287,772 ms**.
+- Leitura, 42 requisições por banco:
+  - HydraDB: p50 **2,342 ms**, p95 **3,277 ms**, média **2,453 ms**.
+  - Neo4j: p50 **76,361 ms**, p95 **93,227 ms**, média **55,108 ms**.
+- Comparação dos mesmos cenários: **42/42 leituras por banco corretas**
+  e 14/14 pares de relações gravados em ambos.
+- Relatório no MiniMac:
+  `~/hydradb-lab/benchmarks/ppks-graph-20261105T212427Z.json`.
+
+A latência p50 de leitura do Neo4j caiu **19,7%** entre rodadas; o
+p50 de escrita caiu **40,8%**. A CPU instantânea caiu de 75,80% para
+3,39%; as amostras foram colhidas em momentos distintos e **não**
+equivalem a uso médio de CPU durante cada benchmark.
+
+A latência p50 de leitura na segunda rodada foi **32,6 vezes menor**
+para HydraDB *nesses requests HTTP*. Não chamar isso de vantagem geral
+de desempenho do banco; transportes, JVM, cache, modelo e cotas diferem.
+
+**Status do incidente:** healthcheck Neo4j resolvido operacionalmente.
+**Status do benchmark:** paridade sintética 1-hop aprovada; desempenho
+comparativo inconclusivo. Próximo gate é compatibilidade semântica com
+claims, fontes e compartilhamento de competências, não integração do Orbe.
