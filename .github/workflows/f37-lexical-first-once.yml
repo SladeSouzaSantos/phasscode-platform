@@ -1,0 +1,99 @@
+name: F3.7 lexical-first ONNX paired diagnostic (offline)
+on:
+  push:
+    branches: [dev]
+    paths: [.github/workflows/f37-lexical-first-once.yml]
+permissions:
+  contents: read
+concurrency:
+  group: f37-lexical-first-once
+  cancel-in-progress: false
+jobs:
+  paired-fusion:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v7
+        with: { node-version: '24', cache: npm }
+      - name: Validate unsigned reviewer packet and pure hybrid scorer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests -p test_f34_review_packet.py -v
+          python3 -m unittest discover -s tests -p test_f37_lexical_first.py -v
+          python3 scripts/validate_f34_review_packet.py > "$RUNNER_TEMP/review-packet-status.json"
+          python3 scripts/audit_f37_gold.py > "$RUNNER_TEMP/f34-preaudit.json"
+      - name: Build public PPKS-only catalog and frozen lexical reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          node --import tsx scripts/export-semantic-skill-catalog.ts > "$RUNNER_TEMP/catalog.json"
+          node --import tsx scripts/evaluate-semantic-lexical.ts --prospective-v1 > "$RUNNER_TEMP/lexical.json"
+      - name: Download pinned ONNX checkpoint and verify model hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/semantic-model"
+          python3 scripts/semantic_embedding_lab.py prepare --model-dir "$RUNNER_TEMP/semantic-model" > "$RUNNER_TEMP/prepare.json"
+          python3 scripts/semantic_embedding_lab.py verify --model-dir "$RUNNER_TEMP/semantic-model" > "$RUNNER_TEMP/verify.json"
+      - name: Build isolated CPU-only image without weights
+        run: docker build -f infrastructure/docker/Dockerfile.semantic-embedding-lab -t orbe-f37-fusion:ephemeral .
+      - name: Generate enriched model rankings WITHOUT NETWORK or database access
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network none --read-only \
+            --cpus 2 --memory 2g --pids-limit 128 \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --user "$(id -u):$(id -g)" \
+            --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+            --mount "type=bind,src=$RUNNER_TEMP/semantic-model,dst=/models,readonly" \
+            --mount "type=bind,src=$RUNNER_TEMP/catalog.json,dst=/lab/catalog.json,readonly" \
+            --mount "type=bind,src=$RUNNER_TEMP/lexical.json,dst=/lab/lexical.json,readonly" \
+            --mount "type=bind,src=$GITHUB_WORKSPACE/evaluation/semantic-embedding-prospective-v1.json,dst=/lab/corpus.json,readonly" \
+            --mount "type=bind,src=$GITHUB_WORKSPACE/evaluation/semantic-skill-descriptions-v0.json,dst=/lab/descriptions.json,readonly" \
+            orbe-f37-fusion:ephemeral benchmark \
+            --model-dir /models --catalog /lab/catalog.json \
+            --corpus /lab/corpus.json --lexical-report /lab/lexical.json \
+            --descriptions /lab/descriptions.json > "$RUNNER_TEMP/embedding.json"
+      - name: Score lexical-first versus enriched ONNX with unchanged denominator
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/evaluate_f37_lexical_first.py \
+            --catalog "$RUNNER_TEMP/catalog.json" \
+            --onnx-report "$RUNNER_TEMP/embedding.json" \
+            --lexical-report "$RUNNER_TEMP/lexical.json" > "$RUNNER_TEMP/fusion.json"
+          python3 - <<'PY'
+          import json, os
+          root=os.environ["RUNNER_TEMP"]
+          f=json.load(open(root+"/fusion.json"))
+          assert f["cases"]==44 and f["expectedInCatalog"]==34 and f["outOfCatalog"]==6
+          assert f["risk"]["autoVerifiedCandidateClaims"]==0
+          assert f["risk"]["oovQueriesWithUngatedVectorSuggestion"]==6
+          assert f["oracleQuarantinedContextOrNegations"]==4
+          print("F37_FUSION_PAIRED_METRICS",json.dumps({
+              "cases":f["cases"],"catalogKnown":f["expectedInCatalog"],
+              "oov":f["outOfCatalog"],"model":f["onnxEnrichedBaseline"],
+              "fusion":f["fusion"],"lexical":f["lexicalBaseline"],
+              "literalPriority":f["lexicalPrioritySpanCount"],
+              "semanticFallback":f["semanticFallbackSpanCount"],
+              "risk":f["risk"],"corpusSha256":f["corpusSha256"]
+          },ensure_ascii=False,separators=(",",":")))
+          PY
+      - name: Upload aggregate synthetic diagnostics only, no weights, visitors or secrets
+        uses: actions/upload-artifact@v7
+        with:
+          name: f37-lexical-first-synthetic-diagnostics
+          path: |
+            ${{ runner.temp }}/review-packet-status.json
+            ${{ runner.temp }}/f34-preaudit.json
+            ${{ runner.temp }}/fusion.json
+          retention-days: 14
+          if-no-files-found: error
