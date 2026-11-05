@@ -128,7 +128,12 @@ def get_json(opener, url: str, body: dict, headers: dict[str, str]) -> dict:
 
 
 def neo4j(opener, auth: str, query: str) -> dict:
-    basic = base64.b64encode(auth.encode("utf-8")).decode("ascii")
+    # NEO4J_AUTH uses "neo4j/password" to bootstrap the container;
+    # HTTP Basic authentication requires the distinct "neo4j:password".
+    username, password = auth.split("/", 1)
+    basic = base64.b64encode(
+        f"{username}:{password}".encode("utf-8")
+    ).decode("ascii")
     data = get_json(
         opener, NEO4J_URL,
         {"statements": [{"statement": query, "resultDataContents": ["row"]}]},
