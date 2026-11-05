@@ -76,6 +76,42 @@ class SemanticEmbeddingLabTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "ARTIFACT_MISSING"):
                 lab.verify_files(manifest, Path(temp))
 
+    def test_descriptions_have_only_catalog_labels_and_no_candidate_evidence(self):
+        source = SCRIPT.parents[1] / "evaluation" / "semantic-skill-descriptions-v0.json"
+        real_catalog = json.loads(
+            (SCRIPT.parents[1] / "knowledge" / "ppks" / "index.json").read_text(encoding="utf-8")
+        )
+        labels = {
+            item for project in real_catalog["projects"] for item in project["technologies"]
+        } | {
+            item for experience in real_catalog["experiences"] for item in experience["technologies"]
+        }
+        descriptions, digest = lab.load_skill_descriptions(
+            source, [{"label": label, "id": f"skill-{i}"} for i, label in enumerate(sorted(labels))]
+        )
+        self.assertGreater(len(descriptions), 20)
+        self.assertEqual(len(digest), 64)
+        self.assertTrue(set(descriptions).issubset(labels))
+        self.assertTrue(all("Pedro" not in value for value in descriptions.values()))
+
+    def test_description_validation_fails_closed_on_unknown_or_duplicate_skills(self):
+        template = {
+            "schemaVersion": "semantic-skill-descriptions-v0",
+            "reviewStatus": "curated_draft_not_independently_validated",
+            "scope": "technology_definitions_only_no_candidate_claims",
+            "skills": [{"label": "Go", "description": "Linguagem compilada para criação de serviços."}],
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "descriptions.json"
+            path.write_text(json.dumps(template), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "UNKNOWN_SKILL_DESCRIPTION"):
+                lab.load_skill_descriptions(path, self.catalog["skills"])
+            template["skills"][0]["label"] = "Java"
+            template["skills"].append(dict(template["skills"][0]))
+            path.write_text(json.dumps(template), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "DUPLICATE_SKILL_DESCRIPTION"):
+                lab.load_skill_descriptions(path, self.catalog["skills"])
+
     def test_rankings_keep_java_and_javascript_separate(self):
         c = single_case(
             "JavaScript",
