@@ -479,3 +479,29 @@ Requisitos e limites em
 [hydradb-ppks-ts-shadow-adapter.md](hydradb-ppks-ts-shadow-adapter.md).
 Não habilitar HydraDB no backend DEV/MAIN e não alterar
 `ORBE_GRAPHRAG_MODE` no LAB.
+
+
+## Gate 5 homologado; Gate 6 — TypeScript HTTP real (pendente)
+
+O operador executou `npm run typecheck` e
+`vitest run tests/hydradb-lab-evidence-adapter.test.ts` no
+`node:24` do LAB: typecheck aprovado, **7/7 testes** aprovados.
+
+O Gate 6 adiciona `scripts/hydradb-lab-ts-live-check.ts`,
+um executável isolado, sem mudanças no backend Orbe:
+
+- PPKS canônico carregado de **sete registros públicos explicitamente
+  selecionados**, sem chamar `projectPpksEvidenceGraph()` e sem
+  acesso aos dados acadêmicos privados;
+- modo `off` executado no Docker sem rede;
+- modo `shadow` acessa somente HydraDB LAB em loopback,
+  com relatório de paridade anterior, `lab_run` e token em
+  arquivo privado montado em read-only;
+- dez consultas de integração que exigem `graph_verified`;
+- nenhuma escrita ou ativação GraphRAG no Orbe.
+
+Passos completos de execução (incluindo as flags de isolamento
+do contêiner): [hydradb-ppks-ts-http-gate.md](hydradb-ppks-ts-http-gate.md).
+
+**Gate 6 ainda não homologado no MiniMac.** Não avançar com
+integração no processo da API até passar.
