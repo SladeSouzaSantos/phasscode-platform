@@ -221,10 +221,17 @@ def query_cases(plan: dict) -> list[dict]:
             "rows": expected,
         })
     rid = plan["record_ids"]["greencity-os"]
+    # Only *other* records count as peers. Neo4j 5 enforces unique
+    # relationships per MATCH path, which excludes a self-return via the
+    # same Claim/Skill edges. HydraDB can differ; require this semantic
+    # explicitly on both sides instead of relying on implicit behavior.
     peer_keys = sorted({
-        r["key"] for r in records
-        if set(r["skills"]) & {"Flutter", "Dart"}
+        item["key"] for item in records
+        if item["key"] != "greencity-os"
+        and set(item["skills"]) & {"Flutter", "Dart"}
     })
+    if not peer_keys:
+        raise ValueError("Missing distinct shared-skill peer in PPKS corpus")
     cases.append({
         "name": "shared_peer_4_hop", "key": "greencity-os",
         "cypher": (
@@ -233,6 +240,7 @@ def query_cases(plan: dict) -> list[dict]:
             "-[:USES_TECHNOLOGY]->(s:Skill)"
             "<-[:USES_TECHNOLOGY]-(c2:Claim)"
             "<-[:HAS_CLAIM]-(peer:Record) "
+            f"WHERE peer.id <> {rid} "
             "RETURN DISTINCT peer.record_key AS record ORDER BY record"
         ),
         "columns": ["record"],
