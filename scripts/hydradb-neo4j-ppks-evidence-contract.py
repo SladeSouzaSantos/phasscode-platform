@@ -151,6 +151,12 @@ def data_fixture() -> list[dict]:
 def graph_plan(records: list[dict]) -> dict:
     # Fresh numeric IDs prevent collision with prior LAB smoke attempts.
     base = (secrets.randbelow(1 << 40) + (1 << 42)) * 10000
+    # The two LAB databases persist between runs. Numeric vertex IDs prevent
+    # collisions on writes, but a read by technology/source text alone would
+    # mix old snapshots and duplicate evidence rows. Give every vertex in a
+    # new fixture a shared, randomly generated run key and require it in ALL
+    # read queries. Never query an unscoped global PPKS skill in this LAB.
+    run_key = str(base)
     skills = sorted({c["skill"] for r in records for c in r["claims"]})
     source_keys = sorted({key for r in records for key in r["sources"]})
     if not set(REQUIRED_SKILLS).issubset(skills):
@@ -167,9 +173,12 @@ def graph_plan(records: list[dict]) -> dict:
         rid = record_ids[record["key"]]
         vertices[rid] = ("Record", {
             "record_key": record["key"], "scope": record["scope"],
+            "lab_run": run_key,
         })
         for key, source in record["sources"].items():
-            vertices[source_ids[key]] = ("Source", source)
+            vertices[source_ids[key]] = ("Source", {
+                **source, "lab_run": run_key,
+            })
         for claim in record["claims"]:
             cid = base + 2000 + claim_counter
             claim_counter += 1
@@ -177,10 +186,12 @@ def graph_plan(records: list[dict]) -> dict:
             vertices[cid] = ("Claim", {
                 "record_key": record["key"], "scope": record["scope"],
                 "technology": claim["skill"], "predicate": "USES_TECHNOLOGY",
+                "lab_run": run_key,
             })
             vertices[skill_ids[claim["skill"]]] = ("Skill", {
                 "name": claim["skill"],
                 "normalized_name": claim["skill"].casefold(),
+                "lab_run": run_key,
             })
             edges = [
                 (rid, cid, "HAS_CLAIM"),
@@ -213,6 +224,7 @@ def graph_plan(records: list[dict]) -> dict:
     ]
     return {
         "records": records,
+        "run_key": run_key,
         "skill_ids": skill_ids,
         "source_ids": source_ids,
         "neo_vertices": neo_vertices,
@@ -248,12 +260,12 @@ def query_cases(plan: dict) -> list[dict]:
             "query": (
                 "MATCH (s:Skill)<-[:USES_TECHNOLOGY]-(c:Claim)"
                 "-[:SUPPORTED_BY]->(src:Source) "
-                "WHERE s.normalized_name = $skill "
+                "WHERE s.normalized_name = $skill AND s.lab_run = $run "
                 "RETURN c.record_key AS record, c.scope AS scope, "
                 "src.source_key AS source, src.verification AS verification, "
                 "src.origin AS origin ORDER BY record, source"
             ),
-            "params": {"skill": skill.casefold()},
+            "params": {"skill": skill.casefold(), "run": plan["run_key"]},
             "columns": ["record", "scope", "source", "verification", "origin"],
             "rows": sorted(expected),
         })
@@ -269,11 +281,13 @@ def query_cases(plan: dict) -> list[dict]:
             "name": "bounded_claims", "key": skill,
             "query": (
                 "MATCH (s:Skill)<-[:USES_TECHNOLOGY]-(c:Claim) "
-                "WHERE s.normalized_name = $skill "
+                "WHERE s.normalized_name = $skill AND s.lab_run = $run "
                 "RETURN c.record_key AS record, c.scope AS scope "
                 "ORDER BY record LIMIT $limit"
             ),
-            "params": {"skill": skill.casefold(), "limit": 1},
+            "params": {
+                "skill": skill.casefold(), "limit": 1, "run": plan["run_key"],
+            },
             "columns": ["record", "scope"],
             "rows": claims[:1],
         })
@@ -298,10 +312,11 @@ def query_cases(plan: dict) -> list[dict]:
             "name": "get_source", "key": key,
             "query": (
                 "MATCH (src:Source) WHERE src.source_key = $source "
+                "AND src.lab_run = $run "
                 "RETURN src.source_key AS source, "
                 "src.verification AS verification, src.origin AS origin LIMIT 1"
             ),
-            "params": {"source": key},
+            "params": {"source": key, "run": plan["run_key"]},
             "columns": ["source", "verification", "origin"],
             "rows": expected,
         })
@@ -442,6 +457,7 @@ def run() -> None:
     report = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "scenario": "ppks_claim_specific_source_contract",
+        "lab_run": plan["run_key"],
         "counts": plan["counts"],
         "cases": [{"name": c["name"], "key": c["key"],
                    "expected_rows": len(c["rows"])} for c in cases],
