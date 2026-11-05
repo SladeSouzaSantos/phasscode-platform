@@ -45,7 +45,7 @@ describe('F3.3 claim-identifier verification before recruiter prose', () => {
     const answer = verifyAndRenderNarrativeSelection([java], [match], choice);
     expect(answer).toContain('Desenvolvimento Java no SIGAA');
     expect(answer).toContain('experiência profissional');
-    expect(answer).toContain('source-java');
+    expect(answer).not.toContain('source-java');
     expect(answer).not.toMatch(/\b\d+ anos\b/);
   });
 

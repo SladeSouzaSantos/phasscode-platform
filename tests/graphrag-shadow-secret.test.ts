@@ -10,7 +10,7 @@ const approved = {
   ORBE_GRAPH_READER_TOKEN_FILE: '/run/secrets/graph_reader_token',
 };
 
-describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
+describe('F3.3/F3.5 DEV-only Docker secret and graph overlay guardrails', () => {
   it('reads only the fixed Docker secret path for explicit DEV shadow opt-in', async () => {
     const read = vi.fn(async () => 'A'.repeat(43) + '\n');
     await expect(loadDevGraphReaderToken(approved, read)).resolves.toBe('A'.repeat(43));
@@ -29,9 +29,16 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
   ])('never reads the token without approved DEV shadow credentials (%#)', async (overrides) => {
     const read = vi.fn(async () => 'A'.repeat(43));
     await expect(loadDevGraphReaderToken({ ...approved, ...overrides }, read)).rejects.toThrow(
-      'GRAPH_READER_DEV_SHADOW_ONLY',
+      'GRAPH_READER_DEV_ONLY',
     );
     expect(read).not.toHaveBeenCalled();
+  });
+
+  it('reads the same protected Reader token in explicitly approved DEV active mode', async () => {
+    const active = { ...approved, ORBE_GRAPHRAG_MODE: 'active' };
+    const read = vi.fn(async () => 'A'.repeat(43));
+    await expect(loadDevGraphReaderToken(active, read)).resolves.toBe('A'.repeat(43));
+    expect(read).toHaveBeenCalledExactlyOnceWith('/run/secrets/graph_reader_token');
   });
 
   it('does not accept a raw bearer token in a process environment', async () => {
@@ -66,8 +73,9 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
   });
 
   it('mounts exactly the reader token to the DEV API, not the Neo4j admin secret', async () => {
-    const [shadowText, readerText, graphText] = await Promise.all([
+    const [shadowText, activeText, readerText, graphText] = await Promise.all([
       readFile('compose.graphrag.shadow.dev.yaml', 'utf8'),
+      readFile('compose.graphrag.active.dev.yaml', 'utf8'),
       readFile('compose.graphrag.reader.dev.yaml', 'utf8'),
       readFile('compose.graphrag.dev.yaml', 'utf8'),
     ]);
@@ -75,10 +83,20 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
       services: {
         api: {
           environment: Record<string, string>;
-          secrets: string[];
+          secrets: { source: string; target: string }[];
         };
       };
+      secrets: Record<string, { file: string }>;
     };
+    const active = parse(activeText) as typeof shadow;
+    expect(active.services.api.secrets).toEqual(shadow.services.api.secrets);
+    expect(active.services.api.environment).toMatchObject({
+      ORBE_GRAPHRAG_MODE: 'active',
+      ORBE_GRAPHRAG_STAGE: 'dev',
+      ORBE_GRAPHRAG_DEV_APPROVED: 'true',
+      ORBE_GRAPH_READER_TOKEN_FILE: '/run/secrets/graph_reader_token',
+    });
+    expect(active.secrets).not.toHaveProperty('neo4j_auth');
     const reader = parse(readerText) as {
       services: { 'graph-reader': { secrets: string[]; ports?: unknown } };
       secrets: Record<string, { file: string }>;
@@ -86,7 +104,11 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
     const graph = parse(graphText) as {
       services: { neo4j: { ports?: unknown } };
     };
-    expect(shadow.services.api.secrets).toEqual(['graph_reader_token']);
+    expect(shadow.services.api.secrets).toEqual([
+      { source: 'graph_api_reader_token', target: 'graph_reader_token' },
+    ]);
+    expect(shadow.secrets.graph_api_reader_token?.file).toContain('graph_api_reader_token');
+    expect(shadow.secrets).not.toHaveProperty('neo4j_auth');
     expect(shadow.services.api.environment).toMatchObject({
       ORBE_GRAPHRAG_MODE: 'shadow',
       ORBE_GRAPHRAG_STAGE: 'dev',
@@ -102,12 +124,36 @@ describe('F3.5 DEV-only Docker secret and shadow overlay guardrails', () => {
     expect(reader.secrets.graph_reader_token?.file).toContain('graph_reader_token');
   });
 
+  it('accepts only a dedicated Reader bearer token for approved DEV active/shadow', async () => {
+    const script = await readFile('scripts/graph-reader-dev.sh', 'utf8');
+    // A reader token is required for the approved HTTP gateway; its presence
+    // must not be confused with prohibited Neo4j Bolt/admin credentials.
+    expect(script).toContain('shadow|active)');
+    expect(script).toContain("''|off)");
+    expect(script).toContain('ORBE_GRAPHRAG_STAGE=dev');
+    expect(script).toContain('ORBE_GRAPHRAG_DEV_APPROVED=true');
+    expect(script).toContain('ORBE_GRAPH_READER_TOKEN_FILE=/run/secrets/graph_reader_token');
+    expect(script).toContain('Neo4j admin secret mounted into public DEV API');
+    expect(script).toContain('Graph API has unexpected or missing secret mounts');
+    expect(script).toContain(
+      'Graph API token must originate from the dedicated node-owned DEV file',
+    );
+    expect(script).toContain('API reader token must be node-owned and mode 0400');
+    expect(script).toContain('OFF API must not have graph secrets');
+    expect(script).not.toContain("die 'Graph secret was mounted into public DEV API'");
+  });
+
   it('keeps Mac Mini preflight read-only and requires full SHA', async () => {
     const text = await readFile('scripts/preflight-graphrag-shadow-dev.sh', 'utf8');
     expect(text).toContain('WRONG_DIRECTORY_NOT_DEV');
     expect(text).toContain('PINNED_IMAGE_SHA_NOT_CURRENT_DEV');
     expect(text).toContain('SHADOW_MUST_BE_OPT_IN_OVERLAY_NOT_BASE_ENV');
     expect(text).toContain('DEV_COMPOSE_CONFIG_INVALID');
+    expect(text).toContain('GRAPH_API_READER_TOKEN_MISMATCH');
+    expect(text).toContain('GRAPH_API_SECRET_OWNER_NOT_NODE');
+    expect(text).toContain('GRAPH_READER_REVISION_NOT_PINNED_DEV');
+    expect(text).toContain('stat -c %s .secrets/graph_reader_token');
+    expect(text).not.toContain('wc -c < .secrets/graph_reader_token');
     const executable = text
       .split('\n')
       .filter((line) => !line.trimStart().startsWith('#'))

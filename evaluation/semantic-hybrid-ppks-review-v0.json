@@ -1,0 +1,558 @@
+{
+  "schemaVersion": "semantic-hybrid-ppks-review-v0",
+  "sourceCorpus": "evaluation/vacancies-ppks-v12.json",
+  "sourceVersion": "orbe-phase2-v3",
+  "reviewStatus": "assistant_provisional_not_human_validated",
+  "purpose": "Partial explicit-span annotations of existing F3.4 prompts. Must not be used as a fully reviewed gold standard or proof of exhaustive requirement extraction.",
+  "cases": [
+    {
+      "id": "jobgether-pd",
+      "turnIndex": 0,
+      "category": "facts",
+      "kind": "recruiter_vacancy",
+      "reviewStatus": "assistant_provisional_not_human_validated",
+      "coverageClaim": "partial_annotations_only",
+      "spans": [
+        {
+          "start": 72,
+          "end": 75,
+          "text": "POO",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 77,
+          "end": 93,
+          "text": "bancos SQL/NoSQL",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 95,
+          "end": 104,
+          "text": "APIs REST",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 106,
+          "end": 109,
+          "text": "Git",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 111,
+          "end": 125,
+          "text": "scripts e PoCs",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 127,
+          "end": 166,
+          "text": "documentação e comparação de desempenho",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        }
+      ]
+    },
+    {
+      "id": "evoluservices-java",
+      "turnIndex": 0,
+      "category": "facts",
+      "kind": "recruiter_vacancy",
+      "reviewStatus": "assistant_provisional_not_human_validated",
+      "coverageClaim": "partial_annotations_only",
+      "spans": [
+        {
+          "start": 59,
+          "end": 73,
+          "text": "Java/C++ ou C#",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 75,
+          "end": 78,
+          "text": "POO",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 80,
+          "end": 90,
+          "text": "algoritmos",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 92,
+          "end": 97,
+          "text": "MySQL",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 99,
+          "end": 108,
+          "text": "REST APIs",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 110,
+          "end": 121,
+          "text": "Spring Boot",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 123,
+          "end": 145,
+          "text": "formação em computação",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 148,
+          "end": 167,
+          "text": "inglês para leitura",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        }
+      ]
+    },
+    {
+      "id": "yandeh-fullstack",
+      "turnIndex": 0,
+      "category": "facts",
+      "kind": "recruiter_vacancy",
+      "reviewStatus": "assistant_provisional_not_human_validated",
+      "coverageClaim": "partial_annotations_only",
+      "spans": [
+        {
+          "start": 50,
+          "end": 68,
+          "text": "Node.js/TypeScript",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 70,
+          "end": 82,
+          "text": "Vue ou React",
+          "role": "alternative",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 84,
+          "end": 101,
+          "text": "PostgreSQL/SQLite",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 103,
+          "end": 108,
+          "text": "Redis",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 110,
+          "end": 116,
+          "text": "Docker",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 118,
+          "end": 132,
+          "text": "AWS/Kubernetes",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 134,
+          "end": 139,
+          "text": "CI/CD",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 141,
+          "end": 144,
+          "text": "Git",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 147,
+          "end": 159,
+          "text": "REST/GraphQL",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        }
+      ]
+    },
+    {
+      "id": "tsystems-devops",
+      "turnIndex": 0,
+      "category": "facts",
+      "kind": "recruiter_vacancy",
+      "reviewStatus": "assistant_provisional_not_human_validated",
+      "coverageClaim": "partial_annotations_only",
+      "spans": [
+        {
+          "start": 59,
+          "end": 70,
+          "text": "Java/Python",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 72,
+          "end": 77,
+          "text": "Linux",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 79,
+          "end": 82,
+          "text": "Git",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 84,
+          "end": 90,
+          "text": "Docker",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 92,
+          "end": 96,
+          "text": "APIs",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 98,
+          "end": 103,
+          "text": "CI/CD",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 105,
+          "end": 118,
+          "text": "Terraform/IaC",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 120,
+          "end": 129,
+          "text": "Camunda 8",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 132,
+          "end": 147,
+          "text": "inglês avançado",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        }
+      ]
+    },
+    {
+      "id": "viceri-fullstack",
+      "turnIndex": 0,
+      "category": "facts",
+      "kind": "recruiter_vacancy",
+      "reviewStatus": "assistant_provisional_not_human_validated",
+      "coverageClaim": "partial_annotations_only",
+      "spans": [
+        {
+          "start": 41,
+          "end": 56,
+          "text": "Java ou Node.js",
+          "role": "alternative",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 58,
+          "end": 65,
+          "text": "Angular",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 67,
+          "end": 77,
+          "text": "TypeScript",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 79,
+          "end": 89,
+          "text": "SQL Server",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 91,
+          "end": 100,
+          "text": "APIs REST",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 102,
+          "end": 117,
+          "text": "Swagger/OpenAPI",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 119,
+          "end": 125,
+          "text": "Docker",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 128,
+          "end": 133,
+          "text": "CI/CD",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        }
+      ]
+    },
+    {
+      "id": "foursys-java-ia",
+      "turnIndex": 0,
+      "category": "facts",
+      "kind": "recruiter_vacancy",
+      "reviewStatus": "assistant_provisional_not_human_validated",
+      "coverageClaim": "partial_annotations_only",
+      "spans": [
+        {
+          "start": 49,
+          "end": 71,
+          "text": "Java em microsserviços",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 73,
+          "end": 95,
+          "text": "EC2/RDS/Lambda/SNS/SQS",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 97,
+          "end": 107,
+          "text": "mensageria",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 109,
+          "end": 125,
+          "text": "RAG/agentes/LLMs",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated",
+          "uncertainty": "slash_or_compound_requires_human_interpretation"
+        },
+        {
+          "start": 127,
+          "end": 133,
+          "text": "testes",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 136,
+          "end": 158,
+          "text": "experiência financeira",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        }
+      ]
+    },
+    {
+      "id": "academico-unisul",
+      "turnIndex": 0,
+      "category": "facts",
+      "kind": "academic_query",
+      "reviewStatus": "assistant_provisional_not_human_validated",
+      "coverageClaim": "partial_annotations_only",
+      "spans": [
+        {
+          "start": 12,
+          "end": 33,
+          "text": "Ciência da Computação",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 51,
+          "end": 60,
+          "text": "concluída",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 113,
+          "end": 135,
+          "text": "atividades de extensão",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 154,
+          "end": 173,
+          "text": "previsão indicativa",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        }
+      ]
+    },
+    {
+      "id": "academico-etep",
+      "turnIndex": 0,
+      "category": "facts",
+      "kind": "academic_query",
+      "reviewStatus": "assistant_provisional_not_human_validated",
+      "coverageClaim": "partial_annotations_only",
+      "spans": [
+        {
+          "start": 13,
+          "end": 47,
+          "text": "graduação superior concluída em TI",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 83,
+          "end": 111,
+          "text": "instituição emitiu o diploma",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 120,
+          "end": 163,
+          "text": "disciplinas de POO, banco de dados e testes",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        }
+      ]
+    },
+    {
+      "id": "academico-cursos",
+      "turnIndex": 0,
+      "category": "facts",
+      "kind": "academic_query",
+      "reviewStatus": "assistant_provisional_not_human_validated",
+      "coverageClaim": "partial_annotations_only",
+      "spans": [
+        {
+          "start": 9,
+          "end": 53,
+          "text": "seis trilhas dos 42 cursos livres concluídos",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 64,
+          "end": 95,
+          "text": "Angular, SQL Server e DevSecOps",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        },
+        {
+          "start": 98,
+          "end": 174,
+          "text": "não trate esses cursos como experiência profissional ou certificação oficial",
+          "role": "context",
+          "relation": "academic_question",
+          "reviewStatus": "assistant_provisional_not_human_validated"
+        }
+      ]
+    }
+  ]
+}

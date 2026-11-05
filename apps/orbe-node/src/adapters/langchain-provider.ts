@@ -352,8 +352,9 @@ export class LangChainChatProvider implements ChatProvider {
     const tools =
       this.meetings && input.meetingActions === true ? [search, availability, prepare] : [search];
     const model = this.model?.bindTools(tools, { strict: true });
-    const invoke = this.invocationFactory
-      ? this.invocationFactory(tools, input.signal)
+    const factory = input.invocationFactoryOverride ?? this.invocationFactory;
+    const invoke = factory
+      ? factory(tools, input.signal)
       : async (transcript: BaseMessage[]) => {
           await this.budget.reserve();
           input.signal.throwIfAborted();

@@ -30,18 +30,31 @@ fi
 if grep -Eq '^[[:space:]]*ORBE_GRAPHRAG_MODE[[:space:]]*=[[:space:]]*shadow' .env; then
   fail 'SHADOW_MUST_BE_OPT_IN_OVERLAY_NOT_BASE_ENV'
 fi
-for file in .secrets/neo4j_auth .secrets/graph_reader_token; do
+for file in .secrets/neo4j_auth .secrets/graph_reader_token .secrets/graph_api_reader_token; do
   [[ -f "$file" && ! -L "$file" ]] || fail 'LOCAL_SECRET_FILE_MISSING_OR_SYMLINK'
-  perm=$(stat -c %a "$file")
+  perm=$(stat -c %a "$file") || fail 'LOCAL_SECRET_METADATA_UNAVAILABLE'
   [[ "$perm" == 600 || "$perm" == 400 ]] || fail 'LOCAL_SECRET_PERMISSIONS_TOO_BROAD'
 done
-# Validate bytes without printing any secret value.
-[[ $(wc -c < .secrets/graph_reader_token) -ge 43 ]] ||
-  fail 'READER_SECRET_TOO_SHORT'
-[[ $(wc -c < .secrets/graph_reader_token) -le 129 ]] ||
-  fail 'READER_SECRET_TOO_LONG'
-[[ $(wc -c < .secrets/neo4j_auth) -ge 19 ]] ||
-  fail 'NEO4J_SECRET_TOO_SHORT'
+# stat reads only metadata, unlike 'wc -c < secret', which gave a false
+# READER_SECRET_TOO_SHORT when the current user could not read a 0400 file.
+reader_bytes=$(stat -c %s .secrets/graph_reader_token) || fail 'READER_SECRET_METADATA_UNAVAILABLE'
+api_bytes=$(stat -c %s .secrets/graph_api_reader_token) || fail 'GRAPH_API_READER_SECRET_METADATA_UNAVAILABLE'
+neo4j_bytes=$(stat -c %s .secrets/neo4j_auth) || fail 'NEO4J_SECRET_METADATA_UNAVAILABLE'
+[[ "$reader_bytes" -ge 43 && "$reader_bytes" -le 129 ]] ||
+  fail 'READER_SECRET_LENGTH_INVALID'
+[[ "$api_bytes" -ge 43 && "$api_bytes" -le 129 ]] ||
+  fail 'GRAPH_API_READER_SECRET_LENGTH_INVALID'
+[[ "$neo4j_bytes" -ge 19 ]] || fail 'NEO4J_SECRET_TOO_SHORT'
+# The reader's old secret is UID 7474/mode 0400. Public Orbe runs as
+# node UID 1000 and MUST receive a distinct 0400 file, not a chmod 0644.
+[[ "$(stat -c %u .secrets/graph_api_reader_token)" == 1000 ]] ||
+  fail 'GRAPH_API_SECRET_OWNER_NOT_NODE'
+# Comparing bytes does not print them. Fail closed unless the operator can
+# read both files (run the read-only preflight with sudo as documented).
+[[ -r .secrets/graph_reader_token && -r .secrets/graph_api_reader_token ]] ||
+  fail 'GRAPH_SECRET_COMPARE_REQUIRES_PRIVILEGED_PREFLIGHT'
+cmp -s .secrets/graph_reader_token .secrets/graph_api_reader_token ||
+  fail 'GRAPH_API_READER_TOKEN_MISMATCH'
 
 command -v docker >/dev/null || fail 'DOCKER_NOT_FOUND'
 [[ -f .deployment/project-name && ! -L .deployment/project-name &&
@@ -81,6 +94,11 @@ if [[ $# -eq 2 ]]; then
     if [[ $service == neo4j ]]; then
       [[ "$(docker inspect --format '{{.State.Health.Status}}' "$ids")" == healthy ]] ||
         fail 'NEO4J_NOT_HEALTHY'
+    elif [[ $service == graph-reader ]]; then
+      reader_revision=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$ids") ||
+        fail 'GRAPH_READER_REVISION_UNAVAILABLE'
+      [[ "$reader_revision" == "$expected_sha" ]] ||
+        fail 'GRAPH_READER_REVISION_NOT_PINNED_DEV'
     fi
   done
 fi

@@ -14,9 +14,11 @@ The default is ORBE_GRAPHRAG_MODE=off. Shadow mode requires all of:
 - ORBE_GRAPHRAG_STAGE=dev
 - ORBE_GRAPHRAG_DEV_APPROVED=true
 - ORBE_GRAPH_READER_TOKEN_FILE=/run/secrets/graph_reader_token, provided
-  by the DEV-only Compose overlay from a local Docker secret
-  (43–128 URL-safe characters). Never set ORBE_GRAPH_READER_TOKEN as a plain
-  environment variable; the runtime rejects that form.
+  by the DEV-only Compose overlay from a local **API-specific Docker secret**
+  (43–128 URL-safe characters). The Reader uses its own UID 7474 secret,
+  and Orbe API runs as node UID 1000; do not reuse the same 0400 host file
+  as a bind mount for both processes. Never set ORBE_GRAPH_READER_TOKEN as a
+  plain environment variable; the runtime rejects that form.
 
 The deployment's NODE_ENV value is **not** an environment discriminator:
 the runtime Docker image uses NODE_ENV=production in both DEV and PROD.
@@ -88,10 +90,13 @@ The private reader's DEV-only overlay already mounts
 `PHASSCODE_GRAPH_READER_TOKEN_FILE` (default
 `.secrets/graph_reader_token`). The Orbe API previously read a raw
 `ORBE_GRAPH_READER_TOKEN` environment variable, which was **not provided
-by the default Compose service**. The new `graph-reader-secret.ts`
-and `compose.graphrag.shadow.dev.yaml` fix the binding without passing
-a privileged Neo4j username, password, Bolt URL or import credential to
-the public API.
+by the default Compose service**. The `graph-reader-secret.ts`
+and `compose.graphrag.shadow.dev.yaml` bind the API to a dedicated
+`graph_api_reader_token` secret whose **container target** remains
+`/run/secrets/graph_reader_token`. A second host file is necessary because
+the Mac Mini has confirmed the Reader's source file is owner UID 7474/mode
+0400, while Orbe runs as UID 1000. No Neo4j admin credentials, Bolt URL or
+import privileges enter the public API.
 
 To prepare a particular immutable release on the Mac Mini **after an
 explicitly authorized standard DEV deployment** and after the operator
@@ -105,20 +110,58 @@ bash scripts/preflight-graphrag-shadow-dev.sh <FULL_40_CHAR_DEV_SHA>
 The preflight is deliberately read-only. It checks branch/checkout,
 clean Git status, immutable GHCR digest and image revision, the recorded
 DEV port 3001/project/proxy mode, local secret presence and 0600/0400
-permissions, forbidden raw token or administrative Neo4j variables in
-`.env`, and the combined **DEV-only** Compose configuration. It must
+permissions, **byte equality without printing either bearer token**,
+the dedicated API secret's UID 1000 ownership, forbidden raw token or
+administrative Neo4j variables in `.env`, and the combined **DEV-only**
+Compose configuration. Secret lengths use `stat`, not `wc -c < secret`:
+the latter returned misleading READER_SECRET_TOO_SHORT when `phass` could
+not read a valid 65-byte 0400 file. Run the complete preflight with `sudo`
+to permit the silent `cmp -s` check. It must
 fail on a mismatched image and never pulls, seeds, migrates or restarts
 services. The second read-only stage additionally requires one running
 private Neo4j and reader container, no host-published ports, and Neo4j
-health:
+health **and checks the running Reader OCI revision matches the pinned DEV API
+release** (a prior Reader revision must be upgraded before this passes):
 
 ```bash
-bash scripts/preflight-graphrag-shadow-dev.sh <FULL_40_CHAR_DEV_SHA> --require-running
+sudo bash scripts/preflight-graphrag-shadow-dev.sh <FULL_40_CHAR_DEV_SHA> --require-running
 ```
 
 **Do not run either command against** `/opt/projects/phasscode-platform`
 (production). These preflights cannot validate the private reader's
 authentication end-to-end without an authorized live environment.
+
+### Mac Mini DEV finding: graph is already populated, but shadow is OFF
+
+The owner verified the DEV Mac Mini at API SHA `bc66c449...`:
+Neo4j 5.26 healthy; reader running privately; the internal authenticated
+`GET /internal/health` returned HTTP 200, and read-only
+`POST /internal/evidence` for Java returned HTTP 200 with 3 claims
+and 7 source records. The Reader's OCI revision was `29c35cf9...`,
+different from the API. Public Orbe was `ORBE_GRAPHRAG_MODE=off`.
+These tests validate graph queryability, **not recruiter-facing GraphRAG**.
+
+The API-specific secret is created **by the operator on the DEV host**,
+not by CI, the repository, or the regular deploy. After deploying the
+new pinned DEV code and verifying the checkout, use a privileged
+operation only within `/opt/projects/phasscode-platform-dev`:
+
+```bash
+# Preserve the Reader's UID 7474/mode 0400 secret untouched.
+# The API copy has the identical token bytes, owned by node (UID 1000).
+sudo install -o 1000 -g 1000 -m 0400 \
+  .secrets/graph_reader_token .secrets/graph_api_reader_token
+
+# Metadata and exact equality only; never cat/echo the token.
+sudo bash scripts/preflight-graphrag-shadow-dev.sh <FULL_40_CHAR_DEV_SHA>
+```
+
+The second `--require-running` gate requires the private Reader to use
+the exact same pinned OCI revision as the new API. Upgrading only the
+Reader is a separate controlled change (same immutable digest, DEV
+Compose project, `--no-deps`, preserve Neo4j volume and proxy); only
+then may the API shadow overlay be approved. Do not run a broad
+`docker compose down` or change the production Compose project.
 
 ### Manual rollout sequence — requires separate operator approval
 
@@ -127,14 +170,16 @@ authentication end-to-end without an authorized live environment.
    `apply_remote=true` only after checking all existing safety gates.
    This normal deployment leaves shadow OFF because it does not load
    the optional overlay.
-2. Prepare separate local DEV secrets for Neo4j and graph-reader,
-   with `chmod 600`; do not print, upload or place the secrets in
-   `.env` or workflow inputs. Run the read-only preflight.
-3. With explicit permission, use the existing isolated
-   `compose.graphrag.dev.yaml` and `compose.graphrag.reader.dev.yaml`
-   to start and seed DEV Neo4j and the internal reader. Confirm they
-   share only the DEV backend network and publish no host ports.
-   Repeat the preflight with `--require-running`.
+2. Verify the pre-existing Neo4j and reader DEV secrets; make the
+   dedicated API token file as above (`0400`, UID 1000), without changing
+   the Reader file (`0400`, UID 7474). Do not print, upload or put
+   secret values in `.env`/workflow inputs. Run the read-only preflight.
+3. With explicit permission, keep the existing healthy isolated
+   Neo4j and its seeded evidence **intact** (Java already has 3 claims
+   and 7 public source records). Update only the Graph Reader to the
+   current immutable backend DEV image revision, without restarting
+   Neo4j or deleting volumes. Repeat the read-only preflight
+   with `--require-running`. Confirm no host ports are published.
 4. Only then, using the **same recorded immutable image**, port 3001,
    proxy mode and Compose project, add
    `compose.graphrag.shadow.dev.yaml` to the DEV API operation.

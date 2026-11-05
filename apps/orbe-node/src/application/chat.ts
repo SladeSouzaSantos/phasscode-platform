@@ -32,14 +32,30 @@ import {
   personalLifeAnswer,
 } from '../domain/security.js';
 import { eligibleHistory } from './context.js';
-import { isExperienceDurationQuestion } from './experience-context.js';
+import {
+  isExperienceDurationQuestion,
+  isCareerDurationEllipsis,
+  rewriteCareerDurationEllipsis,
+} from './experience-context.js';
+import {
+  buildVerifiedExperienceDurationResponse,
+  buildVerifiedProfessionalOverviewResponse,
+  isBroadProfessionalExperienceQuestion,
+} from './experience-response.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
 import { graphShadowObservationSchema, type GraphShadowPort } from './graph-rag-shadow.js';
+import type { GraphActivePort } from './graph-active-answer.js';
+import { createSharedGraphTurnLlmBudget } from './graph-turn-llm-budget.js';
+import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
 import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
 import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
 import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
 import { buildCompleteAcademicResponse } from './academic-response.js';
 import { buildDirectGoExperienceResponse } from './go-experience-response.js';
+import {
+  ellipticalTechnology,
+  rewriteEllipticalTechnologyQuestion,
+} from './technology-follow-up.js';
 import { reconcileCanonicalAcademicClaims } from './canonical-claims.js';
 import { documentSource } from './sources.js';
 
@@ -54,6 +70,8 @@ export class ChatService {
     private readonly now: () => Date = () => new Date(),
     private readonly evidenceReader?: PublicEvidenceReader,
     private readonly graphShadow?: GraphShadowPort,
+    private readonly graphActive?: GraphActivePort,
+    private readonly graphModelFactory?: LlmInvocationFactory,
   ) {}
 
   async execute(
@@ -77,9 +95,33 @@ export class ChatService {
         const eligible = eligibleHistory(history);
         const previous = [...eligible]
           .reverse()
-          .find((message) => message.role === 'user' && !isContextualFollowUp(message.content));
-        const followUp = Boolean(previous && isContextualFollowUp(request.message));
-        const query = followUp ? `${previous!.content}\n${request.message}` : request.message;
+          .find(
+            (message) =>
+              message.role === 'user' &&
+              !isContextualFollowUp(message.content) &&
+              !ellipticalTechnology(message.content) &&
+              !isCareerDurationEllipsis(message.content),
+          );
+        const technologyFollowUp = previous ? ellipticalTechnology(request.message) : undefined;
+        const durationFollowUp =
+          previous && isCareerDurationEllipsis(request.message)
+            ? rewriteCareerDurationEllipsis(previous.content)
+            : undefined;
+        const followUp = Boolean(
+          previous &&
+          (isContextualFollowUp(request.message) || technologyFollowUp || durationFollowUp),
+        );
+        // A recruiter who asks "Java?" then "E com Go?" is changing the
+        // technology, not requesting evidence from Java and Go together.
+        // Preserve only the previous intent and the new technical subject.
+        const query =
+          previous && technologyFollowUp
+            ? rewriteEllipticalTechnologyQuestion(previous.content, technologyFollowUp)
+            : durationFollowUp
+              ? durationFollowUp
+              : followUp
+                ? `${previous!.content}\n${request.message}`
+                : request.message;
         const evidenceTraceId = randomUUID();
         const meetingTurn =
           meetingActions &&
@@ -99,8 +141,9 @@ export class ChatService {
             normalizedQuery,
           );
         const durationQuestion = isExperienceDurationQuestion(query);
+        const broadProfessionalOverview = isBroadProfessionalExperienceQuestion(query);
         const experienceDocuments =
-          durationQuestion || chronologicalOverview
+          durationQuestion || chronologicalOverview || broadProfessionalOverview
             ? (this.knowledge.experienceDocuments?.() ?? []).sort((a, b) =>
                 (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''),
               )
@@ -159,18 +202,84 @@ export class ChatService {
           });
         traceEvidence('retrieved', retrieved, 'initial', evidenceTraceId);
         const verifiedMatrix = buildVerifiedRecruiterMatrix(query, retrieved);
-        const verifiedGo = buildDirectGoExperienceResponse(request.message, this.knowledge);
+        // A source-complete, transparent duration answer must not discard
+        // professional programming performed in mixed engineering/software roles.
+        // Compute independently of LLM context truncation, using the canonical
+        // structured employment records only (never external page content).
+        const verifiedDuration =
+          durationQuestion && experienceDocuments.length
+            ? buildVerifiedExperienceDurationResponse(query, experienceDocuments, this.now())
+            : undefined;
+        const verifiedOverview =
+          broadProfessionalOverview && experienceDocuments.length
+            ? buildVerifiedProfessionalOverviewResponse(query, experienceDocuments, this.now())
+            : undefined;
+        const verifiedGo = buildDirectGoExperienceResponse(
+          technologyFollowUp ? query : request.message,
+          this.knowledge,
+        );
         const academicListing = this.knowledge.academicCourseListing?.(query);
         const verifiedAcademic = academicListing
           ? buildCompleteAcademicResponse(query, academicListing, retrieved)
           : undefined;
+        // Opt-in DEV-only graph generation: preserve all canonical safety,
+        // academic, duration, matrix and conversation-specific fast paths.
+        // On abstention or reader outage, the existing PPKS path runs once.
+        let graphAnswer: GenerationResult | undefined;
+        // One logical limit shared across optional semantic normalization and
+        // canonical model/tool rounds. Physical Redis quota stays unchanged.
+        const graphTurnBudget =
+          this.graphActive && this.graphModelFactory
+            ? createSharedGraphTurnLlmBudget(this.graphModelFactory)
+            : undefined;
+        if (
+          this.graphActive &&
+          !meetingTurn &&
+          !isInjection(request.message) &&
+          !isOffTopicTask(request.message) &&
+          !isGreeting(request.message) &&
+          !isSimpleTest(request.message) &&
+          !isPersonalLifeQuestion(request.message) &&
+          !isMeetingRequest(request.message) &&
+          !verifiedDuration &&
+          !verifiedOverview &&
+          !verifiedGo &&
+          !verifiedAcademic &&
+          !verifiedMatrix &&
+          isInScope(
+            request.message,
+            retrieved.flatMap((doc) => doc.keywords),
+          )
+        ) {
+          const started = performance.now();
+          try {
+            graphAnswer = await this.graphActive.answer(query, {
+              ...(graphTurnBudget ? { semanticFactory: graphTurnBudget.semanticFactory } : {}),
+              maxContextChars: Math.min(1_000_000, Math.max(2_000, this.config.CHAT_CONTEXT_CHARS)),
+            });
+          } catch {
+            // A private reader/graph error is never reflected to visitors.
+          }
+          console.info(
+            JSON.stringify({
+              event: 'orbe_graphrag_active',
+              ...(graphTurnBudget ? { semanticCalls: graphTurnBudget.usage().semanticCalls } : {}),
+              traceId: evidenceTraceId,
+              mode: graphAnswer ? 'verified_graph' : 'canonical_ppks',
+              durationMs: Math.min(60_000, Math.max(0, Math.round(performance.now() - started))),
+            }),
+          );
+        }
         let result: GenerationResult;
+        let llmGenerated = false;
         if (isInjection(request.message)) result = { answer: injectionRefusal, sources: [] };
         else if (isGreeting(request.message)) result = { answer: greetingAnswer, sources: [] };
         else if (isSimpleTest(request.message)) result = { answer: simpleTestAnswer, sources: [] };
         else if (isOffTopicTask(request.message)) result = { answer: scopeRefusal, sources: [] };
         else if (isPersonalLifeQuestion(request.message))
           result = { answer: personalLifeAnswer, sources: [] };
+        else if (verifiedDuration) result = verifiedDuration;
+        else if (verifiedOverview) result = verifiedOverview;
         else if (verifiedGo) result = verifiedGo;
         else if (isMeetingRequest(request.message) && !meetingActions)
           result = {
@@ -201,6 +310,8 @@ export class ChatService {
             answer: verifiedMatrix.answer,
             sources: verifiedMatrix.sourceDocuments.slice(0, 10).map(documentSource),
           };
+        } else if (graphAnswer) {
+          result = graphAnswer;
         } else {
           const bounded: Message[] = [];
           // Reserva fixa para prompt, metadados JSON e protocolo das ferramentas.
@@ -260,13 +371,16 @@ export class ChatService {
           try {
             result = await Promise.race([
               this.provider.generate({
-                message: request.message,
+                message: technologyFollowUp ? query : request.message,
                 history: bounded,
                 documents,
                 evidenceTraceId,
                 signal: controller.signal,
                 meetingActions,
                 asOf: this.now(),
+                ...(graphTurnBudget
+                  ? { invocationFactoryOverride: graphTurnBudget.answerFactory }
+                  : {}),
                 ...(experienceDocuments.length
                   ? { experienceIds: experienceDocuments.map((doc) => doc.id) }
                   : {}),
@@ -286,6 +400,7 @@ export class ChatService {
                 }, this.config.LLM_TIMEOUT_MS);
               }),
             ]);
+            llmGenerated = true;
           } catch (error) {
             if (error instanceof AppError) throw error;
             throw new AppError(
@@ -295,6 +410,31 @@ export class ChatService {
             );
           } finally {
             if (timer) clearTimeout(timer);
+          }
+        }
+        // Bound, source-scoped audit of high-risk model prose. Never promote
+        // a study into employment, a pending degree into a completed one, or
+        // a duration to a single employer without public evidence.
+        if (llmGenerated && this.graphActive?.auditGenerated && !result.actions?.length) {
+          const audit = this.graphActive.auditGenerated(result.answer);
+          if (audit.corrected) {
+            result = {
+              ...result,
+              answer: audit.answer,
+              sources: [
+                ...new Map(
+                  [...audit.sources, ...result.sources].map((source) => [source.id, source]),
+                ).values(),
+              ].slice(0, 10),
+            };
+            console.info(
+              JSON.stringify({
+                event: 'orbe_graphrag_claim_audit',
+                traceId: evidenceTraceId,
+                corrected: audit.corrected,
+                rules: audit.rules,
+              }),
+            );
           }
         }
         // The model can invent incidental academic details even when the
@@ -383,7 +523,15 @@ export class ChatService {
             provider: this.provider.name,
             simulated: this.provider.name === 'mock',
             promptVersion: PROMPT_VERSION,
-            ...(verifiedMatrix || verifiedAcademic || verifiedGo ? { deterministic: true } : {}),
+            ...(verifiedMatrix ||
+            verifiedAcademic ||
+            verifiedGo ||
+            verifiedDuration ||
+            verifiedOverview
+              ? { deterministic: true }
+              : graphAnswer
+                ? { deterministic: true }
+                : {}),
           },
         });
         return {

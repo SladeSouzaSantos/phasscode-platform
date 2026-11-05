@@ -1,3 +1,4 @@
+import type { LlmInvocationFactory } from './llm-invocation.js';
 import type {
   ChatResponse,
   ProviderName,
@@ -76,6 +77,8 @@ export interface GenerationInput {
   experienceIds?: string[];
   /** Random per-turn trace identifier, never a visitor or conversation token. */
   evidenceTraceId?: string;
+  /** Optional per-turn logical quota wrapper; physical Redis budgets stay authoritative. */
+  invocationFactoryOverride?: LlmInvocationFactory;
 }
 export interface GenerationResult {
   answer: string;

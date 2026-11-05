@@ -26,7 +26,32 @@ export function isInjection(text: string): boolean {
     );
   return directSecretRequest || (tokenQuestion && !tokenConcept);
 }
+/**
+ * A short, first-party programming/profile question is an in-scope
+ * recruiter question even when it contains no framework or company name.
+ * It MUST still be backed by existing employment/project evidence.
+ */
+export function isProgrammingProfileQuestion(text: string): boolean {
+  const question = normalize(text)
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+  if (!question || question.length > 155) return false;
+  const subject = /\b(?:pedro|ele|o candidato|profissional)\b/.test(question);
+  const programming =
+    /\b(?:programa|programar|programacao|programador|programando|codifica|codificar|escreve codigo|escrever codigo|desenvolve software|desenvolveu software|desenvolvedor de software)\b/.test(
+      question,
+    );
+  return (
+    programming &&
+    (subject ||
+      /^(?:sabe|consegue|tem experiencia em|trabalha com)\s+(?:programar|programacao|codigo)/.test(
+        question,
+      ))
+  );
+}
+
 export function isInScope(text: string, publicKeywords: string[] = []): boolean {
+  if (isProgrammingProfileQuestion(text)) return true;
   const words = (value: string) =>
     normalize(value)
       .replace(/[^a-z0-9]+/g, ' ')

@@ -1,0 +1,518 @@
+{
+  "version": "orbe-phase2-v3",
+  "description": "F3.4 pós-deploy: cenários de recrutamento naturais e conversas de 1 a 3 turnos, derivados dos nove casos originais do usuário e dos defeitos reproduzidos no DEV. Revisão factual humana obrigatória; sem chamadas remotas por padrão.",
+  "cases": [
+    {
+      "id": "natural-pedro-programa",
+      "category": "facts",
+      "title": "Pergunta natural: Pedro programa?",
+      "humanReview": [
+        "Apresentar experiência profissional com SIGAA/ACRUX e projetos autorais sem inventar experiência.",
+        "Nunca responder com recusa genérica fora do escopo."
+      ],
+      "turns": [
+        {
+          "message": "Pedro programa?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["SIGAA", "Java", "Flutter", "PHASSCODE"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "natural-ele-codifica",
+      "category": "facts",
+      "title": "Pergunta natural: ele sabe programar?",
+      "humanReview": [
+        "A resposta deve trazer fatos públicos e projetos, sem transformar curso em emprego."
+      ],
+      "turns": [
+        {
+          "message": "Ele sabe programar?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["Java", "SIGAA", "desenvolvimento", "Python"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "contexto-java-go",
+      "category": "continuity",
+      "title": "Java profissional → E com Go?",
+      "humanReview": [
+        "Manter contexto de experiência profissional; Go não tem vínculo documentado.",
+        "Explicar competências transferíveis Java/PostgreSQL e Node/TypeScript sem atribuir Go ao emprego."
+      ],
+      "turns": [
+        {
+          "message": "Pedro tem experiência profissional com Java?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["SIGAA", "Java"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        },
+        {
+          "message": "E com Go?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["Go", "Golang"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "contexto-java-react",
+      "category": "continuity",
+      "title": "Java → React",
+      "humanReview": [
+        "Não usar evidências do SIGAA como prova de React.",
+        "Distinguir desenvolvimento React autoral de trabalho Java."
+      ],
+      "turns": [
+        {
+          "message": "Pedro tem experiência profissional com Java?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["SIGAA", "Java"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        },
+        {
+          "message": "E com React?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["React"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "contexto-java-sqlserver",
+      "category": "continuity",
+      "title": "Java → SQL Server",
+      "humanReview": [
+        "SQL Server curso não comprova SQL Server em produção.",
+        "Distinguir SQL genérico, PostgreSQL profissional e SQL Server."
+      ],
+      "turns": [
+        {
+          "message": "Pedro tem experiência profissional com Java?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["SIGAA", "Java"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        },
+        {
+          "message": "E SQL Server?",
+          "expect": {
+            "sourcePolicy": "optional",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["SQL Server"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "contexto-java-flutter",
+      "category": "continuity",
+      "title": "Java → Flutter",
+      "humanReview": ["Referenciar projetos Flutter (SDGP/Greencity), sem confundir com SIGAA."],
+      "turns": [
+        {
+          "message": "Pedro tem experiência profissional com Java?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["SIGAA", "Java"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        },
+        {
+          "message": "E com Flutter?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["Flutter"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "contexto-pergunta-react-completa",
+      "category": "continuity",
+      "title": "Pergunta completa sobre projetos React após Java",
+      "humanReview": [
+        "'E quais projetos React?' não pode ser interpretado como tecnologia isolada.",
+        "A resposta deve relacionar projetos React reais e preservar escopo de projetos."
+      ],
+      "turns": [
+        {
+          "message": "Sou recrutadora Java para vaga Spring Boot",
+          "expect": {
+            "sourcePolicy": "optional",
+            "requiredSourceIds": [],
+            "concepts": [],
+            "forbiddenTerms": []
+          }
+        },
+        {
+          "message": "E quais projetos React?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["React"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "contexto-tres-turnos",
+      "category": "continuity",
+      "title": "Experiência Java → Go → Flutter",
+      "humanReview": [
+        "Manter contexto de intenção profissional em três turnos.",
+        "Não confundir ausência de Go com experiência Flutter; exigir exemplos verificáveis."
+      ],
+      "turns": [
+        {
+          "message": "Pedro tem experiência profissional com Java?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["SIGAA", "Java"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        },
+        {
+          "message": "E com Go?",
+          "expect": {
+            "sourcePolicy": "optional",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["Go", "Golang"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        },
+        {
+          "message": "E com Flutter?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["Flutter"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "contexto-cursos-angular",
+      "category": "continuity",
+      "title": "Cursos Java → Angular",
+      "humanReview": [
+        "Manter intenção de formação/cursos; não transformar curso Angular em emprego."
+      ],
+      "turns": [
+        {
+          "message": "Pedro concluiu algum curso de Java?",
+          "expect": {
+            "sourcePolicy": "optional",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["Java"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": []
+          }
+        },
+        {
+          "message": "E com Angular?",
+          "expect": {
+            "sourcePolicy": "optional",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["Angular"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "contexto-academico",
+      "category": "continuity",
+      "title": "Tecnólogo concluído → UNISUL",
+      "humanReview": [
+        "Gestão de TI concluída versus Ciência da Computação UNISUL pendente.",
+        "A pergunta elíptica sobre UNISUL deve recuperar o assunto acadêmico."
+      ],
+      "turns": [
+        {
+          "message": "Pedro concluiu alguma graduação em tecnologia?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["Gestão", "Tecnólogo", "ETEP"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        },
+        {
+          "message": "E a UNISUL?",
+          "expect": {
+            "sourcePolicy": "optional",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["UNISUL", "Ciência da Computação"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "go-sem-historico",
+      "category": "scope",
+      "title": "Elipse Go em conversa nova",
+      "humanReview": [
+        "Sem histórico, não inferir experiência Go nem inventar intenção de recrutamento.",
+        "Uma recusa controlada é aceitável para consulta sem referente."
+      ],
+      "turns": [
+        {
+          "message": "E com Go?",
+          "expect": {
+            "sourcePolicy": "none",
+            "requiredSourceIds": [],
+            "concepts": [],
+            "forbiddenTerms": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "fora-escopo-continuidade",
+      "category": "scope",
+      "title": "Receita após Java",
+      "humanReview": [
+        "Histórico profissional não autoriza extrapolar para tarefas fora do escopo."
+      ],
+      "turns": [
+        {
+          "message": "Pedro tem experiência profissional com Java?",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["SIGAA", "Java"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        },
+        {
+          "message": "E com receita de bolo?",
+          "expect": {
+            "sourcePolicy": "none",
+            "requiredSourceIds": [],
+            "concepts": [],
+            "forbiddenTerms": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "matriz-requisitos-completa",
+      "category": "facts",
+      "title": "Matriz de 29 requisitos de recrutadores",
+      "humanReview": [
+        "Confirmar 29 itens, sem arredondar cobertura nem percentuais fabricados.",
+        "Distinguir vínculo, projeto autoral, estudo/cursos e evidência insuficiente."
+      ],
+      "turns": [
+        {
+          "message": "Como recrutador, compare em matriz de requisitos: Java, Hibernate, JBoss, Spring Boot, JPA, PostgreSQL, MySQL, SQL, SQL Server, Angular, React, TypeScript, Node.js, Python, FastAPI, Flutter, Firebase, Redis, Docker, Docker Swarm, Git, GitHub Actions, CI/CD, Vitest, Playwright, CodeQL, OWASP ZAP, inglês e graduação. Não omita requisitos, separe experiência profissional, projeto autoral, estudo e lacunas; cite evidências.",
+          "expect": {
+            "sourcePolicy": "required",
+            "requiredSourceIds": [],
+            "concepts": [
+              {
+                "label": "evidence-1",
+                "anyOf": ["Java"],
+                "missing": "review"
+              },
+              {
+                "label": "evidence-2",
+                "anyOf": ["SQL Server"],
+                "missing": "review"
+              },
+              {
+                "label": "evidence-3",
+                "anyOf": ["Flutter"],
+                "missing": "review"
+              }
+            ],
+            "forbiddenTerms": [
+              "Posso apresentar a experiência profissional, as competências, a formação e os projetos de Pedro Santos"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

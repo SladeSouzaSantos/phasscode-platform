@@ -1,0 +1,19 @@
+# F3.7/#42 disposable CPU-only lab. No model weights and no application secrets.
+# Intended: build with network, run with --network none and --read-only.
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    OMP_NUM_THREADS=2 \
+    HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+WORKDIR /lab
+COPY infrastructure/docker/semantic-embedding-requirements.txt /tmp/semantic-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/semantic-requirements.txt && \
+    rm /tmp/semantic-requirements.txt
+COPY scripts/semantic_embedding_lab.py scripts/semantic_embedding_lab.py
+COPY evaluation/semantic-embedding-onnx-manifest.json evaluation/semantic-embedding-onnx-manifest.json
+COPY evaluation/semantic-hybrid-corpus-v0.json evaluation/semantic-hybrid-corpus-v0.json
+USER 65532:65532
+ENTRYPOINT ["python", "scripts/semantic_embedding_lab.py"]
+COPY evaluation/semantic-embedding-prospective-v1.json evaluation/semantic-embedding-prospective-v1.json
+COPY evaluation/semantic-embedding-adversarial-v2.json evaluation/semantic-embedding-adversarial-v2.json

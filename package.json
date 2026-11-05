@@ -25,6 +25,8 @@
     "eval:orbe": "node --env-file-if-exists=.env --import tsx scripts/evaluate-orbe.ts",
     "eval:orbe:phase3": "node --env-file-if-exists=.env --import tsx scripts/evaluate-orbe-phase3.ts",
     "eval:orbe:graphrag:offline": "node --import tsx scripts/evaluate-graphrag-recruiter-offline.ts",
+    "eval:orbe:semantic:coverage": "node --import tsx scripts/audit-semantic-hybrid-coverage.ts",
+    "eval:orbe:semantic:lexical": "node --import tsx scripts/evaluate-semantic-lexical.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
@@ -43,7 +45,8 @@
     "db:retention": "node --env-file-if-exists=.env --import tsx packages/database/src/retention.ts",
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run contracts:check && npm run ppks:check && npm test && npm run build",
     "ppks:index": "node scripts/ppks.mjs index",
-    "ppks:check": "node scripts/ppks.mjs check"
+    "ppks:check": "node scripts/ppks.mjs check",
+    "ppks:sync:dry-run": "node --import tsx scripts/ppks-graph-diff.ts --dry-run"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -46,11 +46,42 @@ docker image inspect "$image" >/dev/null ||
 [[ "$(stat -c '%u:%g:%a' .secrets/neo4j_auth)" == '7474:7474:400' ]] ||
   die 'Neo4j secret must be 7474:7474 mode 0400'
 
-# Ensure the public API does not receive either private graph-reader secret.
-if docker inspect "$api" --format '{{range .Mounts}}{{println .Destination}}{{end}}' |
-  grep -Eq '^/run/secrets/(neo4j_auth|graph_reader_token)$'; then
-  die 'Graph secret was mounted into public DEV API'
+# The Neo4j admin credential is NEVER allowed in public Orbe.
+# DEV shadow/active may mount only a distinct, node-owned HTTP reader token;
+# OFF must never mount it. Inspect metadata only, never print secret bytes.
+api_env=$(docker inspect "$api" --format '{{range .Config.Env}}{{println .}}{{end}}')
+api_secret_mounts=$(docker inspect "$api" --format '{{range .Mounts}}{{println .Destination}}{{end}}' |
+  grep '^/run/secrets/' || true)
+if grep -Eq '^(NEO4J_AUTH|NEO4J_AUTH_FILE|NEO4J_URI|NEO4J_PASSWORD|ORBE_GRAPH_READER_TOKEN)=' <<< "$api_env"; then
+  die 'Privileged Neo4j credentials or plaintext reader token in API env'
 fi
+if grep -Fxq '/run/secrets/neo4j_auth' <<< "$api_secret_mounts"; then
+  die 'Neo4j admin secret mounted into public DEV API'
+fi
+api_mode=$(sed -n 's/^ORBE_GRAPHRAG_MODE=//p' <<< "$api_env")
+case "$api_mode" in
+  ''|off)
+    [[ -z "$api_secret_mounts" ]] || die 'OFF API must not have graph secrets'
+    ;;
+  shadow|active)
+    grep -Fxq 'ORBE_GRAPHRAG_STAGE=dev' <<< "$api_env" ||
+      die 'Graph API requires DEV stage'
+    grep -Fxq 'ORBE_GRAPHRAG_DEV_APPROVED=true' <<< "$api_env" ||
+      die 'Graph API requires explicit DEV approval'
+    grep -Fxq 'ORBE_GRAPH_READER_TOKEN_FILE=/run/secrets/graph_reader_token' <<< "$api_env" ||
+      die 'Graph API requires fixed HTTP reader token path'
+    [[ "$api_secret_mounts" == '/run/secrets/graph_reader_token' ]] ||
+      die 'Graph API has unexpected or missing secret mounts'
+    [[ -f .secrets/graph_api_reader_token && ! -L .secrets/graph_api_reader_token ]] ||
+      die 'Separate API reader token missing or symlinked'
+    [[ "$(stat -c '%u:%a' .secrets/graph_api_reader_token)" == '1000:400' ]] ||
+      die 'API reader token must be node-owned and mode 0400'
+    mounted_reader=$(docker inspect "$api" --format '{{range .Mounts}}{{if eq .Destination "/run/secrets/graph_reader_token"}}{{printf "%s|%s" .Source .Type}}{{end}}{{end}}')
+    [[ "$mounted_reader" == "$PWD/.secrets/graph_api_reader_token|bind" ]] ||
+      die 'Graph API token must originate from the dedicated node-owned DEV file'
+    ;;
+  *) die 'Unsupported GraphRAG mode on DEV API' ;;
+esac
 
 check_token_file() {
   [[ -f "$token_file" && ! -L "$token_file" ]] || die 'Reader token file missing or symlinked'

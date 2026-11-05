@@ -101,20 +101,23 @@ describe('contexto profissional do Orbe v4', () => {
     expect(docs.map((doc) => doc.id)).not.toContain('lithology');
   });
 
-  it('recupera a atuação mista em programação sem inflar a soma de meses formais', async () => {
+  it('recupera a atuação mista em programação com quatro vínculos, sem tomar os 19 meses como total', async () => {
     const { service, generate } = await setup();
-    await service.execute({ message: 'Pedro tem quantos anos de experiência com programação?' });
-    const docs = generate.mock.calls[0]![0].documents;
-    const ids = docs.map((doc) => doc.id);
-    for (const id of [
+    const result = await service.execute({
+      message: 'Pedro tem quantos anos de experiência com programação?',
+    });
+    expect(generate).not.toHaveBeenCalled();
+    expect(result.meta.deterministic).toBe(true);
+    expect(result.answer).toContain('aproximadamente 10 anos e 10 meses');
+    expect(result.answer).toContain('Geowellex');
+    expect(result.answer).toContain('Greencity');
+    expect(result.answer).toContain('atuação híbrida');
+    expect(result.sources.map((source) => source.id)).toEqual([
       'experiencia-acrux',
       'experiencia-sig',
       'experiencia-geowellex',
       'experiencia-greencity',
-      'greencity-sdgp',
-    ])
-      expect(ids).toContain(id);
-    expect(docs.find((doc) => doc.id === 'greencity-sdgp')?.content).toContain('Flutter');
+    ]);
     const prompt = await readFile('apps/orbe-node/prompts/v4.md', 'utf8');
     expect(prompt).toContain('Nunca apresente esse subtotal como toda a experiência');
     expect(prompt).toContain('sem chamá-los de');

@@ -20,6 +20,8 @@ export interface LlmInvocationHooks<T> {
   // Provider quota can explicitly skip. Redis/global-budget failures must throw.
   beforeAttempt(candidateId: string): Promise<{ allowed: boolean; retryAfterMs?: number }>;
   invoke(candidateId: string, signal: AbortSignal): Promise<T>;
+  /** Fixed-category diagnostics only, never model text or raw exceptions. */
+  onDiagnostic?: (event: LlmInvocationDiagnostic) => void;
 }
 export interface LlmInvocationResult<T> {
   value: T;
@@ -28,6 +30,20 @@ export interface LlmInvocationResult<T> {
   fallbackUsed: boolean;
 }
 type Failure = 'timeout' | 'network' | 'quota' | 'rate_limit' | 'unavailable' | 'configuration';
+
+export interface LlmCandidateDiagnostic {
+  provider: string;
+  action: 'attempt' | 'cooldown' | 'local_quota';
+  failure?: Failure;
+}
+
+export interface LlmInvocationDiagnostic {
+  outcome: 'success' | 'limited' | 'error' | 'aborted';
+  attempts: number;
+  skippedCooldown: number;
+  skippedLocalQuota: number;
+  candidates: readonly LlmCandidateDiagnostic[];
+}
 const candidateIdPattern = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
 const networkCodes = new Set([
   'ECONNRESET',
@@ -249,6 +265,9 @@ export class LlmInvocationTurn {
     let attempted = false;
     let onlyTimeouts = true;
     let onlyProviderLimits = true;
+    const attemptsAtStart = this.attemptCount;
+    const candidates: LlmCandidateDiagnostic[] = [];
+    let outcome: LlmInvocationDiagnostic['outcome'] = 'error';
     try {
       this.signal.throwIfAborted();
       for (; this.cursor < this.controller.candidates.length; this.cursor++) {
@@ -258,6 +277,7 @@ export class LlmInvocationTurn {
         const remaining = await this.remaining(candidate.id);
         this.signal.throwIfAborted();
         if (remaining > 0) {
+          candidates.push({ provider: candidate.id, action: 'cooldown' });
           earliest = Math.min(earliest ?? remaining, remaining);
           continue;
         }
@@ -265,6 +285,7 @@ export class LlmInvocationTurn {
         const reservation = await hooks.beforeAttempt(candidate.id);
         this.signal.throwIfAborted();
         if (!reservation.allowed) {
+          candidates.push({ provider: candidate.id, action: 'local_quota' });
           const delay = this.bounded(reservation.retryAfterMs ?? this.controller.maxCooldownMs);
           await this.controller.cooldownStore.block(candidate.id, delay);
           this.signal.throwIfAborted();
@@ -272,12 +293,15 @@ export class LlmInvocationTurn {
           continue;
         }
         let value: T;
+        let currentAttempt: LlmCandidateDiagnostic | undefined;
         try {
           value = await invokeWithDeadline(
             (signal) => {
               this.attemptCount++;
               attempted = true;
               if (this.cursor > 0) this.usedFallback = true;
+              currentAttempt = { provider: candidate.id, action: 'attempt' };
+              candidates.push(currentAttempt);
               return hooks.invoke(candidate.id, signal);
             },
             this.signal,
@@ -289,6 +313,7 @@ export class LlmInvocationTurn {
           const failure =
             error instanceof AttemptTimeout ? 'timeout' : classifyLlmInvocationFailure(error);
           if (!failure) throw error;
+          if (currentAttempt) currentAttempt.failure = failure;
           onlyTimeouts = onlyTimeouts && failure === 'timeout';
           onlyProviderLimits =
             onlyProviderLimits && (failure === 'quota' || failure === 'rate_limit');
@@ -307,6 +332,7 @@ export class LlmInvocationTurn {
           earliest = Math.min(earliest ?? delay, delay);
           continue;
         }
+        outcome = 'success';
         return {
           value,
           candidateId: candidate.id,
@@ -340,8 +366,29 @@ export class LlmInvocationTurn {
         'Nenhum provedor de IA está disponível agora (limite de uso ou período de espera). Tente novamente mais tarde.',
         Math.max(1, Math.ceil((earliest ?? this.controller.cooldownMs) / 1000)),
       );
+    } catch (error) {
+      outcome =
+        this.signal.aborted || (error instanceof Error && error.name === 'AbortError')
+          ? 'aborted'
+          : error instanceof AppError && error.code === 'LLM_PROVIDERS_LIMITED'
+            ? 'limited'
+            : 'error';
+      throw error;
     } finally {
       this.running = false;
+      // This object is constructed exclusively from counters, configured provider
+      // IDs and fixed categories. Diagnostic callbacks may never affect the chat.
+      try {
+        hooks.onDiagnostic?.({
+          outcome,
+          attempts: this.attemptCount - attemptsAtStart,
+          skippedCooldown: candidates.filter((item) => item.action === 'cooldown').length,
+          skippedLocalQuota: candidates.filter((item) => item.action === 'local_quota').length,
+          candidates,
+        });
+      } catch {
+        // Telemetry is best-effort and cannot replace a model result or error.
+      }
     }
   }
 }

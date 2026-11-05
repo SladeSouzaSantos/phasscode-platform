@@ -68,7 +68,7 @@
       "kind": "infrastructure",
       "usage": "implemented",
       "evidenceLevel": "verified",
-      "evidenceIds": ["catalog", "ports", "knowledge-adapter", "tests"]
+      "evidenceIds": ["docker-compose"]
     }
   ],
   "architecture": {
@@ -145,6 +145,13 @@
     }
   ],
   "evidence": [
+    {
+      "id": "docker-compose",
+      "type": "source_code",
+      "url": "https://github.com/SladeSouzaSantos/phasscode-platform/blob/c208817c98b3fc4d40414fd656578cf8674219c8/compose.yaml",
+      "path": "compose.yaml",
+      "note": "Docker Compose da aplicação verificado na revisão registrada pelo catálogo."
+    },
     {
       "id": "catalog",
       "type": "portfolio_record",

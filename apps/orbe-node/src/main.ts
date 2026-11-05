@@ -10,11 +10,13 @@ import { LangChainChatProvider } from './adapters/langchain-provider.js';
 import { RedisLlmCallBudget } from './adapters/redis-llm-budget.js';
 import { createRedisFallbackInvocationFactory } from './adapters/fallback-llm.js';
 import type { ChatProvider } from './domain/ports.js';
+import type { LlmInvocationFactory } from './domain/llm-invocation.js';
 import { buildApp } from './http/app.js';
 import { RestrictedPublicEvidenceReader } from './application/public-evidence.js';
 import { PROMPT_VERSION } from './application/chat.js';
 import { assertPublicOrbeGraphIsolation } from './application/graph-public-policy.js';
 import { createGraphRagShadow } from './application/graph-rag-shadow.js';
+import { createGraphRagActive } from './application/graph-active-answer.js';
 import { loadDevGraphReaderToken } from './application/graph-reader-secret.js';
 import { GraphReaderHttpRepository } from './adapters/graph-reader-http.js';
 import { projectPpksEvidenceGraph } from './adapters/ppks-evidence-graph.js';
@@ -30,16 +32,24 @@ try {
     WORKER_ENABLED: 'false',
   });
   const knowledge = await JsonKnowledgeRepository.load();
-  // Explicitly approved DEV-only shadow mode. Public Orbe never receives
+  // Explicitly approved DEV-only Shadow or Active mode. Public Orbe never receives
   // Neo4j Bolt/admin credentials; this token authorizes only the private
   // read-only HTTP graph reader. The bearer token is loaded only from
-  // /run/secrets/graph_reader_token. No result may replace the PPKS reply.
+  // /run/secrets/graph_reader_token. Only fully verified public claims may
+  // replace PPKS output in Active mode; Shadow never changes the reply.
+  const graphSnapshot =
+    config.ORBE_GRAPHRAG_MODE === 'off' ? undefined : await projectPpksEvidenceGraph();
+  const graphReader =
+    config.ORBE_GRAPHRAG_MODE === 'off'
+      ? undefined
+      : new GraphReaderHttpRepository({ token: await loadDevGraphReaderToken(process.env) });
   const graphShadow =
     config.ORBE_GRAPHRAG_MODE === 'shadow'
-      ? createGraphRagShadow(
-          await projectPpksEvidenceGraph(),
-          new GraphReaderHttpRepository({ token: await loadDevGraphReaderToken(process.env) }),
-        )
+      ? createGraphRagShadow(graphSnapshot!, graphReader!)
+      : undefined;
+  const graphActive =
+    config.ORBE_GRAPHRAG_MODE === 'active'
+      ? createGraphRagActive(graphSnapshot!, graphReader!)
       : undefined;
   const pool = config.PERSISTENCE === 'postgres' ? createPool(config.DATABASE_URL!) : undefined;
   const store =
@@ -69,6 +79,7 @@ try {
     /* Readiness reporta falhas sem registrar credenciais do driver. */
   });
   let provider: ChatProvider;
+  let graphModelFactory: LlmInvocationFactory | undefined;
   try {
     await store.ready();
     if (redis) {
@@ -83,10 +94,21 @@ try {
         maxCalls: config.LLM_GLOBAL_MAX_CALLS!,
         windowMs: config.LLM_GLOBAL_WINDOW_MS,
       });
-      const invocationFactory = config.llmFallback.enabled
-        ? createRedisFallbackInvocationFactory(config, redis!, budget, (event) => {
-            app.log.info({ llm: event }, 'Invocação LLM concluída.');
-          })
+      graphModelFactory = config.llmFallback.enabled
+        ? createRedisFallbackInvocationFactory(
+            config,
+            redis!,
+            budget,
+            (event) => {
+              app.log.info({ llm: event }, 'Invocação LLM concluída.');
+            },
+            (diagnostic) => {
+              app.log.info(
+                { event: 'llm_fallback_diagnostic', llm: diagnostic },
+                'Resumo sanitizado do fallback LLM.',
+              );
+            },
+          )
         : undefined;
       provider = new LangChainChatProvider(
         config,
@@ -94,7 +116,7 @@ try {
         await readFile(`apps/orbe-node/prompts/${PROMPT_VERSION.replace('orbe-', '')}.md`, 'utf8'),
         budget,
         undefined,
-        invocationFactory,
+        graphModelFactory,
       );
     }
   } catch {
@@ -105,6 +127,8 @@ try {
   const app = await buildApp({
     evidenceReader: new RestrictedPublicEvidenceReader(),
     ...(graphShadow ? { graphShadow } : {}),
+    ...(graphActive ? { graphActive } : {}),
+    ...(graphActive && graphModelFactory ? { graphModelFactory } : {}),
     config,
     knowledge,
     provider,

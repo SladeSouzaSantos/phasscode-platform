@@ -1,0 +1,656 @@
+{
+  "schemaVersion": "semantic-hybrid-corpus-v0",
+  "reviewStatus": "draft_not_human_approved",
+  "provenance": "synthetic_examples_only",
+  "cohort": "challenge_holdout_v1_frozen_before_first_rule_evaluation",
+  "purpose": "Unseen diagnostic challenge for rule-gate failure analysis and future Laya comparison. Synthetic draft labels only; not a human-reviewed gold set or production benchmark.",
+  "cases": [
+    {
+      "id": "pt-company-vs-required",
+      "language": "pt",
+      "text": "Nossa equipe usa Java, porém a pessoa contratada deve dominar Kotlin.",
+      "annotations": [
+        {
+          "start": 17,
+          "end": 21,
+          "text": "Java",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": ["Java"]
+        },
+        {
+          "start": 62,
+          "end": 68,
+          "text": "Kotlin",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Kotlin"]
+        }
+      ]
+    },
+    {
+      "id": "pt-no-prior",
+      "language": "pt",
+      "text": "Não exigimos familiaridade prévia com Kafka; Linux é desejável.",
+      "annotations": [
+        {
+          "start": 38,
+          "end": 43,
+          "text": "Kafka",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": ["Kafka"]
+        },
+        {
+          "start": 45,
+          "end": 50,
+          "text": "Linux",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": ["Linux"]
+        }
+      ]
+    },
+    {
+      "id": "pt-alternative-accept",
+      "language": "pt",
+      "text": "Nesta função, aceitamos Java ou Kotlin como linguagem principal.",
+      "annotations": [
+        {
+          "start": 24,
+          "end": 38,
+          "text": "Java ou Kotlin",
+          "role": "alternative",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Java ou Kotlin"]
+        }
+      ]
+    },
+    {
+      "id": "pt-implicit-must",
+      "language": "pt",
+      "text": "A pessoa candidata deverá escrever testes em Python.",
+      "annotations": [
+        {
+          "start": 45,
+          "end": 51,
+          "text": "Python",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Python"]
+        }
+      ]
+    },
+    {
+      "id": "pt-context-plus-need",
+      "language": "pt",
+      "text": "Usamos PostgreSQL, e o novo integrante precisará dominar SQL Server.",
+      "annotations": [
+        {
+          "start": 7,
+          "end": 17,
+          "text": "PostgreSQL",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": ["PostgreSQL"]
+        },
+        {
+          "start": 57,
+          "end": 67,
+          "text": "SQL Server",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["SQL Server"]
+        }
+      ]
+    },
+    {
+      "id": "pt-composite-mixed",
+      "language": "pt",
+      "text": "Buscamos Java e valorizamos React como diferencial.",
+      "annotations": [
+        {
+          "start": 9,
+          "end": 13,
+          "text": "Java",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Java"]
+        },
+        {
+          "start": 28,
+          "end": 33,
+          "text": "React",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": ["React"]
+        }
+      ]
+    },
+    {
+      "id": "pt-future-year",
+      "language": "pt",
+      "text": "Planejamos introduzir Go no ano que vem; por ora exigimos Java.",
+      "annotations": [
+        {
+          "start": 22,
+          "end": 24,
+          "text": "Go",
+          "role": "context",
+          "relation": "future_stack",
+          "priority": "none",
+          "candidateLabels": ["Go"]
+        },
+        {
+          "start": 58,
+          "end": 62,
+          "text": "Java",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Java"]
+        }
+      ]
+    },
+    {
+      "id": "pt-no-longer-required",
+      "language": "pt",
+      "text": "SQL Server não é obrigatório nesta oportunidade.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 10,
+          "text": "SQL Server",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": ["SQL Server"]
+        }
+      ]
+    },
+    {
+      "id": "pt-company-non-requirement",
+      "language": "pt",
+      "text": "A companhia usa Kubernetes nos seus clusters.",
+      "annotations": [
+        {
+          "start": 16,
+          "end": 26,
+          "text": "Kubernetes",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": ["Kubernetes"]
+        }
+      ]
+    },
+    {
+      "id": "pt-insufficient",
+      "language": "pt",
+      "text": "Saber apenas SQL não é suficiente para esta posição.",
+      "annotations": [
+        {
+          "start": 13,
+          "end": 16,
+          "text": "SQL",
+          "role": "context",
+          "relation": "unrelated",
+          "priority": "none",
+          "candidateLabels": ["SQL"]
+        }
+      ]
+    },
+    {
+      "id": "pt-two-positive",
+      "language": "pt",
+      "text": "São obrigatórios Python e FastAPI.",
+      "annotations": [
+        {
+          "start": 17,
+          "end": 23,
+          "text": "Python",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Python"]
+        },
+        {
+          "start": 26,
+          "end": 33,
+          "text": "FastAPI",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["FastAPI"]
+        }
+      ]
+    },
+    {
+      "id": "pt-optional-choice",
+      "language": "pt",
+      "text": "Conhecimento em Java ou Kotlin é um diferencial.",
+      "annotations": [
+        {
+          "start": 16,
+          "end": 30,
+          "text": "Java ou Kotlin",
+          "role": "alternative",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Java ou Kotlin"]
+        }
+      ]
+    },
+    {
+      "id": "pt-negated-phrase",
+      "language": "pt",
+      "text": "Não apenas Java, também JavaScript são citados na conversa.",
+      "annotations": [
+        {
+          "start": 11,
+          "end": 15,
+          "text": "Java",
+          "role": "uncertain",
+          "relation": "unrelated",
+          "priority": "none",
+          "candidateLabels": ["Java"]
+        },
+        {
+          "start": 24,
+          "end": 34,
+          "text": "JavaScript",
+          "role": "uncertain",
+          "relation": "unrelated",
+          "priority": "none",
+          "candidateLabels": ["JavaScript"]
+        }
+      ]
+    },
+    {
+      "id": "pt-transfer-not-proof",
+      "language": "pt",
+      "text": "O candidato conhecer Java não significa experiência profissional comprovada.",
+      "annotations": [
+        {
+          "start": 21,
+          "end": 25,
+          "text": "Java",
+          "role": "context",
+          "relation": "unrelated",
+          "priority": "none",
+          "candidateLabels": ["Java"]
+        }
+      ]
+    },
+    {
+      "id": "pt-tooling-negation",
+      "language": "pt",
+      "text": "Não precisamos de Docker nesta vaga.",
+      "annotations": [
+        {
+          "start": 18,
+          "end": 24,
+          "text": "Docker",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": ["Docker"]
+        }
+      ]
+    },
+    {
+      "id": "pt-project-inquiry",
+      "language": "pt",
+      "text": "A ferramenta interna do projeto utilizava Flutter?",
+      "annotations": [
+        {
+          "start": 42,
+          "end": 49,
+          "text": "Flutter",
+          "role": "context",
+          "relation": "project_claim",
+          "priority": "none",
+          "candidateLabels": ["Flutter"]
+        }
+      ]
+    },
+    {
+      "id": "pt-ambiguous-slash",
+      "language": "pt",
+      "text": "Tecnologias: Java/Kotlin, AWS ou GCP.",
+      "annotations": [
+        {
+          "start": 13,
+          "end": 24,
+          "text": "Java/Kotlin",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": ["Java/Kotlin"]
+        },
+        {
+          "start": 26,
+          "end": 36,
+          "text": "AWS ou GCP",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": ["AWS ou GCP"]
+        }
+      ]
+    },
+    {
+      "id": "pt-conflicting",
+      "language": "pt",
+      "text": "Java é obrigatório e é apenas desejável, segundo seções distintas.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 4,
+          "text": "Java",
+          "role": "uncertain",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": ["Java"]
+        }
+      ]
+    },
+    {
+      "id": "pt-priority-separated",
+      "language": "pt",
+      "text": "React será um diferencial; TypeScript é obrigatório.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 5,
+          "text": "React",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": ["React"]
+        },
+        {
+          "start": 27,
+          "end": 37,
+          "text": "TypeScript",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["TypeScript"]
+        }
+      ]
+    },
+    {
+      "id": "pt-academic-reference",
+      "language": "pt",
+      "text": "Graduação em tecnologia pode estar em andamento.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 23,
+          "text": "Graduação em tecnologia",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": ["Graduação em tecnologia"]
+        }
+      ]
+    },
+    {
+      "id": "en-company-vs-job",
+      "language": "en",
+      "text": "We use Ruby internally, but applicants must have Java experience.",
+      "annotations": [
+        {
+          "start": 7,
+          "end": 11,
+          "text": "Ruby",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": ["Ruby"]
+        },
+        {
+          "start": 49,
+          "end": 53,
+          "text": "Java",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Java"]
+        }
+      ]
+    },
+    {
+      "id": "en-future-stack",
+      "language": "en",
+      "text": "We intend to adopt Go next year. The role requires Python.",
+      "annotations": [
+        {
+          "start": 19,
+          "end": 21,
+          "text": "Go",
+          "role": "context",
+          "relation": "future_stack",
+          "priority": "none",
+          "candidateLabels": ["Go"]
+        },
+        {
+          "start": 51,
+          "end": 57,
+          "text": "Python",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Python"]
+        }
+      ]
+    },
+    {
+      "id": "en-no-experience",
+      "language": "en",
+      "text": "No prior experience with Kubernetes is required.",
+      "annotations": [
+        {
+          "start": 25,
+          "end": 35,
+          "text": "Kubernetes",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": ["Kubernetes"]
+        }
+      ]
+    },
+    {
+      "id": "en-nice-to-have",
+      "language": "en",
+      "text": "AWS familiarity would be a nice-to-have.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 3,
+          "text": "AWS",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": ["AWS"]
+        }
+      ]
+    },
+    {
+      "id": "en-or-is-mandatory",
+      "language": "en",
+      "text": "Prior professional use of Java or Kotlin is required.",
+      "annotations": [
+        {
+          "start": 26,
+          "end": 40,
+          "text": "Java or Kotlin",
+          "role": "alternative",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Java or Kotlin"]
+        }
+      ]
+    },
+    {
+      "id": "en-must-know",
+      "language": "en",
+      "text": "Candidates must know Docker and Terraform.",
+      "annotations": [
+        {
+          "start": 21,
+          "end": 27,
+          "text": "Docker",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Docker"]
+        },
+        {
+          "start": 32,
+          "end": 41,
+          "text": "Terraform",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Terraform"]
+        }
+      ]
+    },
+    {
+      "id": "en-current-stack",
+      "language": "en",
+      "text": "Our current stack includes Redis; candidates should know PostgreSQL.",
+      "annotations": [
+        {
+          "start": 27,
+          "end": 32,
+          "text": "Redis",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": ["Redis"]
+        },
+        {
+          "start": 57,
+          "end": 67,
+          "text": "PostgreSQL",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["PostgreSQL"]
+        }
+      ]
+    },
+    {
+      "id": "en-job-not-stack",
+      "language": "en",
+      "text": "Angular is optional. The company uses React.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 7,
+          "text": "Angular",
+          "role": "desirable",
+          "relation": "candidate_requirement",
+          "priority": "desirable",
+          "candidateLabels": ["Angular"]
+        },
+        {
+          "start": 38,
+          "end": 43,
+          "text": "React",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": ["React"]
+        }
+      ]
+    },
+    {
+      "id": "en-sql-precision",
+      "language": "en",
+      "text": "SQL Server experience is required, not generic SQL alone.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 10,
+          "text": "SQL Server",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["SQL Server"]
+        },
+        {
+          "start": 47,
+          "end": 50,
+          "text": "SQL",
+          "role": "context",
+          "relation": "unrelated",
+          "priority": "none",
+          "candidateLabels": ["SQL"]
+        }
+      ]
+    },
+    {
+      "id": "en-unmentioned-role",
+      "language": "en",
+      "text": "We are discussing whether Flutter might be appropriate.",
+      "annotations": [
+        {
+          "start": 26,
+          "end": 33,
+          "text": "Flutter",
+          "role": "uncertain",
+          "relation": "unrelated",
+          "priority": "none",
+          "candidateLabels": ["Flutter"]
+        }
+      ]
+    },
+    {
+      "id": "en-project-question",
+      "language": "en",
+      "text": "Did the internal mobile project use Flutter?",
+      "annotations": [
+        {
+          "start": 36,
+          "end": 43,
+          "text": "Flutter",
+          "role": "context",
+          "relation": "project_claim",
+          "priority": "none",
+          "candidateLabels": ["Flutter"]
+        }
+      ]
+    },
+    {
+      "id": "en-nonreq-sentence",
+      "language": "en",
+      "text": "Docker knowledge is not necessary for this vacancy.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 6,
+          "text": "Docker",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": ["Docker"]
+        }
+      ]
+    }
+  ]
+}

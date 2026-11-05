@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "semantic-prospective-manifest-v1",
+  "fixture": "evaluation/semantic-embedding-prospective-v1.json",
+  "authoredBeforeFirstModelRun": true,
+  "humanReviewed": false,
+  "scope": "synthetic_prospective_ranking_not_candidate_claims",
+  "sourceCommit": "7328928d6bf48b7bb5e599d04242f329f2ec9b89",
+  "sha256": "8d4d65613bcee63f91d29c865f2b2a2ae30f466ac6013a9ffc1feb80442dd6ed",
+  "gitBlobSha": "b486e29fe1bf198b19ca11e4cd997ef9e1ec5682",
+  "caseCount": 44,
+  "inCatalogLabels": 34,
+  "outOfCatalogLabels": 6,
+  "contextOrNegatedCases": 4,
+  "rule": "No retuning to this fixture and no active/shadow promotion from this result."
+}

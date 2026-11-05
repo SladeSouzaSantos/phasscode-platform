@@ -22,6 +22,7 @@ import {
   type AcademicEvidence,
 } from './academic.js';
 import { SemanticKnowledgeGraph } from './semantic-graph.js';
+import { isProgrammingProfileQuestion } from '../domain/security.js';
 import {
   knowledgePhrase,
   knowledgeTerms,
@@ -64,6 +65,7 @@ const broadTerms = new Set(['portfolio', 'projeto', 'tecnologia', 'competencia',
 
 /** Broad recruiting questions need concrete evidence instead of falling through lexical search. */
 function isCareerOverview(query: string): boolean {
+  if (isProgrammingProfileQuestion(query)) return true;
   const text = knowledgePhrase(query);
   return /\b(?:qualificad\w*|qualificac\w*|habilidad\w*|diferencia\w*|pontos? fortes?|aptidao|recrutad\w*|recruiter\w*|contrat\w*|vaga\w*|candidat\w*|oportunidad\w*|programador\w*|desenvolvedor\w*|juniors?|juniores|plenos?|seniors?|seniores|senioridade|nivel\w*|compatib\w*)\b/.test(
     text,
@@ -280,10 +282,20 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       /\b(?:qa|testes?|acessibilidade|devops|sre|energia|fotovoltaic\w*|solar|utilities|petroleo|dados)\b/.test(
         knowledgePhrase(query),
       );
+    // Do not hide an explicitly recognized semantic concept behind generic
+    // recruiter-overview cards. For example, "arquitetura de componentes"
+    // already has a curated graph relation to React project evidence.
+    // Relationship discovery only ranks real sources; it cannot prove use
+    // of another technology or infer a candidate requirement.
+    const semanticConceptEvidence =
+      queryTechnologies.size === 0 && !educationIntent
+        ? (this.semanticGraph?.evidenceIds(query) ?? [])
+        : [];
     if (
       queryTechnologies.size === 0 &&
       !educationIntent &&
       !specialistIntent &&
+      semanticConceptEvidence.length === 0 &&
       isCareerOverview(query)
     ) {
       const selected = recruiterOverviewIds.flatMap((id) => {
@@ -506,7 +518,11 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         recommend('cursos-devops-qualidade');
     }
     const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
-    const graphEvidence = vacancy ? (this.semanticGraph?.evidenceIds(query) ?? []) : [];
+    const graphEvidence = vacancy
+      ? semanticConceptEvidence.length
+        ? semanticConceptEvidence
+        : (this.semanticGraph?.evidenceIds(query) ?? [])
+      : [];
 
     // Keep established small-vacancy curations; large multirequirement vacancies
     // use requirement-wise coverage without imposing a document-count ceiling.

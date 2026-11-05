@@ -36,13 +36,15 @@ function confirmationMonth(value: string): number | undefined {
  * Estimate elapsed calendar months only from structured, month-precision periods.
  * Intervals are [start month, end month); overlapping periods count once. A mixed
  * engineering/software role cannot establish continuous software or technology time.
+ * 'software-involved' totals are EMPLOYMENT INTERVALS in which professional
+ * development happened (including mixed roles), not full-time coding hours.
  * Ongoing records stop at their owner's latest confirmation, even when asOf is later.
  */
 export function summarizeExperiencePeriods(
   documents: KnowledgeDocument[],
   options: {
     asOf: Date;
-    scope: 'career' | 'software-development' | 'company';
+    scope: 'career' | 'software-development' | 'software-involved' | 'company';
     technology?: string;
     companyId?: string;
   },
@@ -68,10 +70,11 @@ export function summarizeExperiencePeriods(
     const matchesScope =
       options.scope === 'career' ||
       (options.scope === 'software-development' && pureSoftware) ||
+      (options.scope === 'software-involved' && period.areas.includes('software-development')) ||
       (options.scope === 'company' && document.id === options.companyId);
     const matchesTechnology =
       technology === undefined ||
-      (pureSoftware &&
+      ((pureSoftware || options.scope === 'software-involved') &&
         Boolean(document.technologies?.some((value) => technologyKey(value) === technology)));
     const start = monthIndex(period.start);
     const closed = period.end ? monthIndex(period.end) : undefined;

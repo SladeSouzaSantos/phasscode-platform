@@ -1,11 +1,18 @@
 import { z } from 'zod';
 import { createGroundedRecruiterGraph } from './grounded-recruiter-graph.js';
 import { PublicGraphEvidenceGateway } from './graph-public-policy.js';
-import { renderProfessionalAdvocacy } from './graph-professional-advocacy.js';
+import {
+  renderProfessionalAdvocacy,
+  type ProfessionalRenderOptions,
+} from './graph-professional-advocacy.js';
 import { verifyAndRenderNarrativeSelection } from './graph-narrative-verifier.js';
 import { vacancyRequirementSchema } from '../domain/evidence-graph.js';
 import type { VacancyRequirementPlan } from './graph-vacancy-plan.js';
-import type { EvidenceGraphRepository, VacancyRequirement } from '../domain/evidence-graph.js';
+import type {
+  EvidenceGraphRepository,
+  EvidenceSource,
+  VacancyRequirement,
+} from '../domain/evidence-graph.js';
 
 /**
  * F3.3 evidence-first evaluation: used by offline tests and the default-OFF
@@ -22,6 +29,8 @@ export interface GraphRecruiterPreviewOptions {
   requirementPlan?: (question: string) => VacancyRequirementPlan | Promise<VacancyRequirementPlan>;
   /** Explicitly approved related skills, never inferred from visitor text. */
   transferableSkills?: Readonly<Record<string, readonly VacancyRequirement[]>>;
+  /** Labels for claims come from the typed PPKS snapshot, not graph IDs. */
+  renderOptions?: ProfessionalRenderOptions;
 }
 
 export type GraphRecruiterPreviewResult = {
@@ -34,6 +43,8 @@ export type GraphRecruiterPreviewResult = {
     | 'unrecognized_requirements'
     | 'unavailable_or_incomplete';
   matchedRequirements: number;
+  /** Public evidence actually attached to verified graph claims. */
+  sources?: readonly EvidenceSource[];
   unrecognizedRequirements?: readonly string[];
 };
 
@@ -111,6 +122,7 @@ export async function evaluateGraphRecruiterPreview(
       result.requirements,
       result.matches,
       selection,
+      { ...options.renderOptions, showPriority: Boolean(plan) },
     );
     if (!answer) return fallback('unavailable_or_incomplete');
     return {
@@ -118,6 +130,18 @@ export async function evaluateGraphRecruiterPreview(
       answer,
       reason: 'verified',
       matchedRequirements: result.requirements.length,
+      sources: [
+        ...new Map(
+          result.matches
+            .flatMap((match) => match.sources)
+            .filter((source) =>
+              result.matches.some((match) =>
+                match.claims.some((claim) => claim.sourceIds.includes(source.id)),
+              ),
+            )
+            .map((source) => [source.id, source]),
+        ).values(),
+      ],
     };
   }
 
@@ -152,7 +176,10 @@ export async function evaluateGraphRecruiterPreview(
         .filter((match): match is NonNullable<typeof match> => Boolean(match?.claims.length)),
     ]),
   );
-  const answer = renderProfessionalAdvocacy(result.requirements, result.matches, usable);
+  const answer = renderProfessionalAdvocacy(result.requirements, result.matches, usable, {
+    ...options.renderOptions,
+    showPriority: Boolean(plan),
+  });
   if (!answer) return fallback('unavailable_or_incomplete');
   return {
     mode: 'transferable_graph',

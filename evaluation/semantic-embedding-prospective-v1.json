@@ -1,0 +1,712 @@
+{
+  "schemaVersion": "semantic-hybrid-corpus-v0",
+  "reviewStatus": "draft_not_human_approved",
+  "provenance": "synthetic_examples_only",
+  "purpose": "Prospective 44-case PT/EN ranking challenge composed before evaluating this cohort. Authored after reading existing technology glossary, not a blinded human gold set. Includes 26 paraphrases, 8 explicit known technologies, 6 out-of-catalog requests and 4 context/negation controls. Refrain from tuning the model or descriptions against this cohort.",
+  "cases": [
+    {
+      "id": "pt-par-react",
+      "language": "pt",
+      "text": "Interfaces declarativas de componentes com hooks, estado e renderização reativa.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 80,
+          "text": "Interfaces declarativas de componentes com hooks, estado e renderização reativa.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["React"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-flutter",
+      "language": "en",
+      "text": "Cross-platform mobile widget trees with hot reload and a language compiled for phones.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 86,
+          "text": "Cross-platform mobile widget trees with hot reload and a language compiled for phones.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Flutter"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-typescript",
+      "language": "pt",
+      "text": "Checagem de tipos em tempo de compilação para código ECMAScript moderno.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 72,
+          "text": "Checagem de tipos em tempo de compilação para código ECMAScript moderno.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["TypeScript"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-postgres",
+      "language": "en",
+      "text": "ACID relational datastore with JSONB document fields and extensions for spatial queries.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 88,
+          "text": "ACID relational datastore with JSONB document fields and extensions for spatial queries.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["PostgreSQL"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-mysql",
+      "language": "pt",
+      "text": "Banco relacional de código aberto com mecanismo InnoDB e origem no ecossistema Oracle.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 86,
+          "text": "Banco relacional de código aberto com mecanismo InnoDB e origem no ecossistema Oracle.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["MySQL"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-docker",
+      "language": "en",
+      "text": "Package microservices in portable OCI images and run them inside isolated containers.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 85,
+          "text": "Package microservices in portable OCI images and run them inside isolated containers.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Docker"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-swarm",
+      "language": "pt",
+      "text": "Cluster nativo de contêineres com redes overlay, serviços replicados e atualização contínua.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 92,
+          "text": "Cluster nativo de contêineres com redes overlay, serviços replicados e atualização contínua.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Docker Swarm"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-fastapi",
+      "language": "en",
+      "text": "Build async Python HTTP endpoints with automatic OpenAPI documentation and typed request validation.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 100,
+          "text": "Build async Python HTTP endpoints with automatic OpenAPI documentation and typed request validation.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["FastAPI"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-django",
+      "language": "pt",
+      "text": "Framework web Python completo com painel de administração integrado e migrações ORM.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 84,
+          "text": "Framework web Python completo com painel de administração integrado e migrações ORM.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Django"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-laravel",
+      "language": "en",
+      "text": "PHP framework offering Eloquent ORM, Artisan commands and database migrations.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 78,
+          "text": "PHP framework offering Eloquent ORM, Artisan commands and database migrations.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Laravel"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-pytest",
+      "language": "pt",
+      "text": "Testes em Python organizados com fixtures, parametrização de casos e assertivas simples.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 88,
+          "text": "Testes em Python organizados com fixtures, parametrização de casos e assertivas simples.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["pytest"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-playwright",
+      "language": "en",
+      "text": "Drive headless Chromium using browser selectors for end-to-end interaction tests.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 81,
+          "text": "Drive headless Chromium using browser selectors for end-to-end interaction tests.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Playwright"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-numpy",
+      "language": "pt",
+      "text": "Cálculo vetorizado sobre arranjos numéricos multidimensionais e operações de álgebra linear.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 92,
+          "text": "Cálculo vetorizado sobre arranjos numéricos multidimensionais e operações de álgebra linear.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["NumPy"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-pandas",
+      "language": "en",
+      "text": "Work with DataFrames, groupby aggregations and tabular joins for analytics.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 75,
+          "text": "Work with DataFrames, groupby aggregations and tabular joins for analytics.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["pandas"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-neo4j",
+      "language": "pt",
+      "text": "Persistência em grafo de propriedades com relacionamentos consultados pela linguagem Cypher.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 92,
+          "text": "Persistência em grafo de propriedades com relacionamentos consultados pela linguagem Cypher.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Neo4j"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-langgraph",
+      "language": "en",
+      "text": "Stateful agent workflows with checkpoints, conditional edges and resumable graph execution.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 91,
+          "text": "Stateful agent workflows with checkpoints, conditional edges and resumable graph execution.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["LangGraph"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-actions",
+      "language": "pt",
+      "text": "Pipelines YAML disparados por push e pull request para validar e publicar repositórios.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 87,
+          "text": "Pipelines YAML disparados por push e pull request para validar e publicar repositórios.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["GitHub Actions"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-redis",
+      "language": "en",
+      "text": "In-memory key/value engine supporting pub/sub, cache keys and expiring sessions.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 80,
+          "text": "In-memory key/value engine supporting pub/sub, cache keys and expiring sessions.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Redis"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-firebase",
+      "language": "pt",
+      "text": "Backend móvel gerenciado pelo Google com autenticação, sincronização e armazenamento em nuvem.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 94,
+          "text": "Backend móvel gerenciado pelo Google com autenticação, sincronização e armazenamento em nuvem.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Firebase"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-node",
+      "language": "en",
+      "text": "Server-side JavaScript execution environment powered by the V8 engine.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 70,
+          "text": "Server-side JavaScript execution environment powered by the V8 engine.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Node.js"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-springboot",
+      "language": "pt",
+      "text": "Serviços Java com auto-configuração, starters e servidor embutido na aplicação.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 79,
+          "text": "Serviços Java com auto-configuração, starters e servidor embutido na aplicação.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Spring Boot"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-springdata",
+      "language": "en",
+      "text": "Repository abstraction from Spring built on entity persistence via JPA.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 71,
+          "text": "Repository abstraction from Spring built on entity persistence via JPA.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Spring Data JPA"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-vite",
+      "language": "pt",
+      "text": "Servidor de desenvolvimento front-end com atualização instantânea de módulos e build rápido.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 92,
+          "text": "Servidor de desenvolvimento front-end com atualização instantânea de módulos e build rápido.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Vite"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-dart",
+      "language": "en",
+      "text": "Statically typed language that powers widget applications targeting mobile and web.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 83,
+          "text": "Statically typed language that powers widget applications targeting mobile and web.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Dart"]
+        }
+      ]
+    },
+    {
+      "id": "pt-par-python",
+      "language": "pt",
+      "text": "Linguagem interpretada de uso geral popular para scripts, automação e aprendizado de máquina.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 93,
+          "text": "Linguagem interpretada de uso geral popular para scripts, automação e aprendizado de máquina.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Python"]
+        }
+      ]
+    },
+    {
+      "id": "en-par-javascript",
+      "language": "en",
+      "text": "Dynamic prototype-based language typically executed in web browsers.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 68,
+          "text": "Dynamic prototype-based language typically executed in web browsers.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["JavaScript"]
+        }
+      ]
+    },
+    {
+      "id": "pt-explicit-java",
+      "language": "pt",
+      "text": "Proficiência técnica com Java.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 30,
+          "text": "Proficiência técnica com Java.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Java"]
+        }
+      ]
+    },
+    {
+      "id": "en-explicit-javascript",
+      "language": "en",
+      "text": "Candidates should know JavaScript.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 34,
+          "text": "Candidates should know JavaScript.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["JavaScript"]
+        }
+      ]
+    },
+    {
+      "id": "pt-explicit-sqlalchemy",
+      "language": "pt",
+      "text": "Experiência anterior com SQLAlchemy.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 36,
+          "text": "Experiência anterior com SQLAlchemy.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["SQLAlchemy"]
+        }
+      ]
+    },
+    {
+      "id": "en-explicit-react-router",
+      "language": "en",
+      "text": "Required experience building routes using React Router.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 55,
+          "text": "Required experience building routes using React Router.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["React Router"]
+        }
+      ]
+    },
+    {
+      "id": "pt-explicit-springweb",
+      "language": "pt",
+      "text": "Conhecimento obrigatório de Spring Web.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 39,
+          "text": "Conhecimento obrigatório de Spring Web.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Spring Web"]
+        }
+      ]
+    },
+    {
+      "id": "en-explicit-firebase",
+      "language": "en",
+      "text": "Hands-on Firebase configuration.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 32,
+          "text": "Hands-on Firebase configuration.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Firebase"]
+        }
+      ]
+    },
+    {
+      "id": "pt-explicit-docker-swarm",
+      "language": "pt",
+      "text": "Experiência profissional com Docker Swarm.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 42,
+          "text": "Experiência profissional com Docker Swarm.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Docker Swarm"]
+        }
+      ]
+    },
+    {
+      "id": "en-explicit-fastify",
+      "language": "en",
+      "text": "Use Fastify to create backend HTTP handlers.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 44,
+          "text": "Use Fastify to create backend HTTP handlers.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Fastify"]
+        }
+      ]
+    },
+    {
+      "id": "pt-oov-kotlin",
+      "language": "pt",
+      "text": "Desenvolvimento nativo com Kotlin Multiplatform.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 48,
+          "text": "Desenvolvimento nativo com Kotlin Multiplatform.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Kotlin"]
+        }
+      ]
+    },
+    {
+      "id": "en-oov-k8s",
+      "language": "en",
+      "text": "Production experience maintaining Kubernetes deployments.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 57,
+          "text": "Production experience maintaining Kubernetes deployments.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Kubernetes"]
+        }
+      ]
+    },
+    {
+      "id": "pt-oov-sqlserver",
+      "language": "pt",
+      "text": "Administração do SQL Server em ambiente corporativo.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 52,
+          "text": "Administração do SQL Server em ambiente corporativo.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["SQL Server"]
+        }
+      ]
+    },
+    {
+      "id": "en-oov-gitlabci",
+      "language": "en",
+      "text": "Maintain GitLab CI pipelines and runners.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 41,
+          "text": "Maintain GitLab CI pipelines and runners.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["GitLab CI"]
+        }
+      ]
+    },
+    {
+      "id": "pt-oov-rust",
+      "language": "pt",
+      "text": "Desenvolver microsserviços em Rust com regras de empréstimo.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 60,
+          "text": "Desenvolver microsserviços em Rust com regras de empréstimo.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Rust"]
+        }
+      ]
+    },
+    {
+      "id": "en-oov-go",
+      "language": "en",
+      "text": "Build Go services using goroutines and channels.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 48,
+          "text": "Build Go services using goroutines and channels.",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": ["Go"]
+        }
+      ]
+    },
+    {
+      "id": "en-context-company",
+      "language": "en",
+      "text": "The company's marketing site already runs JavaScript.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 53,
+          "text": "The company's marketing site already runs JavaScript.",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": ["JavaScript"]
+        }
+      ]
+    },
+    {
+      "id": "pt-context-future",
+      "language": "pt",
+      "text": "Nossa organização pretende adotar Kotlin no próximo ano.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 56,
+          "text": "Nossa organização pretende adotar Kotlin no próximo ano.",
+          "role": "context",
+          "relation": "future_stack",
+          "priority": "none",
+          "candidateLabels": ["Kotlin"]
+        }
+      ]
+    },
+    {
+      "id": "en-negation-docker",
+      "language": "en",
+      "text": "Prior Docker experience is explicitly not needed.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 49,
+          "text": "Prior Docker experience is explicitly not needed.",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": ["Docker"]
+        }
+      ]
+    },
+    {
+      "id": "pt-project-django",
+      "language": "pt",
+      "text": "O projeto interno mais antigo utilizava Django para administração.",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 66,
+          "text": "O projeto interno mais antigo utilizava Django para administração.",
+          "role": "context",
+          "relation": "project_claim",
+          "priority": "none",
+          "candidateLabels": ["Django"]
+        }
+      ]
+    }
+  ]
+}

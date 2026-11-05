@@ -1,0 +1,139 @@
+{
+  "cohort": "challenge_holdout_v1_frozen_before_first_rule_evaluation",
+  "corpusSha256": "9ca3f8cd004ec9f66c86f4720e36e021fc965fae5e7df9fb14f04682aa8ad964",
+  "corpusStatus": "synthetic_draft_not_human_reviewed",
+  "denominator": 47,
+  "externalLlmCalls": 0,
+  "graphQueries": 0,
+  "laya": {
+    "status": "not_executed_on_this_cohort"
+  },
+  "limitations": [
+    "Spans and labels are supplied by a synthetic provisional fixture, not extracted from real vacancies",
+    "Frozen before this first rule evaluation, but not independently human reviewed or fully blind",
+    "Laya must run separately on precisely the same cohort to make a paired comparison",
+    "Abstentions are NOT correct predictions and remain in the effective recall denominator",
+    "Scores cannot verify candidate skills or authorize production or shadow integration"
+  ],
+  "publicOrbeChanged": false,
+  "reportVersion": "semantic-typed-controlled-comparison-v1",
+  "rules": {
+    "abstained": 26,
+    "abstentionIds": [
+      "pt-company-vs-required:0",
+      "pt-company-vs-required:1",
+      "pt-implicit-must:0",
+      "pt-composite-mixed:0",
+      "pt-composite-mixed:1",
+      "pt-future-year:0",
+      "pt-company-non-requirement:0",
+      "pt-optional-choice:0",
+      "pt-negated-phrase:0",
+      "pt-negated-phrase:1",
+      "pt-transfer-not-proof:0",
+      "pt-project-inquiry:0",
+      "pt-ambiguous-slash:0",
+      "pt-ambiguous-slash:1",
+      "pt-conflicting:0",
+      "pt-academic-reference:0",
+      "en-future-stack:0",
+      "en-future-stack:1",
+      "en-must-know:0",
+      "en-must-know:1",
+      "en-current-stack:0",
+      "en-current-stack:1",
+      "en-job-not-stack:1",
+      "en-unmentioned-role:0",
+      "en-project-question:0",
+      "en-nonreq-sentence:0"
+    ],
+    "coverage": 0.4468,
+    "discrepancyIds": [
+      "pt-context-plus-need:1",
+      "pt-no-longer-required:0",
+      "en-no-experience:0",
+      "en-sql-precision:1"
+    ],
+    "effectiveJointRecall": 0.3617,
+    "falseRequirementPromotions": 3,
+    "groups": {
+      "expectedRelation": {
+        "candidate_requirement": {
+          "correctJoint": 14,
+          "resolved": 17,
+          "total": 31
+        },
+        "company_stack": {
+          "correctJoint": 2,
+          "resolved": 2,
+          "total": 6
+        },
+        "future_stack": {
+          "correctJoint": 0,
+          "resolved": 0,
+          "total": 2
+        },
+        "project_claim": {
+          "correctJoint": 0,
+          "resolved": 0,
+          "total": 2
+        },
+        "unrelated": {
+          "correctJoint": 1,
+          "resolved": 2,
+          "total": 6
+        }
+      },
+      "expectedRole": {
+        "alternative": {
+          "correctJoint": 2,
+          "resolved": 2,
+          "total": 3
+        },
+        "context": {
+          "correctJoint": 3,
+          "resolved": 4,
+          "total": 13
+        },
+        "desirable": {
+          "correctJoint": 4,
+          "resolved": 4,
+          "total": 6
+        },
+        "mandatory": {
+          "correctJoint": 6,
+          "resolved": 7,
+          "total": 14
+        },
+        "negated": {
+          "correctJoint": 2,
+          "resolved": 4,
+          "total": 5
+        },
+        "uncertain": {
+          "correctJoint": 0,
+          "resolved": 0,
+          "total": 6
+        }
+      },
+      "language": {
+        "en": {
+          "correctJoint": 6,
+          "resolved": 8,
+          "total": 18
+        },
+        "pt": {
+          "correctJoint": 11,
+          "resolved": 13,
+          "total": 29
+        }
+      }
+    },
+    "jointErrorsAmongResolved": 4,
+    "jointPrecisionAmongResolved": 0.8095,
+    "name": "deterministic_rule_gate",
+    "negationPromotions": 2,
+    "resolved": 21,
+    "total": 47
+  }
+}

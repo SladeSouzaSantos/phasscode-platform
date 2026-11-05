@@ -1,0 +1,64 @@
+name: Orbe F3.7 typed diagnostic (offline)
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/semantic-typed-offline.yml
+      - scripts/semantic_typed_rules_lab.py
+      - scripts/audit_f37_gold.py
+      - scripts/validate_f34_review_packet.py
+      - tests/test_f34_review_packet.py
+      - evaluation/semantic-f34-human-review-template-v1.json
+      - scripts/evaluate_f37_lexical_first.py
+      - tests/test_f37_lexical_first.py
+      - scripts/f37_strict_literal.py
+      - tests/test_f37_strict_literal.py
+      - scripts/evaluate_f37_strict_v2.py
+      - tests/test_f37_strict_v2.py
+      - evaluation/semantic-embedding-adversarial-v2.json
+      - evaluation/semantic-embedding-adversarial-v2.manifest.json
+      - scripts/benchmark_f37_minimac.sh
+      - evaluation/semantic-embedding-prospective-v1.json
+      - evaluation/semantic-embedding-prospective-v1.manifest.json
+      - tests/test_audit_f37_gold.py
+      - evaluation/semantic-hybrid-ppks-review-v0.json
+      - evaluation/vacancies-ppks-v12.json
+      - scripts/compare_semantic_typed_lab.py
+      - scripts/laya_semantic_lab.py
+      - tests/test_semantic_typed_rules_lab.py
+      - tests/test_compare_semantic_typed_lab.py
+      - tests/test_laya_semantic_lab.py
+      - evaluation/semantic-typed-holdout-v1.json
+      - evaluation/semantic-typed-holdout-v1.manifest.json
+      - evaluation/semantic-typed-holdout-v1-baseline.json
+      - evaluation/semantic-laya-manifest-v0.json
+      - evaluation/semantic-hybrid-corpus-v0.json
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: orbe-f37-typed-offline-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  typed-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - name: Python unit tests without model downloads or service credentials
+        run: |
+          python3 -m unittest discover -s tests -p test_semantic_typed_rules_lab.py -v
+          python3 -m unittest discover -s tests -p test_audit_f37_gold.py -v
+          python3 -m unittest discover -s tests -p test_f34_review_packet.py -v
+          python3 -m unittest discover -s tests -p test_f37_lexical_first.py -v
+          python3 -m unittest discover -s tests -p test_f37_strict_literal.py -v
+          python3 -m unittest discover -s tests -p test_f37_strict_v2.py -v
+          bash -n scripts/benchmark_f37_minimac.sh
+          python3 -m unittest discover -s tests -p test_compare_semantic_typed_lab.py -v
+          python3 -m unittest discover -s tests -p test_laya_semantic_lab.py -v
+      - name: Compare frozen corpus using deterministic rules only
+        run: |
+          python3 scripts/compare_semantic_typed_lab.py
+          python3 scripts/audit_f37_gold.py
+          python3 scripts/validate_f34_review_packet.py

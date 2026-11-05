@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "semantic-adversarial-v2-manifest",
+  "fixture": "evaluation/semantic-embedding-adversarial-v2.json",
+  "sourceCorpusCommit": "51a19a52783da12fa35169459165666b9f357a21",
+  "frozenPolicyCommit": "8476d91f587c98a63ad9c716a25da360a6a47331",
+  "authoredAfterPolicyCommit": true,
+  "evaluatedByModel": false,
+  "humanReviewed": false,
+  "fixtureSha256": "b43201fbd362780edfdbb146ba5a8d5a88a79e8b9fba60fb3d00a47bca24426b",
+  "fixtureGitBlob": "aaa1b1c3d98e5ee17f89f7fb1a1e755a091b8ca3",
+  "caseCount": 40,
+  "inCatalogLabels": 28,
+  "outOfCatalogLabels": 8,
+  "contextNegatedControls": 4,
+  "paraphrases": 20,
+  "explicitLiterals": 8,
+  "note": "Synthetic author-crafted holdout not independent human gold. Never tune policy on this v2 cohort or promote Shadow based on its result."
+}

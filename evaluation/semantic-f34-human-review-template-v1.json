@@ -1,0 +1,784 @@
+{
+  "schemaVersion": "orbe-f37-f34-human-review-template-v1",
+  "reviewStatus": "pending_external_human_review",
+  "source": {
+    "path": "evaluation/vacancies-ppks-v12.json",
+    "gitBlobSha": "9657f2a349002cb19a10d9011c8ba3cfde7f856a"
+  },
+  "provisionalAnnotations": {
+    "path": "evaluation/semantic-hybrid-ppks-review-v0.json",
+    "gitBlobSha": "1884c211f58e4c2bacc027b52a7fffc14755be0f"
+  },
+  "policy": "No inference of human approval from metadata. Independent reviewer must inspect complete original messages, annotate missing spans and approve in signed PR. No messages copied into this template.",
+  "cases": [
+    {
+      "id": "jobgether-pd",
+      "turnIndex": 0,
+      "kind": "recruiter_vacancy",
+      "coverage": {
+        "decision": "pending",
+        "omissions": [],
+        "notes": null
+      },
+      "annotations": [
+        {
+          "anchorId": "jobgether-pd:0",
+          "start": 72,
+          "end": 75,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "jobgether-pd:1",
+          "start": 77,
+          "end": 93,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "jobgether-pd:2",
+          "start": 95,
+          "end": 104,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "jobgether-pd:3",
+          "start": 106,
+          "end": 109,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "jobgether-pd:4",
+          "start": 111,
+          "end": 125,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "jobgether-pd:5",
+          "start": 127,
+          "end": 166,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        }
+      ],
+      "reviewer": {
+        "identity": null,
+        "reviewedAt": null,
+        "pullRequest": null
+      }
+    },
+    {
+      "id": "evoluservices-java",
+      "turnIndex": 0,
+      "kind": "recruiter_vacancy",
+      "coverage": {
+        "decision": "pending",
+        "omissions": [],
+        "notes": null
+      },
+      "annotations": [
+        {
+          "anchorId": "evoluservices-java:0",
+          "start": 59,
+          "end": 73,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "evoluservices-java:1",
+          "start": 75,
+          "end": 78,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "evoluservices-java:2",
+          "start": 80,
+          "end": 90,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "evoluservices-java:3",
+          "start": 92,
+          "end": 97,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "evoluservices-java:4",
+          "start": 99,
+          "end": 108,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "evoluservices-java:5",
+          "start": 110,
+          "end": 121,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "evoluservices-java:6",
+          "start": 123,
+          "end": 145,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "evoluservices-java:7",
+          "start": 148,
+          "end": 167,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        }
+      ],
+      "reviewer": {
+        "identity": null,
+        "reviewedAt": null,
+        "pullRequest": null
+      }
+    },
+    {
+      "id": "yandeh-fullstack",
+      "turnIndex": 0,
+      "kind": "recruiter_vacancy",
+      "coverage": {
+        "decision": "pending",
+        "omissions": [],
+        "notes": null
+      },
+      "annotations": [
+        {
+          "anchorId": "yandeh-fullstack:0",
+          "start": 50,
+          "end": 68,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "yandeh-fullstack:1",
+          "start": 70,
+          "end": 82,
+          "sourceRole": "alternative",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "yandeh-fullstack:2",
+          "start": 84,
+          "end": 101,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "yandeh-fullstack:3",
+          "start": 103,
+          "end": 108,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "yandeh-fullstack:4",
+          "start": 110,
+          "end": 116,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "yandeh-fullstack:5",
+          "start": 118,
+          "end": 132,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "yandeh-fullstack:6",
+          "start": 134,
+          "end": 139,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "yandeh-fullstack:7",
+          "start": 141,
+          "end": 144,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "yandeh-fullstack:8",
+          "start": 147,
+          "end": 159,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        }
+      ],
+      "reviewer": {
+        "identity": null,
+        "reviewedAt": null,
+        "pullRequest": null
+      }
+    },
+    {
+      "id": "tsystems-devops",
+      "turnIndex": 0,
+      "kind": "recruiter_vacancy",
+      "coverage": {
+        "decision": "pending",
+        "omissions": [],
+        "notes": null
+      },
+      "annotations": [
+        {
+          "anchorId": "tsystems-devops:0",
+          "start": 59,
+          "end": 70,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "tsystems-devops:1",
+          "start": 72,
+          "end": 77,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "tsystems-devops:2",
+          "start": 79,
+          "end": 82,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "tsystems-devops:3",
+          "start": 84,
+          "end": 90,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "tsystems-devops:4",
+          "start": 92,
+          "end": 96,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "tsystems-devops:5",
+          "start": 98,
+          "end": 103,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "tsystems-devops:6",
+          "start": 105,
+          "end": 118,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "tsystems-devops:7",
+          "start": 120,
+          "end": 129,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "tsystems-devops:8",
+          "start": 132,
+          "end": 147,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        }
+      ],
+      "reviewer": {
+        "identity": null,
+        "reviewedAt": null,
+        "pullRequest": null
+      }
+    },
+    {
+      "id": "viceri-fullstack",
+      "turnIndex": 0,
+      "kind": "recruiter_vacancy",
+      "coverage": {
+        "decision": "pending",
+        "omissions": [],
+        "notes": null
+      },
+      "annotations": [
+        {
+          "anchorId": "viceri-fullstack:0",
+          "start": 41,
+          "end": 56,
+          "sourceRole": "alternative",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "viceri-fullstack:1",
+          "start": 58,
+          "end": 65,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "viceri-fullstack:2",
+          "start": 67,
+          "end": 77,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "viceri-fullstack:3",
+          "start": 79,
+          "end": 89,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "viceri-fullstack:4",
+          "start": 91,
+          "end": 100,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "viceri-fullstack:5",
+          "start": 102,
+          "end": 117,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "viceri-fullstack:6",
+          "start": 119,
+          "end": 125,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "viceri-fullstack:7",
+          "start": 128,
+          "end": 133,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        }
+      ],
+      "reviewer": {
+        "identity": null,
+        "reviewedAt": null,
+        "pullRequest": null
+      }
+    },
+    {
+      "id": "foursys-java-ia",
+      "turnIndex": 0,
+      "kind": "recruiter_vacancy",
+      "coverage": {
+        "decision": "pending",
+        "omissions": [],
+        "notes": null
+      },
+      "annotations": [
+        {
+          "anchorId": "foursys-java-ia:0",
+          "start": 49,
+          "end": 71,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "foursys-java-ia:1",
+          "start": 73,
+          "end": 95,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "foursys-java-ia:2",
+          "start": 97,
+          "end": 107,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "foursys-java-ia:3",
+          "start": 109,
+          "end": 125,
+          "sourceRole": "uncertain",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "foursys-java-ia:4",
+          "start": 127,
+          "end": 133,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "foursys-java-ia:5",
+          "start": 136,
+          "end": 158,
+          "sourceRole": "mandatory",
+          "sourceRelation": "candidate_requirement",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        }
+      ],
+      "reviewer": {
+        "identity": null,
+        "reviewedAt": null,
+        "pullRequest": null
+      }
+    },
+    {
+      "id": "academico-unisul",
+      "turnIndex": 0,
+      "kind": "academic_question",
+      "coverage": {
+        "decision": "pending",
+        "omissions": [],
+        "notes": null
+      },
+      "annotations": [
+        {
+          "anchorId": "academico-unisul:0",
+          "start": 12,
+          "end": 33,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "academico-unisul:1",
+          "start": 51,
+          "end": 60,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "academico-unisul:2",
+          "start": 113,
+          "end": 135,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "academico-unisul:3",
+          "start": 154,
+          "end": 173,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        }
+      ],
+      "reviewer": {
+        "identity": null,
+        "reviewedAt": null,
+        "pullRequest": null
+      }
+    },
+    {
+      "id": "academico-etep",
+      "turnIndex": 0,
+      "kind": "academic_question",
+      "coverage": {
+        "decision": "pending",
+        "omissions": [],
+        "notes": null
+      },
+      "annotations": [
+        {
+          "anchorId": "academico-etep:0",
+          "start": 13,
+          "end": 47,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "academico-etep:1",
+          "start": 83,
+          "end": 111,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "academico-etep:2",
+          "start": 120,
+          "end": 163,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        }
+      ],
+      "reviewer": {
+        "identity": null,
+        "reviewedAt": null,
+        "pullRequest": null
+      }
+    },
+    {
+      "id": "academico-cursos",
+      "turnIndex": 0,
+      "kind": "academic_question",
+      "coverage": {
+        "decision": "pending",
+        "omissions": [],
+        "notes": null
+      },
+      "annotations": [
+        {
+          "anchorId": "academico-cursos:0",
+          "start": 9,
+          "end": 53,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "academico-cursos:1",
+          "start": 64,
+          "end": 95,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        },
+        {
+          "anchorId": "academico-cursos:2",
+          "start": 98,
+          "end": 174,
+          "sourceRole": "context",
+          "sourceRelation": "academic_question",
+          "reviewDecision": "pending",
+          "reviewedRole": null,
+          "reviewedRelation": null,
+          "notes": null
+        }
+      ],
+      "reviewer": {
+        "identity": null,
+        "reviewedAt": null,
+        "pullRequest": null
+      }
+    }
+  ]
+}

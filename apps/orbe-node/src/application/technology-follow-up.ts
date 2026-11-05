@@ -1,0 +1,70 @@
+import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
+
+/**
+ * Syntax-only recognition of a short, technical ellipsis. The caller must
+ * additionally have eligible recruiter conversation history to use it.
+ * Unknown capitalized identifiers (Go, Rust, C#) are allowed as questions,
+ * NOT interpreted as evidence of experience.
+ *
+ * Deliberately reject natural-language phrases, URLs, instructions, and
+ * nontechnical continuations such as "E com a receita?".
+ */
+export function ellipticalTechnology(text: string): string | undefined {
+  const clean = text
+    .trim()
+    .replace(/[?!.,;:]+$/g, '')
+    .trim();
+  const match = /^e\s+(?:(?:com|sobre|em)\s+)?(.{1,42})$/i.exec(clean);
+  if (!match) return undefined;
+  // Short recruiter follow-ups often contain a definite article:
+  // "E com o Go?", "E com a AWS?", "E com os bancos SQL?".
+  // Remove only a leading Portuguese article before checking whether the
+  // remaining phrase is a technical identifier. This does not admit ordinary
+  // off-topic phrases or imply proficiency in an unknown technology.
+  const candidate = match[1]!.trim().replace(/^(?:o|a|os|as)\s+/i, '');
+  if (!/^[\p{L}\p{N}+#.\-/ ]+$/u.test(candidate)) return undefined;
+  const words = candidate.split(/\s+/);
+  if (words.length > 3) return undefined;
+  // A complete question, such as "E quais projetos React?", must retain its
+  // own project intent, not be reinterpreted as a technology-name ellipsis.
+  if (
+    /\b(?:qual|quais|como|por|que|projetos?|repositorios?|experiencia|profissional|cursos?|formacao|sobre|utiliza|usa|sabe|domina|senhas?|tokens?|segredo|receita|clima|sistema|prompt|instrucoes|passaporte)\b/i.test(
+      knowledgePhrase(candidate),
+    )
+  )
+    return undefined;
+  const knownTechnology = mentionedTechnologies(candidate).size > 0;
+  // A capitalized technology-style name may not be part of our fixed
+  // scanner (e.g., Go); do not infer expertise merely from the spelling.
+  const technicalIdentifier =
+    /^(?:[A-Z][a-zA-Z0-9+#.-]{1,32}|[A-Z][a-zA-Z0-9+#.-]{1,22}(?:\s+[A-Z][a-zA-Z0-9+#.-]{1,22}){1,2})$/.test(
+      candidate,
+    );
+  if (!technicalIdentifier && !(knownTechnology && words.length <= 2)) return undefined;
+  return candidate;
+}
+
+/**
+ * Reconstructs only the previous *intent*, not previous technology names.
+ * This prevents "Java? ... E com Go?" from mixing Java evidence with the
+ * requested Go skill. The original visitor turn remains unchanged in storage.
+ */
+export function rewriteEllipticalTechnologyQuestion(
+  previousQuestion: string,
+  technology: string,
+): string {
+  const previous = knowledgePhrase(previousQuestion);
+  if (
+    /\b(?:projetos?|repositorios?|codigo fonte|exemplos? de projeto|aplicativos?)\b/.test(previous)
+  )
+    return `Quais projetos de Pedro utilizam ${technology}?`;
+  if (
+    /\b(?:experienc\w*|profission\w*|trabalh\w*|empreg\w*|atuac\w*|atuou|domina|dominio|conhece|conhecimento|sabe)\b/.test(
+      previous,
+    )
+  )
+    return `Pedro tem experiência profissional com ${technology}?`;
+  if (/\b(?:cursos?|graduac\w*|formac\w*|pos graduac\w*|certific\w*|estud\w*)\b/.test(previous))
+    return `Quais formações ou cursos documentados Pedro possui sobre ${technology}?`;
+  return `Quais experiências ou projetos documentados de Pedro demonstram uso de ${technology}?`;
+}

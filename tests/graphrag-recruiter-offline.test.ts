@@ -27,7 +27,7 @@ describe('F3.4 initial offline recruiter corpus (not a live baseline comparison)
       'academico-etep',
       'academico-cursos',
     ];
-    expect(report.reportVersion).toBe('orbe-graphrag-offline-matrix-v1');
+    expect(report.reportVersion).toBe('orbe-graphrag-offline-matrix-v2');
     expect(report.mode).toBe('offline_ppks_projection');
     expect(report.baselineComparison).toBe('not_run');
     expect(report.liveLlmCalls).toBe(0);
@@ -37,10 +37,45 @@ describe('F3.4 initial offline recruiter corpus (not a live baseline comparison)
     expect(
       report.totals.verified + report.totals.transferable + report.totals.canonicalFallback,
     ).toBe(9);
+    expect(report.totals.activePolicyVerified + report.totals.activePolicyFallback).toBe(9);
     expect(report.cases.every((item) => item.turns[0]?.index === 0)).toBe(true);
     expect(report.cases.every((item) => item.turns[0]?.mode)).toBe(true);
+    expect(report.cases.every((item) => item.turns[0]?.activePolicyMode)).toBe(true);
     expect(JSON.stringify(report)).not.toContain('Sou recrutador');
     expect(JSON.stringify(report)).not.toContain('private-db-password');
+  });
+
+  it('does not mistake preview evidence for Active eligibility on incomplete recruiter prose', async () => {
+    const report = await evaluateStoredOfflineRecruiterMatrix();
+    const evolu = report.cases.find((item) => item.id === 'evoluservices-java')?.turns[0];
+    expect(evolu?.mode).toBe('verified_graph');
+    expect(evolu?.vacancyCoverageStatus).toBe('needs_review');
+    expect(evolu?.activePolicyMode).toBe('canonical_ppks');
+    expect(evolu?.activePolicySourceCount).toBe(0);
+  });
+
+  it('accepts an explicit focused requirement through the same Active policy without LLM calls', async () => {
+    const fixture = JSON.stringify({
+      version: 'active-policy-focused-smoke',
+      cases: [
+        {
+          id: 'structured-java',
+          category: 'smoke',
+          turns: [{ message: 'Requisitos: Java' }],
+        },
+      ],
+    });
+    const report = await evaluateOfflineRecruiterMatrix(fixture, await projectPpksEvidenceGraph());
+    expect(report.totals).toMatchObject({
+      cases: 1,
+      turns: 1,
+      activePolicyVerified: 1,
+      activePolicyFallback: 0,
+    });
+    expect(report.cases[0]?.turns[0]?.activePolicyMode).toBe('verified_graph');
+    expect(report.cases[0]?.turns[0]?.activePolicySourceCount).toBeGreaterThan(0);
+    expect(report.liveLlmCalls).toBe(0);
+    expect(report.graphDatabaseQueries).toBe(0);
   });
 
   it('replays the same immutable corpus deterministically', async () => {

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "semantic-embedding-onnx-manifest-v1",
+  "modelRepo": "Horizon-Labs/multilingual-embedding-small",
+  "revision": "033028575b040790aef3064b2a045245ee54d238",
+  "license": "apache-2.0",
+  "embeddingDimensions": 1024,
+  "maxTokens": 256,
+  "outputName": "sentence_embedding",
+  "purpose": "offline_retrieval_benchmark_only",
+  "files": [
+    {
+      "path": "onnx/model_quantized.onnx",
+      "sha256": "67a50ea91c7dc8a1c54e73df94e1ab934b8918edb24d2da316f7ec3bdb23fae2"
+    },
+    {
+      "path": "tokenizer.json",
+      "sha256": "0a5069feab370ece9f452dcda41c0ba2c216eebf6cb49b06893698f53cdc2b0b"
+    }
+  ],
+  "note": "Immutable revision verified against model API and SHA256SUMS (2026-11-04). Only these files may be downloaded by the lab. No weights downloaded during CI, build or application startup."
+}

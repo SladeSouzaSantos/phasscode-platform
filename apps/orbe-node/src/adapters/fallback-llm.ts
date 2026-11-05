@@ -10,7 +10,11 @@ import { AppError } from '../domain/errors.js';
 import type { LlmCallBudget } from '../domain/llm-budget.js';
 import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
 import { createFallbackModelFactory, type BoundModelPort } from './llm-model-factory.js';
-import { LlmInvocationController, type LlmCooldownStore } from './llm-invocation-controller.js';
+import {
+  LlmInvocationController,
+  type LlmCooldownStore,
+  type LlmInvocationDiagnostic,
+} from './llm-invocation-controller.js';
 import { RedisLlmCallBudget } from './redis-llm-budget.js';
 import { RedisLlmCooldownStore } from './redis-llm-cooldown.js';
 import { createFallbackRedisIdentities } from './fallback-redis-identities.js';
@@ -31,6 +35,7 @@ interface FallbackDependencies {
   cooldownStore: LlmCooldownStore;
   maxContextChars: number;
   onInvocation?: (event: LlmInvocationEvent) => void;
+  onDiagnostic?: (event: LlmInvocationDiagnostic) => void;
 }
 
 export function createFallbackInvocationFactory({
@@ -41,6 +46,7 @@ export function createFallbackInvocationFactory({
   cooldownStore,
   maxContextChars,
   onInvocation,
+  onDiagnostic,
 }: FallbackDependencies): LlmInvocationFactory {
   const controller = new LlmInvocationController({
     candidates: config.providers,
@@ -56,6 +62,7 @@ export function createFallbackInvocationFactory({
     const turn = controller.createTurn(signal);
     return async (messages) => {
       const result = await turn.run<AIMessage>({
+        ...(onDiagnostic ? { onDiagnostic } : {}),
         beforeAttempt: async (candidateId) => {
           signal.throwIfAborted();
           const contextCharacters = bound
@@ -87,11 +94,15 @@ export function createFallbackInvocationFactory({
             .get(candidateId as LlmFallbackProviderId)!
             .invoke(messages, { signal: attemptSignal }),
       });
-      onInvocation?.({
-        provider: result.candidateId as LlmFallbackProviderId,
-        attempts: result.attempts,
-        fallbackUsed: result.fallbackUsed,
-      });
+      try {
+        onInvocation?.({
+          provider: result.candidateId as LlmFallbackProviderId,
+          attempts: result.attempts,
+          fallbackUsed: result.fallbackUsed,
+        });
+      } catch {
+        // Observability failures must never discard a successful response.
+      }
       return result.value;
     };
   };
@@ -104,6 +115,7 @@ export function createRedisFallbackInvocationFactory(
   redis: Redis,
   globalBudget: LlmCallBudget,
   onInvocation?: (event: LlmInvocationEvent) => void,
+  onDiagnostic?: (event: LlmInvocationDiagnostic) => void,
 ): LlmInvocationFactory {
   if (!config.llmFallback.enabled) throw new Error('Fallback LLM não está habilitado.');
   const fallback = config.llmFallback;
@@ -147,5 +159,6 @@ export function createRedisFallbackInvocationFactory(
         ),
     },
     ...(onInvocation ? { onInvocation } : {}),
+    ...(onDiagnostic ? { onDiagnostic } : {}),
   });
 }
