@@ -57,6 +57,35 @@ jobs:
           assert len(p["checksums"])==2
           print("F37_LAYA_CHECKPOINT_PINNED_AND_VERIFIED")
           PY
+      - name: Reconcile SDK tokenizer compatibility OFFLINE in temporary writable model dir
+        shell: bash
+        run: |
+          set -euo pipefail
+          # SDK 0.4.22 atomically patches tokenizer_config.json for recent transformers.
+          # Do this once in isolated writable storage, not during read-only inference.
+          docker run --rm --network none --cpus 2 --memory 5g \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --user "$(id -u):$(id -g)" \
+            -e HF_HOME=/tmp/hf -e HOME=/tmp -e XDG_CACHE_HOME=/tmp/cache \
+            -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \
+            -e USE_TF=0 -e TOKENIZERS_PARALLELISM=false \
+            --tmpfs /tmp:rw,nosuid,nodev,size=512m \
+            --mount "type=bind,src=$RUNNER_TEMP/laya-model,dst=/models" \
+            --entrypoint python orbe-f37-laya-lab:ephemeral \
+            -c 'import laya; laya.load("/models", device="cpu"); print("F37_LAYA_TOKENIZER_CONFIG_RECONCILED_OFFLINE")'
+          # The model weights and tokenizer JSON must still match pinned LFS digests.
+          docker run --rm --network none --read-only \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --user "$(id -u):$(id -g)" \
+            --mount "type=bind,src=$RUNNER_TEMP/laya-model,dst=/models,readonly" \
+            orbe-f37-laya-lab:ephemeral verify --model-dir /models \
+            > "$RUNNER_TEMP/laya-verify-after-reconcile.json"
+          python3 - <<'PY'
+          import json, os
+          x=json.load(open(os.environ["RUNNER_TEMP"]+"/laya-verify-after-reconcile.json"))
+          assert x["status"]=="LAYA_VERIFY_SHA256_OK"
+          print("F37_LAYA_SHA256_STILL_VALID_AFTER_COMPAT_PATCH")
+          PY
       - name: Infer only synthetic clauses with no network or service secrets
         shell: bash
         run: |
