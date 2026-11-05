@@ -242,7 +242,10 @@ describe('HydraDB LAB: EvidenceGraphRepository shadow adapter (no Orbe API wirin
     const repo = new HydraDbLabShadowEvidenceRepository(makeCanonical(), {
       mode: 'shadow', runKey, transport, onDecision: (d) => decisions.push(d),
     });
-    const outputs = await repo.findEvidence([requirement('GraphQL\") DETACH DELETE n //')]);
+    const outputs = await repo.findEvidence([{
+      kind: 'vacancy_requirement', id: 'malicious',
+      label: 'GraphQL\\\") DETACH DELETE n //', mandatory: true,
+    }]);
     expect(outputs[0]?.claims).toHaveLength(0);
     expect(read).not.toHaveBeenCalled();
     expect(decisions[0]?.reason).toBe('UNSUPPORTED_PUBLIC_FIXTURE');
@@ -267,7 +270,12 @@ describe('HydraDB LAB: EvidenceGraphRepository shadow adapter (no Orbe API wirin
     const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe('http://127.0.0.1:18443/v1/graphs/lab/query');
     expect(init.method).toBe('POST');
-    expect(JSON.stringify(init.body)).toContain('\"$run\"');
-    expect(JSON.stringify(init.body)).not.toContain('DETACH DELETE');
+    const body = JSON.parse(String(init.body)) as {
+      query: string;
+      parameters: Record<string, string>;
+    };
+    expect(body.query).toContain('$run');
+    expect(body.parameters).toEqual({ skill: 'java', run: runKey });
+    expect(body.query).not.toContain('DETACH DELETE');
   });
 });
