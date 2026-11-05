@@ -320,7 +320,8 @@ function requirement(name: string): VacancyRequirement {
 }
 
 function comparable(value: unknown): string {
-  return JSON.stringify(value);
+  // JSON.stringify(undefined) returns undefined rather than a string.
+  return JSON.stringify(value) ?? 'undefined';
 }
 
 async function checkReader(
