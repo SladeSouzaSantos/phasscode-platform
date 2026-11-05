@@ -41,6 +41,7 @@ jobs:
           set -euo pipefail
           node --import tsx scripts/export-semantic-skill-catalog.ts > "$RUNNER_TEMP/catalog.json"
           node --import tsx scripts/evaluate-semantic-lexical.ts > "$RUNNER_TEMP/lexical.json"
+          node --import tsx scripts/evaluate-semantic-lexical.ts --paraphrase-challenge > "$RUNNER_TEMP/lexical-challenge.json"
           node -e 'const c = require(process.env.RUNNER_TEMP + "/catalog.json"); if(c.skills.length < 1) process.exit(1); console.log("F37_CATALOG_EXPORT_SKILLS=" + c.skills.length)'
       - name: Download only the two pinned Hugging Face artifacts; enforce SHA256
         shell: bash
@@ -94,10 +95,49 @@ jobs:
               "latencyMs":p["latencyMs"],
           }, separators=(",", ":")))
           PY
+      - name: Benchmark provisional paraphrase challenge (no network)
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network none --read-only \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --cpus 2 --memory 2g --pids-limit 128 \
+            --tmpfs /tmp:rw,nosuid,nodev,size=64m \
+            --user "$(id -u):$(id -g)" \
+            --mount "type=bind,src=$RUNNER_TEMP/semantic-model,dst=/models,readonly" \
+            --mount "type=bind,src=$RUNNER_TEMP/catalog.json,dst=/lab/catalog.json,readonly" \
+            --mount "type=bind,src=$RUNNER_TEMP/lexical-challenge.json,dst=/lab/lexical.json,readonly" \
+            --mount "type=bind,src=$GITHUB_WORKSPACE/evaluation/semantic-embedding-paraphrase-v0.json,dst=/lab/challenge.json,readonly" \
+            orbe-f37-onnx-lab:ephemeral benchmark \
+            --model-dir /models \
+            --catalog /lab/catalog.json \
+            --corpus /lab/challenge.json \
+            --lexical-report /lab/lexical.json \
+            > "$RUNNER_TEMP/embedding-challenge-report.json"
+          python3 - <<'PY'
+          import json, os
+          p = json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "embedding-challenge-report.json")))
+          t = p["totals"]
+          assert t["cases"] == 18
+          assert t["expectedInCatalog"] > 0
+          assert p["lexicalReference"]["expectedInCatalog"] == t["expectedInCatalog"]
+          assert p["networkCallsDuringBenchmark"] == 0
+          print("F37_PARAPHRASE_CHALLENGE_OK", json.dumps({
+              "cases":t["cases"],"known":t["expectedInCatalog"],"oov":t["expectedOutOfCatalog"],
+              "recallAt1":t["recallAt1"],"recallAt3":t["recallAt3"],
+              "recallAt5":t["recallAt5"],"mrr":t["mrrFirstKnown"],
+              "lexicalAt1":p["lexicalReference"]["recallAt1"],
+              "lexicalAt3":p["lexicalReference"]["recallAt3"],
+              "top1Wrong":t["top1NotInExpectedLabel"],
+              "rssMiB":p["resource"]["peakRssMiB"],
+          }, separators=(",", ":")))
+          PY
       - name: Upload only synthetic aggregate report (no model files)
         uses: actions/upload-artifact@v4
         with:
           name: f37-onnx-lab-aggregate
-          path: ${{ runner.temp }}/embedding-report.json
+          path: |
+            ${{ runner.temp }}/embedding-report.json
+            ${{ runner.temp }}/embedding-challenge-report.json
           retention-days: 7
           if-no-files-found: error
