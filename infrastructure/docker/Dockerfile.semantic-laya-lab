@@ -13,4 +13,6 @@ RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu 
 COPY scripts/laya_semantic_lab.py scripts/laya_semantic_lab.py
 COPY evaluation/semantic-laya-manifest-v0.json evaluation/semantic-laya-manifest-v0.json
 COPY evaluation/semantic-hybrid-corpus-v0.json evaluation/semantic-hybrid-corpus-v0.json
+# Frozen synthetic PT/EN challenge; no visitor content or private evidence.
+COPY evaluation/semantic-typed-holdout-v1.json evaluation/semantic-typed-holdout-v1.json
 ENTRYPOINT ["python", "scripts/laya_semantic_lab.py"]
