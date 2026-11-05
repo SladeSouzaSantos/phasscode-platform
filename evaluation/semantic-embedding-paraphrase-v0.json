@@ -1,0 +1,332 @@
+{
+  "schemaVersion": "semantic-hybrid-corpus-v0",
+  "reviewStatus": "draft_not_human_approved",
+  "provenance": "synthetic_examples_only",
+  "purpose": "Provisional paraphrase challenge to test semantic retrieval against explicit lexical label spotting; NOT human-approved; no real visitor text or evidence claims.",
+  "cases": [
+    {
+      "id": "flutter-description",
+      "language": "pt",
+      "text": "SDK do Google para criar aplicativos móveis e web com uma única base de código",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 78,
+          "text": "SDK do Google para criar aplicativos móveis e web com uma única base de código",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Flutter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "typescript-description",
+      "language": "pt",
+      "text": "Superset tipado de JavaScript que compila para JavaScript",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 57,
+          "text": "Superset tipado de JavaScript que compila para JavaScript",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "TypeScript"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "postgres-description",
+      "language": "pt",
+      "text": "Banco relacional de código aberto associado à extensão geoespacial PostGIS",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 74,
+          "text": "Banco relacional de código aberto associado à extensão geoespacial PostGIS",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "PostgreSQL"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redis-description",
+      "language": "pt",
+      "text": "Armazenamento chave-valor em memória para cache e sessões",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 57,
+          "text": "Armazenamento chave-valor em memória para cache e sessões",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Redis"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "langgraph-description",
+      "language": "pt",
+      "text": "Orquestração de agentes de IA como grafos de estados persistentes",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 65,
+          "text": "Orquestração de agentes de IA como grafos de estados persistentes",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "LangGraph"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fastapi-description",
+      "language": "pt",
+      "text": "Framework Python para APIs com validação baseada em anotações de tipos",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 70,
+          "text": "Framework Python para APIs com validação baseada em anotações de tipos",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "FastAPI"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "github-actions-description",
+      "language": "pt",
+      "text": "Workflows de integração contínua executados em repositórios hospedados no GitHub",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 80,
+          "text": "Workflows de integração contínua executados em repositórios hospedados no GitHub",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "GitHub Actions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "springboot-description",
+      "language": "pt",
+      "text": "Framework Java de aplicações web com starters e autoconfiguração",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 64,
+          "text": "Framework Java de aplicações web com starters e autoconfiguração",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Spring Boot"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "laravel-description",
+      "language": "pt",
+      "text": "Framework PHP cujo ORM integrado é o Eloquent",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 45,
+          "text": "Framework PHP cujo ORM integrado é o Eloquent",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Laravel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "react-description",
+      "language": "pt",
+      "text": "Biblioteca declarativa de componentes de interfaces criada pela Meta",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 68,
+          "text": "Biblioteca declarativa de componentes de interfaces criada pela Meta",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "React"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pytest-description",
+      "language": "pt",
+      "text": "Ferramenta de testes da linguagem Python baseada em funções e fixtures",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 70,
+          "text": "Ferramenta de testes da linguagem Python baseada em funções e fixtures",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "pytest"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pandas-description",
+      "language": "pt",
+      "text": "Biblioteca de análise tabular Python com estruturas DataFrame",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 61,
+          "text": "Biblioteca de análise tabular Python com estruturas DataFrame",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "pandas"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "docker-swarm-description",
+      "language": "pt",
+      "text": "Modo de orquestração de serviços em enxames de containers nativo do Docker",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 74,
+          "text": "Modo de orquestração de serviços em enxames de containers nativo do Docker",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Docker Swarm"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "zod-description",
+      "language": "pt",
+      "text": "Biblioteca TypeScript de schemas e validação de dados em tempo de execução",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 74,
+          "text": "Biblioteca TypeScript de schemas e validação de dados em tempo de execução",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Zod"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "terraform-oov",
+      "language": "pt",
+      "text": "Ferramenta HashiCorp de infraestrutura como código escrita em HCL",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 65,
+          "text": "Ferramenta HashiCorp de infraestrutura como código escrita em HCL",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Terraform"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kubernetes-oov",
+      "language": "pt",
+      "text": "Orquestrador de pods e clusters de containers em múltiplos nós",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 62,
+          "text": "Orquestrador de pods e clusters de containers em múltiplos nós",
+          "role": "mandatory",
+          "relation": "candidate_requirement",
+          "priority": "mandatory",
+          "candidateLabels": [
+            "Kubernetes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "company-cache-context",
+      "language": "pt",
+      "text": "A empresa usa armazenamento chave-valor em memória para cache, mas isso não é requisito desta vaga",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 98,
+          "text": "A empresa usa armazenamento chave-valor em memória para cache, mas isso não é requisito desta vaga",
+          "role": "context",
+          "relation": "company_stack",
+          "priority": "none",
+          "candidateLabels": [
+            "Redis"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "negated-multiplatform",
+      "language": "pt",
+      "text": "Não exigimos o SDK do Google para criar aplicativos móveis multiplataforma",
+      "annotations": [
+        {
+          "start": 0,
+          "end": 74,
+          "text": "Não exigimos o SDK do Google para criar aplicativos móveis multiplataforma",
+          "role": "negated",
+          "relation": "candidate_requirement",
+          "priority": "none",
+          "candidateLabels": [
+            "Flutter"
+          ]
+        }
+      ]
+    }
+  ]
+}
