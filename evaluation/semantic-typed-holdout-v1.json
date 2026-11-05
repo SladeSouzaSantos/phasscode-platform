@@ -17,9 +17,7 @@
           "role": "context",
           "relation": "company_stack",
           "priority": "none",
-          "candidateLabels": [
-            "Java"
-          ]
+          "candidateLabels": ["Java"]
         },
         {
           "start": 62,
@@ -28,9 +26,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Kotlin"
-          ]
+          "candidateLabels": ["Kotlin"]
         }
       ]
     },
@@ -46,9 +42,7 @@
           "role": "negated",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "Kafka"
-          ]
+          "candidateLabels": ["Kafka"]
         },
         {
           "start": 45,
@@ -57,9 +51,7 @@
           "role": "desirable",
           "relation": "candidate_requirement",
           "priority": "desirable",
-          "candidateLabels": [
-            "Linux"
-          ]
+          "candidateLabels": ["Linux"]
         }
       ]
     },
@@ -75,9 +67,7 @@
           "role": "alternative",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Java ou Kotlin"
-          ]
+          "candidateLabels": ["Java ou Kotlin"]
         }
       ]
     },
@@ -93,9 +83,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Python"
-          ]
+          "candidateLabels": ["Python"]
         }
       ]
     },
@@ -111,9 +99,7 @@
           "role": "context",
           "relation": "company_stack",
           "priority": "none",
-          "candidateLabels": [
-            "PostgreSQL"
-          ]
+          "candidateLabels": ["PostgreSQL"]
         },
         {
           "start": 57,
@@ -122,9 +108,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "SQL Server"
-          ]
+          "candidateLabels": ["SQL Server"]
         }
       ]
     },
@@ -140,9 +124,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Java"
-          ]
+          "candidateLabels": ["Java"]
         },
         {
           "start": 28,
@@ -151,9 +133,7 @@
           "role": "desirable",
           "relation": "candidate_requirement",
           "priority": "desirable",
-          "candidateLabels": [
-            "React"
-          ]
+          "candidateLabels": ["React"]
         }
       ]
     },
@@ -169,9 +149,7 @@
           "role": "context",
           "relation": "future_stack",
           "priority": "none",
-          "candidateLabels": [
-            "Go"
-          ]
+          "candidateLabels": ["Go"]
         },
         {
           "start": 58,
@@ -180,9 +158,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Java"
-          ]
+          "candidateLabels": ["Java"]
         }
       ]
     },
@@ -198,9 +174,7 @@
           "role": "negated",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "SQL Server"
-          ]
+          "candidateLabels": ["SQL Server"]
         }
       ]
     },
@@ -216,9 +190,7 @@
           "role": "context",
           "relation": "company_stack",
           "priority": "none",
-          "candidateLabels": [
-            "Kubernetes"
-          ]
+          "candidateLabels": ["Kubernetes"]
         }
       ]
     },
@@ -234,9 +206,7 @@
           "role": "context",
           "relation": "unrelated",
           "priority": "none",
-          "candidateLabels": [
-            "SQL"
-          ]
+          "candidateLabels": ["SQL"]
         }
       ]
     },
@@ -252,9 +222,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Python"
-          ]
+          "candidateLabels": ["Python"]
         },
         {
           "start": 26,
@@ -263,9 +231,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "FastAPI"
-          ]
+          "candidateLabels": ["FastAPI"]
         }
       ]
     },
@@ -281,9 +247,7 @@
           "role": "alternative",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Java ou Kotlin"
-          ]
+          "candidateLabels": ["Java ou Kotlin"]
         }
       ]
     },
@@ -299,9 +263,7 @@
           "role": "uncertain",
           "relation": "unrelated",
           "priority": "none",
-          "candidateLabels": [
-            "Java"
-          ]
+          "candidateLabels": ["Java"]
         },
         {
           "start": 24,
@@ -310,9 +272,7 @@
           "role": "uncertain",
           "relation": "unrelated",
           "priority": "none",
-          "candidateLabels": [
-            "JavaScript"
-          ]
+          "candidateLabels": ["JavaScript"]
         }
       ]
     },
@@ -328,9 +288,7 @@
           "role": "context",
           "relation": "unrelated",
           "priority": "none",
-          "candidateLabels": [
-            "Java"
-          ]
+          "candidateLabels": ["Java"]
         }
       ]
     },
@@ -346,9 +304,7 @@
           "role": "negated",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "Docker"
-          ]
+          "candidateLabels": ["Docker"]
         }
       ]
     },
@@ -364,9 +320,7 @@
           "role": "context",
           "relation": "project_claim",
           "priority": "none",
-          "candidateLabels": [
-            "Flutter"
-          ]
+          "candidateLabels": ["Flutter"]
         }
       ]
     },
@@ -382,9 +336,7 @@
           "role": "uncertain",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "Java/Kotlin"
-          ]
+          "candidateLabels": ["Java/Kotlin"]
         },
         {
           "start": 26,
@@ -393,9 +345,7 @@
           "role": "uncertain",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "AWS ou GCP"
-          ]
+          "candidateLabels": ["AWS ou GCP"]
         }
       ]
     },
@@ -411,9 +361,7 @@
           "role": "uncertain",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "Java"
-          ]
+          "candidateLabels": ["Java"]
         }
       ]
     },
@@ -429,9 +377,7 @@
           "role": "desirable",
           "relation": "candidate_requirement",
           "priority": "desirable",
-          "candidateLabels": [
-            "React"
-          ]
+          "candidateLabels": ["React"]
         },
         {
           "start": 27,
@@ -440,9 +386,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "TypeScript"
-          ]
+          "candidateLabels": ["TypeScript"]
         }
       ]
     },
@@ -458,9 +402,7 @@
           "role": "desirable",
           "relation": "candidate_requirement",
           "priority": "desirable",
-          "candidateLabels": [
-            "Graduação em tecnologia"
-          ]
+          "candidateLabels": ["Graduação em tecnologia"]
         }
       ]
     },
@@ -476,9 +418,7 @@
           "role": "context",
           "relation": "company_stack",
           "priority": "none",
-          "candidateLabels": [
-            "Ruby"
-          ]
+          "candidateLabels": ["Ruby"]
         },
         {
           "start": 49,
@@ -487,9 +427,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Java"
-          ]
+          "candidateLabels": ["Java"]
         }
       ]
     },
@@ -505,9 +443,7 @@
           "role": "context",
           "relation": "future_stack",
           "priority": "none",
-          "candidateLabels": [
-            "Go"
-          ]
+          "candidateLabels": ["Go"]
         },
         {
           "start": 51,
@@ -516,9 +452,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Python"
-          ]
+          "candidateLabels": ["Python"]
         }
       ]
     },
@@ -534,9 +468,7 @@
           "role": "negated",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "Kubernetes"
-          ]
+          "candidateLabels": ["Kubernetes"]
         }
       ]
     },
@@ -552,9 +484,7 @@
           "role": "desirable",
           "relation": "candidate_requirement",
           "priority": "desirable",
-          "candidateLabels": [
-            "AWS"
-          ]
+          "candidateLabels": ["AWS"]
         }
       ]
     },
@@ -570,9 +500,7 @@
           "role": "alternative",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Java or Kotlin"
-          ]
+          "candidateLabels": ["Java or Kotlin"]
         }
       ]
     },
@@ -588,9 +516,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Docker"
-          ]
+          "candidateLabels": ["Docker"]
         },
         {
           "start": 32,
@@ -599,9 +525,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Terraform"
-          ]
+          "candidateLabels": ["Terraform"]
         }
       ]
     },
@@ -617,9 +541,7 @@
           "role": "context",
           "relation": "company_stack",
           "priority": "none",
-          "candidateLabels": [
-            "Redis"
-          ]
+          "candidateLabels": ["Redis"]
         },
         {
           "start": 57,
@@ -628,9 +550,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "PostgreSQL"
-          ]
+          "candidateLabels": ["PostgreSQL"]
         }
       ]
     },
@@ -646,9 +566,7 @@
           "role": "desirable",
           "relation": "candidate_requirement",
           "priority": "desirable",
-          "candidateLabels": [
-            "Angular"
-          ]
+          "candidateLabels": ["Angular"]
         },
         {
           "start": 38,
@@ -657,9 +575,7 @@
           "role": "context",
           "relation": "company_stack",
           "priority": "none",
-          "candidateLabels": [
-            "React"
-          ]
+          "candidateLabels": ["React"]
         }
       ]
     },
@@ -675,9 +591,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "SQL Server"
-          ]
+          "candidateLabels": ["SQL Server"]
         },
         {
           "start": 47,
@@ -686,9 +600,7 @@
           "role": "context",
           "relation": "unrelated",
           "priority": "none",
-          "candidateLabels": [
-            "SQL"
-          ]
+          "candidateLabels": ["SQL"]
         }
       ]
     },
@@ -704,9 +616,7 @@
           "role": "uncertain",
           "relation": "unrelated",
           "priority": "none",
-          "candidateLabels": [
-            "Flutter"
-          ]
+          "candidateLabels": ["Flutter"]
         }
       ]
     },
@@ -722,9 +632,7 @@
           "role": "context",
           "relation": "project_claim",
           "priority": "none",
-          "candidateLabels": [
-            "Flutter"
-          ]
+          "candidateLabels": ["Flutter"]
         }
       ]
     },
@@ -740,9 +648,7 @@
           "role": "negated",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "Docker"
-          ]
+          "candidateLabels": ["Docker"]
         }
       ]
     }

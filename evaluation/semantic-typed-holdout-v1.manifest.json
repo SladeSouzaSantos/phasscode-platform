@@ -2,7 +2,7 @@
   "schemaVersion": "semantic-typed-holdout-manifest-v1",
   "cohort": "challenge_holdout_v1_frozen_before_first_rule_evaluation",
   "fixture": "evaluation/semantic-typed-holdout-v1.json",
-  "sha256": "677acf023db687f0b6b2b959cd8959a23d94292383f5b59d6a0062e4cca117bf",
+  "sha256": "9ca3f8cd004ec9f66c86f4720e36e021fc965fae5e7df9fb14f04682aa8ad964",
   "reviewStatus": "synthetic_draft_not_human_reviewed",
   "caseCount": 32,
   "spanCount": 47,

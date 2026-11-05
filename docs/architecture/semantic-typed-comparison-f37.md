@@ -14,17 +14,17 @@
 
 ## Diagnóstico inicial: regras sobre 47 spans
 
-| Medida | Valor |
-| --- | ---: |
-| Spans avaliados (PT/EN) | 47 |
-| Resolvidos | 21 |
-| Abstidos | 26 |
-| Cobertura seletiva | 44,68% |
-| Acerto conjunto role+relation entre resolvidos | 17/21 = 80,95% |
-| Recall efetivo no conjunto, considerando abstenções | 17/47 = 36,17% |
-| Erros conjuntos entre resolvidos | 4 |
-| Promoções positivas indevidas de requisito | **3** |
-| Promoções positivas quando a referência indica negação | **2** |
+| Medida                                                 |          Valor |
+| ------------------------------------------------------ | -------------: |
+| Spans avaliados (PT/EN)                                |             47 |
+| Resolvidos                                             |             21 |
+| Abstidos                                               |             26 |
+| Cobertura seletiva                                     |         44,68% |
+| Acerto conjunto role+relation entre resolvidos         | 17/21 = 80,95% |
+| Recall efetivo no conjunto, considerando abstenções    | 17/47 = 36,17% |
+| Erros conjuntos entre resolvidos                       |              4 |
+| Promoções positivas indevidas de requisito             |          **3** |
+| Promoções positivas quando a referência indica negação |          **2** |
 
 **Erro grave:** o gate ainda é inseguro para responder sobre vagas. Em exemplos de negação e insuficiência, uma tecnologia foi tratada como obrigatória. O sistema público permaneceu inalterado. A métrica é calculada **condicionalmente a spans pré-definidos**; não mede extração da vaga inteira. A regra de abstinência não pode ser contabilizada como predição correta.
 
