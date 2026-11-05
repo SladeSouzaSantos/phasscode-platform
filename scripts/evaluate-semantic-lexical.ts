@@ -13,7 +13,7 @@ const challenge = process.argv[2];
 const evaluation =
   challenge === undefined
     ? evaluateStoredSemanticLexicalBaseline()
-    : (challenge === '--paraphrase-challenge' || challenge === '--prospective-v1')
+    : challenge === '--paraphrase-challenge' || challenge === '--prospective-v1'
       ? Promise.all([
           readFile(
             challenge === '--prospective-v1'
