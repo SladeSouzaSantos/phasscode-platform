@@ -244,3 +244,89 @@ docker compose -p phasscode-hydradb-lab --env-file .env \
   -f compose.yaml -f compose.hydradb-lab.yaml \
   -f compose.neo4j-compare.lab.yaml stop neo4j-compare
 ```
+
+
+## Segundo benchmark: competências compartilhadas + proveniência
+
+Referência arquitetural:
+[compatibilidade Cypher HydraDB × Orbe](hydradb-cypher-compatibility.md).
+**Este teste não porta o GraphRAG atual**, porque o HydraDB v0.3.0
+não implementa todas as expressões presentes nas consultas Neo4j do Orbe.
+
+Os 7 registros públicos selecionados (5 projetos + 2 experiências)
+continuam os mesmos do teste 1. A nova projeção sintética contém:
+
+- 7 vértices `Record` (projeto ou experiência) com escopo;
+- 10 vértices `Skill` **compartilhados** (ex.: Java, Flutter, TypeScript);
+- 14 vértices `Claim` (tecnologia associada a registro);
+- 7 vértices `Source`, com `verificationStatus` do registro original;
+- 42 arestas `HAS_CLAIM`, `USES_TECHNOLOGY` e `SUPPORTED_BY`.
+
+Os vértices recebem IDs numéricos **aleatórios e exclusivos para cada
+rodada**, sem colidir com o modelo textual original do PPKS. Não são
+copiados documentos acadêmicos, currículos privados ou textos completos
+para nenhum banco. Os `Source` são marcadores sintéticos: uma
+verificação de `code_reviewed` pertence ao **registro PPKS**, não
+certifica isoladamente cada claim.
+
+### 1. Atualizar e testar o plano sem gravar
+
+```bash
+cd ~/hydradb-lab/phasscode-platform
+git pull --ff-only origin experiment/hydradb
+
+python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py
+```
+
+Saída esperada (os números de skills dependem do catálogo atual):
+
+```text
+PPKS_GRAPH_PLAN_COUNTS {"claims": 14, "edges": 42, "records": 7, "skills": 10, "sources": 7}
+PPKS_GRAPH_QUERY_CASES 18
+PPKS_GRAPH_SHARED_SKILL_CASES Flutter Java TypeScript
+PPKS_GRAPH_DRY_RUN_OK_NO_WRITES
+```
+
+### 2. Testar equivalência entre os dois LABs
+
+**Pré-condição:** Neo4j de comparação `healthy`; HydraDB
+`/readyz` 200; ambas as instâncias permanecem isoladas em
+`phasscode-hydradb-lab` (verifique no Docker se necessário).
+
+```bash
+cd ~/hydradb-lab/phasscode-platform
+python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py --live
+```
+
+O script autentica por HTTP local sem imprimir credenciais. Grava os
+mesmos 42 vínculos em ambos os bancos, testa 18 casos lógicos
+(recuperação de skills e status de fonte por registro, skills
+compartilhadas, peers por caminho de 4 hops), fazendo um aquecimento
+não cronometrado e três leituras medidas por caso e por banco. Verifica
+**resultado exato**, não só sucesso HTTP.
+
+Critério de aceite:
+
+```text
+PPKS_GRAPH_BOTH_ENGINES_READY
+PPKS_GRAPH_WRITES_PER_ENGINE 42
+PPKS_GRAPH_PARITY_CASES 18 PASS
+PPKS_GRAPH_SEMANTIC_PARITY_PASS
+```
+
+Relatório novo:
+`~/hydradb-lab/benchmarks/ppks-provenance-*.json`,
+somente legível pelo proprietário (modo 0600).
+Ele inclui latências agregadas por **tipo de consulta**, não uma
+alegação de superioridade de desempenho.
+
+Em caso de `PPKS_GRAPH_QUERY_FAILED`, envie o nome do caso e o status
+HTTP para investigar **compatibilidade funcional**, sem recriar
+contêineres. O motor pode rejeitar uma sintaxe do subconjunto Cypher; o
+script não tentará substituir a consulta por outra sem apresentar a
+incompatibilidade. Dados sintéticos gravados antes da falha podem
+permanecer nos volumes do LAB.
+
+**Não alterar DEV/MAIN nem integrar HydraDB ao Orbe** após este teste
+isolado. O próximo gate será a representação fiel de evidências PPKS
+e um adapter dedicado ao HydraDB, com fallback validado.
