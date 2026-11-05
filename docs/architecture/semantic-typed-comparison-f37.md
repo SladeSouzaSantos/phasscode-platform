@@ -1,3 +1,5 @@
+> **Resultado final do experimento e decisão (04/11/2026):** a comparação real foi concluída em [#41952853665](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/41952853665): Laya 15/47 papéis, 18/47 relações, 7/47 pares corretos brutos, 47/47 abstenções e **14 falsas promoções positivas nas saídas brutas**; consumo ~2,25 GiB e p95 ~505 ms no runner. **Laya não será integrada** nesta fase. Ver o [ADR SemanticPlanner sem Laya](semantic-planner-no-laya-f37.md). Os marcos de preparação abaixo permanecem para auditoria histórica.
+
 # F3.7/#41/#43/#45 — Comparação tipada offline com corpus congelado
 
 **Estado:** diagnóstico **offline**, branch dev, não integrado à API/GraphRAG/PPKS nem ao runtime Laya. Nenhum modelo foi baixado ou executado nesta entrega. Não é autorização para shadow/active.
