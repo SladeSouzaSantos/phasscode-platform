@@ -378,3 +378,36 @@ python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py --live
 `PPKS_GRAPH_PARITY_CASES 18 PASS`. Qualquer falha seguinte, inclusive
 sintaxe Cypher HydraDB, deve ser tratada como bloqueio real de
 compatibilidade para investigar, não como motivo para habilitar o adapter.
+
+
+## Terceiro gate: contrato de claims e fontes específicas
+
+O segundo benchmark terminou com `PPKS_GRAPH_PARITY_CASES 18 PASS`.
+O resultado e seus limites estão registrados em
+[hydradb-ppks-benchmark-2026-11-05.md](hydradb-ppks-benchmark-2026-11-05.md).
+
+O próximo teste mantém **cada `evidenceId` do PPKS** na associação
+claim→fonte e mede recuperação parametrizada semelhante ao contrato
+`findEvidence` / `getSource`, ainda com projeção simplificada e
+sem ligação ao Orbe.
+
+Procedimento, pré-condições e critérios de aprovação:
+[hydradb-ppks-contract.md](hydradb-ppks-contract.md).
+
+```bash
+cd ~/hydradb-lab/phasscode-platform
+git pull --ff-only origin experiment/hydradb
+
+python3 -m py_compile scripts/hydradb-neo4j-ppks-evidence-contract.py \
+  scripts/hydradb-ppks-contract-selftest.py
+
+python3 scripts/hydradb-ppks-contract-selftest.py
+python3 scripts/hydradb-neo4j-ppks-evidence-contract.py
+
+# Só depois do dry-run e com Neo4j-compare healthy, HydraDB ready:
+python3 scripts/hydradb-neo4j-ppks-evidence-contract.py --live
+```
+
+O teste usa **47 nós e 60 relações sintéticas**, dos quais 16 são
+fontes específicas, e verifica **13 cenários parametrizados**.
+Todos os dados gravados permanecem exclusivamente nos bancos LAB.
