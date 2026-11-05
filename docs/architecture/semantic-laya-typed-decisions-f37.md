@@ -9,7 +9,7 @@ Dado um trecho de uma vaga já segmentado e seu texto completo, classificar **du
 - **Papel da expressão:** `mandatory`, `desirable`, `alternative`, `context`, `negated`, `uncertain`.
 - **Relação com a vaga:** `candidate_requirement`, `company_stack`, `future_stack`, `project_claim`, `unrelated`.
 
-Exemplo: *"Usamos Go internamente, mas precisamos de Java"*. Go é contexto de stack da empresa; Java é requisito do candidato. Nenhum resultado dá direito a inferir que o candidato possui as tecnologias.
+Exemplo: _"Usamos Go internamente, mas precisamos de Java"_. Go é contexto de stack da empresa; Java é requisito do candidato. Nenhum resultado dá direito a inferir que o candidato possui as tecnologias.
 
 O classificador **não identifica spans automaticamente** nesta fase. Recebe os offsets e os papéis de referência em `evaluation/semantic-hybrid-corpus-v0.json`. Logo, os números de acerto medem **classificação condicional a trechos pré-selecionados**, não extração de requisitos em vagas reais.
 
@@ -34,12 +34,14 @@ O próprio fornecedor documenta que o checkpoint multilíngue **é distribuído 
 ## Execução proposta
 
 Testes sem modelo:
+
 ```bash
 python3 -m unittest discover -s tests -p test_laya_semantic_lab.py -v
 python3 scripts/laya_semantic_lab.py dry-run --model-dir /tmp/nao-utilizado --max-spans 16
 ```
 
 Em um runner temporário com acesso à rede permitido **apenas no prepare**:
+
 ```bash
 docker build -f infrastructure/docker/Dockerfile.semantic-laya-lab -t orbe-f37-laya-lab:temp .
 mkdir -p /tmp/orbe-laya-checkpoint

@@ -39,13 +39,6 @@
       "project_claim",
       "unrelated"
     ],
-    "requiredRoles": [
-      "mandatory",
-      "desirable",
-      "alternative",
-      "context",
-      "negated",
-      "uncertain"
-    ]
+    "requiredRoles": ["mandatory", "desirable", "alternative", "context", "negated", "uncertain"]
   }
 }
