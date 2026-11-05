@@ -1,14 +1,16 @@
 # PHASSCODE Platform — Orbe profissional
 
-Backend público do **Orbe Mágico**, representante virtual de Pedro Santos.
-Responde perguntas sobre experiência, projetos, formação, tecnologias e
-contato profissional com base em fontes públicas verificáveis.
+Backend público do **Orbe Mágico**, assistente do portfólio profissional de Pedro
+Santos. Seu objetivo é **ajudar recrutadores** a entender experiência, projetos,
+formação, competências técnicas e aderência a vagas, usando evidências públicas
+rastreáveis. Não substitui entrevistas, avaliação humana nem decisões de contratação.
 
 ## Escopo atual
 
 - `POST /api/v1/chat` — conversas com token efêmero e fontes.
 - `GET /health` e `GET /ready` — saúde e dependências.
-- Fastify, TypeScript, LangChain e base JSON de conhecimento.
+- Fastify, TypeScript, LangChain e base de conhecimento profissional versionada (PPKS).
+- Busca lexical ponderada, grafo semântico curado e seleção de evidências por competência.
 - PostgreSQL para histórico com retenção e Redis para limites de uso.
 - Provedores LLM configuráveis, fallback e orçamento global.
 
@@ -21,6 +23,81 @@ não são apagados para evitar perda de dados ou quebra dos testes legados.
 O Orbe não finge ser Pedro e não inventa disponibilidade profissional.
 Caso o visitante queira conversar diretamente, aponta os canais
 profissionais públicos que constam na base de conhecimento.
+
+## Arquitetura da resposta ao recrutador
+
+```text
+Pergunta do recrutador / requisitos de uma vaga
+  └─> proteção de entrada, intenção e continuidade da conversa
+       └─> recuperação PPKS (lexical + conceitos e vínculos curados)
+            ├─> experiência profissional documentada
+            ├─> projetos pessoais e projetos de estudo
+            └─> graduação, pós-graduação, cursos e competências declaradas
+                 └─> seleção de fontes e limites de contexto
+                      └─> respostas determinísticas quando cabíveis
+                           ou LLM com orçamento e fallback
+                            └─> auditoria de afirmações e referências públicas
+                                 └─> resposta do Orbe
+```
+
+A base `knowledge/portfolio.json` é enriquecida pelas fichas do
+[PPKS](knowledge/ppks/README.md), incluindo experiências, projetos e registros
+acadêmicos. A recuperação combina termos explícitos com o
+`SemanticKnowledgeGraph` versionado em
+`knowledge/ppks/semantic-relations.json` para localizar evidências de conceitos
+como orientação a objetos, SQL e arquitetura de componentes.
+
+**Relação técnica não comprova experiência.** Saber Java não prova domínio de
+React; experiência com SQL não equivale a experiência em SQL Server; e um curso
+não equivale a vínculo profissional. O Orbe preserva essa distinção e não deve
+inventar qualificação para preencher lacunas. Vagas com requisitos desconhecidos,
+negações ou alternativas ambíguas exigem interpretação conservadora e podem
+retornar ao fluxo canônico.
+
+O GraphRAG (LangGraph, Neo4j e um Reader HTTP interno de leitura) é **opcional**:
+
+- `off` (**padrão**): resposta canônica baseada no PPKS e LLM, sem Reader privado.
+- `shadow` (**somente DEV, opt-in**): compara o caminho do grafo sem substituir
+  a resposta entregue ao visitante.
+- `active` (**somente DEV, opt-in**): permite respostas verificadas pelo grafo,
+  com fontes públicas completas. Dúvidas e falhas retornam ao caminho canônico.
+
+Os modos `shadow` e `active` exigem aprovação explícita e configuração
+separada no ambiente **DEV**, incluindo token do Reader fornecido por secret
+Docker. Os overlays
+[`compose.graphrag.shadow.dev.yaml`](compose.graphrag.shadow.dev.yaml) e
+[`compose.graphrag.active.dev.yaml`](compose.graphrag.active.dev.yaml)
+não fazem parte do deploy padrão. Consulte
+[GraphRAG Shadow DEV](docs/graph-rag-shadow-dev.md) e
+[GraphRAG Active DEV](docs/graph-rag-active-dev.md).
+Não exponha credenciais Neo4j/Bolt à API pública.
+
+### Recuperação semântica — F3.7
+
+A pesquisa de embeddings ONNX foi **qualificada apenas em laboratório**.
+Na coorte sintética v2, com 28 competências esperadas dentro do catálogo,
+a recuperação Top-1 foi de 14/28 (lexical-first ingênuo), 17/28 (ONNX) e
+22/28 (regra lexical estrita + ONNX). Os oito exemplos fora do catálogo
+continuaram recebendo sugestões vetoriais não confiáveis, e a classificação
+de contexto/negação foi fornecida pelo próprio conjunto de teste.
+
+No benchmark isolado do MiniMac (05/11/2026), o processo ONNX teve pico de
+**882,58 MiB de RSS**, carga fria de **3,36 s** e p95 de **319 ms por lote**
+de consultas. Esses números **não são latência HTTP nem prova de melhoria
+das respostas reais do Orbe**.
+
+**Decisão deste ciclo:** manter a recuperação PPKS + grafo curado existente;
+**não** instalar um serviço ONNX, não ativar uma integração ONNX em Shadow e
+não acrescentar inferência ao caminho público. O benchmark e as propostas
+continuam documentados como experimentos, sujeitos a avaliação independente:
+
+- [Comparação lexical estrita + ONNX v2](docs/architecture/semantic-strict-fusion-v2.md)
+- [Benchmark reproduzível no MiniMac via Docker](docs/architecture/minimac-f37-benchmark.md)
+- [Contrato diagnóstico do planejador semântico](docs/architecture/semantic-planner-no-laya-f37.md)
+
+A revisão de código e os testes automatizados não substituem a **homologação
+manual das respostas com recrutadores** no ambiente DEV. Não declarar essa
+homologação concluída antes de verificar respostas e fontes reais.
 
 ## Relatórios opcionais do Orbe (opt-in)
 
@@ -56,16 +133,27 @@ suas credenciais protegidas e jamais deve ser versionado. Não reative
 
 ## Execução e validação
 
-Requer Node.js 24, npm, PostgreSQL/Redis quando configurados:
+O desenvolvimento **local fora do Docker** requer Node.js 24 e npm 11+.
+PostgreSQL e Redis são necessários quando configurados; o MiniMac utiliza
+contêineres e não precisa ter Node.js instalado no host.
 
 ```bash
 npm ci --ignore-scripts
-npm run check
+npm run check              # lint, formato, tipos, contratos, PPKS, testes e build
 npm run test:integration
-npm run build
+npm run test:browser
+npm run test:neo4j         # requer ambiente de integração apropriado
 npm run migrate
 npm run dev
 ```
+
+Os testes de recuperação e de respostas para recrutadores incluem
+`tests/knowledge-relevance.test.ts`, `tests/semantic-graph.test.ts`,
+`tests/graph-vacancy-coverage.test.ts` e
+`tests/orbe-recruiter-scenarios.test.ts`. Também existem avaliadores
+offline executáveis com `npm run eval:orbe:graphrag:offline` e
+`npm run eval:orbe:semantic:lexical`. Um teste com provedor `mock` não
+comprova o comportamento de uma LLM real.
 
 O `LLM_PROVIDER=mock` só devolve respostas simuladas.
 Para IA real, configure o provedor, modelo, chave, `REDIS_URL` e
@@ -104,7 +192,28 @@ A porta de produção deve ser verificada antes da primeira publicação
 (3000 é do Grafana e 3001 é reservada ao DEV).
 
 O frontend do mesmo ambiente deve ser publicado depois do backend.
-A documentação anterior sobre a Fase 3 é **histórica**, não descreve
-as funcionalidades atuais do produto.
+O merge `dev` → `main` **não publica automaticamente** a versão nova no
+Mac Mini: é necessário um deploy manual específico do ambiente, seguido
+de verificação de saúde e testes das respostas e fontes. O GraphRAG
+experimental e os benchmarks ONNX não devem ser tratados como recursos
+ativos de produção pelo simples fato de o código estar na `main`.
 
-A base Orbe DEV foi ampliada em 31/10/2026 para 48 registros, com 42 cursos livres concluídos e novos projetos. Ver [knowledge/README.md](knowledge/README.md) e [SOURCES.md](knowledge/SOURCES.md) para fontes, limites, status acadêmicos e testes de recrutamento. O conteúdo requer redeploy do backend; não é sincronizado automaticamente com o frontend.
+## Curadoria e manutenção
+
+A base profissional foi ampliada em 31/10/2026 para 48 registros,
+incluindo projetos, formações e 42 cursos livres declarados como concluídos.
+A situação de cada formação deve ser interpretada individualmente; um curso
+em andamento ou uma graduação pendente não é titulação concluída.
+
+Para atualizar conteúdo, revise
+[knowledge/README.md](knowledge/README.md),
+[knowledge/SOURCES.md](knowledge/SOURCES.md) e
+[knowledge/ppks/README.md](knowledge/ppks/README.md). Depois valide com
+`npm run ppks:check`, rode a suíte e publique o backend do ambiente desejado.
+O catálogo **não** é atualizado automaticamente a partir de GitHub, LinkedIn
+ou alterações do frontend. Não comite currículos privados, credenciais,
+transcrições de visitantes, documentos acadêmicos pessoais nem `.env`.
+
+O objetivo de manutenção é corrigir fatos, fontes e regressões observáveis,
+sem ampliar a arquitetura por experimentação sem benefício comprovado para
+recrutadores.
