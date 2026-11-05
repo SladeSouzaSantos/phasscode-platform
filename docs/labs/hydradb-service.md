@@ -411,3 +411,42 @@ python3 scripts/hydradb-neo4j-ppks-evidence-contract.py --live
 O teste usa **47 nós e 60 relações sintéticas**, dos quais 16 são
 fontes específicas, e verifica **13 cenários parametrizados**.
 Todos os dados gravados permanecem exclusivamente nos bancos LAB.
+
+
+## Quarto gate: leitor shadow externo e fallback PPKS
+
+Após **duas rodadas consecutivas de 13/13 casos** do terceiro
+contrato, o laboratório pode executar um protótipo de leitura
+com `--mode off` ou `--mode shadow`.
+
+Este script não integra nem modifica o servidor do Orbe e não usa
+`ORBE_GRAPHRAG_MODE=active`. Não realiza escrita no HydraDB.
+
+Ver [hydradb-ppks-shadow-reader.md](hydradb-ppks-shadow-reader.md)
+para pré-condições, isolamento por `lab_run`, validação com PPKS,
+fallback, autotestes offline e comandos de uso.
+
+```bash
+cd ~/hydradb-lab/phasscode-platform
+git pull --ff-only origin experiment/hydradb
+
+python3 -m py_compile \
+  scripts/hydradb-ppks-shadow-reader.py \
+  scripts/hydradb-ppks-shadow-selftest.py
+
+python3 scripts/hydradb-ppks-shadow-selftest.py
+
+python3 scripts/hydradb-ppks-shadow-reader.py --mode off --probe
+
+# Somente depois, usando o relatório da 2a rodada aprovada:
+python3 scripts/hydradb-ppks-shadow-reader.py \
+  --mode shadow \
+  --report ~/hydradb-lab/benchmarks/ppks-contract-20261105T225141Z.json \
+  --probe --require-graph
+```
+
+Um `canonical_fallback` durante a prova com
+`--require-graph` reprova o gate; retorna o resultado
+canônico seguro, mas indica indisponibilidade ou
+divergência da projeção consultada. O fallback não
+autoriza ativar HydraDB no Orbe operacional.
