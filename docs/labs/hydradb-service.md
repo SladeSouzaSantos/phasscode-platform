@@ -298,6 +298,13 @@ cd ~/hydradb-lab/phasscode-platform
 python3 scripts/hydradb-neo4j-ppks-provenance-benchmark.py --live
 ```
 
+O teste `shared_peer_4_hop` busca **outros** registros que compartilham
+Flutter ou Dart com `greencity-os`: a origem é excluída explicitamente
+por `WHERE peer.id <> <id numérico do registro>`. Na amostra, o único
+par esperado é `experiencia-greencity`, não o próprio projeto.
+Isso evita depender das diferenças de unicidade de relacionamentos
+entre motores Cypher.
+
 O script autentica por HTTP local sem imprimir credenciais. O Neo4j
 primeiro recebe **38 MERGEs de vértices individuais** (sem cronometrar);
 depois o script grava 42 relações usando `MATCH` dos endpoints antes de
