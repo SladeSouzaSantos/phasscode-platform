@@ -1,3 +1,5 @@
+> **ADR histórico superado (decisão de 04/11/2026):** a arquitetura corrente está em [SemanticPlanner sem Laya](semantic-planner-no-laya-f37.md). **Laya foi rejeitada para integração nesta versão**, após PoC pareada: 7/47 pares brutos corretos, 47/47 abstenções e 14 falsas promoções brutas. A recuperação lexical e o ONNX opcional permanecem como candidatos sujeitos a validação. O conteúdo abaixo documenta a hipótese original, **não é plano vigente de rollout**.
+
 # ADR em elaboração — F3.7 Semântica híbrida local para o Orbe
 
 **Status:** proposta técnica, **não implantada**, revisão humana e benchmark pendentes.  
