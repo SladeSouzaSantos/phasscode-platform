@@ -28,6 +28,12 @@
 
 **Erro grave:** o gate ainda é inseguro para responder sobre vagas. Em exemplos de negação e insuficiência, uma tecnologia foi tratada como obrigatória. O sistema público permaneceu inalterado. A métrica é calculada **condicionalmente a spans pré-definidos**; não mede extração da vaga inteira. A regra de abstinência não pode ser contabilizada como predição correta.
 
+## Correção conservadora pós-diagnóstico (não cega)
+
+Após registrar o baseline inicial, corrigimos três modalidades inseguras em [c39c4cc](https://github.com/SladeSouzaSantos/phasscode-platform/commit/c39c4cc7f1ef8ebf2c31cace7af27ace315df456): (a) "não é obrigatório", (b) "no prior experience ... is required" e (c) ressalva negativa no fim da mesma frase. Com sinais mistos ou escopo da negação não resolvido, o gate agora se abstém. Testes adversariais separados cobrem essas regras.
+
+Na **reavaliação pós-ajuste do mesmo corpus já conhecido**: **21/47 resolvidos**, **26/47 abstenções**, **21/21 acertos conjuntos entre decididos e zero falsas promoções**. Isso é uma melhoria de segurança **in-sample**, obtida após examinar os erros e portanto **NÃO** constitui prova de generalização, validação cega ou aptidão para produção. O relatório inicial de 3 falsas promoções permanece preservado e nunca deve ser sobrescrito. É necessário um novo conjunto de validação independente.
+
 ## Comparação honesta com Laya
 
 O histórico de Laya **2/16 role** e **7/16 relation** é de um outro subconjunto e outra métrica; não devemos apresentá-lo como comparação pareada com os 47 casos. O comparador só aceita um novo relatório com:
