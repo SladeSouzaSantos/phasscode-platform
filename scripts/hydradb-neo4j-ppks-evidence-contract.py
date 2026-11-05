@@ -28,7 +28,34 @@ UPSTREAM = runpy.run_path(
     str(REPO / "scripts/hydradb-neo4j-ppks-provenance-benchmark.py")
 )
 CORE = UPSTREAM["COMMON"]
-NODE = UPSTREAM["node"]
+
+
+def node(alias: str, label: str, ident: int, properties: dict[str, str]) -> str:
+    """Use a strict scalar allowlist that also permits trusted PPKS enums.
+
+    Stage-two only needed human-readable names; stage-three needs machine
+    enums like code_reviewed, mixed_role and ppks_catalog (underscores).
+    The allowlist still rejects quotes, backslashes and Cypher operators.
+    """
+    if alias not in ("a", "b", "n") or label not in (
+        "Record", "Skill", "Claim", "Source"
+    ):
+        raise ValueError("PPKS_CONTRACT_INVALID_VERTEX_LABEL")
+    if not isinstance(ident, int) or ident < 0:
+        raise ValueError("PPKS_CONTRACT_INVALID_NUMERIC_ID")
+    fields = [f"id: {ident}"]
+    for key, value in properties.items():
+        if not re.fullmatch(r"[a-z_]{1,40}", key):
+            raise ValueError("PPKS_CONTRACT_INVALID_PROPERTY")
+        if not isinstance(value, str) or not re.fullmatch(
+            r"[A-Za-z0-9._+/# _-]{1,120}", value
+        ):
+            raise ValueError("PPKS_CONTRACT_INVALID_SCALAR")
+        fields.append(f"{key}: '{value}'")
+    return f"({alias}:{label} {{{', '.join(fields)}}})"
+
+
+NODE = node
 READ_ROWS = UPSTREAM["json_rows"]
 METRICS = UPSTREAM["metrics"]
 REPEATS = 3
