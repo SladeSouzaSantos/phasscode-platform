@@ -1,0 +1,16 @@
+# F3.7/#43 Laya multilingual research sandbox, not a PHASSCODE service.
+# Weights are never included in the image. Network allowed only for prepare.
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    USE_TF=0 \
+    TOKENIZERS_PARALLELISM=false \
+    OMP_NUM_THREADS=2
+WORKDIR /lab
+# Pin CPU-only PyTorch before installing the Laya SDK.
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.9.0 && \
+    pip install --no-cache-dir laya==0.4.22
+COPY scripts/laya_semantic_lab.py scripts/laya_semantic_lab.py
+COPY evaluation/semantic-laya-manifest-v0.json evaluation/semantic-laya-manifest-v0.json
+COPY evaluation/semantic-hybrid-corpus-v0.json evaluation/semantic-hybrid-corpus-v0.json
+ENTRYPOINT ["python", "scripts/laya_semantic_lab.py"]
