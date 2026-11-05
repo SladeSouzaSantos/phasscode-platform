@@ -82,6 +82,14 @@ def scored(rows: list[dict], label: str) -> dict:
     false_promotions = sum(r["predictedRole"] in POSITIVE and
                            (r["expectedRole"] not in POSITIVE or r["expectedRelation"] != "candidate_requirement") for r in accepted)
     wrong_negations = sum(r["expectedRole"] == "negated" and r["predictedRole"] in POSITIVE for r in accepted)
+    # Diagnostic only: do NOT hide unsafe raw Laya outputs behind an abstention.
+    # Selective metrics above remain the ONLY outputs considered by a future gate.
+    raw_role_correct = sum(r["predictedRole"] == r["expectedRole"] for r in rows)
+    raw_relation_correct = sum(r["predictedRelation"] == r["expectedRelation"] for r in rows)
+    raw_joint_correct = sum(r["predictedRole"] == r["expectedRole"] and r["predictedRelation"] == r["expectedRelation"] for r in rows)
+    raw_false_promotions = sum(r["predictedRole"] in POSITIVE and
+                               (r["expectedRole"] not in POSITIVE or r["expectedRelation"] != "candidate_requirement") for r in rows)
+    raw_negation_promotions = sum(r["expectedRole"] == "negated" and r["predictedRole"] in POSITIVE for r in rows)
     details = {}
     for kind in ("language", "expectedRole", "expectedRelation"):
         b = {}
@@ -103,6 +111,15 @@ def scored(rows: list[dict], label: str) -> dict:
         "jointErrorsAmongResolved": len(accepted) - joint_correct,
         "falseRequirementPromotions": false_promotions,
         "negationPromotions": wrong_negations,
+        "rawUngated": {
+            "policy": "diagnostic_only_predictions_not_authorized_requirements",
+            "roleCorrect": raw_role_correct,
+            "relationCorrect": raw_relation_correct,
+            "jointCorrect": raw_joint_correct,
+            "jointAccuracy": round(raw_joint_correct / total, 4) if total else None,
+            "falseRequirementPromotions": raw_false_promotions,
+            "negationPromotions": raw_negation_promotions,
+        },
         "groups": details,
         "discrepancyIds": [r["id"] for r in accepted if r["predictedRole"] != r["expectedRole"] or r["predictedRelation"] != r["expectedRelation"]],
         "abstentionIds": [r["id"] for r in rows if r["abstained"]],
