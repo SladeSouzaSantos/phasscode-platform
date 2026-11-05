@@ -17,15 +17,17 @@ services:
     ports:
       - '127.0.0.1:17474:7474'
     healthcheck:
-      # Escape each dollar as $$ so Docker Compose passes the shell expansion
-      # to the container; healthcheck stdout/stderr is discarded.
+      # Cheap TCP reachability check; no expensive cypher-shell JVM launches.
+      # Authentication and query readiness are verified separately by the
+      # read-only benchmark preflight (RETURN 1 via HTTP Basic auth).
+      # Neo4j official Linux image includes bash; /dev/tcp is a bash builtin.
       test:
         - CMD-SHELL
-        - 'cypher-shell -u neo4j -p "$${NEO4J_AUTH#neo4j/}" "RETURN 1" >/dev/null 2>&1'
-      interval: 10s
-      timeout: 8s
-      retries: 20
-      start_period: 30s
+        - 'bash -c "exec 3<>/dev/tcp/127.0.0.1/7474" >/dev/null 2>&1'
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
     restart: 'no'
     mem_limit: 896m
     cpus: 0.75
