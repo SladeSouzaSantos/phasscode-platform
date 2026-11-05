@@ -71,6 +71,17 @@ class TypedRulesTests(unittest.TestCase):
     def test_conflict_abstains(self):
         self.check("Docker é obrigatório e também desejável.", "Docker", "uncertain", None)
 
+    def test_mixed_context_requirement_abstains_rather_than_misattributes(self):
+        t = "Usamos Go e precisamos de Java."
+        self.check(t, "Go", "uncertain", None)
+        self.check(t, "Java", "uncertain", None)
+
+    def test_desirable_alternatives_need_priority_resolution(self):
+        self.check("Java ou Kotlin é desejável.", "Java ou Kotlin", "uncertain", None)
+
+    def test_not_just_java_is_not_negated_skill(self):
+        self.check("Não apenas Java, mas também Python.", "Java", "uncertain", None)
+
     def test_reject_ungrounded_span(self):
         with self.assertRaisesRegex(ValueError, "UNGROUNDED"):
             lab.classify("Java é obrigatório", 0, 4, "Go")
