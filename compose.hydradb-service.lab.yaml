@@ -1,0 +1,39 @@
+# Optional HydraDB graph engine, never started by the canonical LAB command.
+# Start only after verifying a release digest, lab-only storage, and UID 10001 access.
+# Usage: docker compose -p phasscode-hydradb-lab --env-file .env \
+#   -f compose.yaml -f compose.hydradb-lab.yaml -f compose.hydradb-service.lab.yaml \
+#   --profile hydradb up -d --no-build --no-deps hydradb
+services:
+  hydradb:
+    profiles: [hydradb]
+    image: ${HYDRADB_IMAGE:?Pin a verified ghcr.io/hydra-db/hydradb@sha256 digest in the LAB-only .env}
+    init: true
+    user: '10001:10001'
+    env_file:
+      - ../hydradb.env
+    environment:
+      GRAPH_AUTH_TOKEN_FILE: /run/secrets/hydradb_auth_token
+    secrets:
+      - hydradb_auth_token
+    volumes:
+      - type: bind
+        source: ../data/hydradb/store
+        target: /data/store
+      - type: bind
+        source: ../data/hydradb/cache
+        target: /data/cache
+    ports:
+      - '127.0.0.1:17687:7687'
+      - '127.0.0.1:18443:8443'
+      - '127.0.0.1:19090:9090'
+    networks: [backend]
+    restart: 'no'
+    mem_limit: 2048m
+    cpus: 1.0
+    pids_limit: 256
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+secrets:
+  hydradb_auth_token:
+    file: ../secrets/hydradb_auth_token_runtime
