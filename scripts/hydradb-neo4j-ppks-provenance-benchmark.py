@@ -90,11 +90,21 @@ def load_public_records() -> list[dict]:
         if status not in ("code_reviewed", "catalog_only"):
             raise ValueError("Unrecognized PPKS verification status")
         nature = item.get("identity", {}).get("nature", "unknown")
-        scope = "professional" if group == "experiences" else {
-            "professional": "professional_project",
-            "personal": "personal_project",
-            "study": "study",
-        }.get(nature, "unknown")
+        if group == "experiences":
+            # Mirror the canonical PPKS projection: an engineering + software
+            # engagement is mixed_role, never exclusive professional software.
+            areas = item.get("areas")
+            if (not isinstance(areas, list) or not areas
+                or any(a not in ("software-development", "engineering") for a in areas)
+                or "software-development" not in areas):
+                raise ValueError("PPKS_EXPERIENCE_INVALID_AREAS")
+            scope = "mixed_role" if "engineering" in areas else "professional"
+        else:
+            scope = {
+                "professional": "professional_project",
+                "personal": "personal_project",
+                "study": "study",
+            }.get(nature, "unknown")
         records.append({
             "key": record_id, "scope": scope, "verification": status,
             "skills": grouped[record_id],
