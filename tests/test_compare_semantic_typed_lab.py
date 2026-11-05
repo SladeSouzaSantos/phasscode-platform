@@ -36,11 +36,12 @@ class ControlledComparisonTests(unittest.TestCase):
         self.assertEqual(r1["laya"]["status"], "not_executed_on_this_cohort")
 
     def test_first_run_safety_failure_is_visible_not_covered_up(self):
-        metrics = lab.evaluate()["rules"]
-        self.assertEqual(metrics["falseRequirementPromotions"], 3)
-        self.assertEqual(metrics["negationPromotions"], 2)
-        self.assertGreater(metrics["jointErrorsAmongResolved"], 0)
-        self.assertLess(metrics["jointPrecisionAmongResolved"], 1)
+        baseline = json.loads((ROOT / "evaluation/semantic-typed-holdout-v1-baseline.json").read_text(encoding="utf-8"))
+        self.assertEqual(baseline["corpusSha256"], self.manifest["sha256"])
+        self.assertEqual(baseline["rules"]["falseRequirementPromotions"], 3)
+        self.assertEqual(baseline["rules"]["negationPromotions"], 2)
+        self.assertEqual(baseline["rules"]["jointErrorsAmongResolved"], 4)
+        # The historical report MUST remain unchanged when safer rules evolve.
 
     def test_abstention_is_never_scored_as_correct(self):
         rows = [dict(id="case:0", language="en", expectedRole="mandatory",
