@@ -82,6 +82,22 @@ class TypedRulesTests(unittest.TestCase):
     def test_not_just_java_is_not_negated_skill(self):
         self.check("Não apenas Java, mas também Python.", "Java", "uncertain", None)
 
+    def test_denied_obligation_is_not_mandatory(self):
+        self.check("SQL Server não é obrigatório nesta oportunidade.", "SQL Server", "negated", "candidate_requirement")
+
+    def test_english_no_prior_experience_is_negated(self):
+        self.check("No prior experience with Kubernetes is required.", "Kubernetes", "negated", "candidate_requirement")
+
+    def test_negative_tail_requires_scope_resolution(self):
+        t = "SQL Server experience is required, not generic SQL alone."
+        self.check(t, "SQL Server", "uncertain", None)
+        self.check(t, "SQL", "uncertain", None, occurrence=1)
+
+    def test_mixed_compound_with_future_requirement_abstains(self):
+        t = "Usamos PostgreSQL, e o novo integrante precisará dominar SQL Server."
+        self.check(t, "PostgreSQL", "uncertain", None)
+        self.check(t, "SQL Server", "uncertain", None)
+
     def test_reject_ungrounded_span(self):
         with self.assertRaisesRegex(ValueError, "UNGROUNDED"):
             lab.classify("Java é obrigatório", 0, 4, "Go")
