@@ -323,6 +323,24 @@ def query_cases(plan: dict) -> list[dict]:
     return cases
 
 
+def validate_run_isolation(plan: dict, cases: list[dict]) -> None:
+    """Fail closed before *any* writes if a read could mix PPKS lab runs."""
+    key = plan.get("run_key")
+    if not isinstance(key, str) or not key.isdecimal():
+        fail("PPKS_LAB_RUN_KEY_INVALID")
+    tag = "lab_run: '" + key + "'"
+    if not all(tag in vertex for vertex in plan["neo_vertices"]):
+        fail("PPKS_NEO4J_RUN_MARKER_MISSING")
+    if not all(edge.count(tag) == 2 for edge in plan["hydra_writes"]):
+        fail("PPKS_HYDRADB_RUN_MARKER_MISSING")
+    if not cases or any(
+        case["params"].get("run") != key
+        or ".lab_run = $run" not in case["query"]
+        for case in cases
+    ):
+        fail("PPKS_UNSCOPED_READ_BLOCKED")
+
+
 def paired_query(opener, engine: str, query: str, params: dict,
                  token: str, neo_auth: str) -> dict:
     body = CORE["get_json"]
@@ -379,6 +397,7 @@ def run() -> None:
     sample = data_fixture()
     plan = graph_plan(sample)
     cases = query_cases(plan)
+    validate_run_isolation(plan, cases)
     print("PPKS_CONTRACT_COUNTS", json.dumps(plan["counts"], sort_keys=True))
     print("PPKS_CONTRACT_CASES", len(cases))
     print("PPKS_CONTRACT_EVIDENCE_EDGE_COUNT",
