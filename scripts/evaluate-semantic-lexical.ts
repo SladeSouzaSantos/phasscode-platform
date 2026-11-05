@@ -14,8 +14,8 @@ const evaluation =
   challenge === undefined
     ? evaluateStoredSemanticLexicalBaseline()
     : challenge === '--paraphrase-challenge' ||
-      challenge === '--prospective-v1' ||
-      challenge === '--adversarial-v2'
+        challenge === '--prospective-v1' ||
+        challenge === '--adversarial-v2'
       ? Promise.all([
           readFile(
             challenge === '--adversarial-v2'

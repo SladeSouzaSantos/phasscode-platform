@@ -21,11 +21,11 @@ A #41 precisa de aprovação humana explícita das 56 anotações do F3.4 com co
 
 A execução [GitHub Actions #41965819023](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/41965819023) foi **SUCCESS** no ambiente descartável: a versão de política literal foi comprovadamente idêntica ao commit congelado anterior à escrita do corpus; SHA-256 do corpus v2 `b43201fbd362780edfdbb146ba5a8d5a88a79e8b9fba60fb3d00a47bca24426b`.
 
-| Condição | Hits@1 / 28 | Recall@1 | Recall@3 | Recall@5 | MRR |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Lexical-first ingênuo (histórico) | 14/28 | 50,00% | 82,14% | 82,14% | 0,6660 |
-| ONNX enriquecido, sem override | 17/28 | 60,71% | 78,57% | 78,57% | 0,7107 |
-| **Override literal estrito + ONNX** | **22/28** | **78,57%** | **82,14%** | **82,14%** | **0,8148** |
+| Condição                            | Hits@1 / 28 |   Recall@1 |   Recall@3 |   Recall@5 |        MRR |
+| ----------------------------------- | ----------: | ---------: | ---------: | ---------: | ---------: |
+| Lexical-first ingênuo (histórico)   |       14/28 |     50,00% |     82,14% |     82,14% |     0,6660 |
+| ONNX enriquecido, sem override      |       17/28 |     60,71% |     78,57% |     78,57% |     0,7107 |
+| **Override literal estrito + ONNX** |   **22/28** | **78,57%** | **82,14%** | **82,14%** | **0,8148** |
 
 O novo override atuou em **8 casos de citação explícita**, recuperando 8/8 em top-1 (o ONNX sozinho recuperou 3/8). Houve **5 correções e nenhuma regressão de Top-1** nesse subconjunto. Nas **20 paráfrases**, o override não foi acionado; o ONNX recuperou 14/20 em top-1. Nos **8 casos fora do catálogo**, o modelo continuou oferecendo um top-1 sem correspondência, **sem promovê-lo a competência comprovada**. As 4 não-exigências foram filtradas por **anotação oracular no fixture**, não por interpretação de modalidade operacional.
 
