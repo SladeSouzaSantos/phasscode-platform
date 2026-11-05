@@ -1,3 +1,5 @@
+> **POC ARQUIVADA — decisão de 04/11/2026.** A Laya foi testada, mas não selecionada para a arquitetura do Orbe. Resultado pareado: [workflow #41952853665](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/41952853665) (7/47 pares corretos brutos, 47/47 abstenções, 14 falsas promoções brutas). A decisão atual e os próximos gates estão no [ADR SemanticPlanner sem Laya](semantic-planner-no-laya-f37.md). Este documento e o laboratório permanecem **somente como histórico reproduzível**, sem uso em produção nem Shadow.
+
 # F3.7/#43 — Laboratório Laya Multilingual para decisões tipadas
 
 **Estado:** PoC experimental, **não integrada à API, PPKS, Graph Reader ou LangGraph**. Não há autorização para integrar confidence/score à decisão pública; isso exige avaliação cega, calibração e aceite.
