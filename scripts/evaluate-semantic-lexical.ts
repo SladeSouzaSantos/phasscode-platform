@@ -13,12 +13,16 @@ const challenge = process.argv[2];
 const evaluation =
   challenge === undefined
     ? evaluateStoredSemanticLexicalBaseline()
-    : challenge === '--paraphrase-challenge' || challenge === '--prospective-v1'
+    : challenge === '--paraphrase-challenge' ||
+      challenge === '--prospective-v1' ||
+      challenge === '--adversarial-v2'
       ? Promise.all([
           readFile(
-            challenge === '--prospective-v1'
-              ? 'evaluation/semantic-embedding-prospective-v1.json'
-              : 'evaluation/semantic-embedding-paraphrase-v0.json',
+            challenge === '--adversarial-v2'
+              ? 'evaluation/semantic-embedding-adversarial-v2.json'
+              : challenge === '--prospective-v1'
+                ? 'evaluation/semantic-embedding-prospective-v1.json'
+                : 'evaluation/semantic-embedding-paraphrase-v0.json',
             'utf8',
           ),
           projectPpksEvidenceGraph(),
