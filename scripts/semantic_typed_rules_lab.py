@@ -21,7 +21,6 @@ COMPANY = re.compile(r"\b(?:usamos|utilizamos|a\s+empresa\s+usa|a\s+equipe\s+uti
 FUTURE = re.compile(r"\b(?:poder[aá]\s+ser\s+utilizad[oa]|projetos?\s+futuros?|no\s+futuro|future\s+projects?|planned\s+stack)\b", re.IGNORECASE)
 PROJECT = re.compile(r"\b(?:pedro\s+usou|pedro\s+utilizou|phasscode\s+platform\s*\?|in\s+the\s+project)\b", re.IGNORECASE)
 NEGATED = re.compile(r"\b(?:n[aã]o\s+(?:exigimos?|precisamos?\s+de|precisa\s+de|[eé]\s+(?:necess[aá]ri[oa]|requisito)|requeremos?)|not\s+required|not\s+needed|no\s+experience\s+required)\b", re.IGNORECASE)
-SHORT_NEGATED = re.compile(r"^\s*(?:n[aã]o|not)\s+\S", re.IGNORECASE)
 NOT_SUFFICIENT = re.compile(r"\b(?:n[aã]o\s+[eé]\s+suficiente|not\s+sufficient)\b", re.IGNORECASE)
 DESIRABLE = re.compile(r"\b(?:diferencia(?:l|is)|desej[aá]ve(?:l|is)|nice-to-have|optional|preferred)\b", re.IGNORECASE)
 MANDATORY = re.compile(r"\b(?:requisitos?|obrigat[oó]ri[oa]s?|exig(?:e|ida?|imos?)|precisamos|buscamos|contrataremos|aceitamos|requerid[oa]s?|required|must\s+have|experience\s+with|experi[eê]ncia\s+em|familiarizad[oa]s?)\b", re.IGNORECASE)
@@ -52,6 +51,17 @@ def classify(text: str, start: int, end: int, literal: str) -> dict:
     if not clause:
         return {"start": start, "end": end, "role": role, "relation": relation, "reason": reason, "needsClassifier": True}
 
+    # Mixed intents without a safe local clause boundary must abstain. A
+    # company using X and demanding Y in one clause does not make both skills
+    # company_stack or both mandatory.
+    contextual = bool(PROJECT.search(clause) or FUTURE.search(clause) or COMPANY.search(clause))
+    if contextual and (MANDATORY.search(clause) or DESIRABLE.search(clause) or NEGATED.search(clause)):
+        return {"start": start, "end": end, "role": role, "relation": relation,
+                "reason": "mixed_context_and_requirement", "needsClassifier": True}
+    if DESIRABLE.search(clause) and ALTERNATIVE.search(literal):
+        return {"start": start, "end": end, "role": role, "relation": relation,
+                "reason": "alternative_priority_ambiguous", "needsClassifier": True}
+
     # These are not requirements, regardless of a technology name's similarity.
     if PROJECT.search(clause):
         role, relation, reason = "context", "project_claim", "explicit_project_context"
@@ -62,7 +72,9 @@ def classify(text: str, start: int, end: int, literal: str) -> dict:
     elif NOT_SUFFICIENT.search(clause):
         role, relation, reason = "context", "unrelated", "insufficiency_is_not_requirement"
     else:
-        negated = bool(NEGATED.search(clause) or SHORT_NEGATED.search(clause))
+        negated = bool(NEGATED.search(clause) or re.fullmatch(
+            r"(?:n[aã]o|not)\s+" + re.escape(literal) + r"\s*[.!?]?",
+            clause.strip(), re.IGNORECASE))
         desirable = bool(DESIRABLE.search(clause))
         mandatory = bool(MANDATORY.search(clause))
         if negated and not desirable:
