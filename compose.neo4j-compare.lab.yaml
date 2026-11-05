@@ -1,0 +1,26 @@
+# Optional, lab-only Neo4j reference for HydraDB comparison.
+# NEVER attach to the DEV Neo4j, use the DEV graph-seed, or reuse its credentials.
+# Explicit Compose project: phasscode-hydradb-lab. No external Docker networks.
+services:
+  neo4j-compare:
+    image: neo4j:5.26
+    profiles: [neo4j-compare]
+    environment:
+      NEO4J_AUTH: ${NEO4J_LAB_AUTH:?Set a fresh private NEO4J_LAB_AUTH in the LAB .env}
+      NEO4J_server_memory_heap_initial__size: 128m
+      NEO4J_server_memory_heap_max__size: 256m
+      NEO4J_server_memory_pagecache_size: 128m
+      NEO4J_server_http_enabled: 'true'
+    networks: [backend]
+    volumes:
+      - neo4j-compare-data:/data
+    ports:
+      - '127.0.0.1:17474:7474'
+    restart: 'no'
+    mem_limit: 896m
+    cpus: 0.75
+    pids_limit: 256
+    security_opt: [no-new-privileges:true]
+
+volumes:
+  neo4j-compare-data:
