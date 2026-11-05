@@ -23,6 +23,18 @@ def main() -> None:
     assert len(plan["neo_vertices"]) == 47
     assert len(plan["neo_edges"]) == 60
     assert len(plan["hydra_writes"]) == 60
+    # Machine enums contain underscores; reject executable Cypher punctuation.
+    safe = STAGE["node"]("n", "Source", 5, {
+        "verification": "code_reviewed",
+        "origin": "ppks_catalog",
+    })
+    assert "'code_reviewed'" in safe and "'ppks_catalog'" in safe
+    try:
+        STAGE["node"]("n", "Source", 6, {"origin": "x' RETURN *"})
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Unsafe Cypher literal was accepted")
     assert len(cases) == 13
     assert Counter(c["name"] for c in cases) == {
         "find_evidence": 5, "bounded_claims": 3, "get_source": 5
