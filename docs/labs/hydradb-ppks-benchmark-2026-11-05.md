@@ -162,3 +162,41 @@ de desempenho do banco; transportes, JVM, cache, modelo e cotas diferem.
 **Status do benchmark:** paridade sintética 1-hop aprovada; desempenho
 comparativo inconclusivo. Próximo gate é compatibilidade semântica com
 claims, fontes e compartilhamento de competências, não integração do Orbe.
+
+
+## Segundo benchmark semântico — primeira tentativa rejeitada
+
+Saída do operador após atualização para commit `132c54e`:
+
+```text
+PPKS_GRAPH_PLAN_COUNTS {"claims": 14, "edges": 42, "records": 7, "skills": 10, "sources": 7}
+PPKS_GRAPH_QUERY_CASES 18
+PPKS_GRAPH_BOTH_ENGINES_READY
+PPKS_GRAPH_WRITES_PER_ENGINE 42
+PPKS_GRAPH_QUERY_FAILED neo4j record_skills experiencia-greencity HTTP - error_class ValueError
+PPKS_GRAPH_TEST_FAILED ValueError Semantic parity failed; see preceding case
+```
+
+**Resultado: REPROVADO.** A ausência de HTTP error indica que a validação
+levantou `ValueError`, mas essa mensagem genérica **não distingue**
+mismatch de linhas, colunas ou erro de Cypher retornado pelo Neo4j.
+Não reivindicar causa empírica conclusiva até obter o novo diagnóstico.
+
+**Causa estrutural encontrada por inspeção do script:** o plano original
+usava as mesmas 42 strings `MERGE (a {...})-[:REL]->(b {...})` para
+ambos os motores. No Neo4j, o `MERGE` do *caminho completo não vinculado*
+pode criar nós novos quando o relacionamento está ausente; não garante
+reutilizar nós já criados pela mesma propriedade `id`. Isso é
+incompatível com o modelo de identidade numérica do HydraDB e pode
+desconectar claims de suas fontes/skills.
+
+Correção restrita ao LAB: para Neo4j, upsert separado de **38 vértices**
+seguido de 42 `MATCH` dos endpoints + `MERGE` da relação.
+O HydraDB mantém as 42 operações existentes. O script agora informa
+o motivo seguro da falha (contagem de linhas ou código de consulta),
+sem ecoar credenciais, Cypher bruto ou respostas HTTP completas.
+
+O reteste utiliza identificadores numéricos aleatórios *novos*, mantendo
+as observações malformadas da primeira tentativa dentro do volume LAB;
+não há modificação ou limpeza de volumes DEV/MAIN. Resultado do reteste
+**pendente**: não marcar paridade de 18 casos como aprovada previamente.
