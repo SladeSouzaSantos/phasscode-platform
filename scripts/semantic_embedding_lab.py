@@ -217,7 +217,40 @@ def evaluate_rankings(corpus: dict, catalog: dict, rankings: dict) -> dict:
     }
 
 
-def benchmark(manifest: dict, directory: Path, skills_path: Path, corpus_path: Path, lexical_path: Path | None) -> dict:
+
+def load_skill_descriptions(path: Path | None, skills: list[dict]) -> tuple[dict[str, str], str | None]:
+    """Optional, deliberately small, versioned glossary. No candidate evidence."""
+    if path is None:
+        return {}, None
+    if not path.is_file() or path.is_symlink() or path.stat().st_size > 32000:
+        raise ValueError("EMBEDDING_LAB_INVALID_DESCRIPTION_FILE")
+    raw = path.read_bytes()
+    data = json.loads(raw)
+    if data.get("schemaVersion") != "semantic-skill-descriptions-v0":
+        raise ValueError("EMBEDDING_LAB_INVALID_DESCRIPTION_SCHEMA")
+    if data.get("reviewStatus") != "curated_draft_not_independently_validated":
+        raise ValueError("EMBEDDING_LAB_INVALID_DESCRIPTION_REVIEW_STATUS")
+    if data.get("scope") != "technology_definitions_only_no_candidate_claims":
+        raise ValueError("EMBEDDING_LAB_INVALID_DESCRIPTION_SCOPE")
+    catalog = {skill["label"] for skill in skills}
+    descriptions = {}
+    entries = data.get("skills")
+    if not isinstance(entries, list) or not 1 <= len(entries) <= len(skills):
+        raise ValueError("EMBEDDING_LAB_INVALID_DESCRIPTION_ENTRIES")
+    for entry in entries:
+        if not isinstance(entry, dict) or set(entry) != {"label", "description"}:
+            raise ValueError("EMBEDDING_LAB_INVALID_DESCRIPTION_ENTRY")
+        label, definition = entry["label"], entry["description"]
+        if not isinstance(label, str) or label not in catalog:
+            raise ValueError("EMBEDDING_LAB_UNKNOWN_SKILL_DESCRIPTION")
+        if label in descriptions:
+            raise ValueError("EMBEDDING_LAB_DUPLICATE_SKILL_DESCRIPTION")
+        if not isinstance(definition, str) or not 20 <= len(definition) <= 280:
+            raise ValueError("EMBEDDING_LAB_INVALID_SKILL_DESCRIPTION_LENGTH")
+        descriptions[label] = definition
+    return descriptions, hashlib.sha256(raw).hexdigest()
+
+def benchmark(manifest: dict, directory: Path, skills_path: Path, corpus_path: Path, lexical_path: Path | None, descriptions_path: Path | None = None) -> dict:
     # Verification is required on EVERY run, even in --network none.
     verified = verify_files(manifest, directory)
     import numpy as np
@@ -275,7 +308,11 @@ def benchmark(manifest: dict, directory: Path, skills_path: Path, corpus_path: P
             result.append(vectors.astype(np.float32))
         return np.vstack(result), elapsed
 
-    labels = [skill["label"] for skill in catalog["skills"]]
+    definitions, descriptions_sha256 = load_skill_descriptions(descriptions_path, catalog["skills"])
+    labels = [
+        skill["label"] + (". " + definitions[skill["label"]] if skill["label"] in definitions else "")
+        for skill in catalog["skills"]
+    ]
     ids = [skill["id"] for skill in catalog["skills"]]
     index_start = time.perf_counter()
     skill_vectors, skill_batches = embed(labels)
@@ -311,6 +348,9 @@ def benchmark(manifest: dict, directory: Path, skills_path: Path, corpus_path: P
     return {
         "reportVersion": "semantic-embedding-onnx-lab-v1",
         "mode": "offline_onnx_quantized_cosine_ranking",
+        "indexMode": "label_plus_curated_draft_description" if definitions else "label_only",
+        "curatedDescriptionCount": len(definitions),
+        "curatedDescriptionsSha256": descriptions_sha256,
         "reviewStatus": corpus["reviewStatus"],
         "modelRepo": manifest["modelRepo"],
         "modelRevision": manifest["revision"],
@@ -355,6 +395,7 @@ def main() -> int:
     parser.add_argument("--catalog", type=Path, default=Path("/tmp/semantic-skill-catalog.json"))
     parser.add_argument("--corpus", type=Path, default=Path("evaluation/semantic-hybrid-corpus-v0.json"))
     parser.add_argument("--lexical-report", type=Path)
+    parser.add_argument("--descriptions", type=Path)
     args = parser.parse_args()
     manifest = parse_manifest(args.manifest)
     if args.command == "prepare":
@@ -364,7 +405,7 @@ def main() -> int:
         files = verify_files(manifest, args.model_dir)
         result = {"status": "EMBEDDING_ARTIFACTS_VERIFIED", "modelRevision": manifest["revision"], "files": files}
     else:
-        result = benchmark(manifest, args.model_dir, args.catalog, args.corpus, args.lexical_report)
+        result = benchmark(manifest, args.model_dir, args.catalog, args.corpus, args.lexical_report, args.descriptions)
     print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
     return 0
 
