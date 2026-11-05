@@ -185,7 +185,10 @@ describe('F3.7 model-agnostic SemanticPlanner diagnostic contract', () => {
     expect(() =>
       validateSemanticPlannerProposal(request, {
         ...forged,
-        suggestions: [{ ...forged.suggestions[0], claimIds: ['invented'] }, ...forged.suggestions.slice(1)],
+        suggestions: [
+          { ...forged.suggestions[0], claimIds: ['invented'] },
+          ...forged.suggestions.slice(1),
+        ],
       }),
     ).toThrow('SEMANTIC_PLANNER_INVALID_PROPOSAL');
   });
