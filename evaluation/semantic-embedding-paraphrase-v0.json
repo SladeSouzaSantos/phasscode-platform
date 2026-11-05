@@ -16,9 +16,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Flutter"
-          ]
+          "candidateLabels": ["Flutter"]
         }
       ]
     },
@@ -34,9 +32,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "TypeScript"
-          ]
+          "candidateLabels": ["TypeScript"]
         }
       ]
     },
@@ -52,9 +48,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "PostgreSQL"
-          ]
+          "candidateLabels": ["PostgreSQL"]
         }
       ]
     },
@@ -70,9 +64,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Redis"
-          ]
+          "candidateLabels": ["Redis"]
         }
       ]
     },
@@ -88,9 +80,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "LangGraph"
-          ]
+          "candidateLabels": ["LangGraph"]
         }
       ]
     },
@@ -106,9 +96,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "FastAPI"
-          ]
+          "candidateLabels": ["FastAPI"]
         }
       ]
     },
@@ -124,9 +112,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "GitHub Actions"
-          ]
+          "candidateLabels": ["GitHub Actions"]
         }
       ]
     },
@@ -142,9 +128,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Spring Boot"
-          ]
+          "candidateLabels": ["Spring Boot"]
         }
       ]
     },
@@ -160,9 +144,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Laravel"
-          ]
+          "candidateLabels": ["Laravel"]
         }
       ]
     },
@@ -178,9 +160,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "React"
-          ]
+          "candidateLabels": ["React"]
         }
       ]
     },
@@ -196,9 +176,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "pytest"
-          ]
+          "candidateLabels": ["pytest"]
         }
       ]
     },
@@ -214,9 +192,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "pandas"
-          ]
+          "candidateLabels": ["pandas"]
         }
       ]
     },
@@ -232,9 +208,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Docker Swarm"
-          ]
+          "candidateLabels": ["Docker Swarm"]
         }
       ]
     },
@@ -250,9 +224,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Zod"
-          ]
+          "candidateLabels": ["Zod"]
         }
       ]
     },
@@ -268,9 +240,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Terraform"
-          ]
+          "candidateLabels": ["Terraform"]
         }
       ]
     },
@@ -286,9 +256,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Kubernetes"
-          ]
+          "candidateLabels": ["Kubernetes"]
         }
       ]
     },
@@ -304,9 +272,7 @@
           "role": "context",
           "relation": "company_stack",
           "priority": "none",
-          "candidateLabels": [
-            "Redis"
-          ]
+          "candidateLabels": ["Redis"]
         }
       ]
     },
@@ -322,9 +288,7 @@
           "role": "negated",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "Flutter"
-          ]
+          "candidateLabels": ["Flutter"]
         }
       ]
     }

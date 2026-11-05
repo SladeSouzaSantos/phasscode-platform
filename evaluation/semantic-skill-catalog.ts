@@ -19,8 +19,9 @@ export const semanticSkillCatalogSchema = z.strictObject({
  */
 export function makeSemanticSkillCatalog(snapshot: EvidenceGraphSnapshot) {
   const skills = snapshot.nodes
-    .filter((node): node is Extract<EvidenceGraphSnapshot['nodes'][number], { kind: 'skill' }> =>
-      node.kind === 'skill',
+    .filter(
+      (node): node is Extract<EvidenceGraphSnapshot['nodes'][number], { kind: 'skill' }> =>
+        node.kind === 'skill',
     )
     .map(({ id, label }) => ({ id, label }))
     .sort((a, b) => a.id.localeCompare(b.id));
