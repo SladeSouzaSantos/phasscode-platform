@@ -1,3 +1,5 @@
+> **Atualização 04/11/2026:** o experimento de Laya foi rejeitado para integração. O gate determinístico continua como laboratório independente de modelo, sujeito a gold set humano e generalização; **não chamará Laya** para casos de abstenção. Ver o [ADR SemanticPlanner sem Laya](semantic-planner-no-laya-f37.md).
+
 # F3.7/#43 — Gate determinístico de papéis e relações (laboratório offline)
 
 **Status:** experimento somente em `dev`; não integrado a Fastify, LangGraph, PPKS, Graph Reader, Neo4j, Laya ou aos serviços publicados. Nenhuma flag operacional é alterada.
