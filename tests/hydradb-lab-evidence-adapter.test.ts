@@ -235,6 +235,32 @@ describe('HydraDB LAB: EvidenceGraphRepository shadow adapter (no Orbe API wirin
     expect(decisions.at(-1)?.status).toBe('graph_verified');
   });
 
+  it('preserves canonical getSource on an outage or source mismatch', async () => {
+    const canonical = makeCanonical();
+    for (const scenario of ['outage', 'extra_source'] as const) {
+      const decisions: LabShadowDecision[] = [];
+      const transport: HydraLabReadTransport = {
+        async read(query, params) {
+          if (scenario === 'outage') throw new Error('private-token-must-not-leak');
+          const result = await mockTransport().read(query, params);
+          if (query !== hydraLabSourceCypher) return result;
+          const shaped = result as { columns: string[]; rows: unknown[] };
+          return { ...shaped, rows: [...shaped.rows, shaped.rows[0]] };
+        },
+      };
+      const repo = new HydraDbLabShadowEvidenceRepository(canonical, {
+        mode: 'shadow', runKey, transport, onDecision: (d) => decisions.push(d),
+      });
+      const actual = await repo.getSource('source-phasscode-platform-catalog');
+      expect(actual).toEqual(await canonical.getSource('source-phasscode-platform-catalog'));
+      expect(decisions).toEqual([{
+        operation: 'getSource', status: 'canonical_fallback',
+        reason: 'UNAVAILABLE_OR_MISMATCH',
+      }]);
+      expect(JSON.stringify(decisions)).not.toContain('private-token');
+    }
+  });
+
   it('never sends unexpected skill text or untrusted source IDs to the graph', async () => {
     const transport = mockTransport();
     const read = vi.spyOn(transport, 'read');
