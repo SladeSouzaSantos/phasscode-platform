@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   validateSemanticPlannerProposal,
   type SemanticPlannerPort,
+  type SemanticPlannerProposal,
 } from '../apps/orbe-node/src/application/semantic-planner-port.js';
 
 const sourceText = 'Requisitos: Java ou Kotlin. Usamos Go. React é desejável.';
@@ -16,13 +17,13 @@ const request = {
   publicCatalogSkillIds: ['skill-java', 'skill-kotlin', 'skill-react'],
 };
 
-function validProposal() {
+function validProposal(): SemanticPlannerProposal {
   return {
     schemaVersion: 'semantic-planner-v1',
     mode: 'diagnostic_only',
     suggestions: [
       {
-        anchor: anchors[0],
+        anchor: anchors[0]!,
         status: 'suggested',
         role: 'alternative',
         relation: 'candidate_requirement',
@@ -35,7 +36,7 @@ function validProposal() {
         ],
       },
       {
-        anchor: anchors[1],
+        anchor: anchors[1]!,
         status: 'suggested',
         role: 'context',
         relation: 'company_stack',
@@ -44,7 +45,7 @@ function validProposal() {
         candidates: [],
       },
       {
-        anchor: anchors[2],
+        anchor: anchors[2]!,
         status: 'suggested',
         role: 'desirable',
         relation: 'candidate_requirement',
@@ -70,7 +71,7 @@ describe('F3.7 model-agnostic SemanticPlanner diagnostic contract', () => {
   it('permits abstention without losing a source span', () => {
     const proposal = validProposal();
     proposal.suggestions[1] = {
-      anchor: anchors[1],
+      anchor: anchors[1]!,
       status: 'abstained',
       role: 'uncertain',
       relation: null,
@@ -91,7 +92,7 @@ describe('F3.7 model-agnostic SemanticPlanner diagnostic contract', () => {
       'SEMANTIC_PLANNER_INCOMPLETE_COVERAGE',
     );
     const duplicate = validProposal();
-    duplicate.suggestions[1]!.anchor = anchors[0];
+    duplicate.suggestions[1]!.anchor = anchors[0]!;
     expect(() => validateSemanticPlannerProposal(request, duplicate)).toThrow(
       'SEMANTIC_PLANNER_SPAN_MISMATCH',
     );
