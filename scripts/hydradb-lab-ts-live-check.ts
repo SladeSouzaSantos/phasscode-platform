@@ -264,13 +264,6 @@ function canonicalRepository(records: RecordFixture[]): EvidenceGraphRepository 
   };
 }
 
-type ContractReport = {
-  lab_run: string;
-  counts: Record<string, number>;
-  scenario: string;
-  parity: string;
-};
-
 async function approvedRun(filename: string): Promise<string> {
   const candidate = resolve(filename);
   const parent = await realpath(dirname(candidate));
