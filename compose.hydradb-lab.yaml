@@ -19,6 +19,13 @@ services:
     pids_limit: 128
 
   api:
+    # Fail closed: an experimental Compose environment must NEVER inherit
+    # graph activation from the shell, .env, or an operational DEV overlay.
+    # The canonical PPKS/LLM baseline runs with GraphRAG explicitly OFF.
+    environment:
+      ORBE_GRAPHRAG_MODE: 'off'
+      ORBE_GRAPHRAG_STAGE: 'none'
+      ORBE_GRAPHRAG_DEV_APPROVED: 'false'
     # Base compose.yaml already binds the port to 127.0.0.1.
     # The preflight script requires PHASSCODE_HTTP_PORT=13003.
     mem_limit: 512m
