@@ -153,3 +153,94 @@ não sizing para produção. A aplicação Orbe permanece com
 
 Referências: https://github.com/hydra-db/hydradb/blob/v0.3.0/README.md
 e https://github.com/hydra-db/hydradb/blob/v0.3.0/Dockerfile .
+
+
+## Primeira comparação PPKS: HydraDB × Neo4j do LAB
+
+Esta etapa **não usa o Neo4j da DEV**. Subimos outro banco de referência
+somente em `phasscode-hydradb-lab`, em volume
+`phasscode-hydradb-lab_neo4j-compare-data`, com uma porta HTTP restrita
+a `127.0.0.1:17474`. Não existem portas Bolt da referência publicadas.
+
+### 1. Preparar a senha **nova** do Neo4j de comparação
+
+```bash
+cd ~/hydradb-lab/phasscode-platform
+
+python3 - <<'PY'
+from pathlib import Path
+import os, secrets
+
+env = Path(".env")
+if not env.is_file() or env.is_symlink():
+    raise SystemExit("LAB .env ausente/inseguro")
+content = env.read_text(encoding="utf-8")
+if any(line.startswith("NEO4J_LAB_AUTH=") for line in content.splitlines()):
+    print("NEO4J_LAB_AUTH_ALREADY_PRESENT")
+else:
+    with env.open("a", encoding="utf-8") as f:
+        f.write("\nNEO4J_LAB_AUTH=neo4j/" + secrets.token_urlsafe(36) + "\n")
+    os.chmod(env, 0o600)
+    print("NEO4J_LAB_AUTH_GENERATED")
+PY
+
+python3 scripts/hydradb-neo4j-ppks-benchmark.py
+```
+
+Este último comando é um **dry-run** e apenas confirma os 7 registros públicos
+do PPKS e os 14 pares tecnológicos extraídos. Não faz chamadas de rede nem
+grava nos grafos.
+
+### 2. Iniciar apenas a referência Neo4j LAB
+
+```bash
+docker compose -p phasscode-hydradb-lab --env-file .env \
+  -f compose.yaml -f compose.hydradb-lab.yaml \
+  -f compose.neo4j-compare.lab.yaml --profile neo4j-compare \
+  config --quiet
+
+docker compose -p phasscode-hydradb-lab --env-file .env \
+  -f compose.yaml -f compose.hydradb-lab.yaml \
+  -f compose.neo4j-compare.lab.yaml --profile neo4j-compare \
+  up -d --no-build --no-deps neo4j-compare
+```
+
+`neo4j-compare` utiliza `neo4j:5.26`, limite de 896 MiB RAM, 0,75 CPU,
+128 MiB de heap inicial, 256 MiB de heap máximo e 128 MiB de page cache.
+A primeira inicialização pode demorar; confirme pelo `docker ps` sem
+reiniciar DEV/MAIN. Os limites são apenas de laboratório.
+
+### 3. Medir paridade de uma relação curta (sem LLM)
+
+```bash
+python3 scripts/hydradb-neo4j-ppks-benchmark.py --live
+```
+
+O script lê o catálogo `knowledge/ppks/index.json` e os arquivos de cinco
+projetos e duas experiências publicamente declarados. Ele importa nos dois
+bancos a **mesma amostra de 14 relações**, usando nós **sintéticos**
+`id`-a-`id` e relação `USES_TECHNOLOGY`. Lê as relações de volta,
+exige igualdade dos IDs e mede os tempos dos **round-trips HTTP locais**.
+Uma amostra pequena e duas APIs HTTP diferentes **não demonstram que um
+motor de banco é mais rápido que outro**. Esses tempos servem para
+diagnóstico inicial, não dimensionamento ou decisão de migração.
+
+Os resultados completos ficam sob
+`~/hydradb-lab/benchmarks/ppks-graph-*.json` (modo 0600).
+O teste deixa dados sintéticos nos bancos do laboratório; não copia
+documentos acadêmicos privados, não consulta APIs LLM e não acessa
+`/opt/projects/phasscode-platform-dev` ou MAIN.
+
+**Limites desta etapa:** não reproduz o grafo compartilhado de habilidades,
+o esquema `OrbeEvidence`, claims/evidências, as consultas completas
+`graphFindEvidenceCypher`/`graphGetSourceCypher`, multihop, indexação
+nem isolamento entre agentes. Sem validar esses itens, não conectar HydraDB
+ao pipeline de recrutamento do Orbe.
+
+Para parar **somente o comparador**, mantendo os volumes:
+
+```bash
+docker compose -p phasscode-hydradb-lab --env-file .env \
+  -f compose.yaml -f compose.hydradb-lab.yaml \
+  -f compose.neo4j-compare.lab.yaml stop neo4j-compare
+```
