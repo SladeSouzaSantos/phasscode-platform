@@ -16,9 +16,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "FastAPI"
-          ]
+          "candidateLabels": ["FastAPI"]
         }
       ]
     },
@@ -34,9 +32,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Spring Boot"
-          ]
+          "candidateLabels": ["Spring Boot"]
         }
       ]
     },
@@ -52,9 +48,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "React"
-          ]
+          "candidateLabels": ["React"]
         }
       ]
     },
@@ -70,9 +64,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Flutter"
-          ]
+          "candidateLabels": ["Flutter"]
         }
       ]
     },
@@ -88,9 +80,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "PostgreSQL"
-          ]
+          "candidateLabels": ["PostgreSQL"]
         }
       ]
     },
@@ -106,9 +96,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Fastify"
-          ]
+          "candidateLabels": ["Fastify"]
         }
       ]
     },
@@ -124,9 +112,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "GitHub Actions"
-          ]
+          "candidateLabels": ["GitHub Actions"]
         }
       ]
     },
@@ -142,9 +128,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "pandas"
-          ]
+          "candidateLabels": ["pandas"]
         }
       ]
     },
@@ -160,9 +144,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Docker Swarm"
-          ]
+          "candidateLabels": ["Docker Swarm"]
         }
       ]
     },
@@ -178,9 +160,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "DomPDF"
-          ]
+          "candidateLabels": ["DomPDF"]
         }
       ]
     },
@@ -196,9 +176,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Playwright"
-          ]
+          "candidateLabels": ["Playwright"]
         }
       ]
     },
@@ -214,9 +192,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Neo4j"
-          ]
+          "candidateLabels": ["Neo4j"]
         }
       ]
     },
@@ -232,9 +208,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "SQLAlchemy"
-          ]
+          "candidateLabels": ["SQLAlchemy"]
         }
       ]
     },
@@ -250,9 +224,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Vite"
-          ]
+          "candidateLabels": ["Vite"]
         }
       ]
     },
@@ -268,9 +240,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Node.js"
-          ]
+          "candidateLabels": ["Node.js"]
         }
       ]
     },
@@ -286,9 +256,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Hibernate"
-          ]
+          "candidateLabels": ["Hibernate"]
         }
       ]
     },
@@ -304,9 +272,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Firebase"
-          ]
+          "candidateLabels": ["Firebase"]
         }
       ]
     },
@@ -322,9 +288,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "TypeScript"
-          ]
+          "candidateLabels": ["TypeScript"]
         }
       ]
     },
@@ -340,9 +304,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "NumPy"
-          ]
+          "candidateLabels": ["NumPy"]
         }
       ]
     },
@@ -358,9 +320,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "LangGraph"
-          ]
+          "candidateLabels": ["LangGraph"]
         }
       ]
     },
@@ -376,9 +336,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Java"
-          ]
+          "candidateLabels": ["Java"]
         }
       ]
     },
@@ -394,9 +352,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Docker Swarm"
-          ]
+          "candidateLabels": ["Docker Swarm"]
         }
       ]
     },
@@ -412,9 +368,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "React Router"
-          ]
+          "candidateLabels": ["React Router"]
         }
       ]
     },
@@ -430,9 +384,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "PostgreSQL"
-          ]
+          "candidateLabels": ["PostgreSQL"]
         }
       ]
     },
@@ -448,9 +400,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "GitHub Actions"
-          ]
+          "candidateLabels": ["GitHub Actions"]
         }
       ]
     },
@@ -466,9 +416,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "LangGraph"
-          ]
+          "candidateLabels": ["LangGraph"]
         }
       ]
     },
@@ -484,9 +432,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "TypeScript"
-          ]
+          "candidateLabels": ["TypeScript"]
         }
       ]
     },
@@ -502,9 +448,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "FastAPI"
-          ]
+          "candidateLabels": ["FastAPI"]
         }
       ]
     },
@@ -520,9 +464,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Kotlin"
-          ]
+          "candidateLabels": ["Kotlin"]
         }
       ]
     },
@@ -538,9 +480,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Kubernetes"
-          ]
+          "candidateLabels": ["Kubernetes"]
         }
       ]
     },
@@ -556,9 +496,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Terraform"
-          ]
+          "candidateLabels": ["Terraform"]
         }
       ]
     },
@@ -574,9 +512,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "SQL Server"
-          ]
+          "candidateLabels": ["SQL Server"]
         }
       ]
     },
@@ -592,9 +528,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "GitLab CI"
-          ]
+          "candidateLabels": ["GitLab CI"]
         }
       ]
     },
@@ -610,9 +544,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Rust"
-          ]
+          "candidateLabels": ["Rust"]
         }
       ]
     },
@@ -628,9 +560,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Golang"
-          ]
+          "candidateLabels": ["Golang"]
         }
       ]
     },
@@ -646,9 +576,7 @@
           "role": "mandatory",
           "relation": "candidate_requirement",
           "priority": "mandatory",
-          "candidateLabels": [
-            "Angular"
-          ]
+          "candidateLabels": ["Angular"]
         }
       ]
     },
@@ -664,9 +592,7 @@
           "role": "context",
           "relation": "company_stack",
           "priority": "none",
-          "candidateLabels": [
-            "Java"
-          ]
+          "candidateLabels": ["Java"]
         }
       ]
     },
@@ -682,9 +608,7 @@
           "role": "negated",
           "relation": "candidate_requirement",
           "priority": "none",
-          "candidateLabels": [
-            "Docker"
-          ]
+          "candidateLabels": ["Docker"]
         }
       ]
     },
@@ -700,9 +624,7 @@
           "role": "context",
           "relation": "future_stack",
           "priority": "none",
-          "candidateLabels": [
-            "Kubernetes"
-          ]
+          "candidateLabels": ["Kubernetes"]
         }
       ]
     },
@@ -718,9 +640,7 @@
           "role": "context",
           "relation": "project_claim",
           "priority": "none",
-          "candidateLabels": [
-            "WordPress"
-          ]
+          "candidateLabels": ["WordPress"]
         }
       ]
     }
