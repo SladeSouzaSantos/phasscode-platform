@@ -131,33 +131,43 @@ def load_fixture(path: Path, limit: int) -> list[dict]:
     cases = data.get("cases")
     if not isinstance(cases, list) or not 1 <= len(cases) <= 64:
         raise ValueError("LAYA_BAD_FIXTURE_SIZE")
-    result = []
+    if not 1 <= limit <= 64:
+        raise ValueError("LAYA_INVALID_SAMPLE_LIMIT")
+    all_cases = []
     for case in cases:
-        text = case["text"]
-        if not isinstance(text, str) or not 1 <= len(text) <= 900:
+        source = case["text"]
+        if not isinstance(source, str) or not 1 <= len(source) <= 900:
             raise ValueError("LAYA_UNSAFE_FIXTURE_TEXT")
         spans = sorted(case["annotations"], key=lambda item: item["start"])
         last_end = -1
+        safe_spans = []
         for index, span in enumerate(spans):
             start, end = span["start"], span["end"]
             if not isinstance(start, int) or not isinstance(end, int):
                 raise ValueError("LAYA_INVALID_SPAN_OFFSETS")
-            if start < last_end or end > len(text) or text[start:end] != span["text"]:
+            if start < last_end or end > len(source) or source[start:end] != span["text"]:
                 raise ValueError("LAYA_UNGROUNDED_OR_OVERLAPPING_SPAN")
             last_end = end
             if span["role"] not in ROLES or span["relation"] not in RELATIONS:
                 raise ValueError("LAYA_UNKNOWN_GOLD_LABEL")
-            result.append({
+            safe_spans.append({
                 "id": f"{case['id']}:{index}",
-                "text": text,
+                "text": source,
                 "span": span["text"],
                 "role": span["role"],
                 "relation": span["relation"],
             })
-            if len(result) >= limit:
-                return result
+        all_cases.append(safe_spans)
+    # Round-robin: select one span per distinct case before repeating a case.
+    # This avoids overrepresenting early examples when CPU budget limits N.
+    result = []
+    for i in range(max(map(len, all_cases))):
+        for case_spans in all_cases:
+            if i < len(case_spans):
+                result.append(case_spans[i])
+                if len(result) >= limit:
+                    return result
     return result
-
 
 def validate_choice(answer: dict, choices: tuple[str, ...]) -> tuple[str, float | None]:
     if not isinstance(answer, dict) or answer.get("choice") not in choices:
