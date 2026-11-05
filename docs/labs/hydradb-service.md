@@ -505,3 +505,24 @@ do contêiner): [hydradb-ppks-ts-http-gate.md](hydradb-ppks-ts-http-gate.md).
 
 **Gate 6 ainda não homologado no MiniMac.** Não avançar com
 integração no processo da API até passar.
+
+
+## Gate 6 aprovado, Gate 7 — avaliação de evidências de recrutadores
+
+A última revalidação do Gate 6 no MiniMac passou com
+`tsc --noEmit`, sete testes Vitest e dez consultas em modo OFF.
+A rodada HTTP SHADOW anterior passou nas dez consultas.
+**Gate 6 homologado.**
+
+O Gate 7, implementado mas **ainda não executado** no MiniMac,
+é um replay de **12 cenários / 16 requisitos explícitos** de
+recrutamento no corpus público de sete registros PPKS. Usa o
+adapter TypeScript já homologado, com modos OFF, SHADOW (somente
+leitura) e simulações opcionais de indisponibilidade e evidência
+incompleta. Não produz resposta com LLM.
+
+Documentação e comandos de execução:
+[hydradb-ppks-recruiter-eval.md](hydradb-ppks-recruiter-eval.md).
+
+A avaliação não integra o Orbe, não acessa dados acadêmicos
+privados e não habilita `ORBE_GRAPHRAG_MODE`.
