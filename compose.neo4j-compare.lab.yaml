@@ -17,11 +17,11 @@ services:
     ports:
       - '127.0.0.1:17474:7474'
     healthcheck:
-      # Escape each dollar as $ so Docker Compose passes the shell expansion
+      # Escape each dollar as $$ so Docker Compose passes the shell expansion
       # to the container; healthcheck stdout/stderr is discarded.
       test:
         - CMD-SHELL
-        - 'cypher-shell -u neo4j -p "${NEO4J_AUTH#neo4j/}" "RETURN 1" >/dev/null 2>&1'
+        - 'cypher-shell -u neo4j -p "$${NEO4J_AUTH#neo4j/}" "RETURN 1" >/dev/null 2>&1'
       interval: 10s
       timeout: 8s
       retries: 20
