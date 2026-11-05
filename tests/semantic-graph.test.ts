@@ -57,7 +57,9 @@ describe('F3.7 — recuperação semântica para perguntas reais de recrutador',
 
   it('continua apresentando evidências amplas em vagas genéricas sem assunto semântico', async () => {
     const knowledge = await JsonKnowledgeRepository.load();
-    const matches = knowledge.search('Quais qualificações Pedro tem para uma vaga de desenvolvedor?');
+    const matches = knowledge.search(
+      'Quais qualificações Pedro tem para uma vaga de desenvolvedor?',
+    );
     expect(matches.map((document) => document.id)).toContain('experiencia-sig');
     expect(matches.map((document) => document.id)).toContain('phasscode-platform');
   });
