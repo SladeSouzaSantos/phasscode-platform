@@ -95,10 +95,46 @@ Portas públicas **nenhuma**. No host local apenas:
 `127.0.0.1:19090` (Admin). O laboratório continua usando
 `127.0.0.1:13003` para a API Orbe.
 
-A consulta de teste de escrita/leitura via HTTP será feita depois que
-`/readyz` responder. A configuração Bolt de roteamento é um item de
-homologação separado; não pressupor paridade com Neo4j nem integração
-automática com a API Orbe.
+O endpoint `/readyz` **retorna HTTP 200 sem corpo** quando está pronto,
+então a saída vazia de `curl -fsS` é normal. Confira o código de status:
+
+```bash
+curl -sS -o /dev/null -w 'HYDRADB_READY_HTTP_%{http_code}\\n' \\
+  http://127.0.0.1:19090/readyz
+```
+
+## Primeira prova de gravação e leitura por Cypher
+
+Use o teste HTTP local sem dependências externas, com o token **original**
+privado de `~/hydradb-lab/secrets/hydradb_auth_token` (não a cópia
+`_runtime`, propriedade do UID 10001):
+
+```bash
+cd ~/hydradb-lab/phasscode-platform
+python3 scripts/hydradb-http-smoke.py
+```
+
+O script valida readiness 200, cria dois nós **sintéticos com IDs aleatórios**
+e uma relação `FOLLOWS` no grafo LAB `lab`, lê o vínculo e exige
+correspondência exata do ID. Usa autenticação Bearer **somente na memória**
+do processo Python, não imprime token nem faz chamadas LLM/Orbe.
+
+Saída de sucesso:
+
+```text
+HYDRADB_READY_HTTP_200
+HYDRADB_WRITE_HTTP_200
+HYDRADB_READ_MATCH_OK
+HYDRADB_SYNTHETIC_GRAPH_SMOKE_OK
+```
+
+**Este teste deixa dois nós e uma relação no armazenamento de teste do
+HydraDB.** Se uma etapa falhar após a escrita, o registro sintético poderá
+permanecer, mas não há alterações no PostgreSQL do Orbe, Neo4j DEV ou MAIN.
+Não repetir contra outro endpoint ou com credenciais de produção.
+
+A configuração Bolt de roteamento é um item de homologação separado; não
+pressupor paridade com Neo4j nem integração automática com a API Orbe.
 
 Para parar o HydraDB sem apagar dados:
 
