@@ -23,6 +23,29 @@ def main() -> None:
     assert len(plan["neo_vertices"]) == 47
     assert len(plan["neo_edges"]) == 60
     assert len(plan["hydra_writes"]) == 60
+    # Regression: persistent LAB datasets must NEVER be queried without a
+    # unique benchmark-run boundary. Numeric IDs alone only isolate writes;
+    # previous unscoped Java reads returned 12 rows instead of 6.
+    run_key = plan["run_key"]
+    assert isinstance(run_key, str) and run_key.isdecimal(), \
+        "PPKS_LAB_RUN_KEY_MISSING"
+    expected_tag = "lab_run: '" + run_key + "'"
+    assert all(expected_tag in vertex for vertex in plan["neo_vertices"]), \
+        "PPKS_NEO4J_VERTEX_WITHOUT_RUN_MARKER"
+    assert all(write.count(expected_tag) == 2 for write in plan["hydra_writes"]), \
+        "PPKS_HYDRADB_EDGE_WITHOUT_RUN_MARKERS"
+    assert all(
+        case["params"].get("run") == run_key
+        and "$run" in case["query"]
+        and ".lab_run = $run" in case["query"]
+        for case in cases
+    ), "PPKS_UNSCOPED_READ_COULD_LEAK_PRIOR_RUN"
+    # Every new run has a fresh marker even when the record/skill names
+    # remain identical across runs. This is required to keep retries isolated.
+    another = STAGE["graph_plan"](records)
+    assert run_key != another["run_key"], "PPKS_REUSED_RUN_MARKER"
+    assert cases[0]["params"]["run"] != STAGE["query_cases"](another)[0]["params"]["run"], \
+        "PPKS_REPEATED_FIXTURE_QUERY_SCOPE"
     # Machine enums contain underscores; reject executable Cypher punctuation.
     safe = STAGE["node"]("n", "Source", 5, {
         "verification": "code_reviewed",
