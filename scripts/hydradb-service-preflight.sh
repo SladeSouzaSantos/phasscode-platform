@@ -43,8 +43,11 @@ print("HYDRADB_LAB_DATA_OWNERSHIP_OK")
 print("HYDRADB_RUNTIME_SECRET_OK")
 PY
 
+# Compose omits services behind profiles unless explicitly enabled during
+# rendering. This only affects config inspection; no container is started.
 args=(-p phasscode-hydradb-lab --env-file .env
-  -f compose.yaml -f compose.hydradb-lab.yaml -f compose.hydradb-service.lab.yaml)
+  -f compose.yaml -f compose.hydradb-lab.yaml -f compose.hydradb-service.lab.yaml
+  --profile hydradb)
 docker compose "${args[@]}" config --quiet
 docker compose "${args[@]}" config --format json | python3 -c '
 import json, re, sys
