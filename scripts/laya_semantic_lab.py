@@ -258,6 +258,7 @@ def benchmark(manifest: dict, model_dir: Path, fixture: Path, max_spans: int) ->
         "reportVersion": "laya-typed-decision-lab-v0",
         "mode": "offline_synthetic_typed_choice",
         "reviewStatus": "draft_not_human_approved",
+        "fixtureSha256": sha256_file(fixture),
         "modelRevision": manifest["revision"],
         "layaSdk": manifest["pythonPackage"],
         "weightsSha256": weights["model.safetensors"],
