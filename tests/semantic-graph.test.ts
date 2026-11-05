@@ -35,6 +35,42 @@ describe('PPKS phase 3: graph-directed evidence planning', () => {
   });
 });
 
+describe('F3.7 — recuperação semântica para perguntas reais de recrutador', () => {
+  it('recupera projeto React via conceito de componentes sem exigir a palavra React', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const query =
+      'Sou recrutador: para uma vaga de arquitetura de componentes, quais projetos relevantes existem?';
+    const matches = knowledge.search(query).map((document) => document.id);
+    expect(matches).toContain('web-portfolio-v2');
+    expect(matches[0]).toBe('web-portfolio-v2');
+    // A relação arquitetural não inventa experiência profissional com React.
+    expect(matches).not.toContain('experiencia-sig');
+  });
+
+  it('recupera experiência Java para fundamentos de orientação a objetos sem keyword Java', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const matches = knowledge
+      .search('Sou recrutador para vaga com orientação a objetos: quais evidências existem?')
+      .map((document) => document.id);
+    expect(matches).toContain('experiencia-sig');
+  });
+
+  it('continua apresentando evidências amplas em vagas genéricas sem assunto semântico', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const matches = knowledge.search('Quais qualificações Pedro tem para uma vaga de desenvolvedor?');
+    expect(matches.map((document) => document.id)).toContain('experiencia-sig');
+    expect(matches.map((document) => document.id)).toContain('phasscode-platform');
+  });
+
+  it('não inventa evidência relacionada para tecnologia não catalogada', async () => {
+    const knowledge = await JsonKnowledgeRepository.load();
+    const matches = knowledge
+      .search('Quais experiências Pedro tem para uma vaga com Zig?')
+      .map((document) => document.id);
+    expect(matches).not.toContain('web-portfolio-v2');
+  });
+});
+
 describe('PPKS: grafo semântico de competências com proveniência', () => {
   it('usa apenas documentos retidos para fundamentar React e Java', async () => {
     const knowledge = await JsonKnowledgeRepository.load();

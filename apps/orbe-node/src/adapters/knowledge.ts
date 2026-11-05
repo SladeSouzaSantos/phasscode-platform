@@ -282,10 +282,20 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
       /\b(?:qa|testes?|acessibilidade|devops|sre|energia|fotovoltaic\w*|solar|utilities|petroleo|dados)\b/.test(
         knowledgePhrase(query),
       );
+    // Do not hide an explicitly recognized semantic concept behind generic
+    // recruiter-overview cards. For example, "arquitetura de componentes"
+    // already has a curated graph relation to React project evidence.
+    // Relationship discovery only ranks real sources; it cannot prove use
+    // of another technology or infer a candidate requirement.
+    const semanticConceptEvidence =
+      queryTechnologies.size === 0 && !educationIntent
+        ? (this.semanticGraph?.evidenceIds(query) ?? [])
+        : [];
     if (
       queryTechnologies.size === 0 &&
       !educationIntent &&
       !specialistIntent &&
+      semanticConceptEvidence.length === 0 &&
       isCareerOverview(query)
     ) {
       const selected = recruiterOverviewIds.flatMap((id) => {
@@ -508,7 +518,11 @@ export class JsonKnowledgeRepository implements KnowledgeRepository {
         recommend('cursos-devops-qualidade');
     }
     const skillEvidence = vacancy ? competencyEvidenceIds(query, this.academic) : [];
-    const graphEvidence = vacancy ? (this.semanticGraph?.evidenceIds(query) ?? []) : [];
+    const graphEvidence = vacancy
+      ? semanticConceptEvidence.length
+        ? semanticConceptEvidence
+        : (this.semanticGraph?.evidenceIds(query) ?? [])
+      : [];
 
     // Keep established small-vacancy curations; large multirequirement vacancies
     // use requirement-wise coverage without imposing a document-count ceiling.
