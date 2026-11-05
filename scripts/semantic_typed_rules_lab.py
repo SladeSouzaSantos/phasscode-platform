@@ -21,9 +21,14 @@ COMPANY = re.compile(r"\b(?:usamos|utilizamos|a\s+empresa\s+usa|a\s+equipe\s+uti
 FUTURE = re.compile(r"\b(?:poder[aá]\s+ser\s+utilizad[oa]|projetos?\s+futuros?|no\s+futuro|future\s+projects?|planned\s+stack)\b", re.IGNORECASE)
 PROJECT = re.compile(r"\b(?:pedro\s+usou|pedro\s+utilizou|phasscode\s+platform\s*\?|in\s+the\s+project)\b", re.IGNORECASE)
 NEGATED = re.compile(r"\b(?:n[aã]o\s+(?:exigimos?|precisamos?\s+de|precisa\s+de|[eé]\s+(?:necess[aá]ri[oa]|requisito)|requeremos?)|not\s+required|not\s+needed|no\s+experience\s+required)\b", re.IGNORECASE)
+NEGATION_OF_OBLIGATION = re.compile(
+    r"\b(?:n[aã]o\s+[eé]\s+(?:obrigat[oó]ri[oa]|necess[aá]ri[oa]|exigid[oa])|no\s+(?:prior\s+)?experience\s+(?:with|in)\s+.+?\s+is\s+required)\b",
+    re.IGNORECASE,
+)
+NEGATIVE_TAIL = re.compile(r",\s*(?:not|n[aã]o|sem)\b", re.IGNORECASE)
 NOT_SUFFICIENT = re.compile(r"\b(?:n[aã]o\s+[eé]\s+suficiente|not\s+sufficient)\b", re.IGNORECASE)
 DESIRABLE = re.compile(r"\b(?:diferencia(?:l|is)|desej[aá]ve(?:l|is)|nice-to-have|optional|preferred)\b", re.IGNORECASE)
-MANDATORY = re.compile(r"\b(?:requisitos?|obrigat[oó]ri[oa]s?|exig(?:e|ida?|imos?)|precisamos|buscamos|contrataremos|aceitamos|requerid[oa]s?|required|must\s+have|experience\s+with|experi[eê]ncia\s+em|familiarizad[oa]s?)\b", re.IGNORECASE)
+MANDATORY = re.compile(r"\b(?:precisar[aá]|dever[aá]|must\s+know|should\s+know|requisitos?|obrigat[oó]ri[oa]s?|exig(?:e|ida?|imos?)|precisamos|buscamos|contrataremos|aceitamos|requerid[oa]s?|required|must\s+have|experience\s+with|experi[eê]ncia\s+em|familiarizad[oa]s?)\b", re.IGNORECASE)
 ALTERNATIVE = re.compile(r"\b(?:ou|or)\b", re.IGNORECASE)
 
 
@@ -50,6 +55,18 @@ def classify(text: str, start: int, end: int, literal: str) -> dict:
     role, relation, reason = "uncertain", None, "insufficient_or_conflicting_signals"
     if not clause:
         return {"start": start, "end": end, "role": role, "relation": relation, "reason": reason, "needsClassifier": True}
+
+    # The comma-negative tail may negate only one mention inside a clause. Do
+    # not promote either mention without reliable scope resolution.
+    if NEGATIVE_TAIL.search(clause):
+        return {"start": start, "end": end, "role": role, "relation": relation,
+                "reason": "negation_scope_uncertain", "needsClassifier": True}
+
+    # A literal denial of an obligation has priority over the word "required"
+    # or "obrigatório" in the very same phrase.
+    if NEGATION_OF_OBLIGATION.search(clause):
+        return {"start": start, "end": end, "role": "negated", "relation": "candidate_requirement",
+                "reason": "explicit_denial_of_obligation", "needsClassifier": False}
 
     # Mixed intents without a safe local clause boundary must abstain. A
     # company using X and demanding Y in one clause does not make both skills
