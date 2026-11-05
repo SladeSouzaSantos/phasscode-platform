@@ -226,7 +226,7 @@ def benchmark(manifest: dict, directory: Path, skills_path: Path, corpus_path: P
 
     corpus = json.loads(corpus_path.read_text(encoding="utf-8"))
     catalog = json.loads(skills_path.read_text(encoding="utf-8"))
-    if len(corpus.get("cases", [])) != 16 or len(catalog.get("skills", [])) < 1:
+    if not 1 <= len(corpus.get("cases", [])) <= 64 or len(catalog.get("skills", [])) < 1:
         raise ValueError("EMBEDDING_LAB_UNEXPECTED_FIXTURE_COUNTS")
 
     opts = ort.SessionOptions()
