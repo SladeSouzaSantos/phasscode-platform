@@ -78,8 +78,24 @@ if any(v.get("external") for v in d.get("networks", {}).values()):
     raise SystemExit("ERROR: external network detected")
 if not any("/data/store"==v.get("target") for v in h.get("volumes", [])) or not any("/data/cache"==v.get("target") for v in h.get("volumes", [])):
     raise SystemExit("ERROR: data/cache mounts missing")
-if not any(s.get("target")=="hydradb_auth_token" for s in h.get("secrets", [])):
-    raise SystemExit("ERROR: HydraDB token secret not mounted")
+# Docker Compose normalizes a short secret mount to either the bare target
+# name or /run/secrets/<name> depending on its output representation/version.
+# Require the exact source, destination and host file, not just a matching name.
+from pathlib import Path
+expected_name="hydradb_auth_token"
+expected_target="/run/secrets/hydradb_auth_token"
+mounts=h.get("secrets", [])
+if not any(
+    isinstance(s, dict)
+    and s.get("source")==expected_name
+    and s.get("target", expected_name) in (expected_name, expected_target)
+    for s in mounts
+):
+    raise SystemExit("ERROR: HydraDB token secret not mounted at expected target")
+declared=d.get("secrets", {}).get(expected_name, {})
+expected_file=Path.home()/"hydradb-lab/secrets/hydradb_auth_token_runtime"
+if not isinstance(declared, dict) or Path(declared.get("file", "")).resolve() != expected_file.resolve():
+    raise SystemExit("ERROR: HydraDB secret source must be the LAB runtime file")
 env=h["environment"]
 if env.get("GRAPH_AUTH_TOKEN_FILE")!="/run/secrets/hydradb_auth_token":
     raise SystemExit("ERROR: graph token path")
