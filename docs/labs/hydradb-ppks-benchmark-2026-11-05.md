@@ -295,3 +295,28 @@ O próximo teste foi separado no
 Ele amplia a representação de 7 fontes sintéticas de registro para
 16 **IDs específicos de evidência** associados individualmente
 a cada claim. Não há integração com o Orbe operacional.
+
+
+## Retificação de fidelidade PPKS (após a terceira suíte)
+
+Os resultados do segundo benchmark de 18 casos comprovam que as
+**duas implementações receberam e recuperaram a mesma projeção
+sintética**, mas a projeção original simplificava incorretamente o
+escopo da experiência `experiencia-greencity` como `professional`
+em vez de `mixed_role` (engenharia + software).
+
+Isso não invalida a comparação pontual de round-trips nem as
+correspondências exatas entre os bancos para o dataset usado,
+mas **impede classificar aquela rodada como fiel ao escopo do PPKS**.
+
+A origem do erro foi corrigida em
+`scripts/hydradb-neo4j-ppks-provenance-benchmark.py` e foi
+adicionada validação de integridade em
+`scripts/hydradb-neo4j-ppks-evidence-contract.py`, que recusa
+qualquer discrepância de escopo antes de gravar.
+A revalidação das 13 consultas da terceira suíte é obrigatória e
+está descrita em [hydradb-ppks-contract.md](hydradb-ppks-contract.md).
+
+Manter as duas medidas separadas no relatório final:
+**paridade de resultados entre motores** versus
+**fidelidade semântica à fonte canônica**.
