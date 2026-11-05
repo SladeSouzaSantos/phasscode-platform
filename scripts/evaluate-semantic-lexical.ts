@@ -13,9 +13,14 @@ const challenge = process.argv[2];
 const evaluation =
   challenge === undefined
     ? evaluateStoredSemanticLexicalBaseline()
-    : challenge === '--paraphrase-challenge'
+    : (challenge === '--paraphrase-challenge' || challenge === '--prospective-v1')
       ? Promise.all([
-          readFile('evaluation/semantic-embedding-paraphrase-v0.json', 'utf8'),
+          readFile(
+            challenge === '--prospective-v1'
+              ? 'evaluation/semantic-embedding-prospective-v1.json'
+              : 'evaluation/semantic-embedding-paraphrase-v0.json',
+            'utf8',
+          ),
           projectPpksEvidenceGraph(),
         ]).then(([corpus, snapshot]) => evaluateSemanticLexicalBaseline(corpus, snapshot))
       : Promise.reject(new Error('SEMANTIC_LEXICAL_UNKNOWN_FIXTURE'));
