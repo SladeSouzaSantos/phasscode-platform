@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "evaluation/vacancies-ppks-v12.json"
 REVIEW = ROOT / "evaluation/semantic-hybrid-ppks-review-v0.json"
 ROLES = {"mandatory", "desirable", "alternative", "context", "negated", "uncertain", "unknown"}
-RELATIONS = {"candidate_requirement", "company_stack", "future_stack", "project_claim", "unrelated"}
+RELATIONS = {"candidate_requirement", "company_stack", "future_stack", "project_claim", "unrelated", "academic_question"}
 
 
 def sha256(path: Path) -> str:
