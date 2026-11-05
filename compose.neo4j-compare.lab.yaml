@@ -17,8 +17,8 @@ services:
     ports:
       - '127.0.0.1:17474:7474'
     healthcheck:
-      # Docker Compose expands $ to $, leaving the secret visible only to
-      # the container shell; healthcheck stdout/stderr is discarded.
+      # Escape each dollar as $ so Docker Compose passes the shell expansion
+      # to the container; healthcheck stdout/stderr is discarded.
       test:
         - CMD-SHELL
         - 'cypher-shell -u neo4j -p "${NEO4J_AUTH#neo4j/}" "RETURN 1" >/dev/null 2>&1'
