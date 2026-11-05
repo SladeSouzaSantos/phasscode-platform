@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "semantic-laya-manifest-v0",
+  "repository": "convaiinnovations/laya-multilingual",
+  "revision": "1720e3e3357cfe1e281542e223f8273b0890ca34",
+  "pythonPackage": "laya==0.4.22",
+  "modelLanguage": "multilingual",
+  "reviewStatus": "experimental_not_calibrated_for_recruitment",
+  "purpose": "typed_relation_and_modality_classification_only",
+  "allowedFiles": [
+    "config.json",
+    "encoder/config.json",
+    "rl_agent_config.json",
+    "model.safetensors",
+    "tokenizer/tokenizer.json",
+    "tokenizer/tokenizer_config.json"
+  ],
+  "verifiedLfsSha256": [
+    {
+      "path": "model.safetensors",
+      "sha256": "9d628fd971b700382ac6f65920a86f149777b2e748e0c955fb3b19695aa8f204",
+      "sizeBytes": 643835514
+    },
+    {
+      "path": "tokenizer/tokenizer.json",
+      "sha256": "609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f",
+      "sizeBytes": 34363188
+    }
+  ],
+  "policy": {
+    "neverPromoteConfidenceToEvidence": true,
+    "neverDropUnrecognizedClauses": true,
+    "neverInferCandidateExperience": true,
+    "neverUseLiveVisitorText": true,
+    "calibrationRequiredBeforeShadow": true,
+    "requiredRelations": [
+      "candidate_requirement",
+      "company_stack",
+      "future_stack",
+      "project_claim",
+      "unrelated"
+    ],
+    "requiredRoles": [
+      "mandatory",
+      "desirable",
+      "alternative",
+      "context",
+      "negated",
+      "uncertain"
+    ]
+  }
+}
