@@ -52,4 +52,6 @@ Local-HydraDB third run (pinned images): one-skill HydraDB HTTP p50 **1.978 ms**
 
 The S3-backed option can satisfy our bounded **public evidence retrieval contract** and showed promising warm application-level latency, but **it still requires a dedicated HydraDB adapter and does not directly support all Neo4j Cypher/Bolt behaviors**. It may warrant further experiments; it does **not** justify migrating the operational Orbe or claiming lower cost yet.
 
-**Next F4.3 items:** matched cold/warm repeated tests, wider fixture/data sizes, CPU/RAM/IO telemetry, object-store traffic and a real deployment cost model, concurrency escalation, and an ADR that preserves rollback and licensing review.
+**Resource-telemetry replication:** [GitHub Actions #42208031726](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42208031726) repeated the same MinIO-backed workload with **1024 correct calls**, an independent lower median on the HydraDB HTTP adapter and five coarse Docker CPU/memory samples for each disposable service. [Results and strict resource-causality limits](hydradb-f43-minio-resource-telemetry-2026-11-06.md).
+
+**Next F4.3 items:** matched cold/warm repeated tests, wider fixture/data sizes, **continuous CPU/RAM/IO accounting instead of sparse samples**, object-store traffic and a real deployment cost model, concurrency escalation, and an ADR that preserves rollback and licensing review.
