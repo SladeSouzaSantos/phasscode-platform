@@ -6,6 +6,8 @@
 
 **Estado em 2026-11-06:** identidade de oito arquivos versionados = PASS; paridade de métodos do **mesmo EvidenceGraphRepository** em fixture sintético = PASS (Gate 10); **sete registros públicos PPKS, 88/88 requisitos e 64/64 fontes** = PASS delimitado (Gate 12); durabilidade MinIO/restarts no fixture sintético = PASS (Gate 11) e nas **14 claims/16 fontes públicas** = PASS delimitado (Gate 13); **paridade do PPKS integral/DEV/MAIN e migração operacional = NÃO TESTADAS**.
 
+**Revisão documental da API hospedada v2 — 06/11/2026:** [matriz oficial v2 vs engine self-hosted v0.3.0](hydradb-v2-docs-review-2026-11-06.md). O guia BYOG v2 [ensina](https://docs.hydradb.com/essentials/v2/bring-your-own-graph) importação Neo4j por IDs de negócio, `UNWIND`/`MERGE`, parâmetros, índices, paginação e isolamento por database/collection. Porém, **não testamos a API gerenciada v2**: tais recursos **não** homologam o contêiner open-source v0.3.0 nem resolvem as falhas Bolt JS do Gate14. O próprio [guia self-hosted v0.3.0](https://github.com/hydra-db/hydradb/blob/v0.3.0/USING-HYDRADB.md) já traz exemplo Bolt JavaScript `database=default` parametrizado; a divergência observada em CI é objeto de pergunta específica ao mantenedor, não ausência de documentação básica. Não realizar testes em Cloud nem solicitar credenciais como consequência automática desta revisão.
+
 ## 1. O que exatamente é o baseline de DEV/MAIN
 
 Na revisão de 06/11/2026, comparamos os objetos Git para os mesmos oito caminhos nas três branches:
