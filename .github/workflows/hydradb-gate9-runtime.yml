@@ -82,9 +82,9 @@ jobs:
           sudo install -o 10001 -g 10001 -m 0400 \
             "$ROOT/hydra-token" "$ROOT/hydra-token-container"
 
-          # Pin the RELEASE VERSION (not latest). Container itself is disposable.
-          docker pull ghcr.io/hydra-db/hydradb:0.3.0 >/dev/null
-          docker pull neo4j:5.26 >/dev/null
+          # OCI digests validated in F4.3 run #42169837428; never pull latest.
+          docker pull ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3 >/dev/null
+          docker pull neo4j@sha256:42ef3ebfd671ebd01fdebb6dcbe80cf7b45eef2aa3d346ef4132f7ef31e67d2f >/dev/null
 
           docker run -d --name "$H" \
             --network "$NETWORK" \
@@ -113,7 +113,7 @@ jobs:
             -p 127.0.0.1:18443:8443 \
             -p 127.0.0.1:19090:9090 \
             -p 127.0.0.1:17687:7687 \
-            ghcr.io/hydra-db/hydradb:0.3.0 >/dev/null
+            ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3 >/dev/null
 
           # Only this named disposable Neo4j; no shared Neo4j accounts/volumes.
           AUTH="$(cat "$ROOT/neo-auth")"
@@ -128,7 +128,7 @@ jobs:
             -v "$ROOT/neo-data:/data" \
             -p 127.0.0.1:17474:7474 \
             -p 127.0.0.1:17688:7687 \
-            neo4j:5.26 >/dev/null
+            neo4j@sha256:42ef3ebfd671ebd01fdebb6dcbe80cf7b45eef2aa3d346ef4132f7ef31e67d2f >/dev/null
           unset AUTH
           echo GATE9_EPHEMERAL_CONTAINERS_STARTED
 
