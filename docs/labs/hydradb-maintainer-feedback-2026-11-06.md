@@ -3,7 +3,7 @@
 **To:** Nishkarsh Srivastava / HydraDB maintainers  
 **Prepared:** 2026-11-06  
 **Project:** PHASSCODE Platform / Orbe — an evidence-grounded recruiting assistant  
-**Status:** reproducible investigation, **not an Orbe migration**  
+**Status:** reproducible investigation, **not an Orbe migration**. The user confirmed sending a feedback email to Nishkarsh on 2026-11-06, referencing this case study. The email was sent by the user, not by our tools; no response has been independently verified.  
 **Scope:** `experiment/hydradb`; no changes to production `main` or `dev` services
 
 ## Executive summary
