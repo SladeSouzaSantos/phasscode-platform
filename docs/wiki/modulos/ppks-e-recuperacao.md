@@ -4,12 +4,12 @@
 
 ## 1. Fonte canônica e três camadas de representação
 
-| Dado | Fonte principal | Uso |
-| --- | --- | --- |
-| Catálogo profissional | [`knowledge/portfolio.json`](../../../knowledge/portfolio.json) | Documentos públicos que o Orbe pesquisa e cita |
-| Fichas PPKS | [`knowledge/ppks/`](../../../knowledge/ppks/) | Prova por projeto, experiência, cursos, tecnologias e status |
-| Relações conceituais | [`knowledge/ppks/semantic-relations.json`](../../../knowledge/ppks/semantic-relations.json) | Sugestão conservadora de documentos relacionados |
-| Snapshot de evidências | [`projectPpksEvidenceGraph`](../../../apps/orbe-node/src/adapters/ppks-evidence-graph.ts#L118-L291) | Grafo tipado e reconstituível para GraphRAG opt-in |
+| Dado                   | Fonte principal                                                                                     | Uso                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Catálogo profissional  | [`knowledge/portfolio.json`](../../../knowledge/portfolio.json)                                     | Documentos públicos que o Orbe pesquisa e cita               |
+| Fichas PPKS            | [`knowledge/ppks/`](../../../knowledge/ppks/)                                                       | Prova por projeto, experiência, cursos, tecnologias e status |
+| Relações conceituais   | [`knowledge/ppks/semantic-relations.json`](../../../knowledge/ppks/semantic-relations.json)         | Sugestão conservadora de documentos relacionados             |
+| Snapshot de evidências | [`projectPpksEvidenceGraph`](../../../apps/orbe-node/src/adapters/ppks-evidence-graph.ts#L118-L291) | Grafo tipado e reconstituível para GraphRAG opt-in           |
 
 **A fonte de verdade é o conteúdo PPKS versionado, não o Neo4j, o HydraDB ou a resposta gerada pela LLM.** O adaptador pode indexar ou recuperar, mas uma relação semântica por si só não prova emprego, formação concluída ou domínio de tecnologia.
 
@@ -97,14 +97,14 @@ Depois do ranking, [`buildEvidencePacket`](../../../apps/orbe-node/src/applicati
 
 ## 7. Testes e atualização
 
-| Regra | Teste de referência existente |
-| --- | --- |
-| Relevância e fontes | [`knowledge-relevance.test.ts`](../../../tests/knowledge-relevance.test.ts) |
-| Alias e grafo curado | [`semantic-graph.test.ts`](../../../tests/semantic-graph.test.ts) |
-| PPKS e índices | [`ppks.test.ts`](../../../tests/ppks.test.ts) |
-| Snapshot de evidência | [`ppks-evidence-graph.test.ts`](../../../tests/ppks-evidence-graph.test.ts) |
-| Contexto de muitos requisitos | [`evidence-packet.test.ts`](../../../tests/evidence-packet.test.ts), [`recruiter-matrix.test.ts`](../../../tests/recruiter-matrix.test.ts) |
-| Formação | [`ppks-academic.test.ts`](../../../tests/ppks-academic.test.ts), [`orbe-academic-completeness.test.ts`](../../../tests/orbe-academic-completeness.test.ts) |
-| Questões de vaga real | [`orbe-recruiter-scenarios.test.ts`](../../../tests/orbe-recruiter-scenarios.test.ts) |
+| Regra                         | Teste de referência existente                                                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Relevância e fontes           | [`knowledge-relevance.test.ts`](../../../tests/knowledge-relevance.test.ts)                                                                                |
+| Alias e grafo curado          | [`semantic-graph.test.ts`](../../../tests/semantic-graph.test.ts)                                                                                          |
+| PPKS e índices                | [`ppks.test.ts`](../../../tests/ppks.test.ts)                                                                                                              |
+| Snapshot de evidência         | [`ppks-evidence-graph.test.ts`](../../../tests/ppks-evidence-graph.test.ts)                                                                                |
+| Contexto de muitos requisitos | [`evidence-packet.test.ts`](../../../tests/evidence-packet.test.ts), [`recruiter-matrix.test.ts`](../../../tests/recruiter-matrix.test.ts)                 |
+| Formação                      | [`ppks-academic.test.ts`](../../../tests/ppks-academic.test.ts), [`orbe-academic-completeness.test.ts`](../../../tests/orbe-academic-completeness.test.ts) |
+| Questões de vaga real         | [`orbe-recruiter-scenarios.test.ts`](../../../tests/orbe-recruiter-scenarios.test.ts)                                                                      |
 
 **Atualização:** editar a fonte PPKS e o catálogo, manter `sourceCommit`/status, rodar `npm run ppks:index`, `npm run ppks:check`, testes e revisar texto do frontend. Não afirmar que o sincronizador futuro já está implementado. O [laboratório ONNX](../../architecture/minimac-f37-benchmark.md) e [HydraDB](https://github.com/SladeSouzaSantos/phasscode-platform/tree/experiment/hydradb) não fazem parte do motor público padrão.

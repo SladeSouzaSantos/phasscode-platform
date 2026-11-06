@@ -4,12 +4,12 @@
 
 ## 1. Duas codebases, dois pares DEV/MAIN
 
-| Contexto | Frontend | Backend |
-| --- | --- | --- |
-| Desenvolvimento | `https://devgbc.phasscode.com` | `https://devapi.phasscode.com` |
-| Produção | `https://gbc.phasscode.com` | `https://api.phasscode.com` |
-| Origem | [`web-portfolio-v2`](https://github.com/SladeSouzaSantos/web-portfolio-v2) | [`phasscode-platform`](https://github.com/SladeSouzaSantos/phasscode-platform) |
-| Checkouts backend | — | DEV: `/opt/projects/phasscode-platform-dev` · PROD: `/opt/projects/phasscode-platform` |
+| Contexto          | Frontend                                                                   | Backend                                                                                |
+| ----------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Desenvolvimento   | `https://devgbc.phasscode.com`                                             | `https://devapi.phasscode.com`                                                         |
+| Produção          | `https://gbc.phasscode.com`                                                | `https://api.phasscode.com`                                                            |
+| Origem            | [`web-portfolio-v2`](https://github.com/SladeSouzaSantos/web-portfolio-v2) | [`phasscode-platform`](https://github.com/SladeSouzaSantos/phasscode-platform)         |
+| Checkouts backend | —                                                                          | DEV: `/opt/projects/phasscode-platform-dev` · PROD: `/opt/projects/phasscode-platform` |
 
 **Esta tabela descreve endereços e checkouts documentados, não prova que o último commit do GitHub esteja implantado.** O estado real exige consulta às releases, labels/digests e verificações no servidor.
 

@@ -162,10 +162,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../../../packages/shared-config/src/llm-fallback.js",
-        "node:crypto"
-      ]
+      "imports": ["../../../../packages/shared-config/src/llm-fallback.js", "node:crypto"]
     },
     {
       "repository": "backend",
@@ -209,10 +206,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js",
-        "zod"
-      ]
+      "imports": ["../domain/evidence-graph.js", "zod"]
     },
     {
       "repository": "backend",
@@ -516,10 +510,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../domain/errors.js",
-        "../domain/llm-limits.js"
-      ]
+      "imports": ["../domain/errors.js", "../domain/llm-limits.js"]
     },
     {
       "repository": "backend",
@@ -683,10 +674,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../application/sources.js",
-        "../domain/ports.js"
-      ]
+      "imports": ["../application/sources.js", "../domain/ports.js"]
     },
     {
       "repository": "backend",
@@ -760,11 +748,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js",
-        "./neo4j-graph-queries.js",
-        "neo4j-driver"
-      ]
+      "imports": ["../domain/evidence-graph.js", "./neo4j-graph-queries.js", "neo4j-driver"]
     },
     {
       "repository": "backend",
@@ -868,10 +852,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js",
-        "node:crypto"
-      ]
+      "imports": ["../domain/evidence-graph.js", "node:crypto"]
     },
     {
       "repository": "backend",
@@ -1040,12 +1021,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/ports.js",
-        "../knowledge-matching.js",
-        "node:fs/promises",
-        "node:path"
-      ]
+      "imports": ["../domain/ports.js", "../knowledge-matching.js", "node:fs/promises", "node:path"]
     },
     {
       "repository": "backend",
@@ -1083,10 +1059,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../domain/errors.js",
-        "../domain/llm-budget.js"
-      ]
+      "imports": ["../domain/errors.js", "../domain/llm-budget.js"]
     },
     {
       "repository": "backend",
@@ -1142,10 +1115,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../domain/errors.js",
-        "./llm-invocation-controller.js"
-      ]
+      "imports": ["../domain/errors.js", "./llm-invocation-controller.js"]
     },
     {
       "repository": "backend",
@@ -1252,9 +1222,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/ports.js"
-      ]
+      "imports": ["../domain/ports.js"]
     },
     {
       "repository": "backend",
@@ -1323,10 +1291,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/ports.js",
-        "../domain/security.js"
-      ]
+      "imports": ["../domain/ports.js", "../domain/security.js"]
     },
     {
       "repository": "backend",
@@ -1370,10 +1335,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/ports.js",
-        "../knowledge-matching.js"
-      ]
+      "imports": ["../domain/ports.js", "../knowledge-matching.js"]
     },
     {
       "repository": "backend",
@@ -1487,11 +1449,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/ports.js",
-        "../knowledge-matching.js",
-        "./sources.js"
-      ]
+      "imports": ["../domain/ports.js", "../knowledge-matching.js", "./sources.js"]
     },
     {
       "repository": "backend",
@@ -1600,10 +1558,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js",
-        "../domain/ports.js"
-      ]
+      "imports": ["../domain/evidence-graph.js", "../domain/ports.js"]
     },
     {
       "repository": "backend",
@@ -1623,11 +1578,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js",
-        "./graph-professional-advocacy.js",
-        "zod"
-      ]
+      "imports": ["../domain/evidence-graph.js", "./graph-professional-advocacy.js", "zod"]
     },
     {
       "repository": "backend",
@@ -1653,9 +1604,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js"
-      ]
+      "imports": ["../domain/evidence-graph.js"]
     },
     {
       "repository": "backend",
@@ -1693,9 +1642,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js"
-      ]
+      "imports": ["../domain/evidence-graph.js"]
     },
     {
       "repository": "backend",
@@ -1747,9 +1694,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "node:fs/promises"
-      ]
+      "imports": ["node:fs/promises"]
     },
     {
       "repository": "backend",
@@ -1821,10 +1766,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js",
-        "zod"
-      ]
+      "imports": ["../domain/evidence-graph.js", "zod"]
     },
     {
       "repository": "backend",
@@ -1935,10 +1877,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js",
-        "node:crypto"
-      ]
+      "imports": ["../domain/evidence-graph.js", "node:crypto"]
     },
     {
       "repository": "backend",
@@ -1964,10 +1903,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js",
-        "zod"
-      ]
+      "imports": ["../domain/evidence-graph.js", "zod"]
     },
     {
       "repository": "backend",
@@ -1993,10 +1929,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/llm-invocation.js",
-        "../domain/llm-limits.js"
-      ]
+      "imports": ["../domain/llm-invocation.js", "../domain/llm-limits.js"]
     },
     {
       "repository": "backend",
@@ -2089,11 +2022,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/evidence-graph.js",
-        "./graph-requirements.js",
-        "zod"
-      ]
+      "imports": ["../domain/evidence-graph.js", "./graph-requirements.js", "zod"]
     },
     {
       "repository": "backend",
@@ -2155,11 +2084,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./graph-requirements.js",
-        "./graph-vacancy-plan.js",
-        "zod"
-      ]
+      "imports": ["./graph-requirements.js", "./graph-vacancy-plan.js", "zod"]
     },
     {
       "repository": "backend",
@@ -2210,9 +2135,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../knowledge-matching.js"
-      ]
+      "imports": ["../knowledge-matching.js"]
     },
     {
       "repository": "backend",
@@ -2262,9 +2185,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../domain/ports.js"
-      ]
+      "imports": ["../domain/ports.js"]
     },
     {
       "repository": "backend",
@@ -2320,11 +2241,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/ports.js",
-        "../knowledge-matching.js",
-        "./sources.js"
-      ]
+      "imports": ["../domain/ports.js", "../knowledge-matching.js", "./sources.js"]
     },
     {
       "repository": "backend",
@@ -2400,9 +2317,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "zod"
-      ]
+      "imports": ["zod"]
     },
     {
       "repository": "backend",
@@ -2434,9 +2349,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "zod"
-      ]
+      "imports": ["zod"]
     },
     {
       "repository": "backend",
@@ -2522,9 +2435,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../knowledge-matching.js"
-      ]
+      "imports": ["../knowledge-matching.js"]
     },
     {
       "repository": "backend",
@@ -2544,9 +2455,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../domain/errors.js"
-      ]
+      "imports": ["../domain/errors.js"]
     },
     {
       "repository": "backend",
@@ -2684,9 +2593,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../domain/errors.js"
-      ]
+      "imports": ["../domain/errors.js"]
     },
     {
       "repository": "backend",
@@ -2778,11 +2685,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./types.js",
-        "node:crypto",
-        "pg"
-      ]
+      "imports": ["./types.js", "node:crypto", "pg"]
     },
     {
       "repository": "backend",
@@ -3182,9 +3085,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "zod"
-      ]
+      "imports": ["zod"]
     },
     {
       "repository": "backend",
@@ -3222,10 +3123,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./ports.js",
-        "./security.js"
-      ]
+      "imports": ["./ports.js", "./security.js"]
     },
     {
       "repository": "backend",
@@ -3253,10 +3151,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "@langchain/core/messages",
-        "@langchain/core/tools"
-      ]
+      "imports": ["@langchain/core/messages", "@langchain/core/tools"]
     },
     {
       "repository": "backend",
@@ -3302,10 +3197,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../../../packages/contracts/src/meetings.js",
-        "zod"
-      ]
+      "imports": ["../../../../packages/contracts/src/meetings.js", "zod"]
     },
     {
       "repository": "backend",
@@ -3373,10 +3265,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../../../packages/contracts/src/index.js",
-        "./llm-invocation.js"
-      ]
+      "imports": ["../../../../packages/contracts/src/index.js", "./llm-invocation.js"]
     },
     {
       "repository": "backend",
@@ -3498,9 +3387,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "node:crypto"
-      ]
+      "imports": ["node:crypto"]
     },
     {
       "repository": "backend",
@@ -3628,9 +3515,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./domain/security.js"
-      ]
+      "imports": ["./domain/security.js"]
     },
     {
       "repository": "backend",
@@ -3716,9 +3601,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../../../packages/contracts/src/meetings.js"
-      ]
+      "imports": ["../../../../packages/contracts/src/meetings.js"]
     },
     {
       "repository": "backend",
@@ -4165,11 +4048,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./report-format.js",
-        "node:crypto",
-        "pg"
-      ]
+      "imports": ["./report-format.js", "node:crypto", "pg"]
     },
     {
       "repository": "backend",
@@ -4427,10 +4306,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../packages/contracts/src/index.js",
-        "./schema.js"
-      ]
+      "imports": ["../packages/contracts/src/index.js", "./schema.js"]
     },
     {
       "repository": "backend",
@@ -4674,10 +4550,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../packages/contracts/src/index.js",
-        "zod"
-      ]
+      "imports": ["../packages/contracts/src/index.js", "zod"]
     },
     {
       "repository": "backend",
@@ -4760,10 +4633,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../apps/orbe-node/src/domain/evidence-graph.js",
-        "zod"
-      ]
+      "imports": ["../apps/orbe-node/src/domain/evidence-graph.js", "zod"]
     },
     {
       "repository": "backend",
@@ -4807,10 +4677,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./common.js",
-        "zod"
-      ]
+      "imports": ["./common.js", "zod"]
     },
     {
       "repository": "backend",
@@ -4836,20 +4703,14 @@
           "exported": true
         }
       ],
-      "imports": [
-        "zod"
-      ]
+      "imports": ["zod"]
     },
     {
       "repository": "backend",
       "file": "packages/contracts/src/generate.ts",
       "sha256": "fae5af790120e32e5ab8a31c7ddb81c4ae096ed96e73e8db4af86fed24255d9c",
       "symbols": [],
-      "imports": [
-        "./index.js",
-        "node:fs/promises",
-        "node:path"
-      ]
+      "imports": ["./index.js", "node:fs/promises", "node:path"]
     },
     {
       "repository": "backend",
@@ -4917,12 +4778,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./auth.js",
-        "./common.js",
-        "./meetings.js",
-        "zod"
-      ]
+      "imports": ["./auth.js", "./common.js", "./meetings.js", "zod"]
     },
     {
       "repository": "backend",
@@ -5062,31 +4918,21 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./common.js",
-        "zod"
-      ]
+      "imports": ["./common.js", "zod"]
     },
     {
       "repository": "backend",
       "file": "packages/database/src/admin-role.ts",
       "sha256": "2f7b4a7e7c3b0a732e00e16fa3d4c9e01cb15fac6e7a31cace97c1d9f078d629",
       "symbols": [],
-      "imports": [
-        "./pool.js",
-        "node:crypto",
-        "zod"
-      ]
+      "imports": ["./pool.js", "node:crypto", "zod"]
     },
     {
       "repository": "backend",
       "file": "packages/database/src/migrate.ts",
       "sha256": "d16b86a9e9f5bd4a396fc4ea5ac37b5432b2aff1794bf4f740283421e2e94b21",
       "symbols": [],
-      "imports": [
-        "./migrations.js",
-        "./pool.js"
-      ]
+      "imports": ["./migrations.js", "./pool.js"]
     },
     {
       "repository": "backend",
@@ -5100,12 +4946,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "node:crypto",
-        "node:fs/promises",
-        "node:path",
-        "pg"
-      ]
+      "imports": ["node:crypto", "node:fs/promises", "node:path", "pg"]
     },
     {
       "repository": "backend",
@@ -5119,9 +4960,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "pg"
-      ]
+      "imports": ["pg"]
     },
     {
       "repository": "backend",
@@ -5135,21 +4974,14 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../../apps/orbe-node/src/meetings/postgres-store.js",
-        "pg"
-      ]
+      "imports": ["../../../apps/orbe-node/src/meetings/postgres-store.js", "pg"]
     },
     {
       "repository": "backend",
       "file": "packages/database/src/retention.ts",
       "sha256": "d13e32aa2dee077dacb52802419d5918870f821ec46b765080be4cf8e33d9a36",
       "symbols": [],
-      "imports": [
-        "../../shared-config/src/index.js",
-        "./pool.js",
-        "./privacy-retention.js"
-      ]
+      "imports": ["../../shared-config/src/index.js", "./pool.js", "./privacy-retention.js"]
     },
     {
       "repository": "backend",
@@ -5295,10 +5127,7 @@
       "file": "packages/integrations/src/index.ts",
       "sha256": "df6c2417baa50047b18bb6c54b61edb1152d660415b34fcbcee8ed3e6b1b54be",
       "symbols": [],
-      "imports": [
-        "./calendar.js",
-        "./notifications.js"
-      ]
+      "imports": ["./calendar.js", "./notifications.js"]
     },
     {
       "repository": "backend",
@@ -5396,10 +5225,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../shared-config/src/worker.js",
-        "nodemailer"
-      ]
+      "imports": ["../../shared-config/src/worker.js", "nodemailer"]
     },
     {
       "repository": "backend",
@@ -5425,9 +5251,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "zod"
-      ]
+      "imports": ["zod"]
     },
     {
       "repository": "backend",
@@ -5447,9 +5271,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "zod"
-      ]
+      "imports": ["zod"]
     },
     {
       "repository": "backend",
@@ -5550,9 +5372,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "zod"
-      ]
+      "imports": ["zod"]
     },
     {
       "repository": "backend",
@@ -5572,9 +5392,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "zod"
-      ]
+      "imports": ["zod"]
     },
     {
       "repository": "backend",
@@ -5594,29 +5412,21 @@
           "exported": true
         }
       ],
-      "imports": [
-        "zod"
-      ]
+      "imports": ["zod"]
     },
     {
       "repository": "backend",
       "file": "scripts/audit-semantic-hybrid-coverage.ts",
       "sha256": "7e0e75521e760148d76b056a6a70f1be15922825ce522342ec0065e8a3c71b0b",
       "symbols": [],
-      "imports": [
-        "../evaluation/semantic-hybrid-coverage-report.js"
-      ]
+      "imports": ["../evaluation/semantic-hybrid-coverage-report.js"]
     },
     {
       "repository": "backend",
       "file": "scripts/auth-keygen.mjs",
       "sha256": "c902e91b2a494d7c4063cd9fef3e182fc0ea22e57752565697e0306b2c0ce990",
       "symbols": [],
-      "imports": [
-        "node:crypto",
-        "node:fs/promises",
-        "node:path"
-      ]
+      "imports": ["node:crypto", "node:fs/promises", "node:path"]
     },
     {
       "repository": "backend",
@@ -5827,9 +5637,7 @@
       "file": "scripts/evaluate-graphrag-recruiter-offline.ts",
       "sha256": "256a98f31780996ecac9529e489e4600eba5f3532529817f8b102afa8f5e717e",
       "symbols": [],
-      "imports": [
-        "../evaluation/graphrag-recruiter-offline.js"
-      ]
+      "imports": ["../evaluation/graphrag-recruiter-offline.js"]
     },
     {
       "repository": "backend",
@@ -6082,12 +5890,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "node:assert/strict",
-        "node:crypto",
-        "node:timers/promises",
-        "pg"
-      ]
+      "imports": ["node:assert/strict", "node:crypto", "node:timers/promises", "pg"]
     },
     {
       "repository": "backend",
@@ -6149,12 +5952,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "ajv-formats",
-        "ajv/dist/2020.js",
-        "node:fs/promises",
-        "node:path"
-      ]
+      "imports": ["ajv-formats", "ajv/dist/2020.js", "node:fs/promises", "node:path"]
     },
     {
       "repository": "backend",
@@ -6168,10 +5966,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "node:path",
-        "node:url"
-      ]
+      "imports": ["node:path", "node:url"]
     },
     {
       "repository": "backend",
@@ -6406,11 +6201,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../apps/orbe-node/src/auth/service.js",
-        "./auth-fixtures.js",
-        "vitest"
-      ]
+      "imports": ["../apps/orbe-node/src/auth/service.js", "./auth-fixtures.js", "vitest"]
     },
     {
       "repository": "backend",
@@ -6424,10 +6215,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../apps/orbe-node/src/auth/login-navigation.js",
-        "vitest"
-      ]
+      "imports": ["../apps/orbe-node/src/auth/login-navigation.js", "vitest"]
     },
     {
       "repository": "backend",
@@ -6466,12 +6254,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./browser/fixtures.js",
-        "node:http",
-        "playwright-core",
-        "vitest"
-      ]
+      "imports": ["./browser/fixtures.js", "node:http", "playwright-core", "vitest"]
     },
     {
       "repository": "backend",
@@ -6659,12 +6442,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./browser/local-proxy.js",
-        "node:http",
-        "node:net",
-        "vitest"
-      ]
+      "imports": ["./browser/local-proxy.js", "node:http", "node:net", "vitest"]
     },
     {
       "repository": "backend",
@@ -6758,9 +6536,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "node:http"
-      ]
+      "imports": ["node:http"]
     },
     {
       "repository": "backend",
@@ -6964,11 +6740,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "jose",
-        "node:crypto",
-        "node:http"
-      ]
+      "imports": ["jose", "node:crypto", "node:http"]
     },
     {
       "repository": "backend",
@@ -7107,10 +6879,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../apps/orbe-node/src/domain/evidence-graph.js",
-        "vitest"
-      ]
+      "imports": ["../apps/orbe-node/src/domain/evidence-graph.js", "vitest"]
     },
     {
       "repository": "backend",
@@ -7173,11 +6942,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../examples/frontend-client.js",
-        "../examples/phase3-client.js",
-        "vitest"
-      ]
+      "imports": ["../examples/frontend-client.js", "../examples/phase3-client.js", "vitest"]
     },
     {
       "repository": "backend",
@@ -8259,22 +8024,14 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../packages/contracts/src/index.js",
-        "vitest"
-      ]
+      "imports": ["../packages/contracts/src/index.js", "vitest"]
     },
     {
       "repository": "backend",
       "file": "tests/meetings-store-errors.test.ts",
       "sha256": "cc13d335ac2ff493c2530a65caacc7042fecb04d5d5e3148b20cd23d935e27b7",
       "symbols": [],
-      "imports": [
-        "../apps/orbe-node/src/meetings/postgres-store.js",
-        "node:crypto",
-        "pg",
-        "vitest"
-      ]
+      "imports": ["../apps/orbe-node/src/meetings/postgres-store.js", "node:crypto", "pg", "vitest"]
     },
     {
       "repository": "backend",
@@ -8456,11 +8213,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../evaluation/schema.js",
-        "node:fs/promises",
-        "vitest"
-      ]
+      "imports": ["../evaluation/schema.js", "node:fs/promises", "vitest"]
     },
     {
       "repository": "backend",
@@ -8641,12 +8394,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../scripts/phase3-docker-smoke.mjs",
-        "node:fs/promises",
-        "vitest",
-        "yaml"
-      ]
+      "imports": ["../scripts/phase3-docker-smoke.mjs", "node:fs/promises", "vitest", "yaml"]
     },
     {
       "repository": "backend",
@@ -8723,12 +8471,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../scripts/phase3-preflight.js",
-        "node:net",
-        "node:tls",
-        "vitest"
-      ]
+      "imports": ["../scripts/phase3-preflight.js", "node:net", "node:tls", "vitest"]
     },
     {
       "repository": "backend",
@@ -8862,11 +8605,7 @@
       "file": "tests/public-orbe.test.ts",
       "sha256": "373f0903d27c888af68f585439848a2b6422c8d4897e5772face0c315447cc99",
       "symbols": [],
-      "imports": [
-        "./helpers.js",
-        "fastify",
-        "vitest"
-      ]
+      "imports": ["./helpers.js", "fastify", "vitest"]
     },
     {
       "repository": "backend",
@@ -9007,11 +8746,7 @@
       "file": "tests/semantic-hybrid-corpus.test.ts",
       "sha256": "815bdd01cfa436eb06558cb828acfeba6d343f396f4f4241397cd1efe2397aef",
       "symbols": [],
-      "imports": [
-        "node:fs/promises",
-        "vitest",
-        "zod"
-      ]
+      "imports": ["node:fs/promises", "vitest", "zod"]
     },
     {
       "repository": "backend",
@@ -9025,11 +8760,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../evaluation/semantic-hybrid-coverage-report.js",
-        "node:fs/promises",
-        "vitest"
-      ]
+      "imports": ["../evaluation/semantic-hybrid-coverage-report.js", "node:fs/promises", "vitest"]
     },
     {
       "repository": "backend",
@@ -9061,20 +8792,14 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../apps/orbe-node/src/application/semantic-planner-port.js",
-        "vitest"
-      ]
+      "imports": ["../apps/orbe-node/src/application/semantic-planner-port.js", "vitest"]
     },
     {
       "repository": "backend",
       "file": "tests/semantic-shadow-readiness.test.ts",
       "sha256": "e90b6171796514d71e0fa358214a2df745477bd0c39d343d593402b82a3162fb",
       "symbols": [],
-      "imports": [
-        "../apps/orbe-node/src/application/semantic-shadow-readiness.js",
-        "vitest"
-      ]
+      "imports": ["../apps/orbe-node/src/application/semantic-shadow-readiness.js", "vitest"]
     },
     {
       "repository": "backend",
@@ -9259,10 +8984,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "node:fs",
-        "node:url"
-      ]
+      "imports": ["node:fs", "node:url"]
     },
     {
       "repository": "frontend",
@@ -9282,10 +9004,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../src/services/orbeDiagnosticEvent",
-        "vite"
-      ]
+      "imports": ["../src/services/orbeDiagnosticEvent", "vite"]
     },
     {
       "repository": "frontend",
@@ -9299,10 +9018,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "node:path",
-        "node:url"
-      ]
+      "imports": ["node:path", "node:url"]
     },
     {
       "repository": "frontend",
@@ -9376,11 +9092,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "node:fs/promises",
-        "node:path",
-        "node:url"
-      ]
+      "imports": ["node:fs/promises", "node:path", "node:url"]
     },
     {
       "repository": "frontend",
@@ -9440,12 +9152,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../config/platform",
-        "../styles/admin_dashboard.css",
-        "./AdminMeetings",
-        "react"
-      ]
+      "imports": ["../config/platform", "../styles/admin_dashboard.css", "./AdminMeetings", "react"]
     },
     {
       "repository": "frontend",
@@ -9487,10 +9194,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../contexts/AuthContext",
-        "../styles/auth_callback_notice.css"
-      ]
+      "imports": ["../contexts/AuthContext", "../styles/auth_callback_notice.css"]
     },
     {
       "repository": "frontend",
@@ -9504,11 +9208,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../contexts/AuthContext",
-        "../styles/auth_session_notice.css",
-        "react"
-      ]
+      "imports": ["../contexts/AuthContext", "../styles/auth_session_notice.css", "react"]
     },
     {
       "repository": "frontend",
@@ -9528,10 +9228,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/portfolio",
-        "./ProjetoMidia"
-      ]
+      "imports": ["../types/portfolio", "./ProjetoMidia"]
     },
     {
       "repository": "frontend",
@@ -9551,10 +9248,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "react",
-        "react-dom"
-      ]
+      "imports": ["react", "react-dom"]
     },
     {
       "repository": "frontend",
@@ -9624,9 +9318,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/portfolio"
-      ]
+      "imports": ["../types/portfolio"]
     },
     {
       "repository": "frontend",
@@ -9640,12 +9332,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../data/perfil",
-        "../hooks/useMediaQuery",
-        "react",
-        "typed.js"
-      ]
+      "imports": ["../data/perfil", "../hooks/useMediaQuery", "react", "typed.js"]
     },
     {
       "repository": "frontend",
@@ -9685,11 +9372,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../types/meetings",
-        "./MeetingStatusView",
-        "react"
-      ]
+      "imports": ["../../types/meetings", "./MeetingStatusView", "react"]
     },
     {
       "repository": "frontend",
@@ -9733,10 +9416,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../types/meetings",
-        "./meetingTime"
-      ]
+      "imports": ["../../types/meetings", "./meetingTime"]
     },
     {
       "repository": "frontend",
@@ -9756,9 +9436,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../services/platformHttp"
-      ]
+      "imports": ["../../services/platformHttp"]
     },
     {
       "repository": "frontend",
@@ -9790,9 +9468,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./platform"
-      ]
+      "imports": ["./platform"]
     },
     {
       "repository": "frontend",
@@ -9918,12 +9594,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../config/platform",
-        "../services/meetingsClient",
-        "../types/meetings",
-        "react"
-      ]
+      "imports": ["../config/platform", "../services/meetingsClient", "../types/meetings", "react"]
     },
     {
       "repository": "frontend",
@@ -9937,9 +9608,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/portfolio"
-      ]
+      "imports": ["../types/portfolio"]
     },
     {
       "repository": "frontend",
@@ -9953,9 +9622,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/portfolio"
-      ]
+      "imports": ["../types/portfolio"]
     },
     {
       "repository": "frontend",
@@ -9981,10 +9648,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/portfolio",
-        "./ppks-academic.snapshot.json"
-      ]
+      "imports": ["../types/portfolio", "./ppks-academic.snapshot.json"]
     },
     {
       "repository": "frontend",
@@ -10012,9 +9676,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/portfolio"
-      ]
+      "imports": ["../types/portfolio"]
     },
     {
       "repository": "frontend",
@@ -10102,9 +9764,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "react"
-      ]
+      "imports": ["react"]
     },
     {
       "repository": "frontend",
@@ -10163,11 +9823,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../lib/assets",
-        "./useMediaQuery",
-        "react"
-      ]
+      "imports": ["../lib/assets", "./useMediaQuery", "react"]
     },
     {
       "repository": "frontend",
@@ -10187,11 +9843,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/portfolio",
-        "react",
-        "react-router"
-      ]
+      "imports": ["../types/portfolio", "react", "react-router"]
     },
     {
       "repository": "frontend",
@@ -10205,13 +9857,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../lib/sceneAssets",
-        "../types/portfolio",
-        "react",
-        "react-dom",
-        "react-router"
-      ]
+      "imports": ["../lib/sceneAssets", "../types/portfolio", "react", "react-dom", "react-router"]
     },
     {
       "repository": "frontend",
@@ -10231,9 +9877,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "react"
-      ]
+      "imports": ["react"]
     },
     {
       "repository": "frontend",
@@ -10279,10 +9923,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/portfolio",
-        "./assets"
-      ]
+      "imports": ["../types/portfolio", "./assets"]
     },
     {
       "repository": "frontend",
@@ -10296,9 +9937,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./sceneAssets"
-      ]
+      "imports": ["./sceneAssets"]
     },
     {
       "repository": "frontend",
@@ -10494,10 +10133,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/meetings",
-        "./authClient"
-      ]
+      "imports": ["../types/meetings", "./authClient"]
     },
     {
       "repository": "frontend",
@@ -10535,12 +10171,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/auth",
-        "./authCoordination",
-        "./authSessionClient",
-        "./platformHttp"
-      ]
+      "imports": ["../types/auth", "./authCoordination", "./authSessionClient", "./platformHttp"]
     },
     {
       "repository": "frontend",
@@ -10632,9 +10263,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./platformHttp"
-      ]
+      "imports": ["./platformHttp"]
     },
     {
       "repository": "frontend",
@@ -10766,10 +10395,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/meetings",
-        "./platformHttp"
-      ]
+      "imports": ["../types/meetings", "./platformHttp"]
     },
     {
       "repository": "frontend",
@@ -10910,9 +10536,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/orbe"
-      ]
+      "imports": ["../types/orbe"]
     },
     {
       "repository": "frontend",
@@ -10958,9 +10582,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./orbeDiagnosticEvent"
-      ]
+      "imports": ["./orbeDiagnosticEvent"]
     },
     {
       "repository": "frontend",
@@ -10974,9 +10596,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/orbe"
-      ]
+      "imports": ["../types/orbe"]
     },
     {
       "repository": "frontend",
@@ -11026,9 +10646,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../types/orbe"
-      ]
+      "imports": ["../types/orbe"]
     },
     {
       "repository": "frontend",
@@ -11146,9 +10764,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../services/platformHttp"
-      ]
+      "imports": ["../services/platformHttp"]
     },
     {
       "repository": "frontend",
@@ -11336,9 +10952,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../services/platformHttp"
-      ]
+      "imports": ["../services/platformHttp"]
     },
     {
       "repository": "frontend",
@@ -11388,9 +11002,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "./meetings"
-      ]
+      "imports": ["./meetings"]
     },
     {
       "repository": "frontend",
@@ -11454,20 +11066,14 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./fixtures",
-        "@axe-core/playwright",
-        "@playwright/test"
-      ]
+      "imports": ["./fixtures", "@axe-core/playwright", "@playwright/test"]
     },
     {
       "repository": "frontend",
       "file": "tests/archive-layout.spec.ts",
       "sha256": "d9697ce7028dc91244a22df9138751db314c99b9c9ce1f2bc0bdd6970617f4fc",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -11487,9 +11093,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -11690,19 +11294,14 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../src/services/authNavigation",
-        "@playwright/test"
-      ]
+      "imports": ["../src/services/authNavigation", "@playwright/test"]
     },
     {
       "repository": "frontend",
       "file": "tests/career.spec.ts",
       "sha256": "7311a26778b5d7fe794f9359f49bd5272939fb3dd25a382a4066b13a7eb69927",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -11747,10 +11346,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./helpers/session-tabs-mock",
-        "@playwright/test"
-      ]
+      "imports": ["./helpers/session-tabs-mock", "@playwright/test"]
     },
     {
       "repository": "frontend",
@@ -11788,10 +11384,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./helpers/integrated-session",
-        "@playwright/test"
-      ]
+      "imports": ["./helpers/integrated-session", "@playwright/test"]
     },
     {
       "repository": "frontend",
@@ -11817,9 +11410,7 @@
       "file": "tests/formacao-cursos.spec.ts",
       "sha256": "2b547de4f55086183ec62762214ae3d2f00e44d0bc3ff16e62fb3bd43f6c2d47",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -12019,11 +11610,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../src/services/authClient",
-        "../../src/types/auth",
-        "@playwright/test"
-      ]
+      "imports": ["../../src/services/authClient", "../../src/types/auth", "@playwright/test"]
     },
     {
       "repository": "frontend",
@@ -12091,9 +11678,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "@playwright/test"
-      ]
+      "imports": ["@playwright/test"]
     },
     {
       "repository": "frontend",
@@ -12209,11 +11794,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "../../src/types/auth",
-        "../../src/types/meetings",
-        "@playwright/test"
-      ]
+      "imports": ["../../src/types/auth", "../../src/types/meetings", "@playwright/test"]
     },
     {
       "repository": "frontend",
@@ -12227,9 +11808,7 @@
           "exported": true
         }
       ],
-      "imports": [
-        "@playwright/test"
-      ]
+      "imports": ["@playwright/test"]
     },
     {
       "repository": "frontend",
@@ -12405,9 +11984,7 @@
       "file": "tests/interactions.spec.ts",
       "sha256": "4c77ade10c9d64a060b93bc81e2dcf7819600e01da3541eeef212743687e1429",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -12584,9 +12161,7 @@
       "file": "tests/orbe-public.spec.ts",
       "sha256": "63e85ae3c7c94e3899fd36f6195c17c7574825ca50ec34df7dbc755d8473d608",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -12769,27 +12344,21 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
       "file": "tests/project-detail-alignment.spec.ts",
       "sha256": "595dd330bdf75aeb4436c9c8ce7f72eadff42b2674b11a1aca408e519b7cf515",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
       "file": "tests/project-gallery.spec.ts",
       "sha256": "6685ed525059a25c509d613b02ed18cfff2ff5fce8babaf78eec259ae94ad10e",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -12815,9 +12384,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -12831,9 +12398,7 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -12847,19 +12412,14 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
       "file": "tests/runtime-errors.spec.ts",
       "sha256": "f419d615d09541c8a804231c55b94e8de4b4ae0f8a5d2fa3e5116c5cf934df4c",
       "symbols": [],
-      "imports": [
-        "./helpers/runtime-errors",
-        "@playwright/test"
-      ]
+      "imports": ["./helpers/runtime-errors", "@playwright/test"]
     },
     {
       "repository": "frontend",
@@ -12879,18 +12439,14 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
       "file": "tests/section-ui-ux.spec.ts",
       "sha256": "0ba287be9d2467f31187a71b841048531cbaec0a095cb7229ff41e2fb0de5b09",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -12910,48 +12466,35 @@
           "exported": false
         }
       ],
-      "imports": [
-        "../../scripts/sync-ppks-academic.mjs",
-        "node:assert/strict",
-        "node:test"
-      ]
+      "imports": ["../../scripts/sync-ppks-academic.mjs", "node:assert/strict", "node:test"]
     },
     {
       "repository": "frontend",
       "file": "tests/site-loading.spec.ts",
       "sha256": "83f9d27dacf82dc8dfa1c2d5e834f82493e40b54dc0a6fc277867150e4526cb9",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
       "file": "tests/smoke-deploy.spec.ts",
       "sha256": "26410a527e79f3a1a4aab40bfc80bea45517cddb5937cb46b8313814eecb3b43",
       "symbols": [],
-      "imports": [
-        "./fixtures",
-        "node:fs/promises"
-      ]
+      "imports": ["./fixtures", "node:fs/promises"]
     },
     {
       "repository": "frontend",
       "file": "tests/sobre-competencias.spec.ts",
       "sha256": "438202324579c3c8a00026dfb2dc5e4dbfd921afbdfc75faf098a5fe41ba20c9",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
       "file": "tests/stacks-digitadas.spec.ts",
       "sha256": "94dcd15e1b67aeb0e6a471a50b36ca4fcc0244ff3ae10eca9442b79f0a2743ef",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
@@ -12995,18 +12538,14 @@
           "exported": false
         }
       ],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     },
     {
       "repository": "frontend",
       "file": "tests/visual.spec.ts",
       "sha256": "bd57135945b4cfdf19bb4b0eb9a1d76f7b9f503f8b0e7cdf35639c6779371b70",
       "symbols": [],
-      "imports": [
-        "./fixtures"
-      ]
+      "imports": ["./fixtures"]
     }
   ],
   "statistics": {

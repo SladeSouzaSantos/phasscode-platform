@@ -28,15 +28,15 @@ flowchart TD
 
 ## Camadas e responsabilidades
 
-| Camada | Responsabilidade | Implementação |
-| --- | --- | --- |
-| Interface | Seções, navegação, tema, modal, histórico do chat, fontes | [Frontend `src/`](https://github.com/SladeSouzaSantos/web-portfolio-v2/tree/main/src) |
-| Transporte | Parse e validação HTTP, CORS, headers, erros, limites | [`http/app.ts`](../../apps/orbe-node/src/http/app.ts), [`packages/contracts/`](../../packages/contracts/) |
-| Aplicação | Orquestrar turnos, decisões, contexto, políticas, respostas | [`application/chat.ts`](../../apps/orbe-node/src/application/chat.ts) |
-| Domínio | Interfaces estáveis para storage/provedor/conhecimento | [`domain/ports.ts`](../../apps/orbe-node/src/domain/ports.ts), [`domain/evidence-graph.ts`](../../apps/orbe-node/src/domain/evidence-graph.ts) |
-| Adaptadores | PostgreSQL, JSON, Redis, provedores LLM e Graph Reader | [`adapters/`](../../apps/orbe-node/src/adapters/) |
-| Conhecimento | Fatos, fichas PPKS, fontes, relações semânticas curadas | [`knowledge/`](../../knowledge/) |
-| Infraestrutura | Docker Compose, migrations, CI/CD, deploy | [`compose.yaml`](../../compose.yaml), [workflow](../../.github/workflows/deploy.yml) |
+| Camada         | Responsabilidade                                            | Implementação                                                                                                                                  |
+| -------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Interface      | Seções, navegação, tema, modal, histórico do chat, fontes   | [Frontend `src/`](https://github.com/SladeSouzaSantos/web-portfolio-v2/tree/main/src)                                                          |
+| Transporte     | Parse e validação HTTP, CORS, headers, erros, limites       | [`http/app.ts`](../../apps/orbe-node/src/http/app.ts), [`packages/contracts/`](../../packages/contracts/)                                      |
+| Aplicação      | Orquestrar turnos, decisões, contexto, políticas, respostas | [`application/chat.ts`](../../apps/orbe-node/src/application/chat.ts)                                                                          |
+| Domínio        | Interfaces estáveis para storage/provedor/conhecimento      | [`domain/ports.ts`](../../apps/orbe-node/src/domain/ports.ts), [`domain/evidence-graph.ts`](../../apps/orbe-node/src/domain/evidence-graph.ts) |
+| Adaptadores    | PostgreSQL, JSON, Redis, provedores LLM e Graph Reader      | [`adapters/`](../../apps/orbe-node/src/adapters/)                                                                                              |
+| Conhecimento   | Fatos, fichas PPKS, fontes, relações semânticas curadas     | [`knowledge/`](../../knowledge/)                                                                                                               |
+| Infraestrutura | Docker Compose, migrations, CI/CD, deploy                   | [`compose.yaml`](../../compose.yaml), [workflow](../../.github/workflows/deploy.yml)                                                           |
 
 Essa separação tem uma finalidade prática: o caso de uso recebe **portas** como `ConversationStore`, `KnowledgeRepository` e `ChatProvider`; trocar infraestrutura não deveria obrigar o domínio a tratar diretamente protocolos HTTP, SQL ou chaves de provedor. O mesmo princípio explica por que o adaptador HydraDB só foi testado isoladamente.
 
@@ -61,14 +61,14 @@ Consulte [guia active DEV](../graph-rag-active-dev.md), [guia shadow DEV](../gra
 
 ## Perspectivas operacionais distintas
 
-| Vista | `dev` | `main` |
-| --- | --- | --- |
-| Objetivo | Homologação e testes antes de promoção | Produção e release aprovada |
-| Frontend conhecido | `devgbc.phasscode.com` | `gbc.phasscode.com` |
-| Backend conhecido | `devapi.phasscode.com` | `api.phasscode.com` |
+| Vista                        | `dev`                                  | `main`                             |
+| ---------------------------- | -------------------------------------- | ---------------------------------- |
+| Objetivo                     | Homologação e testes antes de promoção | Produção e release aprovada        |
+| Frontend conhecido           | `devgbc.phasscode.com`                 | `gbc.phasscode.com`                |
+| Backend conhecido            | `devapi.phasscode.com`                 | `api.phasscode.com`                |
 | Checkout backend documentado | `/opt/projects/phasscode-platform-dev` | `/opt/projects/phasscode-platform` |
-| GraphRAG `shadow` / `active` | Apenas por aprovação/overlay | Não parte do deploy padrão |
-| Promoção | Exige checagem da release/testes | Merge e deploy não são sinônimos |
+| GraphRAG `shadow` / `active` | Apenas por aprovação/overlay           | Não parte do deploy padrão         |
+| Promoção                     | Exige checagem da release/testes       | Merge e deploy não são sinônimos   |
 
 Links: [README backend](../../README.md), [README frontend](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/README.md), [operação](../deployment/README.md).
 

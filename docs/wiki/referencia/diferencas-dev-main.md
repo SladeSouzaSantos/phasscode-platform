@@ -9,7 +9,7 @@ Gerado automaticamente a partir de **quatro SHAs GitHub imutáveis**. Compara ha
 - Arquivos nos dois snapshots sem alteração: **237**; modificados: **0**; exclusivos MAIN: **0**; exclusivos DEV: **0**.
 
 | Status | Arquivo TypeScript/JavaScript | Diferença de símbolos nomeados |
-| --- | --- | --- |
+| ------ | ----------------------------- | ------------------------------ |
 
 **Cuidado:** +0/−0 não significa arquivo idêntico; corpo, imports, lógica, CSS, dados ou testes podem ter mudado sem renomear símbolos.
 
@@ -19,12 +19,12 @@ Gerado automaticamente a partir de **quatro SHAs GitHub imutáveis**. Compara ha
 - DEV: `d8b7bfbc8dff3754cb42fc6bf2541f33c360adf3`
 - Arquivos nos dois snapshots sem alteração: **106**; modificados: **0**; exclusivos MAIN: **0**; exclusivos DEV: **4**.
 
-| Status | Arquivo TypeScript/JavaScript | Diferença de símbolos nomeados |
-| --- | --- | --- |
-| Só DEV | `scripts/orbe-local-playwright.mjs` | +15 / −0 |
-| Só DEV | `scripts/preflight-orbe-live-dev.mjs` | +4 / −0 |
-| Só DEV | `scripts/read-orbe-live-request.mjs` | +2 / −0 |
-| Só DEV | `tests/orbe-live.spec.ts` | +6 / −0 |
+| Status | Arquivo TypeScript/JavaScript         | Diferença de símbolos nomeados |
+| ------ | ------------------------------------- | ------------------------------ |
+| Só DEV | `scripts/orbe-local-playwright.mjs`   | +15 / −0                       |
+| Só DEV | `scripts/preflight-orbe-live-dev.mjs` | +4 / −0                        |
+| Só DEV | `scripts/read-orbe-live-request.mjs`  | +2 / −0                        |
+| Só DEV | `tests/orbe-live.spec.ts`             | +6 / −0                        |
 
 **Cuidado:** +0/−0 não significa arquivo idêntico; corpo, imports, lógica, CSS, dados ou testes podem ter mudado sem renomear símbolos.
 

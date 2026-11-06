@@ -4,14 +4,14 @@
 
 **Fonte:** `infrastructure/postgres/migrations/`, backend `main` `c302ec444266`. Os arquivos foram lidos diretamente. **Esta revisão não executou SQL** ou verificou se algum servidor já aplicou as migrations.
 
-| Migration | Objetos principais | Estado funcional |
-| --- | --- | --- |
-| [001_conversations.sql](../../../infrastructure/postgres/migrations/001_conversations.sql) | `conversations`, `conversation_messages`, índices de retenção e histórico | Orbe público |
-| [002_auth.sql](../../../infrastructure/postgres/migrations/002_auth.sql) | `auth_users`, identidades OIDC, roles, transações OAuth, auditoria e sessões | Código legado/condicional; não há login público |
-| [003_meetings.sql](../../../infrastructure/postgres/migrations/003_meetings.sql) | propostas, reuniões, auditoria, outbox, índices e exclusão de períodos `gist` | Legado/condicional; não há reuniões públicas |
-| [004_notifications.sql](../../../infrastructure/postgres/migrations/004_notifications.sql) | `notification_deliveries`, status e índice para retry | Legado, vinculado ao `meeting_outbox` |
-| [005_calendar_create_uncertainty.sql](../../../infrastructure/postgres/migrations/005_calendar_create_uncertainty.sql) | flag `calendar_create_uncertain` e marcação de reservas sem ID externo | Recuperação histórica de calendário, não chat atual |
-| [006_orbe_reports.sql](../../../infrastructure/postgres/migrations/006_orbe_reports.sql) | flags de consentimento, `orbe_conversation_reports`, `orbe_daily_reports` | Serviço opcional de relatórios, por opt-in |
+| Migration                                                                                                              | Objetos principais                                                            | Estado funcional                                    |
+| ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
+| [001_conversations.sql](../../../infrastructure/postgres/migrations/001_conversations.sql)                             | `conversations`, `conversation_messages`, índices de retenção e histórico     | Orbe público                                        |
+| [002_auth.sql](../../../infrastructure/postgres/migrations/002_auth.sql)                                               | `auth_users`, identidades OIDC, roles, transações OAuth, auditoria e sessões  | Código legado/condicional; não há login público     |
+| [003_meetings.sql](../../../infrastructure/postgres/migrations/003_meetings.sql)                                       | propostas, reuniões, auditoria, outbox, índices e exclusão de períodos `gist` | Legado/condicional; não há reuniões públicas        |
+| [004_notifications.sql](../../../infrastructure/postgres/migrations/004_notifications.sql)                             | `notification_deliveries`, status e índice para retry                         | Legado, vinculado ao `meeting_outbox`               |
+| [005_calendar_create_uncertainty.sql](../../../infrastructure/postgres/migrations/005_calendar_create_uncertainty.sql) | flag `calendar_create_uncertain` e marcação de reservas sem ID externo        | Recuperação histórica de calendário, não chat atual |
+| [006_orbe_reports.sql](../../../infrastructure/postgres/migrations/006_orbe_reports.sql)                               | flags de consentimento, `orbe_conversation_reports`, `orbe_daily_reports`     | Serviço opcional de relatórios, por opt-in          |
 
 ## Modelo lógico essencial do Orbe público
 
