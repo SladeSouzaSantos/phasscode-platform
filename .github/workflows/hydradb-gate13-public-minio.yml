@@ -1,0 +1,114 @@
+name: HydraDB Gate 13 | public PPKS MinIO restart parity (NO MiniMac)
+
+# Two temporary local Docker services on GitHub-hosted Linux only.
+# No SSH, Tailscale, Orbe production data, external AWS, or dev/main services.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-gate13-public-minio.yml
+      - scripts/hydradb-gate11-minio-containers.sh
+      - scripts/hydradb-gate13-public-minio-parity.ts
+      - scripts/hydradb-gate12-public-ppks-fixture.ts
+      - scripts/hydradb-gate10-repository.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-gate13-minio-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  object-store:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    env:
+      GATE11_ISOLATION_MODE: github_hosted_ephemeral
+      GATE10_ISOLATION_MODE: github_hosted_ephemeral
+    steps:
+      - name: Require lab-only GitHub hosted environment
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = SladeSouzaSantos/phasscode-platform
+          test "$GITHUB_REF" = refs/heads/experiment/hydradb
+          test "$GATE11_ISOLATION_MODE" = github_hosted_ephemeral
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked TypeScript dependencies without lifecycle hooks
+        run: npm ci --ignore-scripts
+
+      - name: Validate scripts and initialize entirely ephemeral credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/hydradb-gate11-minio-containers.sh
+          npm run typecheck
+          bash scripts/hydradb-gate11-minio-containers.sh init
+
+      - name: Create isolated MinIO object-store bucket
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/hydradb-gate11-minio-containers.sh minio-start
+
+      - name: Launch HydraDB on MinIO with a fresh local cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/hydradb-gate11-minio-containers.sh hydra-start
+
+      - name: Seed public PPKS claim/source evidence and compare to canonical
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/gate11-ephemeral-$GITHUB_RUN_ID"
+          export GATE11_TOKEN_FILE="$ROOT/hydra-token"
+          export GATE13_DIGEST_FILE="$ROOT/public-ppks.sha256"
+          node --import tsx scripts/hydradb-gate13-public-minio-parity.ts --mode seed
+
+      - name: Replace HydraDB node/cache and verify public PPKS contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/hydradb-gate11-minio-containers.sh hydra-restart
+          ROOT="$RUNNER_TEMP/gate11-ephemeral-$GITHUB_RUN_ID"
+          export GATE11_TOKEN_FILE="$ROOT/hydra-token"
+          export GATE13_DIGEST_FILE="$ROOT/public-ppks.sha256"
+          node --import tsx scripts/hydradb-gate13-public-minio-parity.ts --mode verify
+          echo GATE13_PUBLIC_HYDRA_NODE_RESTART_PASS
+
+      - name: Replace MinIO and HydraDB and verify public PPKS contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/hydradb-gate11-minio-containers.sh minio-restart
+          ROOT="$RUNNER_TEMP/gate11-ephemeral-$GITHUB_RUN_ID"
+          export GATE11_TOKEN_FILE="$ROOT/hydra-token"
+          export GATE13_DIGEST_FILE="$ROOT/public-ppks.sha256"
+          node --import tsx scripts/hydradb-gate13-public-minio-parity.ts --mode verify
+          echo GATE13_PUBLIC_MINIO_SERVICE_RESTART_PASS
+
+      - name: Report only container lifecycle if failed
+        if: failure()
+        shell: bash
+        run: |
+          for ID in "gate11-minio-$GITHUB_RUN_ID" "gate11-hydra-$GITHUB_RUN_ID"; do
+            docker inspect --format '{{.Name}} status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}}' "$ID" 2>/dev/null || true
+          done
+
+      - name: Remove exclusively this GitHub runner experiment
+        if: always()
+        shell: bash
+        run: |
+          bash scripts/hydradb-gate11-minio-containers.sh cleanup
