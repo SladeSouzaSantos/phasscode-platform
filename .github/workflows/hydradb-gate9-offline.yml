@@ -1,0 +1,49 @@
+name: HydraDB Gate 9 | Cypher compatibility inventory (offline)
+
+# Static adapter compatibility inventory only. No SSH, Tailscale, graph engine,
+# credentials, deploy, seeds, network calls or Mac Mini workload.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-gate9-offline.yml
+      - evaluation/hydradb-gate9-*
+      - scripts/gate9-*
+      - tests/gate9-*
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-gate9-offline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Guard repository and branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = SladeSouzaSantos/phasscode-platform
+          test "$GITHUB_REF" = refs/heads/experiment/hydradb
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Compare query surface and assert no runtime equivalence claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run typecheck
+          ./node_modules/.bin/vitest run tests/gate9-cypher-inventory.test.ts
+          node --import tsx scripts/gate9-cypher-inventory.ts
+          echo HYDRADB_GATE9_STATIC_CI_PASS
