@@ -13,8 +13,8 @@ NETWORK="gate11-network-$GITHUB_RUN_ID"
 MINIO="gate11-minio-$GITHUB_RUN_ID"
 HYDRA="gate11-hydra-$GITHUB_RUN_ID"
 BUCKET="gate11-$GITHUB_RUN_ID"
-MINIO_IMAGE="minio/minio:RELEASE.2025-07-23T15-54-02Z"
-MC_IMAGE="minio/mc:RELEASE.2025-04-16T18-13-26Z"
+MINIO_IMAGE="quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z"
+MC_IMAGE="quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z"
 HYDRA_IMAGE="ghcr.io/hydra-db/hydradb:0.3.0"
 
 case "$1" in
