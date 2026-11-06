@@ -74,12 +74,25 @@ function decodePayload(value: string): unknown {
   }
 }
 
+const LAB_APPROVED_SKILLS = new Set([
+  'java', 'flutter', 'go', 'hibernate', 'dart', 'python', 'fastapi',
+  'node.js', 'typescript', 'react', 'spring boot',
+]);
 function normalizeSkill(label: string): string {
   const normalized = label.trim().toLowerCase();
-  check(normalized === 'java' || normalized === 'flutter' || normalized === 'go',
-    'GATE10_SKILL_NOT_IN_PUBLIC_SYNTHETIC_FIXTURE');
+  check(LAB_APPROVED_SKILLS.has(normalized),
+    'GATE10_SKILL_NOT_IN_PUBLIC_LAB_FIXTURES');
   return normalized;
 }
+function canonicalSkillId(label: string): string {
+  return 'skill-' + label.normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+const ALLOWED_SCOPES = new Set([
+  'professional', 'mixed_role', 'professional_project',
+  'personal_project', 'study',
+]);
 
 /**
  * Prove source completeness before applying the claims limit.
@@ -116,10 +129,13 @@ export class Gate10HydraEvidenceRepository implements EvidenceGraphRepository {
         const claim = evidenceClaimSchema.parse(decodePayload(encodedClaim!));
         const source = evidenceSourceSchema.parse(decodePayload(encodedSource!));
         check(claim.predicate === 'USES_TECHNOLOGY' &&
-          claim.objectId === 'skill-' + skill &&
+          claim.objectId === canonicalSkillId(req.label) &&
           claim.sourceIds.includes(source.id) &&
           source.visibility === 'public',
           'GATE10_UNTRUSTED_GRAPH_EDGE');
+        // Match the original Neo4j adapter's Cypher scope whitelist. In
+        // particular, UNKNOWN does not become recruiter-facing evidence.
+        if (!ALLOWED_SCOPES.has(claim.scope)) continue;
         const pair = claim.id + '|' + source.id;
         check(!pairIds.has(pair), 'GATE10_DUPLICATE_GRAPH_EDGE');
         pairIds.add(pair);
