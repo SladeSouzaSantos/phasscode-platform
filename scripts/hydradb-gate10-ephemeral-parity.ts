@@ -26,6 +26,7 @@ import type {
   EvidenceGraphSnapshot, VacancyRequirement,
 } from '../apps/orbe-node/src/domain/evidence-graph.js';
 import { loadGate12PublicPpksFixture } from './hydradb-gate12-public-ppks-fixture.js';
+import { runGate15AdapterPilot } from './hydradb-gate15-adapter-benchmark.js';
 
 function ensure(value: unknown, code: string): asserts value {
   if (!value) throw new Error(code);
@@ -351,6 +352,12 @@ async function main() {
     console.log('GATE12_PUBLIC_PPKS_REPOSITORY_PARITY_JSON',
       JSON.stringify(publicReport));
     console.log('GATE12_PUBLIC_PPKS_REPOSITORY_PARITY_PASS');
+    await runGate15AdapterPilot(
+      neoPublic,
+      new Gate10HydraEvidenceRepository(transport,publicRun),
+      publicFixture.requirements,
+      publicFixture.sources[0]!.id,
+    );
   } finally {
     await store.close();
   }
