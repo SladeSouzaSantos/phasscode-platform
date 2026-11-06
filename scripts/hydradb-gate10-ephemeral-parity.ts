@@ -22,7 +22,7 @@ import {
   gate10Fixture, gate10Requirements, gate10Claims, gate10Sources,
 } from './hydradb-gate10-fixture.js';
 import type {
-  EvidenceGraphMatch, EvidenceGraphRepository, EvidenceSource,
+  EvidenceGraphMatch, EvidenceGraphRepository,
 } from '../apps/orbe-node/src/domain/evidence-graph.js';
 
 function ensure(value: unknown, code: string): asserts value {
@@ -59,7 +59,7 @@ async function hydraQuery(token: string, query: string,
   return JSON.parse(content) as unknown;
 }
 
-async function waitReady(token: string, graph: Neo4jGraphStore): Promise<void> {
+async function waitReady(graph: Neo4jGraphStore): Promise<void> {
   for (let attempt = 0; attempt < 70; attempt++) {
     let hydraReady = false;
     try {
@@ -193,7 +193,7 @@ async function main() {
     });
   const store = new Neo4jGraphStore(rawDriver,'neo4j');
   try {
-    await waitReady(token,store);
+    await waitReady(store);
     console.log('GATE10_EPHEMERAL_PAIR_READY');
     const seeded = await store.seed(gate10Fixture);
     ensure(seeded.nodes === gate10Fixture.nodes.length &&
