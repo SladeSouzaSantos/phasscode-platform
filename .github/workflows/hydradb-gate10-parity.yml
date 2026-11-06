@@ -12,6 +12,7 @@ on:
       - scripts/hydradb-gate10-repository.ts
       - scripts/hydradb-gate10-ephemeral-parity.ts
       - scripts/hydradb-gate12-public-ppks-fixture.ts
+      - scripts/hydradb-gate15-adapter-benchmark.ts
       - tests/hydradb-gate10-repository.test.ts
   workflow_dispatch:
 
@@ -137,6 +138,22 @@ jobs:
           export GATE10_NEO_AUTH_FILE="$ROOT/neo-auth"
           node --import tsx scripts/hydradb-gate10-ephemeral-parity.ts
           echo GATE10_EPHEMERAL_REPOSITORY_PARITY_COMPLETED
+          # Publish no credentials: these are public Docker OCI digests.
+          for IMG in ghcr.io/hydra-db/hydradb:0.3.0 neo4j:5.26; do
+            DIGEST="$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMG")"
+            test -n "$DIGEST"
+            printf 'GATE15_PUBLIC_IMAGE_DIGEST %s\n' "$DIGEST"
+          done
+          echo GATE15_PUBLIC_ADAPTER_BENCHMARK_COMPLETE
+
+      - name: Upload evidence-only F4.3 pilot report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hydradb-f43-adapter-pilot-${{ github.run_id }}
+          path: ${{ runner.temp }}/gate15-adapter-pilot-${{ github.run_id }}.json
+          retention-days: 14
+          if-no-files-found: error
 
       - name: Summarize disposable container states if a prior step failed
         if: failure()
