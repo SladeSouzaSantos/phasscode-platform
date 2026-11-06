@@ -57,3 +57,31 @@ Somente após B/C, e caso exista justificativa de produto, avaliar respostas de 
 5. Queda, indisponibilidade ou divergência da projeção HydraDB levam ao PPKS canônico. A avaliação permanece somente no LAB e pode ser desativada removendo o processo de teste, sem tocar nos volumes operacionais.
 
 **Gate 8 só estará concluído após execução local e revisão dos resultados.** Se a recuperação canônica e o verificador do grafo produzirem o mesmo pacote, classificar como paridade validada, **não** ganho semântico. Não há autorização implícita para adicionar ONNX sidecar, novas chamadas LLM, realizar merge, deploy ou trocar o Neo4j.
+
+
+## Primeira implementação: preflight do corpus sintético
+
+A preparação inicial de Fase A foi adicionada **sem classificador nem chamadas HTTP**:
+
+- `knowledge/evaluations/hydradb-gate8-recruiter.json`: 20 perguntas **sintéticas**, 10 tecnologias, com anotação de requisitos esperados e sete etiquetas de risco. A anotação está marcada `draft_requires_independent_review` e precisa de revisão humana antes de representar gold validado.
+- `scripts/hydradb-lab-gate8-corpus-check.ts`: validador offline que comprova estrutura, cobertura, unicidade e **consistência com os sete registros PPKS públicos canônicos**; não interpreta linguagem natural nem consulta HydraDB.
+
+### Execução local do preflight (ainda não realizada)
+
+```bash
+(
+  set -euo pipefail
+  cd ~/hydradb-lab/phasscode-platform
+  test "$(git branch --show-current)" = "experiment/hydradb"
+  git pull --ff-only origin experiment/hydradb
+  docker run --rm --network none \\
+    --user "$(id -u):$(id -g)" -e HOME=/tmp \\
+    -v "$PWD:/workspace" -w /workspace node:24 sh -ec '
+      npm run typecheck
+      ./node_modules/.bin/vitest run tests/hydradb-lab-evidence-adapter.test.ts
+      node --import tsx scripts/hydradb-lab-gate8-corpus-check.ts
+    '
+)
+```
+
+Marcadores esperados: `GATE8_CORPUS_CANONICAL_FIXTURE_PARITY_PASS`, `GATE8_CORPUS_DRAFT_CHECK_PASS` e `GATE8_INDEPENDENT_GOLD_REVIEW_REQUIRED`. **Um PASS do preflight não aprova o gold, não mede precisão de interpretação, não faz leitura real no HydraDB e não conclui Gate 8.**
