@@ -1,6 +1,7 @@
 name: HydraDB LAB | offline and approved MiniMac SHADOW
 
 # Experimental branch only. A new workflow is triggered by push;
+# MiniMac fixed SSH command is operator-installed separately; never updated by CI.
 # workflow_dispatch requires the file on the GitHub default branch.
 on:
   push:
