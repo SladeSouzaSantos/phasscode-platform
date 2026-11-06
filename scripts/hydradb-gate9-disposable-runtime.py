@@ -31,15 +31,41 @@ PORTABLE_SEED = (
     "(b:Gate9Claim {id: 800101, scope: 'professional'})"
 )
 PORTABLE_READS = (
-    ("one_hop", "MATCH (a:Gate9Skill {id: 800100})-[:GATE9_SKILL]->(b) RETURN b.id AS id", 1),
-    ("property_filter", "MATCH (a:Gate9Claim) WHERE a.scope = 'professional' RETURN a.id AS id ORDER BY id LIMIT 1", 1),
-    ("aggregate_count", "MATCH (a:Gate9Claim) RETURN count(*) AS total", 1),
-    ("aggregate_collect", "MATCH (a:Gate9Claim) RETURN collect(a.scope) AS scopes", 1),
-    ("unsupported_in", "MATCH (a:Gate9Claim) WHERE a.scope IN ['professional'] RETURN a.id AS id", 1),
-    ("unsupported_is_null", "MATCH (a:Gate9Claim) WHERE a.scope IS NULL RETURN a.id AS id", 0),
-    ("unsupported_with_order", "MATCH (a:Gate9Claim) WITH a ORDER BY a.id LIMIT 1 RETURN a.id AS id", 1),
-    ("undocumented_tolower", "MATCH (a:Gate9Skill) WHERE toLower(a.label) = toLower('JAVA') RETURN a.id AS id", 1),
+    ("one_hop",
+     "MATCH (a:Gate9Skill {id: 800100})-[:GATE9_SKILL]->(b) RETURN b.id AS id",
+     [[800101]]),
+    ("property_filter",
+     "MATCH (a:Gate9Claim) WHERE a.scope = 'professional' RETURN a.id AS id ORDER BY id LIMIT 1",
+     [[800101]]),
+    ("aggregate_count",
+     "MATCH (a:Gate9Claim) RETURN count(*) AS total",
+     [[1]]),
+    ("aggregate_collect",
+     "MATCH (a:Gate9Claim) RETURN collect(a.scope) AS scopes",
+     [[["professional"]]]),
+    ("in_positive",
+     "MATCH (a:Gate9Claim) WHERE a.scope IN ['professional'] RETURN a.id AS id",
+     [[800101]]),
+    ("in_negative",
+     "MATCH (a:Gate9Claim) WHERE a.scope IN ['study'] RETURN a.id AS id",
+     []),
+    ("is_null_negative",
+     "MATCH (a:Gate9Claim) WHERE a.scope IS NULL RETURN a.id AS id",
+     []),
+    ("is_null_positive",
+     "MATCH (a:Gate9Skill) WHERE a.scope IS NULL RETURN a.id AS id",
+     [[800100]]),
+    ("with_order_limit",
+     "MATCH (a:Gate9Claim) WITH a ORDER BY a.id LIMIT 1 RETURN a.id AS id",
+     [[800101]]),
+    ("undocumented_tolower",
+     "MATCH (a:Gate9Skill) WHERE toLower(a.label) = toLower('JAVA') RETURN a.id AS id",
+     [[800100]]),
+    ("count_binding",
+     "MATCH (a:Gate9Claim) RETURN count(a) AS total",
+     [[1]]),
 )
+
 EXPECTED_ROWS = {
     "findEvidence": 1, "getSource": 1, "countNodes": 1, "countRelations": 1,
 }
@@ -153,6 +179,28 @@ def query(opener, engine: str, text: str, params: dict, token: str, auth: str) -
     return {"status": "accepted", "code": None, "rows": len(rows), "_raw": rows}
 
 
+def normalize_result(value):
+    """Normalize typed HydraDB JSON scalars without recording raw payloads."""
+    if isinstance(value, dict) and "type" in value and "value" in value:
+        return normalize_result(value["value"])
+    if isinstance(value, list):
+        return [normalize_result(item) for item in value]
+    return value
+
+
+def portable_semantics(out: dict, expected: list[list]) -> dict:
+    if out["status"] != "accepted":
+        return observe(out)
+    got = normalize_result(out["_raw"])
+    exact = got == expected
+    return {
+        "status": "value_match" if exact else "value_mismatch",
+        "rows": out["rows"],
+        "expectedRows": len(expected),
+        "code": None,
+    }
+
+
 def observe(out: dict, expected: int | None = None, *,
             seed: bool = False, exact_orbe: bool = False) -> dict:
     result = {key: val for key, val in out.items() if key != "_raw"}
@@ -226,14 +274,14 @@ def portable_suite(opener, token: str, auth: str) -> dict:
         seeds[engine] = observe(result, seed=True)
 
     cases = []
-    for name, cypher, count in PORTABLE_READS:
+    for name, cypher, expected in PORTABLE_READS:
         readings = {}
         for engine in ("neo4j", "hydradb"):
             result = query(opener, engine, cypher, {}, token, auth)
-            if engine == "neo4j":
-                if result["status"] != "accepted" or result["rows"] != count:
-                    fail("GATE9_PORTABLE_NEO4J_GOLD_DRIFT_" + name)
-            readings[engine] = observe(result, expected=count)
+            semantic = portable_semantics(result, expected)
+            if engine == "neo4j" and semantic["status"] != "value_match":
+                fail("GATE9_PORTABLE_NEO4J_GOLD_DRIFT_" + name)
+            readings[engine] = semantic
         cases.append({"name": name, **readings})
     return {"seed": seeds, "cases": cases}
 
