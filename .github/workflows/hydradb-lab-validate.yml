@@ -127,6 +127,8 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile="$RUNNER_TEMP/hydradb-lab-known-hosts" \
             -o ConnectTimeout=12 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=3 \
             -i "$RUNNER_TEMP/hydradb-lab-identity" \
             phass@100.116.88.73 "$GITHUB_SHA"
           echo HYDRADB_LAB_CI_REMOTE_PASS
