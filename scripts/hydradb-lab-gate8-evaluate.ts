@@ -85,12 +85,12 @@ function flags(args: readonly string[]): Options {
     check(values.has('--report') && values.has('--token-file'),
       'LAB_GATE8_SHADOW_NEEDS_REPORT_AND_TOKEN');
   }
-  return {
-    mode,
-    report: values.get('--report'),
-    tokenFile: values.get('--token-file'),
-    requireGraph,
-  };
+  const opts: Options = { mode, requireGraph };
+  const report = values.get('--report');
+  const tokenFile = values.get('--token-file');
+  if (report !== undefined) opts.report = report;
+  if (tokenFile !== undefined) opts.tokenFile = tokenFile;
+  return opts;
 }
 
 function parseDraft(raw: string): DraftCorpus {
