@@ -13,9 +13,9 @@ NETWORK="gate11-network-$GITHUB_RUN_ID"
 MINIO="gate11-minio-$GITHUB_RUN_ID"
 HYDRA="gate11-hydra-$GITHUB_RUN_ID"
 BUCKET="gate11-$GITHUB_RUN_ID"
-MINIO_IMAGE="cgr.dev/chainguard/minio:latest"
-MC_IMAGE="cgr.dev/chainguard/minio-client:latest-dev"
-HYDRA_IMAGE="ghcr.io/hydra-db/hydradb:0.3.0"
+MINIO_IMAGE="cgr.dev/chainguard/minio@sha256:cee9a8e35885e93f14b3cb32960e5017aff74e2adfb52ba87c65003b0163886b"
+MC_IMAGE="cgr.dev/chainguard/minio-client@sha256:d4367bd78c859a7629c48978cbdaa0f23a27d92ad3d59457738bc0c7f7128de2"
+HYDRA_IMAGE="ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3"
 
 case "$1" in
   init|minio-start|hydra-start|hydra-restart|minio-restart|cleanup) ;;
