@@ -40,3 +40,15 @@ A referência do upstream [HydraDB v0.3.0, `scripts/minio_smoke.sh`](https://git
 - Próxima entrega: pins de imagem/digest, objeto PPKS público ampliado e recuperação sob falha controlada antes de comparar desempenho.
 
 **Avaliação delimitada:** provamos que os valores gravados no armazenamento de objetos **sobreviveram à substituição do nó HydraDB, cache e servidor MinIO**, na mesma instância GitHub-hosted com o mesmo volume do bucket. Não chamar este teste de backup independente ou HA.
+
+## Immutable OCI image identity — verified repeat (2026-11-06)
+
+We recorded the exact registry digests used by the restart suite and changed the [ephemeral runner script](../../scripts/hydradb-gate11-minio-containers.sh) to pull them by **digest, rather than floating tags**:
+
+| Component | Immutable image |
+| --- | --- |
+| HydraDB | `ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3` |
+| MinIO | `cgr.dev/chainguard/minio@sha256:cee9a8e35885e93f14b3cb32960e5017aff74e2adfb52ba87c65003b0163886b` |
+| MinIO client | `cgr.dev/chainguard/minio-client@sha256:d4367bd78c859a7629c48978cbdaa0f23a27d92ad3d59457738bc0c7f7128de2` |
+
+**Re-run with these digest-pinned images:** [Gate 11 #42165160104](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42165160104) and [Gate 13 #42165160131](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42165160131) both **success**. Gate 13 returned the same public-PPKS digest `ff31a03e8697b992023097f67f6ff77ac33de3635a9836ba60c8557990ab1513` after both restarts, and cleaned the runner. These exact digests apply to **Gates 11/13 only**; other workflows' images are not claimed as digest-pinned.
