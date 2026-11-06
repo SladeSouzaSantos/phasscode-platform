@@ -44,6 +44,35 @@ The initial table above describes [run #42169010048](https://github.com/SladeSou
 
 A subsequent test was added to run **three fresh JS-driver sessions per variant** within the same pinned-image runner and to compare the independent **Python neo4j-driver 6.4.1**; report their outcome separately before advising the maintainer on the actual root cause.
 
+## Independent driver cross-check — same pinned HydraDB image, JS versus Python
+
+A further [GitHub Actions #42171683734 — success](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42171683734) tested **three fresh JavaScript driver sessions per configuration** on the immutable-image HydraDB v0.3.0 test instance. It also ran a separate **official Python Neo4j driver 6.4.1** against the same seeded graph and compared each result with Neo4j control.
+
+**JavaScript neo4j-driver 6.2.0 (three trials per configuration):**
+
+| Mode | Result |
+| --- | --- |
+| Direct Bolt, explicit `lab` | 2 connected but all four statements rejected with `InvalidSyntax`; 1 failed with `ERR_OUT_OF_RANGE` |
+| Direct Bolt, explicit `default` | 3/3 connectivity failures `ERR_OUT_OF_RANGE` |
+| Direct Bolt, database unspecified | 3/3 connectivity failures `ERR_OUT_OF_RANGE` |
+| Routed URI `neo4j://`, explicit `lab` | 3/3 `ServiceUnavailable` |
+| Routed URI `neo4j://`, explicit `default` | 3/3 `ServiceUnavailable` |
+
+**Python driver 6.4.1, same isolated graph (one trial per configuration):**
+
+| Mode | Connectivity | Labeled node, one-hop, parameterized one-hop |
+| --- | --- | --- |
+| Direct Bolt, explicit `lab` | Connected | **0/3**: `InvalidSyntax` |
+| Direct Bolt, explicit `default` | Connected | **3/3 value matches** |
+| Direct Bolt, database unspecified | Connected | **3/3 value matches** |
+| Routed `neo4j://`, explicit `default` | Connected | **3/3 value matches** |
+
+Neo4j reference controls passed for both clients. Three comparable `MATCH` statements over HydraDB HTTP also matched values; the separate `RETURN 1` statement failed on HTTP as well.
+
+**Interpretation:** the **same engine image and synthetic records** yield different observed results through the two language drivers. Database name `lab` versus `default` is relevant for Python. This is strong evidence of *configuration/client-path-dependent interoperability*, but not proof of a HydraDB server defect or its root cause. Client implementations and versions differ (JS 6.2.0 vs Python 6.4.1), and the Python matrix was not repeated multiple times. Crucially, do **not** recommend Python as a drop-in replacement for the TypeScript Orbe backend or assume that `default` fixes JS.
+
+Reproduction: [JS repeated matrix](../../scripts/hydradb-gate14-bolt-matrix.mjs), [Python driver 6.4.1 matrix](../../scripts/hydradb-gate14-python-bolt.py), [isolated CI](../../.github/workflows/hydradb-gate9-runtime.yml). Neither client is connected to operational Orbe or MiniMac.
+
 ## Important limits
 
 - Errors are classified by the official JS driver, not decoded from internal HydraDB server traces. `ERR_OUT_OF_RANGE` may arise from protocol/database response handling, but the test **does not identify a root cause**.
