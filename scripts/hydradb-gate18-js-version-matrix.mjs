@@ -83,22 +83,34 @@ async function hydraHttp(token,cypher,params={}){
   check(!val.error&&!val.errors,'GATE18_HTTP_ENGINE_ERROR');
   return val;
 }
-async function seedNeo4j(auth) {
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),18000);
-  try{
-    const res=await fetch('http://127.0.0.1:17474/db/neo4j/tx/commit',{
-      method:'POST',
-      headers:{'authorization':'Basic '+Buffer.from(auth).toString('base64'),
-        'content-type':'application/json'},
-      body:JSON.stringify({statements:[{statement:'MERGE (a {id: '+A+'})-[:FOLLOWS]->(b {id: '+B+'})'}]}),
-      signal:controller.signal,
+async function seedNeo4j(neo4j,auth){
+  // Seed with the *same* client version under evaluation. This avoids
+  // assuming an HTTP transactional endpoint is available on the pinned
+  // Neo4j image, and also verifies write capability for the reference.
+  const driver=neo4j.driver('bolt://127.0.0.1:17688',
+    neo4j.auth.basic('neo4j',auth.slice('neo4j/'.length)),{
+      connectionTimeout:7000,maxTransactionRetryTime:0,maxConnectionPoolSize:1,
     });
-    check(res.ok,'GATE18_NEO4J_HTTP_'+res.status);
-    const obj=await res.json();
-    check(Array.isArray(obj.errors)&&obj.errors.length===0,
-      'GATE18_NEO4J_SEED_ERROR');
-  }finally{clearTimeout(timer);}
+  let stored=false;
+  try{
+    for(let attempt=0;attempt<30;attempt++){
+      const session=driver.session({database:'neo4j'});
+      try{
+        await session.run('MERGE (a:Gate18A {id: '+A+'})-[:FOLLOWS]->(b:Gate18B {id: '+B+'})');
+        stored=true;
+        break;
+      }catch{
+        // Neo4j may start before the database becomes available; retry
+        // only the fixed synthetic seed, never use arbitrary user input.
+        await new Promise(done=>setTimeout(done,1000));
+      }finally{
+        await session.close().catch(()=>undefined);
+      }
+    }
+  }finally{
+    await driver.close().catch(()=>undefined);
+  }
+  check(stored,'GATE18_NEO4J_REFERENCE_SEED_FAILED');
 }
 async function runTrial(neo4j,config,password){
   const driver=neo4j.driver(config.uri,neo4j.auth.basic('neo4j',password),{
@@ -142,7 +154,7 @@ async function main(){
   check(Array.isArray(baseline.rows)&&baseline.rows.length===1&&
     normalize(baseline.rows[0]?.[0],neo4j)===B,
     'GATE18_HYDRA_HTTP_CONTROL_FAILED');
-  await seedNeo4j(auth);
+  await seedNeo4j(neo4j,auth);
   const neo4jControl=await runTrial(neo4j,{
     uri:'bolt://127.0.0.1:17688',database:'neo4j',preflight:false,
   },auth.slice('neo4j/'.length));
