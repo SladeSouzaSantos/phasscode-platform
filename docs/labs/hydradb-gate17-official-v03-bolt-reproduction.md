@@ -57,4 +57,8 @@ The job's `success` status means **all diagnostics ran, reports were saved and c
 - [Existing Gate14 client/DB matrix](hydradb-gate14-bolt-driver-matrix-2026-11-06.md)
 - [Documentation v2 vs v0.3 review](hydradb-v2-docs-review-2026-11-06.md)
 
+## Gate 18 follow-up — version hypothesis now tested
+
+[Dedicated four-JS-version matrix #42286677576](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42286677576) compared `neo4j-driver` **5.28.3, 6.0.1, 6.1.0 and 6.2.0**, each with a matching Neo4j/Bolt reference and HydraDB/HTTP value control. All four controls passed, but the documented parameterized HydraDB/Bolt read returned **0/3 correct per JS version (0/12 total)**. Adding three alternative modes produced **0/48 correct**; see [full version-matrix report](hydradb-gate18-js-driver-version-matrix-2026-11-06.md). Consequently, swapping *only* from JS 6.2.0 to one of those three older releases is not a demonstrated fix. We still have not isolated protocol/client/server root cause.
+
 **Operational decision remains unchanged:** keep Neo4j in Orbe DEV/MAIN and the HydraDB HTTP adapter isolated in `experiment/hydradb`. This is a diagnostics-only experiment, not authorization to change application deployments.
