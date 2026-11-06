@@ -105,6 +105,8 @@ Arquivos de Fase B publicados (ainda não executados no MiniMac):
 
 Exige `node_modules` já instalado apenas no clone do LAB:
 
+O workspace do clone isolado é montado **com escrita somente nesta execução OFF** porque o Vitest/Vite gera arquivos temporários em `node_modules/.vite-temp`. O contêiner segue com `--network none` e UID/GID do operador. O SHADOW abaixo permanece montado como **somente leitura**. Caso seja necessário impedir qualquer gravação no checkout, deve-se configurar um volume temporário específico para o cache de Vite/Vitest antes de reutilizar `:ro`.
+
 ```bash
 (
   set -euo pipefail
@@ -116,7 +118,7 @@ Exige `node_modules` já instalado apenas no clone do LAB:
     --network none \
     --user "$(id -u):$(id -g)" \
     -e HOME=/tmp \
-    -v "$PWD:/workspace:ro" \
+    -v "$PWD:/workspace" \
     -w /workspace \
     node:24 sh -ec '
       npm run typecheck
