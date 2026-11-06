@@ -70,89 +70,58 @@ jobs:
           echo HYDRADB_LAB_CI_OFF_PASS
 
   minimac-shadow:
-    # Fail closed: no remote access unless operator opts in through Actions variable.
+    # No SSH unless the operator explicitly enables this dedicated variable.
     needs: offline
     if: github.event_name == 'push' && github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb' && vars.HYDRADB_LAB_REMOTE_APPROVED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 22
-    env:
-      EXPECTED_SHA: ${{ github.sha }}
     steps:
+      - name: Require dedicated LAB SSH secrets (not production deploy keys)
+        shell: bash
+        env:
+          LAB_SSH_KEY: ${{ secrets.HYDRADB_LAB_SSH_PRIVATE_KEY }}
+          LAB_KNOWN_HOSTS: ${{ secrets.HYDRADB_LAB_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$LAB_SSH_KEY"
+          test -n "$LAB_KNOWN_HOSTS"
+          test "$GITHUB_REPOSITORY" = SladeSouzaSantos/phasscode-platform
+          test "$GITHUB_REF" = refs/heads/experiment/hydradb
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Connect existing Tailscale CI identity
+      - name: Tailscale connection via existing authorized CI identity
         uses: ./.github/actions/tailscale-connect
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
           tags: ${{ vars.TAILSCALE_TAGS || 'tag:ci' }}
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-      - name: Validate only HydraDB LAB checkout on MiniMac
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          fingerprint: ${{ secrets.SSH_HOST_FINGERPRINT }}
-          envs: EXPECTED_SHA
-          command_timeout: 18m
-          script: |
-            set -eu
-            test "$(hostname -s)" = "macmini-server"
-            test "$(id -un)" = "phass"
-            test -n "$EXPECTED_SHA"
-            test ! -L "$HOME/hydradb-lab"
-            test ! -L "$HOME/hydradb-lab/phasscode-platform"
-            LAB="$HOME/hydradb-lab/phasscode-platform"
-            test -d "$LAB/.git"
-            cd "$LAB"
-            test "$(pwd -P)" = "$LAB"
-            test "$(git branch --show-current)" = "experiment/hydradb"
-            test -z "$(git status --porcelain)"
-            git fetch --no-tags origin experiment/hydradb
-            test "$(git rev-parse FETCH_HEAD)" = "$EXPECTED_SHA"
-            git merge --ff-only "$EXPECTED_SHA"
-            test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
-            bash scripts/hydradb-lab-preflight.sh
-            echo HYDRADB_LAB_REMOTE_PREFLIGHT_PASS
-
-            docker run --rm \
-              --network none \
-              --user "$(id -u):$(id -g)" \
-              --cap-drop ALL \
-              --security-opt no-new-privileges \
-              --pids-limit 128 --memory 512m --cpus 0.75 \
-              -e HOME=/tmp \
-              -v "$PWD:/workspace" \
-              -w /workspace node:24 sh -ec '
-                npm run typecheck
-                ./node_modules/.bin/vitest run \
-                  tests/hydradb-lab-evidence-adapter.test.ts \
-                  tests/hydradb-lab-gate8-score.test.ts
-                node --import tsx scripts/hydradb-lab-gate8-corpus-check.ts
-                node --import tsx scripts/hydradb-lab-gate8-evaluate.ts --mode off
-              '
-            echo HYDRADB_LAB_REMOTE_OFF_PASS
-
-            REPORT="$HOME/hydradb-lab/benchmarks/ppks-contract-20261105T225141Z.json"
-            TOKEN="$HOME/hydradb-lab/secrets/hydradb_auth_token"
-            test -s "$REPORT"
-            test -s "$TOKEN"
-            docker run --rm \
-              --network host \
-              --user "$(id -u):$(id -g)" \
-              --cap-drop ALL \
-              --security-opt no-new-privileges \
-              --pids-limit 96 --memory 384m --cpus 0.75 \
-              -e HOME=/tmp \
-              -v "$PWD:/workspace:ro" \
-              -v "$HOME/hydradb-lab/benchmarks:/lab-reports:ro" \
-              -v "$TOKEN:/run/secrets/hydradb_auth_token:ro" \
-              -w /workspace node:24 \
-              node --import tsx scripts/hydradb-lab-gate8-evaluate.ts \
-                --mode shadow \
-                --report "/lab-reports/$(basename "$REPORT")" \
-                --token-file /run/secrets/hydradb_auth_token \
-                --require-graph
-            echo HYDRADB_LAB_REMOTE_SHADOW_PASS
+      - name: Connect with forced-command LAB key and pinned host public key
+        shell: bash
+        env:
+          LAB_SSH_KEY: ${{ secrets.HYDRADB_LAB_SSH_PRIVATE_KEY }}
+          LAB_KNOWN_HOSTS: ${{ secrets.HYDRADB_LAB_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = SladeSouzaSantos/phasscode-platform
+          test "$GITHUB_REF" = refs/heads/experiment/hydradb
+          test -n "$LAB_SSH_KEY"
+          test -n "$LAB_KNOWN_HOSTS"
+          trap 'rm -f "$RUNNER_TEMP/hydradb-lab-identity" "$RUNNER_TEMP/hydradb-lab-known-hosts"' EXIT
+          umask 077
+          printf '%s\n' "$LAB_SSH_KEY" > "$RUNNER_TEMP/hydradb-lab-identity"
+          printf '%s\n' "$LAB_KNOWN_HOSTS" > "$RUNNER_TEMP/hydradb-lab-known-hosts"
+          chmod 600 "$RUNNER_TEMP/hydradb-lab-identity" "$RUNNER_TEMP/hydradb-lab-known-hosts"
+          grep -q '^100[.]116[.]88[.]73 ssh-ed25519 ' "$RUNNER_TEMP/hydradb-lab-known-hosts"
+          # SSH_ORIGINAL_COMMAND must be exactly this 40-char commit SHA;
+          # OpenSSH restrict,command= on the MiniMac rejects all other requests.
+          ssh -F /dev/null -T \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$RUNNER_TEMP/hydradb-lab-known-hosts" \
+            -o ConnectTimeout=12 \
+            -i "$RUNNER_TEMP/hydradb-lab-identity" \
+            phass@100.116.88.73 "$GITHUB_SHA"
+          echo HYDRADB_LAB_CI_REMOTE_PASS
