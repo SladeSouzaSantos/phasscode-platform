@@ -28,7 +28,7 @@ We compared:
 | Original Orbe fixed Cypher accepted by HydraDB | **Not compatible as-is**: 7/9 rejected in v0.3.0 HTTP Gate 9 |
 | Same Orbe EvidenceGraphRepository results on a public subset | **PASS**: 88/88 requirements + 64/64 source lookups, Gate 12 |
 | Recover the public subset from MinIO after node/service restarts | **PASS limited**: 14 claims / 16 sources preserved, Gate 13 |
-| JS Bolt compatibility | **Partial**: two simple direct reads pass without database selection; param/database/routing failures, Gate 14 |
+| Bolt interoperability | **Driver/config-dependent**: repeated JS 6.2.0 errors in multiple modes; independent Python 6.4.1 matched all 3 reads (incl. bound parameter) using `default` or unspecified database and routed `default` on the same pinned HydraDB image (Gate 14 follow-up #42171683734) |
 | Warm application-adapter latency | **Promising, bounded**: three local-Hydra adapter runs and one MinIO-backed run, lower observed p50 than Neo4j/Bolt, F4.3 |
 | Same Python HTTP client, same Cypher | **Promising, tiny fixture**: two one-hop/filter runs with lower observed HydraDB HTTP medians, high p99 outliers on some groups |
 | Cold cache, large public dataset, high concurrency | **Not tested** |
@@ -51,7 +51,7 @@ A single-digit millisecond p50 advantage on a small, warm public subset does not
 
 ## Required evidence for an approval or rejection
 
-- Verify the remaining Bolt path with maintainers, including database selection, bound parameters and routed URIs; keep a minimal version-pinned reproducer.
+- Investigate the reproduced JS 6.2.0 versus Python 6.4.1 Bolt discrepancy, database selection, bound parameters and routing with maintainers. Preserve version-pinned JS/Python minimal repros and do not assume Python success makes TypeScript compatible.
 - Expand the corpus to **all eligible public PPKS records and claims**, preserve every source ID, status and professional scope, then repeat controlled application-equivalence tests.
 - Run true object-store read/write load on cold and warm caches, more than one dataset size, staged concurrency, object request/byte metrics, CPU/RAM/I/O telemetry, and model S3+compute cost versus Neo4j.
 - Test interrupted writes, failures/restarts in the middle of work, recovery/restore, snapshot correctness and access isolation.
