@@ -1,0 +1,148 @@
+name: HydraDB Gate 17 | reproduce official self-hosted Bolt example
+
+# GitHub-hosted disposable containers only; no MiniMac/SSH/Tailscale.
+# Graph ID default exactly follows upstream v0.3.0 official user guide.
+# Graph ID lab is an isolated control for the old experiment configuration.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-gate17-documented-bolt.yml
+      - scripts/hydradb-gate17-documentation-parity.mjs
+      - scripts/hydradb-gate17-documentation-parity.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-gate17-doc-bolt-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  documented-example:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        graph_id: [default, lab]
+    env:
+      GATE17_ISOLATION_MODE: github_hosted_ephemeral
+      GATE17_GRAPH_ID: ${{ matrix.graph_id }}
+    steps:
+      - name: Refuse wrong repository, branch, graph ID or runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = SladeSouzaSantos/phasscode-platform
+          test "$GITHUB_REF" = refs/heads/experiment/hydradb
+          test "$GATE17_ISOLATION_MODE" = github_hosted_ephemeral
+          case "$GATE17_GRAPH_ID" in default|lab) ;; *) exit 41 ;; esac
+          test -n "$RUNNER_TEMP"
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked JS driver and pinned independent Python driver
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          node --check scripts/hydradb-gate17-documentation-parity.mjs
+          python3 -m py_compile scripts/hydradb-gate17-documentation-parity.py
+          python3 -m venv "$RUNNER_TEMP/gate17-venv"
+          "$RUNNER_TEMP/gate17-venv/bin/pip" install --quiet --no-input \
+            --disable-pip-version-check 'neo4j==6.4.1'
+
+      - name: Launch one isolated self-hosted HydraDB graph by immutable digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ROOT="$RUNNER_TEMP/gate17-$GITHUB_RUN_ID-$GATE17_GRAPH_ID"
+          test ! -e "$ROOT"
+          mkdir -p "$ROOT/store" "$ROOT/cache"
+          TOKEN="$ROOT/token"
+          openssl rand -hex 32 > "$TOKEN"
+          sudo chown -R 10001:10001 "$ROOT/store" "$ROOT/cache"
+          sudo install -o 10001 -g 10001 -m 0400 "$TOKEN" "$ROOT/token-container"
+          NAME="gate17-hydra-$GITHUB_RUN_ID-$GATE17_GRAPH_ID"
+          docker pull ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3 >/dev/null
+          docker run -d --name "$NAME" \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --pids-limit 256 --memory 2048m --memory-swap 2048m --cpus 1.5 \
+            -e CLOUD_PROVIDER=local \
+            -e LOCAL_PATH=/data/store \
+            -e GRAPH_NAMESPACE="$GATE17_GRAPH_ID" \
+            -e GRAPH_ID="$GATE17_GRAPH_ID" \
+            -e GRAPH_CELL_ID=cell-0 \
+            -e GRAPH_CELLS=cell-0 \
+            -e GRAPH_NODE_ID=node-0 \
+            -e GRAPH_BOLT_NODE_ADDRESSES=node-0=127.0.0.1:17687 \
+            -e GRAPH_ADVERTISED_BOLT_ADDR=127.0.0.1:17687 \
+            -e GRAPH_BOLT_ADDR=0.0.0.0:7687 \
+            -e GRAPH_HTTP_ADDR=0.0.0.0:8443 \
+            -e GRAPH_ADMIN_ADDR=0.0.0.0:9090 \
+            -e GRAPH_ALLOW_PLAINTEXT=true \
+            -e GRAPH_AUTH_TOKEN_FILE=/run/secrets/hydra-token \
+            -e GRAPH_DATA_CACHE_DIR=/data/cache \
+            -e RUST_MIN_STACK=33554432 \
+            -e RUST_LOG=warn \
+            -v "$ROOT/store:/data/store" \
+            -v "$ROOT/cache:/data/cache" \
+            -v "$ROOT/token-container:/run/secrets/hydra-token:ro" \
+            -p 127.0.0.1:18443:8443 \
+            -p 127.0.0.1:19090:9090 \
+            -p 127.0.0.1:17687:7687 \
+            ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3 >/dev/null
+          echo GATE17_EPHEMERAL_ENGINE_STARTED
+
+      - name: Reproduce official parameterized MATCH in JS and Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/gate17-$GITHUB_RUN_ID-$GATE17_GRAPH_ID"
+          export GATE17_TOKEN_FILE="$ROOT/token"
+          export GATE17_JSON_REPORT_FILE="$ROOT/JS-report.json"
+          export GATE17_PY_REPORT_FILE="$ROOT/Python-report.json"
+          node scripts/hydradb-gate17-documentation-parity.mjs
+          "$RUNNER_TEMP/gate17-venv/bin/python" scripts/hydradb-gate17-documentation-parity.py
+          echo GATE17_DOCUMENTED_EXAMPLE_DIAGNOSTIC_REPORTED
+
+      - name: Preserve sanitized reproducible driver-result reports
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hydradb-gate17-documentation-${{ matrix.graph_id }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/gate17-${{ github.run_id }}-${{ matrix.graph_id }}/JS-report.json
+            ${{ runner.temp }}/gate17-${{ github.run_id }}-${{ matrix.graph_id }}/Python-report.json
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Report lifecycle only on failure (no credentials or server logs)
+        if: failure()
+        shell: bash
+        run: |
+          docker inspect --format '{{.Name}} status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}}' \
+            "gate17-hydra-$GITHUB_RUN_ID-$GATE17_GRAPH_ID" 2>/dev/null || true
+
+      - name: Remove only this GitHub runner's disposable engine and files
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker rm -f "gate17-hydra-$GITHUB_RUN_ID-$GATE17_GRAPH_ID" >/dev/null 2>&1 || true
+          ROOT="$RUNNER_TEMP/gate17-$GITHUB_RUN_ID-$GATE17_GRAPH_ID"
+          test "$ROOT" != "/" && test "$ROOT" != "$RUNNER_TEMP"
+          if [ -d "$ROOT" ] && [ ! -L "$ROOT" ]; then
+            sudo rm -rf -- "$ROOT"
+          fi
+          echo GATE17_EPHEMERAL_CLEANUP_COMPLETE
