@@ -1,11 +1,33 @@
 /**
- * Gate 9: Neo4j JavaScript driver check against disposable GH runner ports.
- * Never connect to the operational Orbe Neo4j or MiniMac/Tailscale.
+ * Gate 9: discriminate Bolt handshake vs query syntax vs row decoding on
+ * two disposable GitHub-hosted graph engines; NEVER MiniMac/DEV/MAIN.
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import neo4j from 'neo4j-driver';
 
+const READ_QUERIES = [
+  {
+    name: 'unlabeled_one_hop',
+    cypher: 'MATCH (a {id: 800100})-[:GATE9_SKILL]->(b) RETURN b.id AS id',
+    params: {},
+  },
+  {
+    name: 'labeled_one_hop',
+    cypher: 'MATCH (a:Gate9Skill {id: 800100})-[:GATE9_SKILL]->(b) RETURN b.id AS id',
+    params: {},
+  },
+  {
+    name: 'label_lookup',
+    cypher: 'MATCH (b:Gate9Claim) RETURN b.id AS id',
+    params: {},
+  },
+  {
+    name: 'parameterized_one_hop',
+    cypher: 'MATCH (a {id: $id})-[:GATE9_SKILL]->(b) RETURN b.id AS id',
+    params: { id: 800100 },
+  },
+];
 function guard(ok, code) {
   if (!ok) throw new Error(code);
 }
@@ -15,66 +37,78 @@ function privateText(key) {
   guard(file.startsWith(folder + '/'), 'GATE9_BOLT_SECRET_PATH');
   return readFileSync(file, 'utf8').trim();
 }
-function valueNumber(value) {
-  return neo4j.isInt(value) ? value.toNumber() : value;
+const numberValue = v => neo4j.isInt(v) ? v.toNumber() : v;
+function safeCode(error) {
+  return typeof error?.code === 'string'
+    ? error.code.slice(0, 90)
+    : (error instanceof RangeError ? 'RANGE_ERROR' : 'UNCLASSIFIED');
 }
-async function probe(uri, db, password) {
+async function probe(uri, database, password) {
   const driver = neo4j.driver(
     uri, neo4j.auth.basic('neo4j', password),
     { connectionTimeout: 6000, maxTransactionRetryTime: 0, maxConnectionPoolSize: 1 },
   );
   try {
-    await driver.verifyConnectivity();
-    const session = driver.session({
-      database: db,
-      defaultAccessMode: neo4j.session.READ,
-    });
     try {
-      const result = await session.run(
-        'MATCH (a:Gate9Skill {id: 800100})-[:GATE9_SKILL]->(b) RETURN b.id AS id',
-      );
-      const rows = result.records.map(record => valueNumber(record.get('id')));
-      return {
-        status: rows.length === 1 && rows[0] === 800101
-          ? 'read_parity_verified' : 'different_rows',
-        rows: rows.length,
-      };
-    } finally {
-      await session.close();
+      await driver.verifyConnectivity();
+    } catch (error) {
+      return { connectivity: 'failed', code: safeCode(error), cases: [] };
     }
-  } catch (error) {
-    return {
-      status: 'driver_error',
-      code: typeof error?.code === 'string'
-        ? error.code.slice(0, 90) : 'UNCLASSIFIED',
-    };
+    const cases = [];
+    for (const { name, cypher, params } of READ_QUERIES) {
+      const session = driver.session({
+        database, defaultAccessMode: neo4j.session.READ,
+      });
+      try {
+        const result = await session.run(cypher, params);
+        const returned = result.records.map(rec => numberValue(rec.get('id')));
+        cases.push({
+          name,
+          status: returned.length === 1 && returned[0] === 800101
+            ? 'value_match' : 'value_mismatch',
+          rows: returned.length,
+        });
+      } catch (error) {
+        cases.push({ name, status: 'query_or_decode_error', code: safeCode(error) });
+      } finally {
+        await session.close().catch(() => undefined);
+      }
+    }
+    return { connectivity: 'ok', cases };
   } finally {
     await driver.close().catch(() => undefined);
   }
 }
-
 async function main() {
   guard(process.argv.length === 2, 'GATE9_BOLT_ARGUMENTS');
-  guard(process.env.GATE9_ISOLATION_MODE === 'github_hosted_ephemeral'
+  guard(
+    process.env.GATE9_ISOLATION_MODE === 'github_hosted_ephemeral'
     && process.env.GITHUB_REF === 'refs/heads/experiment/hydradb'
     && process.env.GITHUB_REPOSITORY === 'SladeSouzaSantos/phasscode-platform'
     && /^[0-9]+$/.test(process.env.GITHUB_RUN_ID || ''),
-  'GATE9_BOLT_ISOLATION_REQUIRED');
-
+    'GATE9_BOLT_ISOLATION_REQUIRED',
+  );
   const token = privateText('GATE9_HYDRA_TOKEN_FILE');
   const neoAuth = privateText('GATE9_NEO_AUTH_FILE');
   guard(token.length >= 32 && /^neo4j\/.{28,}$/.test(neoAuth),
     'GATE9_BOLT_AUTH_INVALID');
+
   const neo = await probe('bolt://127.0.0.1:17688', 'neo4j', neoAuth.slice(6));
-  guard(neo.status === 'read_parity_verified', 'GATE9_BOLT_NEO4J_REFERENCE_FAILED');
+  guard(neo.connectivity === 'ok' && neo.cases.every(c => c.status === 'value_match'),
+    'GATE9_BOLT_NEO4J_REFERENCE_FAILED');
+
   const hydra = await probe('bolt://127.0.0.1:17687', 'lab', token);
+  const verified = hydra.connectivity === 'ok'
+    && hydra.cases.length === READ_QUERIES.length
+    && hydra.cases.every(c => c.status === 'value_match');
   console.log('GATE9_BOLT_RUNTIME_JSON', JSON.stringify({
     mode: 'disposable_pair_only',
+    testCount: READ_QUERIES.length,
     neo4j: neo,
     hydradb: hydra,
-    result: hydra.status === 'read_parity_verified'
-      ? 'single_synthetic_bolt_read_parity'
-      : 'bolt_integration_not_yet_proven',
+    result: verified
+      ? 'four_synthetic_bolt_reads_equal'
+      : 'bolt_behavior_requires_investigation',
     notAnOrbeAdapterMigration: true,
   }));
   console.log('GATE9_BOLT_PROBE_COMPLETED');
