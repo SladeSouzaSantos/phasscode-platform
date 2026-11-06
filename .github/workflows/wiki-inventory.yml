@@ -1,0 +1,147 @@
+name: Wiki PHASSCODE | Pinned AST inventory (documentation branch only)
+
+# Documentation only: 4 immutable Git snapshots, AST extraction and Markdown.
+# Never connects to DEV/MAIN runtime, MiniMac, SSH, Tailscale, databases or LLMs.
+on:
+  push:
+    branches:
+      - docs/phasscode-wiki
+    paths:
+      - scripts/wiki-inventory.mjs
+      - scripts/wiki-compare-snapshots.mjs
+      - scripts/wiki-validate.mjs
+      - .github/workflows/wiki-inventory.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phasscode-wiki-doc-only-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pinned-inventory:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/docs/phasscode-wiki'
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      BACKEND_MAIN_SHA: c302ec444266333756d9f35bc9c1dfd7a5e7c684
+      BACKEND_DEV_SHA: 747cd8243ac67d19b720bb7441aa0b969734f391
+      FRONTEND_MAIN_SHA: 5514b5ac6626fd68535ea8d2b2807ce681fc8de2
+      FRONTEND_DEV_SHA: d8b7bfbc8dff3754cb42fc6bf2541f33c360adf3
+    steps:
+      - name: Enforce documentation-only repository and branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "SladeSouzaSantos/phasscode-platform"
+          test "$GITHUB_REF" = "refs/heads/docs/phasscode-wiki"
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+
+      - name: Checkout documentation branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Checkout immutable backend MAIN snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: SladeSouzaSantos/phasscode-platform
+          ref: c302ec444266333756d9f35bc9c1dfd7a5e7c684
+          path: _wiki_repos/backend-main
+          persist-credentials: false
+
+      - name: Checkout immutable frontend MAIN snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: SladeSouzaSantos/web-portfolio-v2
+          ref: 5514b5ac6626fd68535ea8d2b2807ce681fc8de2
+          path: _wiki_repos/frontend-main
+          persist-credentials: false
+
+      - name: Checkout immutable backend DEV snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: SladeSouzaSantos/phasscode-platform
+          ref: 747cd8243ac67d19b720bb7441aa0b969734f391
+          path: _wiki_repos/backend-dev
+          persist-credentials: false
+
+      - name: Checkout immutable frontend DEV snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: SladeSouzaSantos/web-portfolio-v2
+          ref: d8b7bfbc8dff3754cb42fc6bf2541f33c360adf3
+          path: _wiki_repos/frontend-dev
+          persist-credentials: false
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install existing lockfile dependencies without hooks
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Check generators before running
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/wiki-inventory.mjs
+          node --check scripts/wiki-compare-snapshots.mjs
+          node --check scripts/wiki-validate.mjs
+
+      - name: Generate immutable MAIN and DEV AST inventories
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/wiki-inventory.mjs \
+            --backend "$GITHUB_WORKSPACE/_wiki_repos/backend-main" \
+            --frontend "$GITHUB_WORKSPACE/_wiki_repos/frontend-main" \
+            --out docs/wiki/referencia/main \
+            --backend-sha "$BACKEND_MAIN_SHA" \
+            --frontend-sha "$FRONTEND_MAIN_SHA"
+          node scripts/wiki-inventory.mjs \
+            --backend "$GITHUB_WORKSPACE/_wiki_repos/backend-dev" \
+            --frontend "$GITHUB_WORKSPACE/_wiki_repos/frontend-dev" \
+            --out docs/wiki/referencia/dev \
+            --backend-sha "$BACKEND_DEV_SHA" \
+            --frontend-sha "$FRONTEND_DEV_SHA"
+          node scripts/wiki-compare-snapshots.mjs
+          echo WIKI_PINNED_AST_GENERATED
+
+      - name: Validate generated manifests and all local wiki Markdown links
+        run: node scripts/wiki-validate.mjs
+
+      - name: Commit generated reference files only to documentation branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- docs/wiki/referencia/main docs/wiki/referencia/dev docs/wiki/referencia/diferencas-dev-main.md
+          while IFS= read -r path; do
+            case "$path" in
+              docs/wiki/referencia/main/*|docs/wiki/referencia/dev/*|docs/wiki/referencia/diferencas-dev-main.md) ;;
+              *) echo "Unexpected staged path: $path"; exit 71 ;;
+            esac
+          done < <(git diff --cached --name-only)
+          if git diff --cached --quiet; then
+            echo WIKI_REFERENCE_UNCHANGED
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "docs(wiki): publish pinned MAIN/DEV TypeScript AST symbol inventories"
+          git push origin HEAD:refs/heads/docs/phasscode-wiki
+          echo WIKI_REFERENCE_COMMITTED
+
+      - name: Upload generated references for audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phasscode-wiki-ast-${{ github.run_id }}
+          path: |
+            docs/wiki/referencia/main
+            docs/wiki/referencia/dev
+            docs/wiki/referencia/diferencas-dev-main.md
+          retention-days: 14
+          if-no-files-found: warn

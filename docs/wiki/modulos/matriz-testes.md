@@ -1,0 +1,74 @@
+# Matriz de rastreabilidade — código, contrato, teste e ambiente
+
+[← Mapa do código](../mapa-do-codigo.md) · [Qualidade](../qualidade-e-seguranca.md)
+
+**Objetivo:** permitir que quem altere um módulo encontre rapidamente as **fontes e os testes relacionados** e saiba quais comportamentos precisam de aprovação. O mapeamento abaixo foi construído pela árvore de código e nomes dos testes e por leitura de implementações-chave. **Não é relatório de execução nem mapeamento de cobertura de linhas/assertions.**
+
+## 1. Núcleo backend
+
+| Área/símbolos | Contrato/regras principais | Testes existentes relacionados |
+| --- | --- | --- |
+| [`ChatService.execute`](../../../apps/orbe-node/src/application/chat.ts#L77-L546) | Histórico, follow-up, prioridade e resposta tipada | [`orbe-professional.test.ts`](../../../tests/orbe-professional.test.ts), [`orbe-recruiter-scenarios.test.ts`](../../../tests/orbe-recruiter-scenarios.test.ts), [`orbe-context-regression.test.ts`](../../../tests/orbe-context-regression.test.ts) |
+| [`technology-follow-up.ts`](../../../apps/orbe-node/src/application/technology-follow-up.ts) | “E com Go?” preserva intenção sem misturar requisito anterior | [`recruiter-intent-followups.test.ts`](../../../tests/recruiter-intent-followups.test.ts), [`orbe-go-transfer.test.ts`](../../../tests/orbe-go-transfer.test.ts) |
+| [`recruiter-matrix.ts`](../../../apps/orbe-node/src/application/recruiter-matrix.ts) | Requisitos independentes e evidência por fonte | [`recruiter-matrix.test.ts`](../../../tests/recruiter-matrix.test.ts), [`orbe-natural-language-matrix.test.ts`](../../../tests/orbe-natural-language-matrix.test.ts) |
+| [`experience-response.ts`](../../../apps/orbe-node/src/application/experience-response.ts) | Duração e experiência mista sem somar indevidamente | [`orbe-professional-duration.test.ts`](../../../tests/orbe-professional-duration.test.ts), [`experience-periods.test.ts`](../../../tests/experience-periods.test.ts) |
+| [`canonical-claims.ts`](../../../apps/orbe-node/src/application/canonical-claims.ts) | Corrigir graduação/curso/quantidade sem alterar negativas | [`orbe-canonical-claims.test.ts`](../../../tests/orbe-canonical-claims.test.ts), [`orbe-academic-completeness.test.ts`](../../../tests/orbe-academic-completeness.test.ts) |
+| [`evidence-packet.ts`](../../../apps/orbe-node/src/application/evidence-packet.ts) | Orçamento e retenção de evidências independentes | [`evidence-packet.test.ts`](../../../tests/evidence-packet.test.ts), [`context.test.ts`](../../../tests/context.test.ts) |
+| [`http/app.ts`](../../../apps/orbe-node/src/http/app.ts) | Fastify, contratos, limites, erros e superficie pública | [`http.test.ts`](../../../tests/http.test.ts), [`public-orbe.test.ts`](../../../tests/public-orbe.test.ts), [`chat-compatibility.test.ts`](../../../tests/chat-compatibility.test.ts) |
+
+## 2. Dados, semântica e armazenamento
+
+| Área/símbolos | Invariante a preservar | Testes existentes relacionados |
+| --- | --- | --- |
+| [`JsonKnowledgeRepository`](../../../apps/orbe-node/src/adapters/knowledge.ts) | Ordenação por conteúdo e tecnologias sem evidência inventada | [`knowledge-relevance.test.ts`](../../../tests/knowledge-relevance.test.ts) |
+| [`SemanticKnowledgeGraph`](../../../apps/orbe-node/src/adapters/semantic-graph.ts) | Aliases/relações não fabricam competência profissional | [`semantic-graph.test.ts`](../../../tests/semantic-graph.test.ts), [`semantic-hybrid-corpus.test.ts`](../../../tests/semantic-hybrid-corpus.test.ts) |
+| [`projectPpksEvidenceGraph`](../../../apps/orbe-node/src/adapters/ppks-evidence-graph.ts) | `Claim.sourceIds`, vínculos e escopos tipados | [`ppks-evidence-graph.test.ts`](../../../tests/ppks-evidence-graph.test.ts), [`evidence-graph-contract.test.ts`](../../../tests/evidence-graph-contract.test.ts) |
+| [`PostgresConversationStore`](../../../apps/orbe-node/src/adapters/postgres-store.ts) | Lock NOWAIT, rollback, token/retention, admissão | [`postgres.integration.test.ts`](../../../tests/postgres.integration.test.ts), [`postgres-admission.test.ts`](../../../tests/postgres-admission.test.ts) |
+| [`report-node`](../../../apps/report-node/src/main.ts) | Coleta opt-in, resumos e envio com lease | [`orbe-reports.test.ts`](../../../tests/orbe-reports.test.ts), [`reports.integration.test.ts`](../../../tests/reports.integration.test.ts) |
+| [`RedisLlmCallBudget`](../../../apps/orbe-node/src/adapters/redis-llm-budget.ts) | Incremento atômico; falha Redis bloqueia novas chamadas | [`llm-budget.test.ts`](../../../tests/llm-budget.test.ts), [`llm-budget.integration.test.ts`](../../../tests/llm-budget.integration.test.ts) |
+| [`fallback-llm.ts`](../../../apps/orbe-node/src/adapters/fallback-llm.ts) | Quota por provedor, orçamento global, cooldown | [`llm-fallback.test.ts`](../../../tests/llm-fallback.test.ts), [`llm-fallback.integration.test.ts`](../../../tests/llm-fallback.integration.test.ts), [`llm-invocation-controller.test.ts`](../../../tests/llm-invocation-controller.test.ts) |
+
+## 3. GraphRAG e privacidade
+
+| Área/símbolos | Invariante | Testes existentes relacionados |
+| --- | --- | --- |
+| [`Neo4jGraphStore`](../../../apps/orbe-node/src/adapters/neo4j-driver-store.ts) | Allowlist Cypher e seed determinístico | [`neo4j-driver-store.test.ts`](../../../tests/neo4j-driver-store.test.ts), [`neo4j-graph-queries.test.ts`](../../../tests/neo4j-graph-queries.test.ts) |
+| [`buildInternalGraphReader`](../../../apps/orbe-node/src/graph-reader/app.ts) | Autenticação/limites e superfície só de leitura | [`graph-reader-http.test.ts`](../../../tests/graph-reader-http.test.ts), [`graph-reader-http-client.test.ts`](../../../tests/graph-reader-http-client.test.ts) |
+| [`createGraphRagActive`](../../../apps/orbe-node/src/application/graph-active-answer.ts) | `verified_graph`, fontes completas, fallback | [`graphrag-active-http.test.ts`](../../../tests/graphrag-active-http.test.ts), [`graph-recruiter-preview.test.ts`](../../../tests/graph-recruiter-preview.test.ts) |
+| [`createGraphRagShadow`](../../../apps/orbe-node/src/application/graph-rag-shadow.ts) | Sem alteração de resposta canônica | [`graphrag-shadow-http.test.ts`](../../../tests/graphrag-shadow-http.test.ts), [`graphrag-shadow-reader-network.test.ts`](../../../tests/graphrag-shadow-reader-network.test.ts) |
+| [`PublicGraphEvidenceGateway`](../../../apps/orbe-node/src/application/graph-public-policy.ts) | Fonte pública/autorizada, sem privilégio Bolt na API | [`graph-public-policy.test.ts`](../../../tests/graph-public-policy.test.ts) |
+| [`graph-semantic-vacancy.ts`](../../../apps/orbe-node/src/application/graph-semantic-vacancy.ts) | LLM semântica opt-in e estritamente validada | [`graph-semantic-vacancy.test.ts`](../../../tests/graph-semantic-vacancy.test.ts), [`graph-turn-llm-budget.test.ts`](../../../tests/graph-turn-llm-budget.test.ts) |
+| [`graph-generated-prose-audit.ts`](../../../apps/orbe-node/src/application/graph-generated-prose-audit.ts) | Auditoria limitada por claims e fontes | [`graph-generated-prose-audit.test.ts`](../../../tests/graph-generated-prose-audit.test.ts) |
+
+## 4. Frontend — comportamento visível
+
+| Módulo | Função | Testes existentes relacionados |
+| --- | --- | --- |
+| [`App.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/App.tsx) | Rotas públicas e redirecionamentos | [`routing.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/routing.spec.ts), [`portfolio.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/portfolio.spec.ts) |
+| [`OrbAssistant.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/OrbAssistant.tsx) | Chat, acessibilidade, teclas, fontes | [`orbe-public.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/orbe-public.spec.ts), [`accessibility.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/accessibility.spec.ts) |
+| [`useOrbeChat.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useOrbeChat.ts), [`orbeClient.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts) | Sessão, timeout, erros e consentimento | [`orbe-client.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/orbe-client.spec.ts), [`orbe-api.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/orbe-api.spec.ts) |
+| [`useSectionTransition.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useSectionTransition.tsx) | Transição circular, navegação segura | [`section-circle-transition.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/section-circle-transition.spec.ts), [`theme-transition.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/theme-transition.spec.ts) |
+| [`sitePreloader.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/lib/sitePreloader.ts) | Primeiro carregamento | [`site-loading.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/site-loading.spec.ts) |
+| [`Projetos.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/Projetos.tsx), [`ArquivoProjetos.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/ArquivoProjetos.tsx) | Catálogos e fichas | [`project-gallery.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/project-gallery.spec.ts), [`archive-layout.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/archive-layout.spec.ts) |
+
+## 5. Critério de aceite por mudança
+
+Para marcar um módulo como documentado/homologado, registrar:
+
+1. **Baseline Git SHA** e branch de código.
+2. **Função e regra** que a alteração atinge, incluindo dependências/efeitos.
+3. **Teste correspondente e assertions observadas**, não apenas nome do arquivo.
+4. **Execução e ambiente**: unitário, integração, mock, GitHub Actions, DEV live autorizado, ou produção.
+5. **Resultado e limitações**: nenhum “passou” sem CI/relatório; qualquer ausência de gold humano marcada como experimental.
+6. **Risco de regressão/rollback** documentado.
+
+### Estado desta matriz
+
+- [x] Caminhos de arquivos e nomes de testes mapeados por área.
+- [x] Regras-chave relacionam-se a implementações identificadas.
+- [ ] Assertions e linhas de cobertura conferidas teste a teste.
+- [ ] Todos os testes executados nessa branch documental.
+- [ ] Deploy DEV/MAIN inspecionado para coincidir com SHA e digests.
+- [ ] Auditoria integral dos arquivos não críticos.
+
+**Esta wiki foi construída por leitura estática. Não alterou contratos, payloads, infra nem executou E2E live ou deploy.**
