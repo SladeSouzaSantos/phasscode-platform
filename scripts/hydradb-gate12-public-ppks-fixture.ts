@@ -96,7 +96,7 @@ export async function loadGate12PublicPpksFixture() {
       nodes.push({
         kind:'engagement',id,label:data.role,candidateId:'candidate',
         companyId,type:/estagi[aá]ri/i.test(data.role)?'intern':'not_documented',
-        softwareWorkScope:data.areas.includes('engineering')?'mixed':'exclusive',
+        softwareWorkScope:data.areas!.includes('engineering')?'mixed':'exclusive',
         areas:data.areas as ('software-development'|'engineering')[],
         startedAt:data.start,
         ...(data.end?{endedAt:data.end}:{}),
