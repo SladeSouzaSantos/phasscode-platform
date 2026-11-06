@@ -84,6 +84,6 @@ We tested the [upstream self-hosted v0.3.0 documented JavaScript Bolt example](h
 
 ## External feedback
 
-A concise, evidence-based [email draft](hydradb-maintainer-email-draft.md) and [full case study](hydradb-maintainer-feedback-2026-11-06.md) are available for **user review**. The user **does not speak English and requests written email correspondence only**. There is also a [Portuguese review translation](hydradb-maintainer-email-draft-ptbr.md). No email has been sent and no upstream GitHub issue opened.
+**External feedback sent (user-confirmed, 2026-11-06):** The user reported sending the evidence-based [English reply (working copy)](hydradb-maintainer-email-draft.md) to Nishkarsh, linking the [full case study](hydradb-maintainer-feedback-2026-11-06.md) and asking about Bolt JS compatibility and v2/self-hosted differences. The user **does not speak English and requested continued correspondence exclusively by email**; a [Portuguese review translation](hydradb-maintainer-email-draft-ptbr.md) is retained. We did **not** send or independently verify the message. **Awaiting maintainer response as reported; no reply known.** No upstream issue was opened on behalf of the user. F4.2/F4.3/ADR acceptance criteria and non-migration decision remain unchanged.
 
 **Outcome:** Maintain the current Neo4j deployment; keep testing HydraDB separately. Neither F4.3 (comprehensive benchmark/cost) nor F4.4 (formal final adoption ADR) should be marked complete based on the bounded pilots.
