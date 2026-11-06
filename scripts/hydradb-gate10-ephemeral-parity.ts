@@ -37,7 +37,9 @@ function confidentialText(envName: string): string {
   return readFileSync(file, 'utf8').trim();
 }
 function scalar(value: string): string {
-  ensure(/^[A-Za-z0-9._+:/=-]{1,12000}$/.test(value), 'GATE10_CYPHER_SCALAR');
+  // LAB-only fixed public fixture labels can include spaces (e.g. Spring Boot).
+  // Still reject quotes, backslashes, newlines and Cypher metacharacters.
+  ensure(/^[A-Za-z0-9._+:/= -]{1,12000}$/.test(value), 'GATE10_CYPHER_SCALAR');
   return "'" + value + "'";
 }
 const pack = (value: unknown): string =>
