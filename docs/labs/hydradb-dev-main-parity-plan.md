@@ -10,6 +10,8 @@
 
 **Gate 17 — recomendação oficial self-hosted executada (06/11/2026):** [reprodução com `GRAPH_ID=default` e `database=default`](hydradb-gate17-official-v03-bolt-reproduction.md), conforme o guia v0.3.0. `neo4j-driver` JS 6.2.0 falhou **0/3** ao executar o `MATCH` parametrizado **sem** `verifyConnectivity()`; Python 6.4.1 retornou **3/3** no mesmo grafo; teste equivalente usando `GRAPH_ID=lab` manteve o descompasso. HTTP validou dados/consulta. Logo, alinhar os IDs ou remover o preflight **não foi suficiente** para tornar Bolt JS intercambiável. Somente runners GitHub-hosted descartáveis; `dev`/`main`/MiniMac continuam fora do escopo. API gerenciada v2 não foi executada.
 
+**Gate 18 — matriz de versões de driver JS executada:** [CI #42286677576](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42286677576) validou o exemplo Bolt self-hosted parametrizado com os drivers **5.28.3, 6.0.1, 6.1.0 e 6.2.0**. Cada versão passou no Neo4j de controle e o HydraDB respondeu via HTTP, porém o Bolt/HydraDB retornou **0/3 respostas corretas por versão** na configuração oficial `default` (12 falhas); outras três variações por versão também falharam, totalizando 0/48. [Relatório Gate18](hydradb-gate18-js-driver-version-matrix-2026-11-06.md). **Não é evidência da causa raiz nem libera migração**; `dev`, `main`, MiniMac e HydraDB v2 hospedado não foram utilizados.
+
 ## 1. O que exatamente é o baseline de DEV/MAIN
 
 Na revisão de 06/11/2026, comparamos os objetos Git para os mesmos oito caminhos nas três branches:
