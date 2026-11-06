@@ -1,0 +1,53 @@
+name: HydraDB Orbe baseline | verify Git source identity only
+
+# This is NOT a live environment test. No DEV/MAIN deployment access.
+# Fetches public main/dev refs only, on a disposable GitHub-hosted runner.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-orbe-baseline-parity.yml
+      - knowledge/evaluations/hydradb-orbe-source-baseline-v1.json
+      - scripts/hydradb-orbe-baseline-parity-check.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-orbe-baseline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-parity:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify experimental project
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "SladeSouzaSantos/phasscode-platform"
+          test "$GITHUB_REF" = "refs/heads/experiment/hydradb"
+
+      - name: Checkout experimental commit, no persisted credentials
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Fetch only read-only public branch refs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin \
+            refs/heads/main:refs/remotes/origin/main \
+            refs/heads/dev:refs/remotes/origin/dev
+
+      - name: Compare exactly eight pinned Git blobs across all three branches
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/hydradb-orbe-baseline-parity-check.py
+          python3 scripts/hydradb-orbe-baseline-parity-check.py
