@@ -25,7 +25,7 @@ for(const repository of ['backend','frontend']){
  md+='- Arquivos nos dois snapshots sem alteração: **'+unchanged.length+'**; modificados: **'+modified.length+'**; exclusivos MAIN: **'+onlyMain.length+'**; exclusivos DEV: **'+onlyDev.length+'**.\n\n';
  md+='| Status | Arquivo TypeScript/JavaScript | Diferença de símbolos nomeados |\n| --- | --- | --- |\n';
  for(const file of [...onlyMain.map(x=>({file:x,status:'Só MAIN'})),...onlyDev.map(x=>({file:x,status:'Só DEV'})),...modified.map(x=>({file:x,status:'Modificado'}))].sort((x,y)=>x.file.localeCompare(y.file))){
-  const x=a.get(file),y=b.get(file);
+  const x=a.get(file.file),y=b.get(file.file);
   const m=new Set(x?.symbols.map(z=>z.name+' ('+z.kind+')')??[]);
   const d=new Set(y?.symbols.map(z=>z.name+' ('+z.kind+')')??[]);
   const added=[...d].filter(z=>!m.has(z)).length,removed=[...m].filter(z=>!d.has(z)).length;
