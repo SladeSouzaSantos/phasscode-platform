@@ -1,0 +1,103 @@
+name: HydraDB Gate 11 | ephemeral MinIO restart durability (NO MiniMac)
+
+# Two temporary local Docker services on GitHub-hosted Linux only.
+# No SSH, Tailscale, Orbe production data, external AWS, or dev/main services.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-gate11-minio-durability.yml
+      - scripts/hydradb-gate11-minio-restart.py
+      - scripts/hydradb-gate11-minio-containers.sh
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-gate11-minio-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  object-store:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    env:
+      GATE11_ISOLATION_MODE: github_hosted_ephemeral
+    steps:
+      - name: Require lab-only GitHub hosted environment
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = SladeSouzaSantos/phasscode-platform
+          test "$GITHUB_REF" = refs/heads/experiment/hydradb
+          test "$GATE11_ISOLATION_MODE" = github_hosted_ephemeral
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Validate scripts and initialize entirely ephemeral credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/hydradb-gate11-minio-containers.sh
+          python3 -m py_compile scripts/hydradb-gate11-minio-restart.py
+          bash scripts/hydradb-gate11-minio-containers.sh init
+
+      - name: Create isolated MinIO object-store bucket
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/hydradb-gate11-minio-containers.sh minio-start
+
+      - name: Launch HydraDB on MinIO with a fresh local cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/hydradb-gate11-minio-containers.sh hydra-start
+
+      - name: Seed two synthetic graph edges and verify durable read
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/gate11-ephemeral-$GITHUB_RUN_ID"
+          export GATE11_TOKEN_FILE="$ROOT/hydra-token"
+          export GATE11_SIGNATURE_FILE="$ROOT/expected.sha256"
+          python3 scripts/hydradb-gate11-minio-restart.py --mode seed
+
+      - name: Replace HydraDB node and local cache, then verify object-store reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/hydradb-gate11-minio-containers.sh hydra-restart
+          ROOT="$RUNNER_TEMP/gate11-ephemeral-$GITHUB_RUN_ID"
+          export GATE11_TOKEN_FILE="$ROOT/hydra-token"
+          export GATE11_SIGNATURE_FILE="$ROOT/expected.sha256"
+          python3 scripts/hydradb-gate11-minio-restart.py --mode verify
+          echo GATE11_HYDRA_NODE_RESTART_DURABILITY_PASS
+
+      - name: Replace MinIO and HydraDB with the same isolated bucket, then verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/hydradb-gate11-minio-containers.sh minio-restart
+          ROOT="$RUNNER_TEMP/gate11-ephemeral-$GITHUB_RUN_ID"
+          export GATE11_TOKEN_FILE="$ROOT/hydra-token"
+          export GATE11_SIGNATURE_FILE="$ROOT/expected.sha256"
+          python3 scripts/hydradb-gate11-minio-restart.py --mode verify
+          echo GATE11_MINIO_RESTART_DURABILITY_PASS
+
+      - name: Report only container lifecycle if failed
+        if: failure()
+        shell: bash
+        run: |
+          for ID in "gate11-minio-$GITHUB_RUN_ID" "gate11-hydra-$GITHUB_RUN_ID"; do
+            docker inspect --format '{{.Name}} status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}}' "$ID" 2>/dev/null || true
+          done
+
+      - name: Remove exclusively this GitHub runner experiment
+        if: always()
+        shell: bash
+        run: |
+          bash scripts/hydradb-gate11-minio-containers.sh cleanup
