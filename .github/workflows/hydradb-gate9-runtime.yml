@@ -75,6 +75,10 @@ jobs:
           N="gate9-neo-$GITHUB_RUN_ID"
           docker network create "$NETWORK" >/dev/null
           sudo chown -R 10001:10001 "$ROOT/store" "$ROOT/cache"
+          # HydraDB container runs as UID 10001: private runner-owned 0600
+          # token files cannot be read by it. Keep a separate 0400 copy.
+          sudo install -o 10001 -g 10001 -m 0400 \
+            "$ROOT/hydra-token" "$ROOT/hydra-token-container"
 
           # Pin the RELEASE VERSION (not latest). Container itself is disposable.
           docker pull ghcr.io/hydra-db/hydradb:0.3.0 >/dev/null
@@ -103,7 +107,7 @@ jobs:
             -e RUST_LOG=warn \
             -v "$ROOT/store:/data/store" \
             -v "$ROOT/cache:/data/cache" \
-            -v "$ROOT/hydra-token:/run/secrets/hydra-token:ro" \
+            -v "$ROOT/hydra-token-container:/run/secrets/hydra-token:ro" \
             -p 127.0.0.1:18443:8443 \
             -p 127.0.0.1:19090:9090 \
             -p 127.0.0.1:17687:7687 \
@@ -137,6 +141,16 @@ jobs:
           python3 scripts/hydradb-gate9-disposable-runtime.py --live
           node scripts/gate9-disposable-bolt.mjs
           echo GATE9_DISPOSABLE_RUNTIME_AND_BOLT_PROBES_COMPLETED
+
+      - name: Summarize disposable container states if a prior step failed
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          for ID in "gate9-hydra-$GITHUB_RUN_ID" "gate9-neo-$GITHUB_RUN_ID"; do
+            # Report only lifecycle status and OOM; never env, logs or tokens.
+            docker inspect --format '{{.Name}} status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}}' "$ID" 2>/dev/null || true
+          done
 
       - name: Delete ONLY this disposable pair on GitHub-hosted runner
         if: always()
