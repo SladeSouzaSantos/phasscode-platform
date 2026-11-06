@@ -5,7 +5,7 @@
 
 Hi Nishkarsh,
 
-Thanks for reaching out! I'd be happy to chat for 10 minutes.
+Thank you for reaching out and for noticing the Neo4j work in my portfolio. I was genuinely happy to receive a message from someone building a graph database — your interest in my work meant a lot to me.
 
 Your object-storage-native graph approach caught my interest because I'm building Orbe, an evidence-grounded AI assistant for my developer portfolio. We already use Neo4j for optional GraphRAG retrieval over a versioned professional evidence base, so I tried adapting our actual graph retrieval contract to HydraDB v0.3.0 rather than just running a generic benchmark.
 
@@ -23,7 +23,9 @@ https://github.com/SladeSouzaSantos/phasscode-platform/blob/experiment/hydradb/d
 
 I'd particularly appreciate your perspective on the recommended Bolt/JavaScript driver configuration, the intended v0.3.0 Cypher subset and the most useful object-storage failure tests for a workload like this.
 
-I'd be glad to compare notes in a short call and share any minimal repros.
+I don't speak English, so a voice call would not work well for me. However, I'd really enjoy continuing the conversation **by email**, with translation assistance, and sharing reproducible examples or testing suggestions whenever useful.
+
+I'm currently transitioning back into a dedicated software-development career and continuing to deepen my experience with graph databases. Please read these as hands-on, application-level observations rather than a formal assessment of the HydraDB engine; I'm very open to corrections or better testing approaches.
 
 Best regards,  
 Pedro Santos
