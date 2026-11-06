@@ -25,6 +25,8 @@ Commits inspecionados: `main c302ec444266333756d9f35bc9c1dfd7a5e7c684`; `dev 747
 
 **Significado:** temos uma base rastreável de **código e índice**, não acesso às configurações, versões de contêiner, snapshots de dados privados ou respostas efetivamente em execução em DEV/MAIN. Não afirmar que os ambientes ao vivo são idênticos; não coletar dados operacionais sem autorização e procedimento próprio.
 
+**Validação CI de identidade do código:** [GitHub Actions #42160931106](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42160931106) **PASS (8/8 blobs)** nas refs públicas `main`, `dev` e `experiment/hydradb`; [manifest congelado](../../knowledge/evaluations/hydradb-orbe-source-baseline-v1.json), [validador](../../scripts/hydradb-orbe-baseline-parity-check.py) e [workflow somente leitura](../../.github/workflows/hydradb-orbe-baseline-parity.yml). O resultado inclui explicitamente `runtimeParity=not_tested` e `adapterParity=not_tested`. Uma mudança futura em qualquer um dos oito blobs exige rever o baseline.
+
 ## 2. O que a comparação deve responder
 
 Para o mesmo conjunto público/sintético, comparar as respostas normalizadas deste contrato de domínio:
