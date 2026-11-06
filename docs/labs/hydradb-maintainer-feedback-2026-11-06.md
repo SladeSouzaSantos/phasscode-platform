@@ -52,6 +52,8 @@ As of 2026-11-06, we inspected GitHub branches, not live deployments:
 | `dev` | `747cd8243ac67d19b720bb7441aa0b969734f391` | Same four Git blob SHA-1s |
 | `experiment/hydradb` | `c283df67c379357b3dae0354e89a73605b59bd72` | Same four Git blob SHA-1s |
 
+This source-code comparison is also **independently reproducible in GitHub Actions**: [8/8 pinned Git blobs PASS — run #42160931106](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42160931106), using the [read-only baseline manifest](../../knowledge/evaluations/hydradb-orbe-source-baseline-v1.json) and [comparison script](../../scripts/hydradb-orbe-baseline-parity-check.py). It additionally verifies the PPKS index, semantic-relations JSON, package-lock and prompt v4, for **eight identical files** in all three branches.
+
 The four exactly matching files are `domain/evidence-graph.ts`, `adapters/ppks-evidence-graph.ts`, `adapters/neo4j-graph-queries.ts` and `adapters/neo4j-driver-store.ts`. This establishes **source-code identity for that baseline**, not live database equality, identical environment variables, deployed SHA, current records, or response equivalence. No operational DEV/MAIN data was copied.
 
 ## 2. What we changed to work with HydraDB
