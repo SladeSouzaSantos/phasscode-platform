@@ -9,6 +9,7 @@ on:
     paths:
       - scripts/wiki-inventory.mjs
       - scripts/wiki-compare-snapshots.mjs
+      - scripts/wiki-validate.mjs
       - .github/workflows/wiki-inventory.yml
   workflow_dispatch:
 
@@ -89,6 +90,7 @@ jobs:
           set -euo pipefail
           node --check scripts/wiki-inventory.mjs
           node --check scripts/wiki-compare-snapshots.mjs
+          node --check scripts/wiki-validate.mjs
 
       - name: Generate immutable MAIN and DEV AST inventories
         shell: bash
@@ -108,6 +110,9 @@ jobs:
             --frontend-sha "$FRONTEND_DEV_SHA"
           node scripts/wiki-compare-snapshots.mjs
           echo WIKI_PINNED_AST_GENERATED
+
+      - name: Validate generated manifests and all local wiki Markdown links
+        run: node scripts/wiki-validate.mjs
 
       - name: Commit generated reference files only to documentation branch
         shell: bash
