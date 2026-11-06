@@ -49,11 +49,11 @@ flowchart TD
   Packet -->|sem espaço| Fail["LLM_CONTEXT_LIMIT"]
   Packet -->|válido| Model["ChatProvider.generate"]
   Model --> Audit["Auditoria/reconciliação"]
-  Reject --> Save["schema + runTurn"]
-  Determ --> Save
-  GraphAnswer --> Save
-  Audit --> Save
-  Save --> Observe["Shadow opcional: só observação"]
+  Reject --> Observe["Shadow DEV opcional: só observação"]
+  Determ --> Observe
+  GraphAnswer --> Observe
+  Audit --> Observe
+  Observe --> Save["schema + conclusão do runTurn"]
 ```
 
 **Precisão importante:** a execução real de `shadow` ocorre **antes** da montagem final do `chatResponseSchema`, mas **depois** da resposta ter sido definida. O diagrama representa ordem de decisão, não um trace literal de I/O com o banco.
