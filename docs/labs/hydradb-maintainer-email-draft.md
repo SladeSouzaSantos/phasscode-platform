@@ -15,7 +15,7 @@ I put together a fully isolated Neo4j/HydraDB lab, using public portfolio record
 - **Migration differences:** Seven of our nine original Neo4j Cypher operations were rejected by HydraDB without adaptation.
 - **Bolt/driver detail:** With the JavaScript Neo4j driver 6.2.0, two simple `MATCH` reads worked when no database was specified. However, parameterized `MATCH`, explicit database selection, and routed URI configurations still failed in different ways. We have a minimal reproduction.
 - **Documentation:** Simple positive and negative `IN` and `IS NULL` queries worked over HTTP, although the pinned v0.3.0 documentation lists these forms as unsupported.
-- **Preliminary performance:** The HydraDB HTTP adapter had lower round-trip latencies than our Neo4j Bolt adapter in a small, warm-cache public-PPKS pilot. Because the drivers and query paths differ, we are **not** claiming engine-level superiority or cost savings.
+- **Preliminary F4.3 performance:** In a bounded, warm-cache run with **HydraDB backed by MinIO**, the one-skill p50 was **2.112 ms (HydraDB/HTTP) versus 3.452 ms (Neo4j/Bolt)**, and four-skill retrieval was **7.427 versus 11.562 ms**. All **1,024 measured application-method calls** returned equivalent evidence. Because transport, query shapes and storage differ, we are **not** claiming intrinsic engine superiority or lower operating cost.
 
 The full case study, technical decisions, reproduction scripts, workflow logs, and limitations are here:  
 https://github.com/SladeSouzaSantos/phasscode-platform/blob/experiment/hydradb/docs/labs/hydradb-maintainer-feedback-2026-11-06.md
