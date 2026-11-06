@@ -39,6 +39,7 @@ export type Gate8Score = Readonly<{
   expectedSourceLinks: number;
   matchedSourceLinks: number;
   sourceLinkMismatches: number;
+  duplicateSourceLinks: number;
   duplicateClaims: number;
   duplicateSources: number;
   correctEmpty: boolean | null;
@@ -97,6 +98,8 @@ export function scoreGate8Evidence(
 
   const duplicateClaims = actual.claims.length - new Set(actual.claims.map((c) => c.id)).size;
   const duplicateSources = actual.sources.length - actualSources.size;
+  const duplicateSourceLinks = actual.claims.reduce((sum, claim) =>
+    sum + claim.sourceIds.length - new Set(claim.sourceIds).size, 0);
   const matchedSourceLinks = intersect(expectedLinks, actualLinks);
   const missingClaims = expectedClaims.size - matchedClaims;
   const extraClaims = actualClaims.size - matchedClaims;
@@ -108,7 +111,7 @@ export function scoreGate8Evidence(
     missingClaims === 0 && extraClaims === 0 && scopeMismatches === 0 &&
     falseProfessionalClaims === 0 && missingSources === 0 &&
     extraSources === 0 && provenanceMismatches === 0 &&
-    sourceLinkMismatches === 0 && duplicateClaims === 0 &&
+    sourceLinkMismatches === 0 && duplicateSourceLinks === 0 && duplicateClaims === 0 &&
     duplicateSources === 0 &&
     actual.claims.length === expectedClaims.size &&
     actual.sources.length === refSources.size;
@@ -120,7 +123,7 @@ export function scoreGate8Evidence(
     returnedSources: actual.sources.length, matchedSources,
     missingSources, extraSources, provenanceMismatches,
     expectedSourceLinks: expectedLinks.size, matchedSourceLinks,
-    sourceLinkMismatches, duplicateClaims, duplicateSources,
+    sourceLinkMismatches, duplicateSourceLinks, duplicateClaims, duplicateSources,
     correctEmpty: expectedClaims.size === 0 ? actual.claims.length === 0 : null,
     exact,
   };
@@ -133,7 +136,7 @@ export function aggregateGate8Scores(scores: readonly Gate8Score[]) {
     'expectedSources', 'returnedSources', 'matchedSources',
     'missingSources', 'extraSources', 'provenanceMismatches',
     'expectedSourceLinks', 'matchedSourceLinks', 'sourceLinkMismatches',
-    'duplicateClaims', 'duplicateSources',
+    'duplicateSourceLinks', 'duplicateClaims', 'duplicateSources',
   ] as const;
   const totals = Object.fromEntries(fields.map((field) =>
     [field, scores.reduce((sum, score) => sum + score[field], 0)])) as
