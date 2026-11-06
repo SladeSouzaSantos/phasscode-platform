@@ -11,6 +11,7 @@ on:
       - scripts/gate9-runtime-fixture.ts
       - scripts/hydradb-gate9-disposable-runtime.py
       - scripts/gate9-disposable-bolt.mjs
+      - scripts/hydradb-gate14-bolt-matrix.mjs
       - apps/orbe-node/src/adapters/neo4j-graph-queries.ts
       - package-lock.json
       - package.json
@@ -140,6 +141,8 @@ jobs:
           export GATE9_NEO_AUTH_FILE="$ROOT/neo-auth"
           python3 scripts/hydradb-gate9-disposable-runtime.py --live
           node scripts/gate9-disposable-bolt.mjs
+          node scripts/hydradb-gate14-bolt-matrix.mjs
+          echo GATE14_BOLT_MATRIX_COLLECTED
           echo GATE9_DISPOSABLE_RUNTIME_AND_BOLT_PROBES_COMPLETED
 
       - name: Summarize disposable container states if a prior step failed
