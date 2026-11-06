@@ -1,6 +1,6 @@
 # Gate 8 — avaliação de recuperação semântica e respostas fundamentadas (proposta)
 
-**Estado:** Fase A / preflight aprovado no MiniMac; início da Fase B implementado no LAB, **ainda não executado nem homologado**.  
+**Estado:** Fase B OFF e SHADOW **homologada no LAB pelo operador** em 06/11/2026; gold ainda provisório, Fase C (interpretação textual) pendente.  
 **Dependência:** Gate 7 aprovado no MiniMac; ver [registro](hydradb-ppks-recruiter-eval.md).  
 **Escopo permitido:** clone `~/hydradb-lab/phasscode-platform`, branch `experiment/hydradb`, somente dados públicos/sintéticos, sem integração à API, chat, Graph Reader, Neo4j operacional, `dev` ou `main`.
 
@@ -86,6 +86,30 @@ A preparação inicial de Fase A foi adicionada **sem classificador nem chamadas
 
 Marcadores esperados: `GATE8_CORPUS_CANONICAL_FIXTURE_PARITY_PASS`, `GATE8_CORPUS_DRAFT_CHECK_PASS` e `GATE8_INDEPENDENT_GOLD_REVIEW_REQUIRED`. **Um PASS do preflight não aprova o gold, não mede precisão de interpretação, não faz leitura real no HydraDB e não conclui Gate 8.**
 
+
+## Homologação MiniMac da Fase B — 06/11/2026 (APROVADA)
+
+Execução enviada pelo operador na branch `experiment/hydradb` após fast-forward `a8bb5bd..f03c162`; o contêiner OFF permitiu escrita apenas no clone do LAB para `node_modules/.vite-temp`, com rede desabilitada. O SHADOW usou consultas HTTP autenticadas no loopback do MiniMac, sem escrita e sem alterar `dev`/`main` ou o Neo4j operacional.
+
+| Verificação | Resultado observado |
+| --- | --- |
+| `npm run typecheck` | PASS |
+| Vitest (`hydradb-lab-evidence-adapter` + `hydradb-lab-gate8-score`) | 14/14 PASS |
+| Corpus e fonte de referência | 20 casos / 10 habilidades / 7 tags; `GATE8_REFERENCE_SOURCE_PARITY_PASS` |
+| OFF: 30 requisitos e 16 buscas de fonte | 46 decisões `canonical`; `GATE8_DRAFT_REFERENCE_RETRIEVAL_PASS` |
+| SHADOW: 30 requisitos e 16 buscas de fonte | 36 decisões `graph_verified`; 10 `canonical_fallback` |
+| SHADOW: fontes individuais | 16/16 `graph_verified` |
+| Claims esperadas / retornadas por execução | 38/38; sem extras, perdas ou desvios de escopo |
+| Referências de fonte/links por ocorrência | 103/103; sem perdas, duplicações, divergências de origem ou verificação |
+| Abstenções corretas em requisitos sem claims (por execução) | 6/6 |
+| `GATE8_SHADOW_CANONICAL_PARITY_PASS` | PASS |
+| `GATE8_SHADOW_SUPPORTED_FIXTURE_VERIFIED_PASS` | PASS |
+
+O total `103` **conta ocorrências de referências ao longo dos 30 requisitos**, e não 103 fontes distintas; são **16 fontes únicas**. As 36 decisões verificadas incluem 20 consultas de requisitos de tecnologia coberta pelo HydraDB e 16 verificações de fonte; os dez fallbacks são `UNSUPPORTED_PUBLIC_FIXTURE` (Spring Boot, Django, React, Python, FastAPI quando consultadas). Hash SHA-256 do corpus informado em ambos os modos: `ec5dcf8746b981ca00a65879db4293f493ed3ec33721c25904bd4d677aeefad0`.
+
+**Limites inalterados:** `goldReviewed=false`, `nlpEvaluation=false`, `llmEvaluation=false`, `hydraDbPerformanceBenchmark=false`, `incrementalSemanticGain=not_measured`. A precisão/recall de 1.0 mede concordância com o draft derivado do mesmo fixture; **não é acurácia semântica externa nem ganho incremental de HydraDB**. Os snapshots foram verificados, mas não houve avaliação de qualidade da prosa, throughput, carga ou latência.
+
+**Decisão:** Fase B concluída no laboratório. Seguir à revisão independente das intenções de perguntas e depois à Fase C; não integrar engine ao runtime, não promover o gold automaticamente.
 
 ## Checkpoint: início da Fase B — avaliação quantitativa do referencial provisório
 
