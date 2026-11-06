@@ -70,3 +70,28 @@ Opcionalmente revogar as duas secrets especificas e remover **somente** a linha 
 - [ ] Operador decide se mantem acesso habilitado ou revoga variavel.
 
 Esta automacao e do **Gate 8**. Ela nao executa por padrao benchmark de concorrencia, limpeza, seeds, deploy, migracoes, teste de LLM ou troca Neo4j/HydraDB. Os demais gates exigem novos protocolos de seguranca e teste.
+
+
+## Primeiro acesso real ao MiniMac e ajuste de memória (06/11/2026)
+
+O operador confirmou que o clone experimental estava limpo após ignorar o cache Python. Na execução [#42144245116](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42144245116), o job OFF hospedado no GitHub passou, o Tailscale/SSH restrito alcançou o MiniMac, fez fast-forward apenas no clone LAB e iniciou o typecheck. A validação remota falhou antes de executar Vitest e SHADOW: o limite Docker de 512 MiB levou o Node a falhar por heap insuficiente (exit 134). Isso não é falha do HydraDB.
+
+O script fonte do forced command passou a usar 1280 MiB de memória no contêiner OFF, com limite de swap igual à memória e heap Node máximo de 768 MiB. O contêiner SHADOW conserva 384 MiB e acesso somente leitura ao repositório.
+
+**Atenção:** a cópia executável fica fora do checkout Git. Um pull sozinho não atualiza a cópia usada pelo OpenSSH. O operador deve inspecionar e reinstalar especificamente esse arquivo antes de um novo teste remoto:
+
+~~~bash
+(
+  set -euo pipefail
+  cd ~/hydradb-lab/phasscode-platform
+  test "$(git branch --show-current)" = experiment/hydradb
+  git pull --ff-only origin experiment/hydradb
+  test -z "$(git status --porcelain)"
+  bash -n scripts/hydradb-lab-ci-forced-command.sh
+  install -m 0500 scripts/hydradb-lab-ci-forced-command.sh     "$HOME/.local/libexec/hydradb-lab-ci-forced-command"
+  cmp -s scripts/hydradb-lab-ci-forced-command.sh     "$HOME/.local/libexec/hydradb-lab-ci-forced-command"
+  echo HYDRADB_LAB_CI_FORCED_COMMAND_UPDATED
+)
+~~~
+
+Depois dessa confirmação, um novo commit na branch experimental em caminho monitorado pelo workflow acionará a nova rodada. Não rodar sudo, apagar volumes ou alterar o comando do SSH fora deste procedimento.
