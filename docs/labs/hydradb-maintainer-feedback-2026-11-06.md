@@ -127,7 +127,7 @@ The combined real-engine report confirmed **88/88 requirement-level comparisons 
 
 The [MinIO experiment #42162965498](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42162965498) connected HydraDB to a fresh, S3-compatible **MinIO bucket** in an ephemeral GitHub runner and wrote two synthetic relationships: record→skill and claim→supporting source. It read back both values, **replaced HydraDB with a new empty local cache**, read again, then **replaced the MinIO container and HydraDB node while keeping the same bucket data** and read again.
 
-All three reads produced the same result SHA-256 digest: `77b10d56d1b608bee6583cd1ce37d34e9071bc97fab174f77c181b916f8a799b`. This demonstrates simple persistence in that setup, **not backup/restore, high availability, competing writers, or consistency under load**.
+All three reads produced the same result SHA-256 digest: `77b10d56d1b608bee6583cd1ce37d34e9071bc97fab174f77c181b916f8a799b`. We subsequently reproduced this object-store test using immutable image digests (Gate 11 pinned run #42165160104). This demonstrates simple persistence in that setup, **not backup/restore, high availability, competing writers, or consistency under load**.
 
 The initial MinIO harness failed for non-database reasons: Docker Hub no longer served the upstream v0.3.0 script's `minio/minio` image, and Quay returned HTTP 401. We recovered using a maintained **Chainguard MinIO container**, with no change to the HydraDB engine. This is potentially useful reproducibility feedback for HydraDB's [v0.3.0 MinIO smoke script](https://github.com/hydra-db/hydradb/blob/v0.3.0/scripts/minio_smoke.sh).
 
@@ -194,7 +194,7 @@ Next we intend to **expand beyond the seven public records / first-two-skills-pe
 - [GitHub issue F4.1 / Gate 9](https://github.com/SladeSouzaSantos/phasscode-platform/issues/36)
 - [GitHub issue F4.2 / experimental PoC](https://github.com/SladeSouzaSantos/phasscode-platform/issues/37)
 
-**Release identity caveat:** the disposable CI used version tags, not pinned OCI digests. Before making hard engine-to-engine benchmark claims we will pin image digests and record the precise Node.js driver version, CPU/memory limits and dataset hash.
+**Release identity caveat:** the Gates 11 and 13 object-store durability runs were **repeated successfully with pinned OCI digests** for HydraDB and Chainguard MinIO ([Gate 11 pinned run #42165160104](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42165160104), [Gate 13 pinned run #42165160131](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42165160131); [full image list](hydradb-gate13-public-minio-durability.md)). **Gates 9 and 10/12 remain tag-based**, so controlled cross-engine performance claims still require full digest pinning, driver revision/host resource capture and dataset hashes.
 
 ---
 
