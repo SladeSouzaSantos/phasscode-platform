@@ -1,6 +1,6 @@
 # Gate 8 — avaliação de recuperação semântica e respostas fundamentadas (proposta)
 
-**Estado:** desenho do experimento, **não implementado nem homologado**.  
+**Estado:** Fase A / preflight aprovado no MiniMac; início da Fase B implementado no LAB, **ainda não executado nem homologado**.  
 **Dependência:** Gate 7 aprovado no MiniMac; ver [registro](hydradb-ppks-recruiter-eval.md).  
 **Escopo permitido:** clone `~/hydradb-lab/phasscode-platform`, branch `experiment/hydradb`, somente dados públicos/sintéticos, sem integração à API, chat, Graph Reader, Neo4j operacional, `dev` ou `main`.
 
@@ -66,7 +66,7 @@ A preparação inicial de Fase A foi adicionada **sem classificador nem chamadas
 - `knowledge/evaluations/hydradb-gate8-recruiter.json`: 20 perguntas **sintéticas**, 10 tecnologias, com anotação de requisitos esperados e sete etiquetas de risco. A anotação está marcada `draft_requires_independent_review` e precisa de revisão humana antes de representar gold validado.
 - `scripts/hydradb-lab-gate8-corpus-check.ts`: validador offline que comprova estrutura, cobertura, unicidade e **consistência com os sete registros PPKS públicos canônicos**; não interpreta linguagem natural nem consulta HydraDB.
 
-### Execução local do preflight (ainda não realizada)
+### Execução local do preflight (aprovada pelo operador no MiniMac)
 
 ```bash
 (
@@ -85,3 +85,85 @@ A preparação inicial de Fase A foi adicionada **sem classificador nem chamadas
 ```
 
 Marcadores esperados: `GATE8_CORPUS_CANONICAL_FIXTURE_PARITY_PASS`, `GATE8_CORPUS_DRAFT_CHECK_PASS` e `GATE8_INDEPENDENT_GOLD_REVIEW_REQUIRED`. **Um PASS do preflight não aprova o gold, não mede precisão de interpretação, não faz leitura real no HydraDB e não conclui Gate 8.**
+
+
+## Checkpoint: início da Fase B — avaliação quantitativa do referencial provisório
+
+**Resultado do MiniMac informado pelo operador:** fast-forward \`9737fa1..415fee2\` bem-sucedido; \`tsc --noEmit\` PASS; Vitest 7/7; \`GATE8_CORPUS_DRAFT_CASES 20 SKILLS 10 RISK_TAGS 7\`, \`GATE8_CORPUS_CANONICAL_FIXTURE_PARITY_PASS\`, \`GATE8_CORPUS_DRAFT_CHECK_PASS\`. A indicação \`GATE8_INDEPENDENT_GOLD_REVIEW_REQUIRED\` permanece intencional.
+
+Foi acrescentada uma fotografia explícita da proveniência \`knownSourceEvidence\` no JSON (11 associações tecnologia→registro, 16 fontes públicas distintas), derivada dos mesmos sete PPKS públicos; o checker exige agora correspondência de cada fonte, vínculo \`claim→source\`, origem \`github/ppks_catalog\` e \`verificationStatus\`. Esta referência **não** foi validada por avaliador independente.
+
+Arquivos de Fase B publicados (ainda não executados no MiniMac):
+
+- \`scripts/hydradb-lab-gate8-score.ts\`: métrica pura de concordância com o draft (claims, fontes, vínculos, escopo, distinção profissional/estudo e abstenção), incluindo detecção de duplicações;
+- \`tests/hydradb-lab-gate8-score.test.ts\`: testes unitários de precisão referencial, promoção indevida de escopo, inflação de nível de verificação, fontes/vínculos ausentes, links duplicados, abstenção correta e atribuição falsa;
+- \`scripts/hydradb-lab-gate8-evaluate.ts\`: executa 20 perguntas **como rótulos de requisitos fornecidos manualmente**, sem extrair termos automaticamente da prosa; compara PPKS canônico e adapter OFF/SHADOW. Emite JSON sanitizado, identificado como \`draft_public_fixture_agreement_only\`, com SHA-256 do corpus, métricas e motivos de fallback, **sem registrar as perguntas**.
+
+**Atenção:** \`draftClaimPrecision\` e \`draftClaimRecall\` medem acordo com anotações do mesmo fixture público, **não** precisão semântica independente; a arquitetura SHADOW sempre devolve o canônico. Mesmo uma pontuação de 1.0 **não demonstra benefício de HydraDB nem melhora nas respostas do Orbe**.
+
+### Execução Fase B OFF, sem rede
+
+Exige \`node_modules\` já instalado apenas no clone do LAB:
+
+\`\`\`bash
+(
+  set -euo pipefail
+  cd ~/hydradb-lab/phasscode-platform
+  test "$(git branch --show-current)" = "experiment/hydradb"
+  git pull --ff-only origin experiment/hydradb
+
+  docker run --rm \
+    --network none \
+    --user "$(id -u):$(id -g)" \
+    -e HOME=/tmp \
+    -v "$PWD:/workspace:ro" \
+    -w /workspace \
+    node:24 sh -ec '
+      npm run typecheck
+      ./node_modules/.bin/vitest run \
+        tests/hydradb-lab-evidence-adapter.test.ts \
+        tests/hydradb-lab-gate8-score.test.ts
+      node --import tsx scripts/hydradb-lab-gate8-corpus-check.ts
+      node --import tsx scripts/hydradb-lab-gate8-evaluate.ts --mode off
+    '
+)
+\`\`\`
+
+Critério de aprovação: \`GATE8_REFERENCE_SOURCE_PARITY_PASS\` (preflight), \`GATE8_DRAFT_REFERENCE_RETRIEVAL_PASS\`, \`GATE8_INDEPENDENT_GOLD_REVIEW_REQUIRED\` e \`GATE8_NO_INCREMENTAL_SEMANTIC_GAIN_DEMONSTRATED\`, além de TypeScript/Vitest sem falhas.
+
+### Execução Fase B SHADOW real, HTTP local e somente leitura
+
+Executar somente após OFF aprovado, reutilizando o mesmo \`lab_run\` do Gate 7 (não iniciar novos seeds):
+
+\`\`\`bash
+(
+  set -euo pipefail
+  cd ~/hydradb-lab/phasscode-platform
+  REPORT="$HOME/hydradb-lab/benchmarks/ppks-contract-20261105T225141Z.json"
+  TOKEN="$HOME/hydradb-lab/secrets/hydradb_auth_token"
+  test -s "$REPORT"
+  test -s "$TOKEN"
+
+  docker run --rm \
+    --network host \
+    --user "$(id -u):$(id -g)" \
+    --cap-drop ALL \
+    --security-opt no-new-privileges \
+    --pids-limit 96 --memory 384m --cpus 0.75 \
+    -e HOME=/tmp \
+    -v "$PWD:/workspace:ro" \
+    -v "$HOME/hydradb-lab/benchmarks:/lab-reports:ro" \
+    -v "$TOKEN:/run/secrets/hydradb_auth_token:ro" \
+    -w /workspace \
+    node:24 \
+    node --import tsx scripts/hydradb-lab-gate8-evaluate.ts \
+      --mode shadow \
+      --report "/lab-reports/$(basename "$REPORT")" \
+      --token-file /run/secrets/hydradb_auth_token \
+      --require-graph
+)
+\`\`\`
+
+Critério de aprovação: \`GATE8_SHADOW_CANONICAL_PARITY_PASS\` e \`GATE8_SHADOW_SUPPORTED_FIXTURE_VERIFIED_PASS\`, mantendo as mesmas claims, fontes e níveis de evidência do modo OFF. Habilidades sem projeção HydraDB LAB devem permanecer em fallback canônico. Nenhuma execução foi feita pelo assistente no MiniMac; é indispensável conferir a saída do operador.
+
+**Próximo passo após homologar Fase B:** revisão humana independente do draft e, só então, testes de *interpretação* de perguntas com baselines atuais do Orbe. Não adicionar LLM nem ONNX sidecar como consequência implícita.
