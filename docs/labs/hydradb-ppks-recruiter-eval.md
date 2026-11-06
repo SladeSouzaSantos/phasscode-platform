@@ -154,3 +154,24 @@ de uma falha física no processo do HydraDB nem geração
 de texto natural. Testes de LLM e perguntas realmente
 abertas ainda dependem de um Gate 8 separado e autorização
 de integração em ambiente de avaliação.
+
+
+## Homologação no MiniMac — Gate 7 aprovado
+
+**Evidência:** saída da execução local fornecida pelo operador após fast-forward `6d519f4..9737fa1` na branch `experiment/hydradb`. O teste terminou com `=== GATE 7: TODAS AS ETAPAS APROVADAS ===`; nenhuma alteração de runtime, DEV ou MAIN foi executada por este procedimento.
+
+| Prova | Resultado observado |
+| --- | --- |
+| `npm run typecheck` | PASS (`tsc --noEmit`) |
+| Vitest do adapter | 7/7 PASS |
+| OFF, sem rede | 12 cenários / 16 requisitos; 0 verificados, 0 fallback, 16 canônicos; 5/5 fontes; PASS |
+| SHADOW HTTP real | 12 cenários / 16 requisitos; 11 `graph_verified`, 5 `canonical_fallback` intencionais; 5/5 fontes; PASS |
+| Falha de transporte injetada (`outage`) | 0 verificados, 16 fallbacks; 5/5 fontes; PASS |
+| Resposta manipulada (`missing-source`) | 3 verificados, 13 fallbacks; 5/5 fontes; PASS |
+| Resposta manipulada (`extra-row`) | 3 verificados, 13 fallbacks; 5/5 fontes; PASS |
+
+As três verificações mantidas em `graph_verified` nos cenários `missing-source` e `extra-row` são consultas vazias de **Go** (não havia linha a remover ou duplicar). Esse resultado está alinhado ao contrato do protótipo; **não** prova detecção de corrupção em resultados originalmente vazios. O cenário `outage` apenas injeta falha no transporte do processo de teste, sem derrubar fisicamente o HydraDB.
+
+O replay demonstrou a preservação de `scope`, `verificationStatus`, fontes públicas e do retorno canônico. **Gate 7 homologado no escopo do LAB.** A evidência não equivale a compreensão de linguagem natural, avaliação da prosa gerada, cobertura do PPKS completo, teste de concorrência ou adoção do HydraDB na aplicação.
+
+**Próxima trilha:** desenho de Gate 8 em [hydradb-ppks-semantic-gate8.md](hydradb-ppks-semantic-gate8.md). Nenhum aumento de escopo operacional é autorizado por esta homologação.
