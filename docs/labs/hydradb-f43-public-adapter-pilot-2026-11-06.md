@@ -55,9 +55,38 @@
 
 The historical MiniMac microbenchmark's much larger p50 ratio (40.7×) is **not comparable** to this better-controlled, much smaller pilot; memory/CPU and transport paths were not matched. Do **not** combine their ratios.
 
+## Independent repetitions and immutable engine image identities
+
+The pilot was independently repeated **twice** after the initial run, with equivalent result integrity:
+
+| Run | Engine images | Result |
+| --- | --- | --- |
+| [#42169405208](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42169405208) | version tags | 16/16 benchmark series; no errors or mismatches |
+| [#42169468658](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42169468658) | version tags; digests recorded | 16/16 benchmark series; no errors or mismatches; archived JSON artifact |
+| [#42169837428](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42169837428) | **pinned image digests** | 16/16 benchmark series; no errors or mismatches; archived JSON artifact |
+
+Pinned image identities (confirmed from Docker pulls):
+
+- HydraDB: `ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3`
+- Neo4j: `neo4j@sha256:42ef3ebfd671ebd01fdebb6dcbe80cf7b45eef2aa3d346ef4132f7ef31e67d2f`
+- JavaScript package-lock: `neo4j-driver` **6.2.0**.
+
+Each run measured 1024 individual application-method requests across 16 series, or **3072 measured calls combined**. Every result was checked against the expected typed claim/source content. Two later runs publish the structured JSON report as a GitHub Actions artifact (`hydradb-f43-adapter-pilot-...`); those artifacts have a 14-day retention window.
+
+### Independent p50 observations (concurrency 1)
+
+| Workload | Initial Neo4j / HydraDB (ms) | Second Neo4j / HydraDB (ms) | Pinned third Neo4j / HydraDB (ms) |
+| --- | --- | --- | --- |
+| One skill | 3.890 / 2.035 | 4.588 / 2.073 | 3.601 / 1.978 |
+| Four skills | 11.039 / 7.375 | 14.095 / 7.613 | 10.868 / 7.384 |
+| Missing Go | 2.324 / 0.925 | 2.413 / 1.176 | 2.337 / 0.939 |
+| Specific source | 2.134 / 0.926 | 2.052 / 0.922 | 2.040 / 0.962 |
+
+**Observed direction repeats**, but differences may be driven by protocol, physical model, session handling and JVM overhead, not just database-query execution. The three samples also share GitHub-hosted runner characteristics and the same small fixture; this is **not** independent broad hardware validation.
+
 ## Acceptance steps to complete F4.3
 
-- Capture exact **immutable OCI digests** for both images and the Neo4j JS driver version (the workflow logs record image identity; re-run pinned).
+- **Completed for this pilot:** record exact OCI digests and driver version, and reproduce a third run using immutable image digests. Additional versions/scenarios still needed for any broad conclusion.
 - Compare identical HTTP query paths/semantics where feasible and separately report **adapter-protocol overhead** instead of attributing all differences to the database.
 - Run an equivalent workload with **HydraDB + actual MinIO** (not local filesystem) and add cold/warm phases, more realistic fixture sizes and repetition across multiple runner launches.
 - Continuously record CPU, RSS, I/O, cache read/write, S3 object requests and resulting storage size. Include actual cost model for the intended deployment scale.
