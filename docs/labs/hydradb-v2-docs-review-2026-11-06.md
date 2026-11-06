@@ -26,6 +26,14 @@ Our Gate14 pinned results **contradict this expected usage for JS driver 6.2.0 i
 
 The [v0.3.0 Cypher-compatibility guide](https://github.com/hydra-db/hydradb/blob/v0.3.0/cypher-compat.md) explicitly says `IN` and `IS NULL` unsupported, and `WITH` restricted to pass-through, whereas simple `IN`/`IS NULL` HTTP cases passed in Gate9. This remains a **bounded empirical versus documentation mismatch**, not proof of generalized support.
 
+## Gate 17: recommendations from the self-hosted v0.3.0 manual were applied, not just read
+
+We ran the [official JS Bolt parameterized `MATCH` example](https://github.com/hydra-db/hydradb/blob/v0.3.0/USING-HYDRADB.md) using a disposable, pinned HydraDB v0.3.0 server with **`GRAPH_NAMESPACE=GRAPH_ID=default`** and `database='default'`. We compared it with the previous `lab` graph configuration, and explicitly tested JavaScript **without the extra `verifyConnectivity()` preflight**, as in the published sample. Both configurations were independently repeated three times per driver in a GitHub-hosted matrix.
+
+The [corrected Gate17 run #42217633248](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42217633248) reported **JS `neo4j-driver` 6.2.0: 0/3** value matches with the official `default` setup, despite removing the preflight; **Python `neo4j` 6.4.1: 3/3** on the same graph. `GRAPH_ID=lab` with session database `default` was similarly **0/3 JS, 3/3 Python**. The same parameterized Cypher passed through HTTP in both cases. This does **not** demonstrate a server bug or compare the two driver versions on equal footing; it disproves only that **the graph-ID change or omitted JS preflight alone** fixes the observed problem. [Full script/log/result scope](hydradb-gate17-official-v03-bolt-reproduction.md).
+
+The hosted v2 documentation guidance was **not executed**; hosted BYOG is a different product/API and would require separate credentials, security, cost and semantic validation.
+
 ## Reconciliation of the five questions previously sent to the draft
 
 | Previous question | Official v2 documentation answers | What remains unanswered for our real test | Editorial decision |
