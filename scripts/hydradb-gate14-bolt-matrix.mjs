@@ -161,8 +161,13 @@ async function main() {
     'GATE14_INVALID_EPHEMERAL_AUTH');
   const http=await httpBaseline(token);
   const bolt=[];
+  const repetitionsPerVariant=3;
   for(const variant of variants){
-    bolt.push(await boltVariant(variant,token));
+    const trials=[];
+    for(let attempt=0;attempt<repetitionsPerVariant;attempt++){
+      trials.push(await boltVariant(variant,token));
+    }
+    bolt.push({id:variant.id,trials});
   }
   const neoControl=await boltVariant({
     id:'neo4j_bolt_control',uri:'bolt://127.0.0.1:17688',database:'neo4j',
@@ -180,7 +185,8 @@ async function main() {
     neo4jControl:neoControl,
     sameCypherHttp: http,
     bolt,
-    diagnosisStatus:'empirical_matrix_only',
+    repetitionsPerVariant,
+    diagnosisStatus:'empirical_repeated_matrix_not_root_cause',
     noProductionAccess:true,
     semanticParityNotAssumed:true,
   };
