@@ -1,4 +1,4 @@
-# Draft only — NOT SENT (updated after v2 documentation review)
+# Working copy of maintainer reply — USER CONFIRMED SENT (2026-11-06)
 
 **To:** nishkarsh@hydradb.app  
 **Subject:** Re: HydraDB — evidence-based feedback from an Orbe/Neo4j GraphRAG PoC
@@ -35,6 +35,6 @@ Pedro Santos
 
 ---
 
-**Status:** DRAFT / NOT SENT. No managed v2 HydraDB endpoint has been called; all measured tests were on isolated open-source v0.3.0 containers. The repository branch is `experiment/hydradb`; no DEV/MAIN changes or deployments.
+**Status:** User confirmed by chat on 2026-11-06 that the email was **sent to Nishkarsh**. This is the previously reviewed working copy; the user's pasted sent message is authoritative and may differ in minor hyperlink/formatting details. We did not send or independently access the email. **Response pending; no maintainer reply confirmed.** No managed v2 HydraDB endpoint was called; all measurements were from isolated open-source v0.3.0 containers. The repository branch remains `experiment/hydradb`; no DEV/MAIN changes or deployments.
 
 **Review notes:** [documentation v2 vs v0.3 matrix](hydradb-v2-docs-review-2026-11-06.md) · [Portuguese review version](hydradb-maintainer-email-draft-ptbr.md).
