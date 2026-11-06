@@ -61,7 +61,7 @@ describe('HydraDB Gate 8 draft reference scorer', () => {
 
   it('rejects promotion of a study project to professional experience', () => {
     const actual = good();
-    actual.claims = actual.claims.map((entry, i) =>
+    actual.claims = actual.claims.map((entry, i): EvidenceClaim =>
       i === 1 ? { ...entry, scope: 'professional' } : entry);
     const scored = scoreGate8Evidence(refClaims, refSources, actual);
     expect(scored.exact).toBe(false);
@@ -71,7 +71,7 @@ describe('HydraDB Gate 8 draft reference scorer', () => {
 
   it('rejects inflation of catalogue-only evidence to reviewed code', () => {
     const actual = good();
-    actual.sources = actual.sources.map((entry, i) =>
+    actual.sources = actual.sources.map((entry, i): EvidenceSource =>
       i === 0 ? { ...entry, verificationStatus: 'code_reviewed', origin: 'github' } : entry);
     const scored = scoreGate8Evidence(refClaims, refSources, actual);
     expect(scored.exact).toBe(false);
@@ -80,7 +80,7 @@ describe('HydraDB Gate 8 draft reference scorer', () => {
 
   it('rejects missing sources and incorrect claim-source linkage', () => {
     const actual = good();
-    actual.claims = actual.claims.map((entry, i) =>
+    actual.claims = actual.claims.map((entry, i): EvidenceClaim =>
       i === 0 ? { ...entry, sourceIds: [] } : entry);
     actual.sources = actual.sources.slice(1);
     const scored = scoreGate8Evidence(refClaims, refSources, actual);
@@ -91,7 +91,7 @@ describe('HydraDB Gate 8 draft reference scorer', () => {
 
   it('rejects duplicate source links even if source objects are unique', () => {
     const actual = good();
-    actual.claims = actual.claims.map((entry, i) =>
+    actual.claims = actual.claims.map((entry, i): EvidenceClaim =>
       i === 0 ? { ...entry, sourceIds: [
         'source-experiencia-sig-catalog',
         'source-experiencia-sig-catalog',
