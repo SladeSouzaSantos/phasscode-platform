@@ -143,9 +143,17 @@ The three checks returned identical normalized results with SHA-256 `ff31a03e869
 
 **Limit:** this proves only persistence with the same isolated MinIO bucket volume under two service restart sequences. It does **not** test a crash during writes, multi-writer behavior, backups, simultaneous failures or object-storage durability guarantees. [Reproducible report and scripts](hydradb-gate13-public-minio-durability.md).
 
-### H. Performance: exploratory data only
+### H. F4.3 performance pilots: promising latency, deliberately limited conclusions
 
-We captured local HTTP round-trip samples during the earlier MiniMac PPKS experiments, but they used unequal execution paths and limited sample sizes; one 4-hop example had only three readings per engine. We therefore **do not claim that HydraDB is faster or cheaper** from those results. The next performance protocol must use matching datasets, operation mix, warm/cold cache states, network topology, concurrency, image digests and resource limits, with explicit p50/p95, throughput and error rates.
+We subsequently ran **three bounded forms of controlled but not yet equivalent benchmark** on GitHub-hosted, disposable, Docker resource-limited graph engines. The older MiniMac HTTP microbenchmark had unequal CPU/memory quotas and query paths; its much larger ratio **must not be presented as a fair engine-performance comparison**.
+
+**First, the actual Orbe repository interface (Gate 15):** On the same seven public PPKS records, we compared the *unchanged Neo4j/Bolt adapter* against our *HydraDB/HTTP LAB adapter*. Each run measured **1024 method requests** (four workflows, concurrency 1/4, eight warmups + 64 measured per group), validating every response. **Three independent runs passed**, including a third with **immutable OCI image digests** and driver 6.2.0, without errors or claim/source mismatches. At concurrency 1 in the third run, the median for **one skill** was **3.601 ms Neo4j/Bolt vs 1.978 ms HydraDB/HTTP**; for **four skills**, **10.868 vs 7.384 ms**. [Report and three run links](hydradb-f43-public-adapter-pilot-2026-11-06.md).
+
+**Second, identical text over the same HTTP client (Gate 16):** Both databases received the same two simple Cypher statements from Python `urllib`. In the pinned-digest repetition, the 1-hop query p50 was **8.324 ms Neo4j HTTP vs 4.220 ms HydraDB HTTP**; a property filter was **7.224 vs 4.832 ms**. Each of the two runs measured **768 simple HTTP round trips** with zero semantic mismatches. This reduces *one* confounder (client language), but the HTTP server protocol and transaction semantics still differ; there were **rare p99 spikes on both engines**. [Paired HTTP methodology and results](hydradb-f43-paired-http-pilot-2026-11-06.md).
+
+**Third, the same public PPKS application interface with HydraDB actually backed by MinIO object storage:** [run #42170722269](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42170722269) validated the domain contract and completed another **1024 measured application-method calls without errors or mismatches**. The median for one skill was **3.452 ms Neo4j/Bolt vs 2.112 ms HydraDB/HTTP/MinIO**; four skills **11.562 vs 7.427 ms**. This test uses **S3-compatible MinIO as HydraDB's durable store**, not only local storage. [Full warm-cache MinIO benchmark and caveats](hydradb-f43-minio-adapter-pilot-2026-11-06.md).
+
+**Interpretation:** HydraDB's adapted HTTP path showed **lower observed median application-request latency** across these limited pilots. This is interesting evidence for our workload, **not** proof that HydraDB's internal query engine beats Neo4j, nor that it is cheaper at scale. The storage models, physical query plans, Bolt/HTTP overhead, GC/cache configuration and MinIO's third container are different; **cold caches, large datasets, S3 request counts, operational dollar costs, CPU/RAM/I/O time series and full Orbe+LLM latency remain unmeasured**. We would welcome a recommendation for a fair next benchmark design.
 
 ## 4. What our migration attempt did not prove
 
@@ -153,7 +161,7 @@ We captured local HTTP round-trip samples during the earlier MiniMac PPKS experi
 - A full `EvidenceGraphRepository` implementation in HydraDB is **not yet validated** for all typed entities and the entire current public PPKS snapshot.
 - **Bolt query compatibility remains partial**: two simple reads work with implicit database selection; parameterized queries, explicit database naming and routed URI behavior are not yet working in our v0.3.0 JS-driver matrix (Gate 14).
 - The original Neo4j snapshot/transaction, pruning and uniqueness guarantees are **not yet proven equivalent**.
-- **MinIO persistence across node/cache and service restarts passed** first on a tiny synthetic graph (Gate 11) and then on all 14 claims and 16 sources in our selected public PPKS subset (Gate 13). **Interrupted writes, multi-writer fencing, backups, concurrency, authorization/tenancy, bookmarks, operational cost and controlled performance remain open**.
+- **MinIO persistence across node/cache and service restarts passed** on a synthetic fixture (Gate 11) and the 14-claim/16-source public subset (Gate 13). **Preliminary warm-cache adapter performance pilots also passed** (F4.3), but interrupted writes, fencing, backups, tenancy, bookmarks, object-storage I/O cost, cold-cache/large-data benchmarking and a controlled production-scale comparison remain open.
 - Our synthetic labels are not independent human-reviewed gold for an NLP claim.
 
 For an externally useful conclusion, all of these should remain identified as gaps, not silently upgraded into successes.
@@ -164,7 +172,7 @@ For an externally useful conclusion, all of these should remain identified as ga
 2. **Cypher support contract**: Are simple `IN` and `IS NULL` expressions intentionally supported in the v0.3.0 HTTP query path despite the documentation? Are `WITH ... ORDER BY ... LIMIT`, `toLower` and `count(n)` expected to be added, or should an adapter deliberately avoid them?
 3. **Neo4j migration idioms**: What is the recommended schema/query pattern for string business keys mapped to numeric vertex IDs, claim-to-source provenance edges, deterministic pagination and constrained/idempotent upserts?
 4. **Object-store durability**: Our basic MinIO write→restart→read experiment passed across HydraDB cache and MinIO service replacements. What *next* fault/consistency tests would you recommend for interrupted writes, writer takeover, read-your-writes, bookmarks and recovery? Could the upstream MinIO smoke harness be updated to pull a maintained, publicly accessible image?
-5. **Performance and cost**: What production-representative workload and metrics should we use to compare object storage-backed HydraDB against a similarly provisioned Neo4j instance without misleading results?
+5. **Performance and cost**: We have preliminary warm-cache pilots: real Orbe adapter versus adapter (Bolt vs HTTP), identical tiny Cypher sent via the same Python HTTP client, and an S3-compatible MinIO-backed HydraDB adapter. What production-representative dataset, protocol approach, object-store request/byte metrics and cost model would you recommend to make the next comparison genuinely fair?
 
 Written discussion would be ideal: **I don't speak English, so I cannot comfortably participate in a voice call, but I'd be very glad to continue by email with translation assistance** and share minimal reproductions. I also appreciate that you took the time to notice the Neo4j improvements in my portfolio. I'm transitioning back into dedicated software development and still learning more about graph database internals, so I welcome corrections to my test methodology. The findings are application-level feedback rather than a claim that the engine is generally broken.
 
@@ -172,12 +180,15 @@ Written discussion would be ideal: **I don't speak English, so I cannot comforta
 
 **We now have two reproducible application-interface comparisons: Gate 10's wholly synthetic fixture and Gate 12's selected public PPKS fixture, the latter with 88/88 requirement and 64/64 source parity checks**. Both use the original Neo4j repository and an adapted HydraDB LAB implementation. Replay/idempotence, evidence scoping, source completeness and safe fallback were tested under bounded conditions. **Gate 11 proved minimal MinIO persistence and Gate 13 reproduced restart persistence for the public PPKS claim/source subset.**
 
-Next we intend to **expand beyond the seven public records / first-two-skills-per-record subset**, resolve the remaining Bolt parameter/database/routing questions, and test interrupted-write recovery, backups and stronger isolation. Gate 13 has already proven basic MinIO restart persistence of the selected public source dataset, so that check is no longer pending. Controlled performance and cost evaluation come **only after** these semantic and operational questions.
+Next we intend to **expand beyond the seven public records / first-two-skills-per-record subset**, resolve the remaining Bolt parameter/database/routing questions, and test interrupted-write recovery, backups and stronger isolation. Gate 13 has already proven basic MinIO restart persistence of the selected public source dataset, so that check is no longer pending. **Initial bounded F4.3 measurements are now available**, but controlled large-data performance, cold-cache testing and operational cost evaluation remain pending.
 
 **Verdict remains: HydraDB requires a dedicated adapter; it is not yet a drop-in Neo4j replacement for the deployed Orbe service.** The [acceptance protocol](hydradb-dev-main-parity-plan.md) distinguishes completed synthetic checks from pending real-application and larger-fixture checks.
 
 ## 7. How to reproduce and audit the claims
 
+- [F4.3 — S3/MinIO-backed public-PPKS adapter pilot](hydradb-f43-minio-adapter-pilot-2026-11-06.md)
+- [F4.3 — three local-adapter pilot runs and measurements](hydradb-f43-public-adapter-pilot-2026-11-06.md)
+- [F4.3 — two paired Python HTTP/Cypher pilots](hydradb-f43-paired-http-pilot-2026-11-06.md)
 - [Gate 13 — public PPKS object-store durability report](hydradb-gate13-public-minio-durability.md)
 - [Gate 13 — reproducible public-data MinIO CI](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42164536310)
 - [Gate 12 — public PPKS adapter parity report (88 requirements, 64 sources)](hydradb-gate12-public-ppks-parity.md)
