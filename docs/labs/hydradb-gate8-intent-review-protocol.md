@@ -48,11 +48,16 @@ Além disso, a ferramenta de `requirement()` do LAB preenche `mandatory: true` p
 
 ## Entregáveis para desbloquear a Fase C
 
-- [ ] Gerar arquivo separado de **anotações textuais provisórias** que corresponda literalmente ao hash congelado, sem alterar o corpus aprovado na Fase B.
-- [ ] Validar automaticamente `start/end`, menções, `intentRole`, `requestedScope`, `polarity` e IDs dos 20 cenários; nunca inferir `approved` a partir de testes.
-- [ ] Obter **revisão independente** e registrar discordâncias/resoluções, mantendo histórico do gold.
-- [ ] Construir diagnóstico de pergunta inteira com `createCatalogRequirementIdentifier`; não confundir detecção de **menções** com inferência de escopo/negação.
+- [x] Gerar arquivo separado de **anotações textuais provisórias** que corresponda literalmente ao hash congelado, sem alterar o corpus aprovado na Fase B: `knowledge/evaluations/hydradb-gate8c-intent-draft.json`.
+- [x] Validar automaticamente `start/end`, menções, `intentRole`, `requestedScope`, `polarity` e IDs dos 20 cenários; 9/9 testes GitHub Actions PASS; nunca inferir `approved` a partir de testes.
+- [ ] Obter **revisão independente** com [packet sem predições](hydradb-gate8c-human-review-packet.md) e registrar discordâncias/resoluções, mantendo histórico do gold.
+- [x] Construir diagnóstico de pergunta inteira com `createCatalogRequirementIdentifier`; não confundir detecção de **menções** com inferência de escopo/negação. Consulte [diagnóstico e limites](hydradb-gate8c-lexical-diagnostic.md).
 - [ ] Comparar interpretação lexical com o baseline já presente no Orbe; apenas depois considerar alternativa semântica, mediante custo/benefício mensurável.
 - [ ] Nenhuma chamada LLM/ONNX, seed, merge, deploy ou alteração do Orbe operacional é autorizada neste protocolo.
 
 **Decisão provisória:** a Fase B está encerrada e homologada; o Gate 8 como um todo continua aberto. O experimento de NLP ainda não existe e não há ganho semântico demonstrado.
+
+
+## Primeiro diagnóstico Gate 8C (sem gold humano)
+
+[Workflow #42146070426](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42146070426): `npm run typecheck` PASS, Vitest 9/9 PASS, comparação lexical por **pergunta inteira** executada offline. Baseline 29/30 menções, 19/20 perguntas exatas; piloto **não aprovado** de alias TS identificou 30/30, 20/20. As duas menções negativas continuam reconhecidas com `mandatory:true` porque o reconhecedor não infere papel/intenção. Esses valores não são acurácia NLP, não representam avaliação independente e não medem ganho HydraDB.
