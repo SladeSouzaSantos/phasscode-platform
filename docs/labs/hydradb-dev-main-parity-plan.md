@@ -71,7 +71,7 @@ Para o mesmo conjunto público/sintético, comparar as respostas normalizadas de
 1. Encapsular as diferenças de ID (strings de negócio ↔ vértices numéricos) em um mapeamento verificável e estável dentro do fixture.
 2. Projetar cada claim e **todas** as fontes com relações `SUPPORTED_BY` e propriedades de escopo/qualificação.
 3. Usar somente o subconjunto Cypher que passou em teste de valores; evitar nas consultas de leitura as formas rejeitadas `WITH ... ORDER BY ... LIMIT`, `toLower()` e `count(n)` até haver suporte confirmado.
-4. Não depender da compatibilidade Bolt antes de resolver os quatro `InvalidSyntax`. Um transporte HTTP LAB explícito pode ser usado para aferir a semântica, mas não equivale ao driver Neo4j operacional.
+4. Gate 14 demonstrou **Bolt parcialmente funcional** em leituras `MATCH` sem database explícito, mas **parametrização `$id`, database explícito e roteamento seguem com falhas**. [Matriz de reproduções](hydradb-gate14-bolt-driver-matrix-2026-11-06.md). Continuar usando HTTP LAB até aferir o driver sem assumir intercambialidade.
 5. Isolar escrita, token, rede e volumes de teste. Proibir acesso aos Compose ou volumes DEV/MAIN.
 
 ### Etapa C — paridade dos resultados do Orbe
@@ -108,7 +108,7 @@ Registrar:
 
 ### Etapa E — benchmarks científicos comparáveis (F4.3)
 
-Executar somente depois da paridade: mesmo fixture, consulta lógica, protocolo de transporte ou custo de protocolo segregado, recursos CPU/RAM, número de repetições suficiente, fases cold/warm, limite de concorrência, gravação de p50/p95/p99, throughput, falhas e custo operacional. **Não usar** os p50 exploratórios anteriores para concluir superioridade; foram caminhos/recursos distintos, alguns com n=3.
+**Pilotos já executados:** [F4.3 adapter local, três runs](hydradb-f43-public-adapter-pilot-2026-11-06.md), [mesmo cliente Python/HTTP, dois runs](hydradb-f43-paired-http-pilot-2026-11-06.md), e [adapter com HydraDB+MinIO e Neo4j, mesmo runner](hydradb-f43-minio-adapter-pilot-2026-11-06.md), todos com respostas corretas. **Para completar F4.3:** ampliar dataset, monitorar CPU/RAM/I/O e custo S3, cache frio/quente, p50/p95/p99 em múltiplas repetições, escalas e concorrência; separar transporte e engine. Os p50 exploratórios não comprovam vantagem geral.
 
 ### Etapa F — empacotamento do feedback
 
@@ -130,13 +130,13 @@ Entregar ao Nishkarsh:
 | Contrato PPKS adaptado em LAB, por run | **PASS delimitado** | 13/13 casos × 2 runs por motor |
 | Shadow com fallback canônico | **PASS delimitado** | Gate 8, 36 verificações + 10 fallbacks esperados |
 | Mesmo `EvidenceGraphRepository` nos dois adapters | **PASS delimitado + subconjunto público** | Gate 10: 20/20 métodos, 24/24 fontes sintéticas; **Gate 12: 88/88 requisitos e 64/64 fontes** de 7 registros públicos; PPKS completo pendente |
-| Bolt como transporte de leitura substituível | **NÃO PASSOU** | 4 InvalidSyntax no cliente JS |
+| Bolt como transporte de leitura substituível | **PARCIAL / NÃO INTERCAMBIÁVEL** | Gate 14: dois `MATCH` válidos sem database explícito; `$id`, database e routing com falhas |
 | MinIO: persistência/restart/recuperação | **PASS delimitado ampliado** | Gate 11: 2 relações sintéticas; **Gate 13: 14 claims/16 fontes públicas, mesmo digest após dois restarts**; crash durante escrita e backup pendentes |
-| Desempenho/custo comparável | **NÃO TESTADO** | F4.3 com protocolo controlado |
+| Desempenho/custo comparável | **PILOTOS PASS / F4.3 PENDENTE** | 3 runs adapters locais, 2 runs Python/HTTP e 1 run adapter MinIO, todos com paridade; custo, frio, escala/telemetria pendentes |
 | Troca de DEV/MAIN para HydraDB | **NÃO AUTORIZADA** | Neo4j continua sendo a referência operacional |
 
 ### Critério para declarar a etapa concluída
 
-**Aceite delimitado de interface atingido:** os Gates 10 e 12 reproduziram o contrato do Orbe entre Neo4j original e HydraDB LAB com fixture sintético e um subconjunto de 7 registros PPKS públicos, incluindo idempotência, isolamento, fontes completas e fallback nos testes especificados. **Para encerrar o item 5 integralmente**, ainda requeremos o PPKS público completo (não apenas duas competências por registro), expansão dos cenários de erro/carga e persistência com MinIO de várias claims/fontes; Gate 11 confirma durabilidade mínima sintética e Gate 13 confirma **durabilidade do subconjunto público PPKS** após duas sequências de reinicialização. Não são provas de HA ou recuperação de falhas durante escrita. Benchmarks comparáveis continuam fora do escopo desta homologação.
+**Aceite delimitado de interface atingido:** os Gates 10 e 12 reproduziram o contrato do Orbe entre Neo4j original e HydraDB LAB com fixture sintético e um subconjunto de 7 registros PPKS públicos, incluindo idempotência, isolamento, fontes completas e fallback nos testes especificados. **Para encerrar o item 5 integralmente**, ainda requeremos o PPKS público completo (não apenas duas competências por registro), expansão dos cenários de erro/carga e persistência com MinIO de várias claims/fontes; Gate 11 confirma durabilidade mínima sintética e Gate 13 confirma **durabilidade do subconjunto público PPKS** após duas sequências de reinicialização. Não são provas de HA ou recuperação de falhas durante escrita. Os pilotos F4.3 foram adicionados como evidência de latência de adapters e HTTP, mas não constituem comparação científica completa de motor/custo nem autorização de migração.
 
 **Nota sobre acesso remoto:** o SSH restrito do MiniMac está autorizado **somente** a executar a suíte Gate 8 OFF/SHADOW. Não ampliar os comandos permitidos para importar/deletar dados; realizar os testes dinâmicos preferencialmente em GitHub-hosted descartável ou em infraestrutura LAB revista separadamente.
