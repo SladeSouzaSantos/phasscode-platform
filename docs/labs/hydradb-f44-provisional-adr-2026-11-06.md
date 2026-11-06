@@ -76,6 +76,12 @@ See [documentation-to-question matrix](hydradb-v2-docs-review-2026-11-06.md).
 
 We tested the [upstream self-hosted v0.3.0 documented JavaScript Bolt example](https://github.com/hydra-db/hydradb/blob/v0.3.0/USING-HYDRADB.md) against an immutable-image `GRAPH_ID=default` lab service and compared the old `lab` configuration. The [new reproduction](hydradb-gate17-official-v03-bolt-reproduction.md) returned **0/3 matched JavaScript 6.2.0 reads** in each graph, **3/3 Python 6.4.1 matches**, and confirmed the query's HTTP semantics; removing `verifyConnectivity` did not resolve JS failures. This strengthens the case for **retaining Neo4j in DEV/MAIN** while asking the maintainer about JS driver protocol support/version mapping. It is **not** proof of a server defect and we have not exercised any hosted v2 BYOG endpoint.
 
+## Gate 18 addition — upgrading or downgrading the JavaScript driver is not yet a proven fix
+
+[GitHub Actions #42286677576](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42286677576) compared four pinned JS driver versions: **5.28.3, 6.0.1, 6.1.0, 6.2.0**. Every version successfully executed the synthetic reference query on its own Neo4j/Bolt container, while the same query succeeded in HydraDB's HTTP interface. The direct documented HydraDB/Bolt query failed **3/3 per version**, for **0/12 correct**, and extended preflight/no-database/routing tests all failed (**0/48 correct across modes**). [Report with all controls and limitations](hydradb-gate18-js-driver-version-matrix-2026-11-06.md).
+
+**Decision unchanged:** the experiment supports keeping the existing Neo4j-backed Orbe implementation. A change from JS 6.2.0 to any of these three older versions is **not** an accepted workaround. Obtain maintainer guidance on Bolt protocol/JS support and run a separate acceptance gate before any driver or engine replacement. Python positive control remains separate and does not validate TypeScript client compatibility.
+
 ## External feedback
 
 A concise, evidence-based [email draft](hydradb-maintainer-email-draft.md) and [full case study](hydradb-maintainer-feedback-2026-11-06.md) are available for **user review**. The user **does not speak English and requests written email correspondence only**. There is also a [Portuguese review translation](hydradb-maintainer-email-draft-ptbr.md). No email has been sent and no upstream GitHub issue opened.
