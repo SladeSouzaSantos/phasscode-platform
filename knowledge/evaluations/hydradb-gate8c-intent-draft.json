@@ -1,0 +1,492 @@
+{
+  "schemaVersion": "hydradb-gate8c-intent-draft-v1",
+  "reviewStatus": "assistant_provisional_not_independently_reviewed",
+  "origin": "synthetic_examples_only",
+  "sourceCorpus": "knowledge/evaluations/hydradb-gate8-recruiter.json",
+  "sourceCorpusSha256": "ec5dcf8746b981ca00a65879db4293f493ed3ec33721c25904bd4d677aeefad0",
+  "reviewer": null,
+  "reviewedAt": null,
+  "cases": [
+    {
+      "id": "java-profissional",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "Java",
+          "text": "Java",
+          "intentRole": "question_target",
+          "requestedScope": "professional",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 41,
+          "end": 45
+        }
+      ]
+    },
+    {
+      "id": "java-estudo",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "Java",
+          "text": "Java",
+          "intentRole": "question_target",
+          "requestedScope": "study",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 46,
+          "end": 50
+        }
+      ]
+    },
+    {
+      "id": "spring-profissional",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "Spring Boot",
+          "text": "Spring Boot",
+          "intentRole": "question_target",
+          "requestedScope": "professional",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 9,
+          "end": 20
+        }
+      ]
+    },
+    {
+      "id": "java-spring-diferenca",
+      "questionType": "compare",
+      "mentions": [
+        {
+          "skill": "Java",
+          "text": "Java",
+          "intentRole": "comparison_target",
+          "requestedScope": "professional",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 37,
+          "end": 41
+        },
+        {
+          "skill": "Spring Boot",
+          "text": "Spring Boot",
+          "intentRole": "comparison_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 54,
+          "end": 65
+        }
+      ]
+    },
+    {
+      "id": "flutter-greencity",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "Flutter",
+          "text": "Flutter",
+          "intentRole": "question_target",
+          "requestedScope": "professional",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 15,
+          "end": 22
+        }
+      ]
+    },
+    {
+      "id": "flutter-projeto",
+      "questionType": "list_evidence",
+      "mentions": [
+        {
+          "skill": "Flutter",
+          "text": "Flutter",
+          "intentRole": "question_target",
+          "requestedScope": "personal_project",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 34,
+          "end": 41
+        }
+      ]
+    },
+    {
+      "id": "node-provas",
+      "questionType": "list_evidence",
+      "mentions": [
+        {
+          "skill": "Node.js",
+          "text": "Node.js",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "code",
+            "documentation"
+          ],
+          "start": 39,
+          "end": 46
+        }
+      ]
+    },
+    {
+      "id": "typescript-fontes",
+      "questionType": "list_evidence",
+      "mentions": [
+        {
+          "skill": "TypeScript",
+          "text": "TypeScript",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 0,
+          "end": 10
+        }
+      ]
+    },
+    {
+      "id": "typescript-parafrase",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "TypeScript",
+          "text": "TS",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 40,
+          "end": 42
+        }
+      ]
+    },
+    {
+      "id": "go-ausente",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "Go",
+          "text": "Go",
+          "intentRole": "question_target",
+          "requestedScope": "professional",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 39,
+          "end": 41
+        }
+      ]
+    },
+    {
+      "id": "django-ausente",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "Django",
+          "text": "Django",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 22,
+          "end": 28
+        }
+      ]
+    },
+    {
+      "id": "react-projeto",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "React",
+          "text": "React",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 16,
+          "end": 21
+        }
+      ]
+    },
+    {
+      "id": "hsp-stack",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "Python",
+          "text": "Python",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 25,
+          "end": 31
+        },
+        {
+          "skill": "FastAPI",
+          "text": "FastAPI",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 34,
+          "end": 41
+        }
+      ]
+    },
+    {
+      "id": "java-go",
+      "questionType": "vacancy_fit",
+      "mentions": [
+        {
+          "skill": "Java",
+          "text": "Java",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 12,
+          "end": 16
+        },
+        {
+          "skill": "Go",
+          "text": "Go",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 19,
+          "end": 21
+        }
+      ]
+    },
+    {
+      "id": "java-flutter-go",
+      "questionType": "compare",
+      "mentions": [
+        {
+          "skill": "Java",
+          "text": "Java",
+          "intentRole": "comparison_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 8,
+          "end": 12
+        },
+        {
+          "skill": "Flutter",
+          "text": "Flutter",
+          "intentRole": "comparison_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 14,
+          "end": 21
+        },
+        {
+          "skill": "Go",
+          "text": "Go",
+          "intentRole": "comparison_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 24,
+          "end": 26
+        }
+      ]
+    },
+    {
+      "id": "sem-go-mas-java",
+      "questionType": "list_evidence",
+      "mentions": [
+        {
+          "skill": "Go",
+          "text": "Go",
+          "intentRole": "negative_instruction",
+          "requestedScope": "any",
+          "polarity": "negated",
+          "requestedEvidence": [
+            "none"
+          ],
+          "start": 23,
+          "end": 25
+        },
+        {
+          "skill": "Java",
+          "text": "Java",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 51,
+          "end": 55
+        }
+      ]
+    },
+    {
+      "id": "negacao-django",
+      "questionType": "list_evidence",
+      "mentions": [
+        {
+          "skill": "Django",
+          "text": "Django",
+          "intentRole": "negative_instruction",
+          "requestedScope": "any",
+          "polarity": "negated",
+          "requestedEvidence": [
+            "none"
+          ],
+          "start": 28,
+          "end": 34
+        },
+        {
+          "skill": "Python",
+          "text": "Python",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 50,
+          "end": 56
+        }
+      ]
+    },
+    {
+      "id": "web-fullstack",
+      "questionType": "yes_no",
+      "mentions": [
+        {
+          "skill": "Node.js",
+          "text": "Node.js",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 12,
+          "end": 19
+        },
+        {
+          "skill": "TypeScript",
+          "text": "TypeScript",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 33,
+          "end": 43
+        }
+      ]
+    },
+    {
+      "id": "mobile-web",
+      "questionType": "list_evidence",
+      "mentions": [
+        {
+          "skill": "Flutter",
+          "text": "Flutter",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 21,
+          "end": 28
+        },
+        {
+          "skill": "React",
+          "text": "React",
+          "intentRole": "question_target",
+          "requestedScope": "any",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 31,
+          "end": 36
+        }
+      ]
+    },
+    {
+      "id": "senioridade-sem-extrapolar",
+      "questionType": "compare",
+      "mentions": [
+        {
+          "skill": "Java",
+          "text": "Java",
+          "intentRole": "comparison_target",
+          "requestedScope": "professional",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 0,
+          "end": 4
+        },
+        {
+          "skill": "Spring Boot",
+          "text": "Spring Boot",
+          "intentRole": "comparison_target",
+          "requestedScope": "professional",
+          "polarity": "positive",
+          "requestedEvidence": [
+            "any"
+          ],
+          "start": 7,
+          "end": 18
+        }
+      ]
+    }
+  ]
+}
