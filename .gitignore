@@ -15,3 +15,7 @@ coverage/
 .vscode/
 target/
 .secrets/
+
+# Python caches from LAB validation (never part of evidentiary fixtures)
+__pycache__/
+*.py[cod]
