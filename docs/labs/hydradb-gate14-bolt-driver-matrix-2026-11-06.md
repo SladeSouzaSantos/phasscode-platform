@@ -88,6 +88,10 @@ Reproduction: [JS repeated matrix](../../scripts/hydradb-gate14-bolt-matrix.mjs)
 
 The separate [managed v2 BYOG guide](https://docs.hydradb.com/essentials/v2/bring-your-own-graph) supports parameterized Cypher over **HTTP `POST /byog/query`**, not the old Neo4j driver's Bolt protocol. Do not cite it as a fix for the local self-hosted v0.3.0 driver issues. See [version/API documentation reconciliation](hydradb-v2-docs-review-2026-11-06.md).
 
+## Gate 17 extension — official example reproduced on matched graph ID
+
+Our [dedicated Gate17 diagnostic](hydradb-gate17-official-v03-bolt-reproduction.md) executed the actual v0.3.0 documented JS session query **without** `verifyConnectivity()`, first under `GRAPH_ID=default`, then under the older `GRAPH_ID=lab` control, with the same fixed synthetic source IDs and correct HTTP read baseline. [Run #42217633248](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42217633248) completed successfully as a diagnostic: **JS 6.2.0 0/3 expected values on each graph**, while **Python 6.4.1 3/3** on each using `database=default`. The no-preflight JS failures were `ERR_OUT_OF_RANGE` and `InvalidSyntax`, so skipping connection preflight and using `GRAPH_ID=default` were **not sufficient remedies**. Three trials are useful reproductions, not a full compatibility certification or root-cause analysis. Preserve the original Gate14 results separately rather than rewriting history.
+
 ## Suggested follow-up for Nishkarsh
 
 1. What is the recommended **JS neo4j-driver 6.x** configuration for a single-node namespace/graph (`GRAPH_NAMESPACE=lab`, `GRAPH_ID=lab`, `GRAPH_CELL_ID=cell-0`), especially **explicit database naming**?
