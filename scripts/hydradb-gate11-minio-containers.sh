@@ -13,8 +13,8 @@ NETWORK="gate11-network-$GITHUB_RUN_ID"
 MINIO="gate11-minio-$GITHUB_RUN_ID"
 HYDRA="gate11-hydra-$GITHUB_RUN_ID"
 BUCKET="gate11-$GITHUB_RUN_ID"
-MINIO_IMAGE="quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z"
-MC_IMAGE="quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z"
+MINIO_IMAGE="cgr.dev/chainguard/minio:latest"
+MC_IMAGE="cgr.dev/chainguard/minio-client:latest-dev"
 HYDRA_IMAGE="ghcr.io/hydra-db/hydradb:0.3.0"
 
 case "$1" in
@@ -108,8 +108,9 @@ case "$1" in
     openssl rand -hex 32 > "$ROOT/minio-secret"
     openssl rand -hex 32 > "$ROOT/hydra-token"
     sudo install -o 10001 -g 10001 -m 0400 "$ROOT/hydra-token" "$ROOT/token-container"
-    sudo chown -R 1000:1000 "$ROOT/minio-data"
+    sudo chown -R 65532:65532 "$ROOT/minio-data"
     docker network create "$NETWORK" >/dev/null
+    # Chainguard rebuild: original MinIO repositories were retired in 2026.
     docker pull "$MINIO_IMAGE" >/dev/null
     docker pull "$MC_IMAGE" >/dev/null
     docker pull "$HYDRA_IMAGE" >/dev/null
