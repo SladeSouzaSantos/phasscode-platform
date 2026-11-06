@@ -34,6 +34,12 @@ The [corrected Gate17 run #42217633248](https://github.com/SladeSouzaSantos/phas
 
 The hosted v2 documentation guidance was **not executed**; hosted BYOG is a different product/API and would require separate credentials, security, cost and semantic validation.
 
+## Gate 18: the JavaScript driver-version recommendation has also been executed
+
+The [four-version CI #42286677576](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42286677576) tested `neo4j-driver` **5.28.3, 6.0.1, 6.1.0 and 6.2.0** against **the documented self-hosted v0.3.0 Bolt example**, with `GRAPH_NAMESPACE=GRAPH_ID=default`, bound `MATCH` parameter and **no JS preflight**. All 4 exact-version Neo4j reference controls and HydraDB HTTP controls passed, but **all 12 documented JS/HydraDB Bolt reads failed**. Three further modes per version (preflight, no database, routed URI) also failed, totaling **0/48 correct**. The positive Python 6.4.1 results are from separate Gate17 runs; **cross-language driver version and implementation differ**, so we cannot locate the cause or assert all JS versions fail. [Full Gate18 evidence](hydradb-gate18-js-driver-version-matrix-2026-11-06.md).
+
+This is still an observation about the **self-hosted engine**, not a v2 API benchmark. No Cloud v2 endpoints, tokens or billed resources were used.
+
 ## Reconciliation of the five questions previously sent to the draft
 
 | Previous question | Official v2 documentation answers | What remains unanswered for our real test | Editorial decision |
