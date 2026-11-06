@@ -526,3 +526,10 @@ Documentação e comandos de execução:
 
 A avaliação não integra o Orbe, não acessa dados acadêmicos
 privados e não habilita `ORBE_GRAPHRAG_MODE`.
+
+
+## Gate 7 homologado — próximo Gate 8 em desenho
+
+O operador enviou a saída completa do Gate 7 executado no MiniMac: typecheck aprovado, Vitest 7/7, 12 cenários e 16 requisitos no replay OFF e SHADOW, 11 `graph_verified` / 5 `canonical_fallback` no HTTP real, três simulações de falha aprovadas, 5/5 consultas de fontes aprovadas em cada execução. Ver o [registro detalhado](hydradb-ppks-recruiter-eval.md).
+
+**Status atual: Gate 7 homologado apenas no LAB.** Os parágrafos anteriores preservam o histórico do estado pendente e não são evidência de falha atual. O desenho do [Gate 8](hydradb-ppks-semantic-gate8.md) foi publicado, mas **não está implementado nem executado**. Nenhuma mudança ao Orbe, ao Neo4j operacional, à branch `dev` ou `main` decorre destes resultados.
