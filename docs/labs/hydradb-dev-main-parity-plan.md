@@ -8,6 +8,8 @@
 
 **Revisão documental da API hospedada v2 — 06/11/2026:** [matriz oficial v2 vs engine self-hosted v0.3.0](hydradb-v2-docs-review-2026-11-06.md). O guia BYOG v2 [ensina](https://docs.hydradb.com/essentials/v2/bring-your-own-graph) importação Neo4j por IDs de negócio, `UNWIND`/`MERGE`, parâmetros, índices, paginação e isolamento por database/collection. Porém, **não testamos a API gerenciada v2**: tais recursos **não** homologam o contêiner open-source v0.3.0 nem resolvem as falhas Bolt JS do Gate14. O próprio [guia self-hosted v0.3.0](https://github.com/hydra-db/hydradb/blob/v0.3.0/USING-HYDRADB.md) já traz exemplo Bolt JavaScript `database=default` parametrizado; a divergência observada em CI é objeto de pergunta específica ao mantenedor, não ausência de documentação básica. Não realizar testes em Cloud nem solicitar credenciais como consequência automática desta revisão.
 
+**Gate 17 — recomendação oficial self-hosted executada (06/11/2026):** [reprodução com `GRAPH_ID=default` e `database=default`](hydradb-gate17-official-v03-bolt-reproduction.md), conforme o guia v0.3.0. `neo4j-driver` JS 6.2.0 falhou **0/3** ao executar o `MATCH` parametrizado **sem** `verifyConnectivity()`; Python 6.4.1 retornou **3/3** no mesmo grafo; teste equivalente usando `GRAPH_ID=lab` manteve o descompasso. HTTP validou dados/consulta. Logo, alinhar os IDs ou remover o preflight **não foi suficiente** para tornar Bolt JS intercambiável. Somente runners GitHub-hosted descartáveis; `dev`/`main`/MiniMac continuam fora do escopo. API gerenciada v2 não foi executada.
+
 ## 1. O que exatamente é o baseline de DEV/MAIN
 
 Na revisão de 06/11/2026, comparamos os objetos Git para os mesmos oito caminhos nas três branches:
