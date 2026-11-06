@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "repository": "phasscode-platform",
+      "sha": "c302ec444266333756d9f35bc9c1dfd7a5e7c684"
+    },
+    {
+      "repository": "web-portfolio-v2",
+      "sha": "5514b5ac6626fd68535ea8d2b2807ce681fc8de2"
+    }
+  ],
+  "statistics": {
+    "backend": {
+      "files": 237,
+      "symbols": 994
+    },
+    "frontend": {
+      "files": 106,
+      "symbols": 420
+    }
+  }
+}
