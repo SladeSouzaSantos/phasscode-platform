@@ -109,7 +109,7 @@ O total `103` **conta ocorrências de referências ao longo dos 30 requisitos**,
 
 **Limites inalterados:** `goldReviewed=false`, `nlpEvaluation=false`, `llmEvaluation=false`, `hydraDbPerformanceBenchmark=false`, `incrementalSemanticGain=not_measured`. A precisão/recall de 1.0 mede concordância com o draft derivado do mesmo fixture; **não é acurácia semântica externa nem ganho incremental de HydraDB**. Os snapshots foram verificados, mas não houve avaliação de qualidade da prosa, throughput, carga ou latência.
 
-**Decisão:** Fase B concluída no laboratório. Seguir à revisão independente das intenções de perguntas e depois à Fase C; não integrar engine ao runtime, não promover o gold automaticamente.
+**Decisão:** Fase B concluída no laboratório. Próximo passo organizado no [protocolo de revisão independente de intenção](hydradb-gate8-intent-review-protocol.md) para os 20 cenários; depois considerar a Fase C. Não integrar engine ao runtime, não promover o gold automaticamente.
 
 ## Checkpoint: início da Fase B — avaliação quantitativa do referencial provisório
 
