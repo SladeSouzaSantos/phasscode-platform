@@ -76,7 +76,7 @@ export async function loadGate12PublicPpksFixture() {
     if(data.kind==='project') {
       safe(data.identity?.visibility==='public' && typeof data.identity.name==='string',
         'GATE12_NONPUBLIC_PROJECT');
-      const category=(
+      const category: 'professional'|'personal'|'study'|'unknown'=(
         data.identity.nature==='professional' ||
         data.identity.nature==='personal' ||
         data.identity.nature==='study'
@@ -123,7 +123,7 @@ export async function loadGate12PublicPpksFixture() {
         sourceIds.push(src.id);
       }
       const nature=data.identity?.nature;
-      const scope=data.kind==='experience'
+      const scope: EvidenceClaim['scope']=data.kind==='experience'
         ? (data.areas!.includes('engineering')?'mixed_role':'professional')
         : (nature==='professional'?'professional_project'
         :nature==='personal'?'personal_project'
