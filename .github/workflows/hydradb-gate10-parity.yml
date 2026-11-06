@@ -11,6 +11,7 @@ on:
       - scripts/hydradb-gate10-fixture.ts
       - scripts/hydradb-gate10-repository.ts
       - scripts/hydradb-gate10-ephemeral-parity.ts
+      - scripts/hydradb-gate12-public-ppks-fixture.ts
       - tests/hydradb-gate10-repository.test.ts
   workflow_dispatch:
 
