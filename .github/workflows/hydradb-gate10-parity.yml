@@ -1,0 +1,163 @@
+name: HydraDB Gate 10 | full EvidenceGraphRepository parity (NO MiniMac)
+
+# Both databases are NEW, disposable containers on a GitHub-hosted runner.
+# No SSH, Tailscale, MiniMac, production secrets, application deployment,
+# or reuse of DEV/MAIN/LAB volumes. Changes are discarded on cleanup.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-gate10-parity.yml
+      - scripts/hydradb-gate10-fixture.ts
+      - scripts/hydradb-gate10-repository.ts
+      - scripts/hydradb-gate10-ephemeral-parity.ts
+      - tests/hydradb-gate10-repository.test.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-gate10-runtime-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  disposable-engines:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      GATE10_ISOLATION_MODE: github_hosted_ephemeral
+    steps:
+      - name: Refuse any nonexperimental repository or branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = SladeSouzaSantos/phasscode-platform
+          test "$GITHUB_REF" = refs/heads/experiment/hydradb
+          test "$GATE10_ISOLATION_MODE" = github_hosted_ephemeral
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies without postinstall execution
+        run: npm ci --ignore-scripts
+      - name: Validate exact GraphRAG domain adapter contract and generate isolated secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run typecheck
+          ./node_modules/.bin/vitest run tests/hydradb-gate10-repository.test.ts
+          umask 077
+          ROOT="$RUNNER_TEMP/gate10-ephemeral-$GITHUB_RUN_ID"
+          test ! -e "$ROOT"
+          mkdir -p "$ROOT/store" "$ROOT/cache" "$ROOT/neo-data"
+          printf '%s' "$ROOT" > "$RUNNER_TEMP/gate10-root-path"
+          openssl rand -hex 32 > "$ROOT/hydra-token"
+          printf 'neo4j/%s\n' "$(openssl rand -hex 24)" > "$ROOT/neo-auth"
+          chmod 600 "$ROOT/hydra-token" "$ROOT/neo-auth"
+          echo GATE10_SYNTHETIC_FIXTURE_READY
+
+      - name: Start only disposable GraphDB containers with bounded resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$(cat "$RUNNER_TEMP/gate10-root-path")"
+          test "$ROOT" = "$RUNNER_TEMP/gate10-ephemeral-$GITHUB_RUN_ID"
+          NETWORK="gate10-net-$GITHUB_RUN_ID"
+          H="gate10-hydra-$GITHUB_RUN_ID"
+          N="gate10-neo-$GITHUB_RUN_ID"
+          docker network create "$NETWORK" >/dev/null
+          sudo chown -R 10001:10001 "$ROOT/store" "$ROOT/cache"
+          # HydraDB container runs as UID 10001: private runner-owned 0600
+          # token files cannot be read by it. Keep a separate 0400 copy.
+          sudo install -o 10001 -g 10001 -m 0400 \
+            "$ROOT/hydra-token" "$ROOT/hydra-token-container"
+
+          # Pin the RELEASE VERSION (not latest). Container itself is disposable.
+          docker pull ghcr.io/hydra-db/hydradb:0.3.0 >/dev/null
+          docker pull neo4j:5.26 >/dev/null
+
+          docker run -d --name "$H" \
+            --network "$NETWORK" \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --pids-limit 256 --memory 2048m --memory-swap 2048m --cpus 1.5 \
+            -e CLOUD_PROVIDER=local \
+            -e LOCAL_PATH=/data/store \
+            -e GRAPH_NAMESPACE=lab \
+            -e GRAPH_ID=lab \
+            -e GRAPH_CELL_ID=cell-0 \
+            -e GRAPH_CELLS=cell-0 \
+            -e GRAPH_NODE_ID=node-0 \
+            -e GRAPH_BOLT_NODE_ADDRESSES=node-0=127.0.0.1:17687 \
+            -e GRAPH_ADVERTISED_BOLT_ADDR=127.0.0.1:17687 \
+            -e GRAPH_BOLT_ADDR=0.0.0.0:7687 \
+            -e GRAPH_HTTP_ADDR=0.0.0.0:8443 \
+            -e GRAPH_ADMIN_ADDR=0.0.0.0:9090 \
+            -e GRAPH_ALLOW_PLAINTEXT=true \
+            -e GRAPH_AUTH_TOKEN_FILE=/run/secrets/hydra-token \
+            -e GRAPH_DATA_CACHE_DIR=/data/cache \
+            -e RUST_MIN_STACK=33554432 \
+            -e RUST_LOG=warn \
+            -v "$ROOT/store:/data/store" \
+            -v "$ROOT/cache:/data/cache" \
+            -v "$ROOT/hydra-token-container:/run/secrets/hydra-token:ro" \
+            -p 127.0.0.1:18443:8443 \
+            -p 127.0.0.1:19090:9090 \
+            -p 127.0.0.1:17687:7687 \
+            ghcr.io/hydra-db/hydradb:0.3.0 >/dev/null
+
+          # Only this named disposable Neo4j; no shared Neo4j accounts/volumes.
+          AUTH="$(cat "$ROOT/neo-auth")"
+          docker run -d --name "$N" \
+            --network "$NETWORK" \
+            --pids-limit 384 --memory 2048m --memory-swap 2048m --cpus 1.5 \
+            --security-opt no-new-privileges \
+            -e NEO4J_AUTH="$AUTH" \
+            -e NEO4J_server_memory_heap_initial__size=256m \
+            -e NEO4J_server_memory_heap_max__size=512m \
+            -e NEO4J_server_memory_pagecache_size=256m \
+            -v "$ROOT/neo-data:/data" \
+            -p 127.0.0.1:17474:7474 \
+            -p 127.0.0.1:17688:7687 \
+            neo4j:5.26 >/dev/null
+          unset AUTH
+          echo GATE10_EPHEMERAL_CONTAINERS_STARTED
+
+      - name: Compare original Neo4j adapter with HydraDB LAB adapter on same synthetic domain
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$(cat "$RUNNER_TEMP/gate10-root-path")"
+          export GATE10_HYDRA_TOKEN_FILE="$ROOT/hydra-token"
+          export GATE10_NEO_AUTH_FILE="$ROOT/neo-auth"
+          node --import tsx scripts/hydradb-gate10-ephemeral-parity.ts
+          echo GATE10_EPHEMERAL_REPOSITORY_PARITY_COMPLETED
+
+      - name: Summarize disposable container states if a prior step failed
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          for ID in "gate10-hydra-$GITHUB_RUN_ID" "gate10-neo-$GITHUB_RUN_ID"; do
+            # Report only lifecycle status and OOM; never env, logs or tokens.
+            docker inspect --format '{{.Name}} status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}}' "$ID" 2>/dev/null || true
+          done
+
+      - name: Delete ONLY this disposable pair on GitHub-hosted runner
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker rm -f "gate10-hydra-$GITHUB_RUN_ID" "gate10-neo-$GITHUB_RUN_ID" >/dev/null 2>&1 || true
+          docker network rm "gate10-net-$GITHUB_RUN_ID" >/dev/null 2>&1 || true
+          ROOT="$RUNNER_TEMP/gate10-ephemeral-$GITHUB_RUN_ID"
+          test "$ROOT" != "/" && test "$ROOT" != "$RUNNER_TEMP"
+          if [ -d "$ROOT" ] && [ ! -L "$ROOT" ]; then
+            sudo rm -rf -- "$ROOT"
+          fi
+          rm -f -- "$RUNNER_TEMP/gate10-root-path"
+          echo GATE10_DISPOSABLE_CLEANUP_COMPLETE
