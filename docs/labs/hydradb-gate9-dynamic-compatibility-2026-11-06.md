@@ -73,6 +73,8 @@ Na rodada final, HydraDB aceitou verifyConnectivity() usando o token, mas quatro
 
 As mesmas quatro consultas passaram no Neo4j com o mesmo driver. Em uma execução anterior houve ERR_OUT_OF_RANGE durante a conectividade HydraDB. **Portanto, o caminho Bolt ainda não está homologado**, apesar da paridade funcional HTTP em consultas adaptadas. É necessário investigar negociação de protocolo, seleção da base e serialização, sem assumir uma causa.
 
+**Atualização posterior — Gate 14 (06/11/2026):** o [novo comparativo de conexões e consultas](hydradb-gate14-bolt-driver-matrix-2026-11-06.md) encontrou **duas leituras Bolt com resultados corretos quando a sessão não especifica database**. A consulta parametrizada com `$id` continuou retornando `InvalidSyntax`, enquanto a mesma consulta via HTTP passou. Sessões com database explícito `lab`/`default` registraram `ERR_OUT_OF_RANGE`; a variante roteada `neo4j://` registrou `ServiceUnavailable`. Portanto, o resultado anterior de quatro falhas ocorreu sob uma configuração específica e **não deve ser generalizado como Bolt totalmente indisponível**. A compatibilidade Bolt permanece parcial e incompleta.
+
 ## Limites e próximos passos
 
 - Não houve teste integral do EvidenceGraphRepository, nem 16 fontes/38 claims do PPKS, nem geração de respostas de recrutadores.
