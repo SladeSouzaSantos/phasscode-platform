@@ -113,7 +113,17 @@ The results were **20/20 application-method scenario comparisons and 24/24 speci
 
 [Gate 10 verified report](hydradb-gate10-evidence-repository-parity.md), [adapter source](../../scripts/hydradb-gate10-repository.ts), [real comparison runner](../../scripts/hydradb-gate10-ephemeral-parity.ts).
 
-### E. Object-storage durability across restarts (Gate 11)
+### E. Reproducing real *public PPKS* evidence through the original Orbe repository (Gate 12)
+
+The expanded [Gate 12 GitHub Actions run #42164035756](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42164035756) then reused **the same original Orbe Neo4j adapter** against a larger, **allowlisted seven-record public PPKS dataset**: 10 skills, 14 claims and 16 individual evidence sources. This was **not the smaller fully invented four-claim Gate 10 fixture**.
+
+The domain-validated PPKS projection for this test had **50 nodes and 46 domain relations** (its physical scheme includes candidate/company/engagement nodes, different from the older 47-node/60-edge Gate 3 fixture). We compared every returned **claim, role scope, evidence source and verification status**, including the source-existence method, unknown Go, limits of one and twenty claims, replaying the ingestion and isolating consecutive runs.
+
+The combined real-engine report confirmed **88/88 requirement-level comparisons and 64/64 individual source lookups** with identical normalized application-level outputs. No private academic data was read, and neither DEV nor MAIN databases were accessed. It demonstrates evidence-contract reproducibility **for a selected public subset**, not a complete Orbe migration or production readiness.
+
+[Gate 12 report and test provenance](hydradb-gate12-public-ppks-parity.md), [public-only fixture](../../scripts/hydradb-gate12-public-ppks-fixture.ts), [two-engine comparator](../../scripts/hydradb-gate10-ephemeral-parity.ts).
+
+### F. Object-storage durability across restarts (Gate 11)
 
 The [MinIO experiment #42162965498](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42162965498) connected HydraDB to a fresh, S3-compatible **MinIO bucket** in an ephemeral GitHub runner and wrote two synthetic relationships: record→skill and claim→supporting source. It read back both values, **replaced HydraDB with a new empty local cache**, read again, then **replaced the MinIO container and HydraDB node while keeping the same bucket data** and read again.
 
@@ -123,7 +133,7 @@ The initial MinIO harness failed for non-database reasons: Docker Hub no longer 
 
 [Gate 11 durability and registry incident report](hydradb-gate11-minio-durability-2026-11-06.md).
 
-### F. Performance: exploratory data only
+### G. Performance: exploratory data only
 
 We captured local HTTP round-trip samples during the earlier MiniMac PPKS experiments, but they used unequal execution paths and limited sample sizes; one 4-hop example had only three readings per engine. We therefore **do not claim that HydraDB is faster or cheaper** from those results. The next performance protocol must use matching datasets, operation mix, warm/cold cache states, network topology, concurrency, image digests and resource limits, with explicit p50/p95, throughput and error rates.
 
@@ -150,14 +160,16 @@ We would be happy to discuss the smallest reproductions in a short call, then se
 
 ## 6. What remains before calling it a migration
 
-**We have now passed a bounded version of the same Orbe application interface across both graph engines in Gate 10**, using original Neo4j repository code and a LAB-only HydraDB implementation on identical synthetic evidence. The run also validated replay/idempotence and fallback. **Gate 11 independently passed a minimal object-store restart/read proof.**
+**We now have two reproducible application-interface comparisons: Gate 10's wholly synthetic fixture and Gate 12's selected public PPKS fixture, the latter with 88/88 requirement and 64/64 source parity checks**. Both use the original Neo4j repository and an adapted HydraDB LAB implementation. Replay/idempotence, evidence scoping, source completeness and safe fallback were tested under bounded conditions. **Gate 11 separately proved minimal MinIO-backed persistence across restarts.**
 
-Next we intend to test this interface against a *larger, public-PPKS-derived fixture*, verify source completeness at scale, record immutable image digests, investigate the outstanding Bolt issue and test interrupted-write recovery and stronger isolation. Controlled performance and cost evaluation come **only after** these semantic and operational questions.
+Next we intend to **expand beyond the seven public records / first-two-skills-per-record subset**, verify persistence of this entire public evidence dataset through MinIO, record immutable image digests, investigate the outstanding Bolt issue and test interrupted-write recovery and stronger isolation. Controlled performance and cost evaluation come **only after** these semantic and operational questions.
 
 **Verdict remains: HydraDB requires a dedicated adapter; it is not yet a drop-in Neo4j replacement for the deployed Orbe service.** The [acceptance protocol](hydradb-dev-main-parity-plan.md) distinguishes completed synthetic checks from pending real-application and larger-fixture checks.
 
 ## 7. How to reproduce and audit the claims
 
+- [Gate 12 — public PPKS adapter parity report (88 requirements, 64 sources)](hydradb-gate12-public-ppks-parity.md)
+- [Gate 12 — real two-engine public parity CI](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42164035756)
 - [Gate 10 — application-interface parity report](hydradb-gate10-evidence-repository-parity.md)
 - [Gate 10 — real two-engine parity run](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42162281328)
 - [Gate 11 — MinIO restart and durability report](hydradb-gate11-minio-durability-2026-11-06.md)
