@@ -1,0 +1,38 @@
+name: HydraDB Gate 10 | repository contract offline tests
+
+# Pure unit tests: no external engines, no SSH, no Tailscale, no secrets.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-gate10-offline.yml
+      - scripts/hydradb-gate10-fixture.ts
+      - scripts/hydradb-gate10-repository.ts
+      - tests/hydradb-gate10-repository.test.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-gate10-offline-${{ github.ref }
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Typecheck domain, fixture and adapter
+        run: npm run typecheck
+      - name: Check strict evidence sources, scope and safe fallback
+        run: ./node_modules/.bin/vitest run tests/hydradb-gate10-repository.test.ts
