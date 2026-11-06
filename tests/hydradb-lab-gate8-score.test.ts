@@ -61,7 +61,8 @@ describe('HydraDB Gate 8 draft reference scorer', () => {
 
   it('rejects promotion of a study project to professional experience', () => {
     const actual = good();
-    actual.claims[1] = { ...actual.claims[1]!, scope: 'professional' };
+    actual.claims = actual.claims.map((entry, i) =>
+      i === 1 ? { ...entry, scope: 'professional' } : entry);
     const scored = scoreGate8Evidence(refClaims, refSources, actual);
     expect(scored.exact).toBe(false);
     expect(scored.scopeMismatches).toBe(1);
@@ -70,9 +71,8 @@ describe('HydraDB Gate 8 draft reference scorer', () => {
 
   it('rejects inflation of catalogue-only evidence to reviewed code', () => {
     const actual = good();
-    actual.sources[0] = {
-      ...actual.sources[0]!, verificationStatus: 'code_reviewed', origin: 'github',
-    };
+    actual.sources = actual.sources.map((entry, i) =>
+      i === 0 ? { ...entry, verificationStatus: 'code_reviewed', origin: 'github' } : entry);
     const scored = scoreGate8Evidence(refClaims, refSources, actual);
     expect(scored.exact).toBe(false);
     expect(scored.provenanceMismatches).toBe(1);
@@ -80,7 +80,8 @@ describe('HydraDB Gate 8 draft reference scorer', () => {
 
   it('rejects missing sources and incorrect claim-source linkage', () => {
     const actual = good();
-    actual.claims[0] = { ...actual.claims[0]!, sourceIds: [] };
+    actual.claims = actual.claims.map((entry, i) =>
+      i === 0 ? { ...entry, sourceIds: [] } : entry);
     actual.sources = actual.sources.slice(1);
     const scored = scoreGate8Evidence(refClaims, refSources, actual);
     expect(scored.exact).toBe(false);
@@ -90,13 +91,11 @@ describe('HydraDB Gate 8 draft reference scorer', () => {
 
   it('rejects duplicate source links even if source objects are unique', () => {
     const actual = good();
-    actual.claims[0] = {
-      ...actual.claims[0]!,
-      sourceIds: [
+    actual.claims = actual.claims.map((entry, i) =>
+      i === 0 ? { ...entry, sourceIds: [
         'source-experiencia-sig-catalog',
         'source-experiencia-sig-catalog',
-      ],
-    };
+      ] } : entry);
     const scored = scoreGate8Evidence(refClaims, refSources, actual);
     expect(scored.exact).toBe(false);
     expect(scored.duplicateSourceLinks).toBe(1);
