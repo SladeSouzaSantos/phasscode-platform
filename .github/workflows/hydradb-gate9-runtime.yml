@@ -12,6 +12,7 @@ on:
       - scripts/hydradb-gate9-disposable-runtime.py
       - scripts/gate9-disposable-bolt.mjs
       - scripts/hydradb-gate14-bolt-matrix.mjs
+      - scripts/hydradb-gate16-http-pilot.py
       - apps/orbe-node/src/adapters/neo4j-graph-queries.ts
       - package-lock.json
       - package.json
@@ -143,8 +144,18 @@ jobs:
           node scripts/gate9-disposable-bolt.mjs
           node scripts/hydradb-gate14-bolt-matrix.mjs
           echo GATE14_BOLT_MATRIX_COLLECTED
+          python3 scripts/hydradb-gate16-http-pilot.py
+          echo GATE16_HTTP_PILOT_COLLECTED
           echo GATE9_DISPOSABLE_RUNTIME_AND_BOLT_PROBES_COMPLETED
 
+      - name: Upload evidence-only F4.3 same-HTTP-client pilot report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hydradb-f43-http-pilot-${{ github.run_id }}
+          path: ${{ runner.temp }}/gate16-http-pilot-${{ github.run_id }}.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Summarize disposable container states if a prior step failed
         if: failure()
         shell: bash
