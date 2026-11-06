@@ -1,0 +1,131 @@
+name: HydraDB F4.3 | public PPKS Neo4j Bolt vs HydraDB MinIO (NO MiniMac)
+
+# NOTE: Application-level adapter pilot. Different transport and persistence
+# semantics; do not infer pure engine speeds from results.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-f43-minio-paired.yml
+      - scripts/hydradb-gate15-adapter-benchmark.ts
+      - scripts/hydradb-gate11-minio-containers.sh
+      - scripts/hydradb-gate10-ephemeral-parity.ts
+      - scripts/hydradb-gate10-repository.ts
+      - scripts/hydradb-gate12-public-ppks-fixture.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-f43-minio-paired-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  public-minio-adapter-pilot:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    env:
+      GATE11_ISOLATION_MODE: github_hosted_ephemeral
+      GATE10_ISOLATION_MODE: github_hosted_ephemeral
+      GATE15_STORAGE_MODE: minio
+    steps:
+      - name: Lock repository, branch, and GH runner-only scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = SladeSouzaSantos/phasscode-platform
+          test "$GITHUB_REF" = refs/heads/experiment/hydradb
+          test "$GATE11_ISOLATION_MODE" = github_hosted_ephemeral
+          test "$GATE10_ISOLATION_MODE" = github_hosted_ephemeral
+          test "$GATE15_STORAGE_MODE" = minio
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Check source and unit contracts offline
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npm run typecheck
+          ./node_modules/.bin/vitest run tests/hydradb-gate10-repository.test.ts
+          bash -n scripts/hydradb-gate11-minio-containers.sh
+
+      - name: Initialize isolated MinIO bucket and HydraDB S3 engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/hydradb-gate11-minio-containers.sh init
+          bash scripts/hydradb-gate11-minio-containers.sh minio-start
+          bash scripts/hydradb-gate11-minio-containers.sh hydra-start
+          echo F43_EPHEMERAL_MINIO_HYDRA_READY
+
+      - name: Launch separate, pinned Neo4j control on same GH runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ROOT="$RUNNER_TEMP/gate11-ephemeral-$GITHUB_RUN_ID"
+          test -d "$ROOT" && test ! -L "$ROOT"
+          mkdir -p "$ROOT/neo-data"
+          printf 'neo4j/%s\n' "$(openssl rand -hex 24)" > "$ROOT/neo-auth"
+          chmod 600 "$ROOT/neo-auth"
+          docker pull neo4j@sha256:42ef3ebfd671ebd01fdebb6dcbe80cf7b45eef2aa3d346ef4132f7ef31e67d2f >/dev/null
+          AUTH="$(cat "$ROOT/neo-auth")"
+          docker run -d --name "f43-neo-$GITHUB_RUN_ID" \
+            --network "gate11-network-$GITHUB_RUN_ID" \
+            --security-opt no-new-privileges \
+            --pids-limit 384 --memory 2048m --memory-swap 2048m --cpus 1.5 \
+            -e NEO4J_AUTH="$AUTH" \
+            -e NEO4J_server_memory_heap_initial__size=256m \
+            -e NEO4J_server_memory_heap_max__size=512m \
+            -e NEO4J_server_memory_pagecache_size=256m \
+            -v "$ROOT/neo-data:/data" \
+            -p 127.0.0.1:17474:7474 \
+            -p 127.0.0.1:17688:7687 \
+            neo4j@sha256:42ef3ebfd671ebd01fdebb6dcbe80cf7b45eef2aa3d346ef4132f7ef31e67d2f >/dev/null
+          unset AUTH
+          echo F43_EPHEMERAL_NEO4J_READY
+
+      - name: Compare original Orbe Neo4j adapter vs S3-backed HydraDB adapter
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/gate11-ephemeral-$GITHUB_RUN_ID"
+          export GATE10_HYDRA_TOKEN_FILE="$ROOT/hydra-token"
+          export GATE10_NEO_AUTH_FILE="$ROOT/neo-auth"
+          node --import tsx scripts/hydradb-gate10-ephemeral-parity.ts
+          echo F43_MINIO_PUBLIC_PPKS_ADAPTER_PILOT_PASS
+
+      - name: Publish only nonsecret aggregate statistics
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hydradb-f43-minio-pilot-${{ github.run_id }}
+          path: ${{ runner.temp }}/gate15-adapter-pilot-${{ github.run_id }}.json
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Only inspect disposable container lifecycle after failure
+        if: failure()
+        shell: bash
+        run: |
+          for ID in "gate11-minio-$GITHUB_RUN_ID" "gate11-hydra-$GITHUB_RUN_ID" "f43-neo-$GITHUB_RUN_ID"; do
+            docker inspect --format '{{.Name}} status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}}' "$ID" 2>/dev/null || true
+          done
+
+      - name: Tear down only this GH runner experiment
+        if: always()
+        shell: bash
+        run: |
+          docker rm -f "f43-neo-$GITHUB_RUN_ID" >/dev/null 2>&1 || true
+          bash scripts/hydradb-gate11-minio-containers.sh cleanup
+          echo F43_GITHUB_EPHEMERAL_CLEANUP_COMPLETE
