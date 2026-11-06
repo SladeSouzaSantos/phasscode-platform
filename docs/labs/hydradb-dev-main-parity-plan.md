@@ -4,7 +4,7 @@
 
 **Escopo:** somente `experiment/hydradb` para código e execução de testes; comparativos `main`/`dev` **somente leitura de fontes Git**. Não consultar nem copiar dados privados dos bancos operacionais, não publicar segredos, não ativar HydraDB no Orbe DEV/MAIN.
 
-**Estado em 2026-11-06:** identidade de oito arquivos versionados = PASS; paridade de métodos do **mesmo EvidenceGraphRepository** em fixture sintético = PASS (Gate 10); **sete registros públicos PPKS, 88/88 requisitos e 64/64 fontes** = PASS delimitado (Gate 12); durabilidade básica MinIO/restarts = PASS delimitado (Gate 11); **paridade do PPKS integral/DEV/MAIN e migração operacional = NÃO TESTADAS**.
+**Estado em 2026-11-06:** identidade de oito arquivos versionados = PASS; paridade de métodos do **mesmo EvidenceGraphRepository** em fixture sintético = PASS (Gate 10); **sete registros públicos PPKS, 88/88 requisitos e 64/64 fontes** = PASS delimitado (Gate 12); durabilidade MinIO/restarts no fixture sintético = PASS (Gate 11) e nas **14 claims/16 fontes públicas** = PASS delimitado (Gate 13); **paridade do PPKS integral/DEV/MAIN e migração operacional = NÃO TESTADAS**.
 
 ## 1. O que exatamente é o baseline de DEV/MAIN
 
@@ -52,6 +52,8 @@ Para o mesmo conjunto público/sintético, comparar as respostas normalizadas de
 **Fixture Gate 10:** snapshot sintético **validado pelo esquema original do Orbe** com 19 nós, 10 relações, 4 claims e 6 fontes. Passou [20/20 comparações de métodos e 24/24 consultas de fontes](hydradb-gate10-evidence-repository-parity.md) com a implementação Neo4j existente e o adapter HydraDB LAB novo, incluindo duas rodadas isoladas, repetição de importação e fallback seguro. Não confundir essa fixture com a PPKS pública de 47 vértices.
 
 **Fixture Gate 12:** sete registros **públicos** do PPKS com 10 skills, 14 claims e 16 fontes; projeção tipada Orbe de 50 nós e 46 relações (esquema distinto do Gate 3). [Gate 12 PASS — 88/88 requisitos, 64/64 fontes](hydradb-gate12-public-ppks-parity.md), sempre com o Neo4j original como referência, duas rodadas e repetição de seed. Não carregou acadêmicos privados nem substituiu banco operacional.
+
+**Fixture Gate 13:** [CI #42164536310 PASS](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42164536310) com as **14 claims, 16 fontes e 46 relações** da amostra PPKS pública; valida 30 referências e 12 claims elegíveis, preservados após substituir HydraDB/cache e reiniciar MinIO+HydraDB; [relatório](hydradb-gate13-public-minio-durability.md). Não comprova HA, backup nem crash durante escrita.
 
 **Fixture Gate 11:** MinIO novo por execução, 2 relações e 4 nós sintéticos, com read-after-restart do HydraDB e read-after-restart de MinIO+HydraDB. [Prova de durabilidade delimitada](hydradb-gate11-minio-durability-2026-11-06.md) sem backup externo, HA ou falhas de escrita.
 
@@ -102,7 +104,7 @@ Registrar:
 - backup/restore e isolamento de tenants;
 - erros conhecidos e condição de rollback.
 
-**Atualização 06/11/2026:** [Gate 11 PASS](hydradb-gate11-minio-durability-2026-11-06.md) para escrita de dois relacionamentos e leitura preservada após reinícios do HydraDB/cache e MinIO. Persistência completa do fixture PPKS, falhas durante escrita, recuperação/backup e marcadores de consistência continuam pendentes.
+**Atualização 06/11/2026:** [Gate 11 PASS](hydradb-gate11-minio-durability-2026-11-06.md) no grafo sintético mínimo e **[Gate 13 PASS](hydradb-gate13-public-minio-durability.md)** no subconjunto PPKS público com 14 claims/16 fontes. Reinícios do nó/cache e MinIO preservaram as saídas de evidência. Persistência do PPKS completo, falhas durante escrita, recuperação/backup e marcadores fortes de consistência continuam pendentes.
 
 ### Etapa E — benchmarks científicos comparáveis (F4.3)
 
@@ -129,12 +131,12 @@ Entregar ao Nishkarsh:
 | Shadow com fallback canônico | **PASS delimitado** | Gate 8, 36 verificações + 10 fallbacks esperados |
 | Mesmo `EvidenceGraphRepository` nos dois adapters | **PASS delimitado + subconjunto público** | Gate 10: 20/20 métodos, 24/24 fontes sintéticas; **Gate 12: 88/88 requisitos e 64/64 fontes** de 7 registros públicos; PPKS completo pendente |
 | Bolt como transporte de leitura substituível | **NÃO PASSOU** | 4 InvalidSyntax no cliente JS |
-| MinIO: persistência/restart/recuperação | **PASS delimitado** | Gate 11: 2 relações/4 nós sobreviveram a restart do nó/cache e do MinIO; testes de falha e backup ainda pendentes |
+| MinIO: persistência/restart/recuperação | **PASS delimitado ampliado** | Gate 11: 2 relações sintéticas; **Gate 13: 14 claims/16 fontes públicas, mesmo digest após dois restarts**; crash durante escrita e backup pendentes |
 | Desempenho/custo comparável | **NÃO TESTADO** | F4.3 com protocolo controlado |
 | Troca de DEV/MAIN para HydraDB | **NÃO AUTORIZADA** | Neo4j continua sendo a referência operacional |
 
 ### Critério para declarar a etapa concluída
 
-**Aceite delimitado de interface atingido:** os Gates 10 e 12 reproduziram o contrato do Orbe entre Neo4j original e HydraDB LAB com fixture sintético e um subconjunto de 7 registros PPKS públicos, incluindo idempotência, isolamento, fontes completas e fallback nos testes especificados. **Para encerrar o item 5 integralmente**, ainda requeremos o PPKS público completo (não apenas duas competências por registro), expansão dos cenários de erro/carga e persistência com MinIO de várias claims/fontes; Gate 11 confirma apenas durabilidade mínima com dois relacionamentos sintéticos. Benchmarks comparáveis continuam fora do escopo desta homologação.
+**Aceite delimitado de interface atingido:** os Gates 10 e 12 reproduziram o contrato do Orbe entre Neo4j original e HydraDB LAB com fixture sintético e um subconjunto de 7 registros PPKS públicos, incluindo idempotência, isolamento, fontes completas e fallback nos testes especificados. **Para encerrar o item 5 integralmente**, ainda requeremos o PPKS público completo (não apenas duas competências por registro), expansão dos cenários de erro/carga e persistência com MinIO de várias claims/fontes; Gate 11 confirma durabilidade mínima sintética e Gate 13 confirma **durabilidade do subconjunto público PPKS** após duas sequências de reinicialização. Não são provas de HA ou recuperação de falhas durante escrita. Benchmarks comparáveis continuam fora do escopo desta homologação.
 
 **Nota sobre acesso remoto:** o SSH restrito do MiniMac está autorizado **somente** a executar a suíte Gate 8 OFF/SHADOW. Não ampliar os comandos permitidos para importar/deletar dados; realizar os testes dinâmicos preferencialmente em GitHub-hosted descartável ou em infraestrutura LAB revista separadamente.
