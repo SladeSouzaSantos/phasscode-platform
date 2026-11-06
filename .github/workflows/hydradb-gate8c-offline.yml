@@ -1,0 +1,57 @@
+name: HydraDB Gate 8C | provisional intent diagnostics (offline)
+
+# Independent GitHub-hosted diagnostic. Does NOT call the MiniMac:
+# no Tailscale, SSH, Docker/Neo4j, LLM APIs, graph seeds or deploy.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-gate8c-offline.yml
+      - evaluation/hydradb-gate8c-*
+      - scripts/gate8c-*
+      - tests/gate8c-*
+      - knowledge/evaluations/hydradb-gate8c-*
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-gate8c-offline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  baseline:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify experimental repository and branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "SladeSouzaSantos/phasscode-platform"
+          test "$GITHUB_REF" = "refs/heads/experiment/hydradb"
+
+      - name: Checkout exact SHA without persistent credentials
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install lockfile dependencies without lifecycle hooks
+        run: npm ci --ignore-scripts
+
+      - name: Typecheck and standalone provisional whole-question diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run typecheck
+          ./node_modules/.bin/vitest run tests/gate8c-intent-diagnostic.test.ts
+          node --import tsx scripts/gate8c-intent-diagnostic.ts
+          echo HYDRADB_GATE8C_OFFLINE_CI_PASS
