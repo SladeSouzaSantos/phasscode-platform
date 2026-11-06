@@ -106,6 +106,9 @@ export async function runGate15AdapterPilot(
     process.env.GITHUB_REF==='refs/heads/experiment/hydradb' &&
     /^[0-9]+$/.test(process.env.GITHUB_RUN_ID??''),
     'GATE15_EPHEMERAL_ONLY');
+  assert(process.env.GATE15_STORAGE_MODE===undefined ||
+    process.env.GATE15_STORAGE_MODE==='minio',
+    'GATE15_UNAPPROVED_STORAGE_MODE');
   assert(requirements.length===11 && requirements.at(-1)?.label==='Go' &&
     /^source-[a-z0-9-]+$/.test(sourceId),'GATE15_FIXTURE_UNEXPECTED');
 
@@ -149,7 +152,9 @@ export async function runGate15AdapterPilot(
     results:reports,
     coldCache:'not_measured',
     actualCpuRamIops:'not_measured',
-    objectStorage:'not_used_in_this_pilot_HydraDB_local_storage',
+    objectStorage:process.env.GATE15_STORAGE_MODE==='minio'
+      ?'HydraDB_s3_compatible_ephemeral_MinIO'
+      :'HydraDB_local_filesystem',
     completeOrbeResponseLatency:'not_measured',
     dollarsPerQuery:'not_measured',
     allResultsCorrect:true,
