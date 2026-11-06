@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: hydradb-gate10-offline-${{ github.ref }
+  group: hydradb-gate10-offline-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
