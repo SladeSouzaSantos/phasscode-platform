@@ -82,6 +82,12 @@ Reproduction: [JS repeated matrix](../../scripts/hydradb-gate14-bolt-matrix.mjs)
 - No claim about transaction bookmarks, session concurrency or mixed read/write capabilities under Bolt.
 - The observed result is a useful maintainer issue candidate **after review**, not a security finding.
 
+## Reconciliation with official self-hosted v0.3.0 and hosted v2 docs
+
+[Self-hosted v0.3.0 `USING-HYDRADB.md` — Python and JavaScript Bolt examples](https://github.com/hydra-db/hydradb/blob/v0.3.0/USING-HYDRADB.md) **already recommend** a direct `bolt://` driver and `database=default` (the graph ID) with a parameterized `MATCH`. Hence the question is not how to write a basic Bolt query. **Our pinned JS driver 6.2.0 test was inconsistent even with the documented `default` shape, while the Python 6.4.1 control passed** on the same synthetic graph, albeit with a test deployment configured `GRAPH_ID=lab`. The server-side root cause or version compatibility is **not established**.
+
+The separate [managed v2 BYOG guide](https://docs.hydradb.com/essentials/v2/bring-your-own-graph) supports parameterized Cypher over **HTTP `POST /byog/query`**, not the old Neo4j driver's Bolt protocol. Do not cite it as a fix for the local self-hosted v0.3.0 driver issues. See [version/API documentation reconciliation](hydradb-v2-docs-review-2026-11-06.md).
+
 ## Suggested follow-up for Nishkarsh
 
 1. What is the recommended **JS neo4j-driver 6.x** configuration for a single-node namespace/graph (`GRAPH_NAMESPACE=lab`, `GRAPH_ID=lab`, `GRAPH_CELL_ID=cell-0`), especially **explicit database naming**?
