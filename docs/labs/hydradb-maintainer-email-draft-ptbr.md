@@ -1,4 +1,4 @@
-# Tradução para revisão — NÃO ENVIADA (revisão após estudar a documentação v2)
+# Tradução da resposta ao mantenedor — ENVIO CONFIRMADO PELO USUÁRIO (2026-11-06)
 
 **Para:** nishkarsh@hydradb.app  
 **Assunto:** Re: HydraDB — feedback técnico com evidências do PoC Orbe/Neo4j GraphRAG
@@ -35,6 +35,6 @@ Pedro Santos
 
 ---
 
-**Status:** RASCUNHO / NÃO ENVIADO. Nenhum endpoint gerenciado v2 foi chamado; todos os testes medidos utilizaram HydraDB open-source v0.3.0 em contêineres isolados. Branch `experiment/hydradb`; nenhuma alteração/deploy DEV ou MAIN.
+**Status:** O usuário confirmou no chat, em 06/11/2026, o **envio do e-mail em inglês a Nishkarsh**. Este documento é uma tradução de apoio, **não** um segundo e-mail enviado. A mensagem colada pelo usuário é a referência exata quanto ao que foi enviado; podem existir diferenças menores de links ou formatação. Não enviamos a mensagem nem confirmamos uma resposta do mantenedor. Nenhum endpoint hospedado v2 foi utilizado. Branch `experiment/hydradb`; sem alterações/deploy em DEV ou MAIN.
 
 **Apoio para revisão:** [matriz oficial v2 versus motor v0.3.0](hydradb-v2-docs-review-2026-11-06.md) · [versão original em inglês](hydradb-maintainer-email-draft.md).
