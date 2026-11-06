@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "hydradb-orbe-source-baseline-v1",
+  "preparedAt": "2026-11-06",
+  "repository": "SladeSouzaSantos/phasscode-platform",
+  "observedBranchCommits": {
+    "main": "c302ec444266333756d9f35bc9c1dfd7a5e7c684",
+    "dev": "747cd8243ac67d19b720bb7441aa0b969734f391",
+    "experiment/hydradb": "c283df67c379357b3dae0354e89a73605b59bd72"
+  },
+  "files": {
+    "apps/orbe-node/src/domain/evidence-graph.ts": "d1aa460b85a81dcec1a254abb8559d9600c12f48",
+    "apps/orbe-node/src/adapters/neo4j-graph-queries.ts": "ce1a588861880039d422df78ba6889365b163f87",
+    "apps/orbe-node/src/adapters/neo4j-driver-store.ts": "1dc6647815360e96bec1fc2aee503ae9d3111533",
+    "apps/orbe-node/src/adapters/ppks-evidence-graph.ts": "29fce5ebb73e9fff83fe3d81269d13183caf597a",
+    "knowledge/ppks/index.json": "6e1a1e844cebb984367dbf7a272857c2b4a5c8bb",
+    "knowledge/ppks/semantic-relations.json": "6ff70d3a9a4b2cb1370022fffc2cd7b19d9fe73d",
+    "package-lock.json": "08cbb89068979107005543c38ea84c40b8089180",
+    "apps/orbe-node/prompts/v4.md": "b9e68cff1dc12abade2fd563b517097c6a8af065"
+  },
+  "evidenceScope": "only_github_git_blob_identity",
+  "notProven": [
+    "running_container_images_or_sha",
+    "deployed_environment_variables",
+    "live_databases_and_private_content",
+    "real_recruiter_responses",
+    "end_to_end_evidence_adapter_equivalence",
+    "object_storage_durability",
+    "bolt_functional_compatibility",
+    "controlled_engine_performance"
+  ]
+}
