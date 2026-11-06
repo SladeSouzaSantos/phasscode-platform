@@ -50,6 +50,7 @@ async function main(): Promise<void> {
     'LAB_GATE8_CORPUS_NOT_PUBLIC_LAB');
 
   const registry = object(document.knownClaims);
+  const sourceRegistry = object(document.knownSourceEvidence);
   const expectedSkills = [
     'Java', 'Flutter', 'Node.js', 'TypeScript', 'Go', 'React',
     'Spring Boot', 'Python', 'FastAPI', 'Django',
@@ -58,6 +59,9 @@ async function main(): Promise<void> {
   check(Object.keys(registry).length === expectedSkills.length &&
     expectedSkills.every((skill) => Object.hasOwn(registry, skill)),
   'LAB_GATE8_TECHNOLOGY_REGISTRY_DRIFT');
+  check(Object.keys(sourceRegistry).length === expectedSkills.length &&
+    expectedSkills.every((skill) => Object.hasOwn(sourceRegistry, skill)),
+  'LAB_GATE8_SOURCE_REGISTRY_DRIFT');
 
   const fixture = await publicFixture(root);
   check(fixture.length === 7, 'LAB_GATE8_FIXTURE_DRIFT');
@@ -82,6 +86,36 @@ async function main(): Promise<void> {
     check(JSON.stringify(expected) === JSON.stringify(observed),
       'LAB_GATE8_DRAFT_GOLD_FIXTURE_DRIFT_' +
         skill.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+    const expectedSources = array(sourceRegistry[skill]);
+    check(expectedSources.length === result.claims.length,
+      'LAB_GATE8_SOURCE_CLAIM_COUNT_DRIFT');
+    const sources = new Map(result.sources.map((source) => [source.id, source]));
+    const referenced = new Set<string>();
+    for (let i = 0; i < result.claims.length; i++) {
+      const claim = result.claims[i]!;
+      const item = object(expectedSources[i]);
+      check(item.subjectId === claim.subjectId &&
+        Object.keys(item).length === 2,
+      'LAB_GATE8_SOURCE_SUBJECT_DRIFT');
+      const entries = array(item.sources);
+      const expectedIds: string[] = [];
+      for (const row of entries) {
+        const source = object(row);
+        const id = string(source.id);
+        const actual = sources.get(id);
+        check(Object.keys(source).length === 3 &&
+          actual?.verificationStatus === source.verificationStatus &&
+          actual.origin === source.origin && actual.visibility === 'public',
+        'LAB_GATE8_SOURCE_PROVENANCE_DRIFT');
+        expectedIds.push(id);
+        referenced.add(id);
+      }
+      unique(expectedIds, 'LAB_GATE8_SOURCE_DUPLICATED');
+      check(JSON.stringify(expectedIds) === JSON.stringify(claim.sourceIds),
+        'LAB_GATE8_CLAIM_SOURCES_DRIFT');
+    }
+    check(referenced.size === result.sources.length,
+      'LAB_GATE8_EXTRANEOUS_SOURCES');
   }
 
   const cases = array(document.cases);
@@ -130,6 +164,7 @@ async function main(): Promise<void> {
   console.log('GATE8_CORPUS_DRAFT_CASES', cases.length,
     'SKILLS', usedSkills.size, 'RISK_TAGS', usedTags.size);
   console.log('GATE8_CORPUS_CANONICAL_FIXTURE_PARITY_PASS');
+  console.log('GATE8_REFERENCE_SOURCE_PARITY_PASS');
   console.log('GATE8_CORPUS_DRAFT_CHECK_PASS');
   console.log('GATE8_INDEPENDENT_GOLD_REVIEW_REQUIRED');
 }
