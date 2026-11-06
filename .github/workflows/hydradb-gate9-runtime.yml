@@ -12,6 +12,7 @@ on:
       - scripts/hydradb-gate9-disposable-runtime.py
       - scripts/gate9-disposable-bolt.mjs
       - scripts/hydradb-gate14-bolt-matrix.mjs
+      - scripts/hydradb-gate14-python-bolt.py
       - scripts/hydradb-gate16-http-pilot.py
       - apps/orbe-node/src/adapters/neo4j-graph-queries.ts
       - package-lock.json
@@ -143,6 +144,11 @@ jobs:
           python3 scripts/hydradb-gate9-disposable-runtime.py --live
           node scripts/gate9-disposable-bolt.mjs
           node scripts/hydradb-gate14-bolt-matrix.mjs
+          python3 -m venv "$RUNNER_TEMP/gate14-python-venv"
+          "$RUNNER_TEMP/gate14-python-venv/bin/pip" install \
+            --quiet --no-input --disable-pip-version-check 'neo4j==6.4.1'
+          "$RUNNER_TEMP/gate14-python-venv/bin/python" \
+            scripts/hydradb-gate14-python-bolt.py
           echo GATE14_BOLT_MATRIX_COLLECTED
           python3 scripts/hydradb-gate16-http-pilot.py
           echo GATE16_HTTP_PILOT_COLLECTED
