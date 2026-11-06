@@ -46,8 +46,9 @@ docker run --rm \
   --user "$(id -u):$(id -g)" \
   --cap-drop ALL \
   --security-opt no-new-privileges \
-  --pids-limit 128 --memory 512m --cpus 0.75 \
+  --pids-limit 128 --memory 1280m --memory-swap 1280m --cpus 0.75 \
   -e HOME=/tmp \
+  -e NODE_OPTIONS=--max-old-space-size=768 \
   -v "$lab:/workspace" \
   -v "$safe_env:/workspace/.env:ro" \
   -w /workspace node:24 sh -ec '
