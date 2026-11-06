@@ -286,6 +286,67 @@ def portable_suite(opener, token: str, auth: str) -> dict:
     return {"seed": seeds, "cases": cases}
 
 
+def mutation_suite(opener, token: str, auth: str) -> list[dict]:
+    """Exercise only disposable numeric-ID records and verify postconditions."""
+    steps = [
+        ("create_temporary_pair",
+         "CREATE (a:Gate9Temp {id: 800200})-[:GATE9_TEMP]->"
+         "(b:Gate9Temp {id: 800201})", {}, None),
+        ("verify_created_pair",
+         "MATCH (a:Gate9Temp {id: 800200})-[:GATE9_TEMP]->(b) "
+         "RETURN b.id AS id", {}, [[800201]]),
+        ("delete_temporary_edge",
+         "MATCH (a:Gate9Temp {id: 800200})-[r:GATE9_TEMP]->(b) DELETE r",
+         {}, None),
+        ("verify_deleted_edge",
+         "MATCH (a:Gate9Temp {id: 800200})-[:GATE9_TEMP]->(b) "
+         "RETURN b.id AS id", {}, []),
+        ("detach_delete_temporary_node",
+         "MATCH (a:Gate9Temp {id: 800200}) DETACH DELETE a", {}, None),
+        ("verify_deleted_node",
+         "MATCH (a:Gate9Temp {id: 800200}) RETURN a.id AS id",
+         {}, []),
+        ("merge_path_first",
+         "MERGE (a:Gate9Merge {id: 800301})-[:GATE9_MERGE]->"
+         "(b:Gate9Merge {id: 800302})", {}, None),
+        ("merge_path_again",
+         "MERGE (a:Gate9Merge {id: 800301})-[:GATE9_MERGE]->"
+         "(b:Gate9Merge {id: 800302})", {}, None),
+        ("verify_merge_idempotence",
+         "MATCH (a:Gate9Merge {id: 800301})-[:GATE9_MERGE]->(b) "
+         "RETURN count(*) AS total", {}, [[1]]),
+        ("set_matched_node",
+         "MATCH (a:Gate9Merge {id: 800301}) SET a.status = 'ready'",
+         {}, None),
+        ("verify_set",
+         "MATCH (a:Gate9Merge {id: 800301}) RETURN a.status AS status",
+         {}, [["ready"]]),
+        ("unwind_numeric_batch",
+         "UNWIND $rows AS row MERGE (n {id: row.vertex}) "
+         "SET n:Gate9Batch, n.label = row.label",
+         {"rows": [{"vertex": 800401, "label": "alpha"}]}, None),
+        ("verify_unwind",
+         "MATCH (n:Gate9Batch {id: 800401}) RETURN n.label AS label",
+         {}, [["alpha"]]),
+    ]
+    reports = []
+    for name, cypher, params, expected in steps:
+        result = {}
+        for engine in ("neo4j", "hydradb"):
+            response = query(opener, engine, cypher, params, token, auth)
+            checked = (
+                observe(response, seed=True)
+                if expected is None else portable_semantics(response, expected)
+            )
+            if engine == "neo4j" and checked["status"] not in (
+                "executed", "value_match",
+            ):
+                fail("GATE9_NEO4J_MUTATION_REFERENCE_DRIFT_" + name)
+            result[engine] = checked
+        reports.append({"name": name, **result})
+    return reports
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--selftest", action="store_true")
@@ -307,14 +368,17 @@ def main() -> None:
     wait_services(opener, token, auth)
     exact = exact_suite(opener, fixture, token, auth)
     portable = portable_suite(opener, token, auth)
+    mutations = mutation_suite(opener, token, auth)
     report = {
         "schemaVersion": "hydradb-gate9-ephemeral-runtime-v1",
         "scope": "github_hosted_ephemeral_containers_only",
         "fixture": fixture["version"],
         "operationCount": len(exact),
         "portableProbeCount": len(portable["cases"]),
+        "mutationProbeCount": len(mutations),
         "exactOrbeQueries": exact,
         "portableCypher": portable,
+        "mutationCypher": mutations,
         "compatibilityVerdict": "requires_adaptation_and_further_testing",
         "semanticParity": "not_established",
         "boltCompatibility": "separate_probe_required",
