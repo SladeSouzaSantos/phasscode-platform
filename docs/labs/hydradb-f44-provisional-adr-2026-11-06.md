@@ -49,6 +49,20 @@ We compared:
 
 A single-digit millisecond p50 advantage on a small, warm public subset does not resolve missing direct Cypher compatibility, Bolt parameters, S3 cost, failure recovery, backups, licensing or the total cost of running a dedicated adapter. One cannot generalize small identical-outcome tests into proof of production equivalence.
 
+## Official hosted v2 documentation — related, **not equivalent** to this deployment option
+
+We reviewed the [official v2 Introduction](https://docs.hydradb.com/get-started/v2/introduction), [v2 BYOG and Neo4j migration guide](https://docs.hydradb.com/essentials/v2/bring-your-own-graph), [TypeScript/Python SDK v2](https://docs.hydradb.com/api-reference/v2/sdks), [v2 query API](https://docs.hydradb.com/api-reference/v2/endpoint/query) and [recruiter cookbook](https://docs.hydradb.com/cookbooks/v2/ai-linkedin-recruiter). The managed **v2** API offers a distinct product integration path:
+
+- **Cloud BYOG raw Cypher:** `POST /byog/query` with `database`, `collection` and `params`; hosted migration guide recommends stable external IDs, `UNWIND` / `MERGE` batches and count verification.
+- **Cloud context retrieval:** `POST /query`, hybrid/text search, knowledge and memory context, source chunks, optional graph context, SDK `@hydradb/sdk`. This is **not** the same as the local v0.3.0 Rust engine `/v1/graphs/{graph}/query` or our `EvidenceGraphRepository` API.
+- **Hosted graph ingestion:** `graph_payload` can provide explicit source entities/relations, but preserving all Orbe `Claim.sourceIds`, source-specific verification status and role scope would still need independent semantic acceptance tests.
+- **Self-hosted v0.3.0 Bolt guidance:** the [official user guide](https://github.com/hydra-db/hydradb/blob/v0.3.0/USING-HYDRADB.md) already shows JS and Python `database=default` and bound-parameter reads. Our versioned JS 6.2.0 failures vs Python 6.4.1 successes are a **documented-example vs observed-compatibility gap**, not absence of written instructions.
+- **Cloud pricing:** [vendor-hosted plan rates](https://hydradb.com/pricing) exist but do not determine self-hosted graph/S3 total cost or the relative cost of maintaining independent adapters. Compare engineering, data residency, S3 request traffic, billing, license and failure/consistency controls before proposing a hosted architecture.
+
+**Decision:** a future managed-v2 experiment would require **its own consent, credentials, privacy/data-residency review, design and benchmark**. No hosted v2 request has been sent in this PoC. We do **not** infer that v2 BYOG Cypher and self-hosted v0.3.0 Bolt implement identical protocol/syntax; do not merge this documentation review into an operational migration decision.
+
+See [documentation-to-question matrix](hydradb-v2-docs-review-2026-11-06.md).
+
 ## Required evidence for an approval or rejection
 
 - Investigate the reproduced JS 6.2.0 versus Python 6.4.1 Bolt discrepancy, database selection, bound parameters and routing with maintainers. Preserve version-pinned JS/Python minimal repros and do not assume Python success makes TypeScript compatible.
