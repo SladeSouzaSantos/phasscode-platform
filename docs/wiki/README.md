@@ -45,6 +45,20 @@ O [**Mapa do código e das funções**](mapa-do-codigo.md) é o ponto de entrada
 
 **Situação desta camada:** leitura estática de arquivos centrais do backend e frontend, diagramas e rastreabilidade de caminhos de teste. **Não** foi realizado um levantamento AST completo de todas as funções, execução de testes, validação live ou auditoria dos binários implantados. Os módulos históricos são identificados como tais; a branch \`docs/phasscode-wiki\` permanece separada de \`dev\` e \`main\`.
 
+## Referência completa de código — terceira camada
+
+A [**Referência técnica do código**](referencia/README.md) reúne o inventário de símbolos TypeScript/TSX em **backend e frontend, DEV e MAIN**, referências por arquivo/linha, imports diretos de testes, contratos HTTP e tabelas PostgreSQL.
+
+| Referência | Conteúdo |
+| --- | --- |
+| [Catálogo AST + métodos de geração](referencia/README.md) | Símbolos e dependências por módulo, rastreáveis a SHAs Git |
+| [Diferenças de código DEV × MAIN](referencia/diferencas-dev-main.md) | Arquivos alterados e funções nomeadas adicionadas/removidas |
+| [Contrato de API pública e histórica](referencia/contratos-api.md) | Rotas realmente disponíveis, headers e modelos Zod |
+| [Migrations PostgreSQL 001–006](referencia/migrations-postgresql.md) | Estrutura persistida, constraints e compatibilidade |
+| [Componentes React e CSS](referencia/componentes-e-css.md) | Design tokens, seções, estilos legados e acessibilidade |
+
+**Nota de versão:** os inventários AST e o comparador são gerados por um workflow da **branch documental** a partir de snapshots Git fixados. Esta camada documenta o código; não substitui validação de runtime implantado, execução integral dos testes, revisão da cobertura e auditoria de segurança.
+
 ## Como ler a documentação
 
 - **Código atual**: afirmações verificadas na árvore das branches examinadas; links apontam para o caminho correspondente.
