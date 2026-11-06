@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/hydradb-f43-minio-paired.yml
       - scripts/hydradb-gate15-adapter-benchmark.ts
+      - scripts/hydradb-f43-resource-sampler.py
       - scripts/hydradb-gate11-minio-containers.sh
       - scripts/hydradb-gate10-ephemeral-parity.ts
       - scripts/hydradb-gate10-repository.ts
@@ -95,22 +96,35 @@ jobs:
           unset AUTH
           echo F43_EPHEMERAL_NEO4J_READY
 
-      - name: Compare original Orbe Neo4j adapter vs S3-backed HydraDB adapter
+      - name: Compare original Orbe Neo4j adapter vs S3-backed HydraDB adapter with resource sampling
         shell: bash
         run: |
           set -euo pipefail
           ROOT="$RUNNER_TEMP/gate11-ephemeral-$GITHUB_RUN_ID"
           export GATE10_HYDRA_TOKEN_FILE="$ROOT/hydra-token"
           export GATE10_NEO_AUTH_FILE="$ROOT/neo-auth"
+          python3 -m py_compile scripts/hydradb-f43-resource-sampler.py
+          python3 scripts/hydradb-f43-resource-sampler.py --mode collect &
+          MONITOR_PID=$!
+          cleanup_monitor() {
+            kill "$MONITOR_PID" 2>/dev/null || true
+            wait "$MONITOR_PID" 2>/dev/null || true
+          }
+          trap cleanup_monitor EXIT
           node --import tsx scripts/hydradb-gate10-ephemeral-parity.ts
-          echo F43_MINIO_PUBLIC_PPKS_ADAPTER_PILOT_PASS
+          cleanup_monitor
+          trap - EXIT
+          python3 scripts/hydradb-f43-resource-sampler.py --mode summarize
+          echo F43_MINIO_PUBLIC_PPKS_ADAPTER_PILOT_AND_TELEMETRY_PASS
 
       - name: Publish only nonsecret aggregate statistics
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: hydradb-f43-minio-pilot-${{ github.run_id }}
-          path: ${{ runner.temp }}/gate15-adapter-pilot-${{ github.run_id }}.json
+          path: |
+            ${{ runner.temp }}/gate15-adapter-pilot-${{ github.run_id }}.json
+            ${{ runner.temp }}/f43-resource-samples-${{ github.run_id }}.summary.json
           retention-days: 14
           if-no-files-found: error
 
