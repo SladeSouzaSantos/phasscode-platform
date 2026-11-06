@@ -21,8 +21,11 @@ if (!SHA.test(backendSha) || !SHA.test(frontendSha)) throw Error('Full pinned so
 if (backendRoot === frontendRoot) throw Error('Distinct roots required');
 if (!existsSync(join(backendRoot, 'apps/orbe-node/src/application/chat.ts')) ||
     !existsSync(join(frontendRoot, 'src/App.tsx'))) throw Error('Missing source repo');
-if (!outputRoot.startsWith(resolve(backendRoot, 'docs/wiki/referencia') + sep) &&
-    outputRoot !== resolve(backendRoot, 'docs/wiki/referencia')) throw Error('Unsafe output directory');
+const allowedOutput = resolve(process.cwd(), 'docs/wiki/referencia');
+if (!existsSync(resolve(process.cwd(), 'docs/wiki/README.md')) ||
+    (outputRoot !== allowedOutput && !outputRoot.startsWith(allowedOutput + sep))) {
+  throw Error('Unsafe output directory');
+}
 const back = { key:'backend', repo:'phasscode-platform', root:backendRoot, rev:backendSha, scopes:['apps','packages','scripts','tests','evaluation'] };
 const front = { key:'frontend', repo:'web-portfolio-v2', root:frontendRoot, rev:frontendSha, scopes:['src','scripts','tests'] };
 const repos = [back, front];
