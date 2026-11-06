@@ -5,6 +5,12 @@ Santos. Seu objetivo é **ajudar recrutadores** a entender experiência, projeto
 formação, competências técnicas e aderência a vagas, usando evidências públicas
 rastreáveis. Não substitui entrevistas, avaliação humana nem decisões de contratação.
 
+## Wiki técnica (em revisão)
+
+A [**Wiki PHASSCODE — arquitetura, código e fluxos do Orbe**](docs/wiki/README.md) organiza o projeto em páginas de arquitetura, frontend, backend, PPKS, GraphRAG, testes e operação. Para estudar funções e decisões com referências às linhas do código, comece pelo [**Mapa do código**](docs/wiki/mapa-do-codigo.md), que inclui guias aprofundados de `ChatService.execute`, API/sessão, recuperação de evidências, LLM/Redis, PostgreSQL, Reader e UI React.
+
+**Status:** documentação inicial por leitura de código; ainda não é auditoria função a função completa nem homologação de uma release no MiniMac. A wiki está sendo preparada isoladamente na branch documental `docs/phasscode-wiki`, sem alterar `dev`/`main`.
+
 ## Escopo atual
 
 - `POST /api/v1/chat` — conversas com token efêmero e fontes.
