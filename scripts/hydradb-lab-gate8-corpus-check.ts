@@ -103,8 +103,8 @@ async function main(): Promise<void> {
         const source = object(row);
         const id = string(source.id);
         const actual = sources.get(id);
-        check(Object.keys(source).length === 3 &&
-          actual?.verificationStatus === source.verificationStatus &&
+        check(actual !== undefined && Object.keys(source).length === 3 &&
+          actual.verificationStatus === source.verificationStatus &&
           actual.origin === source.origin && actual.visibility === 'public',
         'LAB_GATE8_SOURCE_PROVENANCE_DRIFT');
         expectedIds.push(id);
