@@ -1,0 +1,44 @@
+name: One-time wiki Prettier normalization
+on:
+  push:
+    branches:
+      - docs/wiki-prettier-fix
+    paths:
+      - .github/workflows/wiki-format-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format-wiki:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/docs/wiki-prettier-fix'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format ONLY wiki Markdown/JSON and wiki helper scripts
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/prettier --write 'docs/wiki/**/*.{md,json}' 'scripts/wiki-*.mjs'
+          ./node_modules/.bin/prettier --check 'docs/wiki/**/*.{md,json}' 'scripts/wiki-*.mjs'
+          node scripts/wiki-validate.mjs
+          ./node_modules/.bin/eslint scripts/wiki-*.mjs --max-warnings=0
+      - name: Self-remove one-time workflow and commit only formatting
+        run: |
+          set -euo pipefail
+          git rm -- .github/workflows/wiki-format-once.yml
+          git add -- docs/wiki scripts/wiki-compare-snapshots.mjs scripts/wiki-inventory.mjs scripts/wiki-validate.mjs
+          while IFS= read -r file; do
+            case "$file" in
+              docs/wiki/*|scripts/wiki-compare-snapshots.mjs|scripts/wiki-inventory.mjs|scripts/wiki-validate.mjs|.github/workflows/wiki-format-once.yml) ;;
+              *) echo "Unexpected staged path: $file"; exit 71 ;;
+            esac
+          done < <(git diff --cached --name-only)
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "style(wiki): normalize documentation and helper scripts with Prettier"
+          git push origin HEAD:refs/heads/docs/wiki-prettier-fix
