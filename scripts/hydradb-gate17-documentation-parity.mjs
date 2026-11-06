@@ -17,7 +17,8 @@ const ID = 1700100;
 const ID2 = 1700101;
 const CYPHER = 'MATCH (a {id: $src})-[:FOLLOWS]->(b) RETURN b.id AS id';
 const modes = [
-  {name:'documented_default', database:'default', uri:'bolt://127.0.0.1:17687'},
+  {name:'official_js_without_preflight', database:'default', uri:'bolt://127.0.0.1:17687', preflight:false},
+  {name:'documented_default_with_preflight', database:'default', uri:'bolt://127.0.0.1:17687', preflight:true},
   {name:'configured_graph_explicit', database:'@graph', uri:'bolt://127.0.0.1:17687'},
   {name:'unspecified', database:null, uri:'bolt://127.0.0.1:17687'},
   {name:'routed_graph', database:'@graph', uri:'neo4j://127.0.0.1:17687'},
@@ -82,8 +83,12 @@ async function jsTrial(config,token){
   try{
     // Official JS example directly runs session query. Record connectivity
     // separately but still run the query when verification fails.
-    try{await driver.verifyConnectivity();report.connectivity='ok';}
-    catch(e){report.connectivity='failed';report.connectError=safe(e);}
+    if(config.preflight === false){
+      report.connectivity='not_checked_as_in_official_js_example';
+    }else{
+      try{await driver.verifyConnectivity();report.connectivity='ok';}
+      catch(e){report.connectivity='failed';report.connectError=safe(e);}
+    }
     const options={};
     if(config.database!==null) options.database=config.database;
     const session=driver.session(options);
@@ -113,7 +118,7 @@ async function main(){
     const trials=[];
     for(let i=0;i<3;i++)trials.push(await jsTrial(config,token));
     results.push({variant:source.name,config:{database:config.database,
-      scheme:config.uri.split(':')[0]},trials});
+      scheme:config.uri.split(':')[0],preflight:config.preflight!==false},trials});
   }
   const primary=results[0];
   const successes=primary.trials.filter(t=>t.query==='value_match').length;
