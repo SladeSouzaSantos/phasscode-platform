@@ -114,6 +114,13 @@ case "$1" in
     docker pull "$MINIO_IMAGE" >/dev/null
     docker pull "$MC_IMAGE" >/dev/null
     docker pull "$HYDRA_IMAGE" >/dev/null
+    # Capture immutable OCI repository digests for replicability.
+    # Digests are public image metadata; never print environment or tokens.
+    for IMG in "$MINIO_IMAGE" "$MC_IMAGE" "$HYDRA_IMAGE"; do
+      DIGEST="$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMG")"
+      [[ "$DIGEST" == *@sha256:* ]] || { echo GATE11_IMAGE_DIGEST_UNAVAILABLE >&2; exit 41; }
+      printf 'GATE11_IMAGE_DIGEST %s\n' "$DIGEST"
+    done
     echo "GATE11_DISPOSABLE_ENV_INITIALIZED"
     ;;
   minio-start)
