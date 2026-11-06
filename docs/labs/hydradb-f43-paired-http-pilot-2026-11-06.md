@@ -37,6 +37,22 @@ Here, we use the **same Python standard-library HTTP client** to send **identica
 
 **Important observation:** HydraDB's HTTP request p50 and p95 are lower than Neo4j's in these four series, but **HydraDB had some relatively large p99 outliers (up to 124.393 ms)**, and Neo4j had a large p99 outlier on the property filter in concurrency 1 (118.652 ms). With **only 96 requests per series**, do not interpret p99 as a dependable tail-latency ranking. Repetition, instrumentation and more realistic data are required.
 
+## Pinned OCI digest replication
+
+We repeated the experiment using **immutable OCI digests** for both engines. [GitHub Actions #42170443030 — success](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42170443030) used:
+
+- HydraDB `ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3`
+- Neo4j `neo4j@sha256:42ef3ebfd671ebd01fdebb6dcbe80cf7b45eef2aa3d346ef4132f7ef31e67d2f`
+
+**All eight series passed**, returning expected values with no errors or mismatches. Another 768 HTTP calls were measured (total **1536** across both runs). Pinned second-run medians at concurrency 1:
+
+| Query | Neo4j HTTP p50 (ms) | HydraDB HTTP p50 (ms) |
+| --- | ---: | ---: |
+| One hop | 8.324 | 4.220 |
+| Property filter | 7.224 | 4.832 |
+
+The relative direction of **median** latency was reproduced, but the **absolute values changed between GitHub runners**. Rare p99 spikes persisted (HydraDB one-hop 71.363 ms, Neo4j filter 137.961 ms in the second run), so tail latency cannot be reliably ranked from the sample sizes used.
+
 ## What this does and does not establish
 
 The test shows an observed latency advantage for the **HydraDB HTTP query path** over the **Neo4j transactional HTTP query path** for *two tiny reads under the specific runner configuration*. It does **not** show HydraDB winning in large-scale graphs, joins, exact claims-source retrieval, cold caches, object-store S3 costs, concurrent writes, or general performance.
