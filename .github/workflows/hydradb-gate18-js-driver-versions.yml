@@ -1,0 +1,178 @@
+name: HydraDB Gate 18 | JavaScript Neo4j driver-version Bolt comparison
+
+# Four isolated GitHub-hosted jobs. The same pinned HydraDB and Neo4j
+# engines, same synthetic graph/query, independent JS driver versions.
+# No MiniMac, Tailscale, SSH, project volumes or DEV/MAIN environments.
+on:
+  push:
+    branches: [experiment/hydradb]
+    paths:
+      - .github/workflows/hydradb-gate18-js-driver-versions.yml
+      - scripts/hydradb-gate18-js-version-matrix.mjs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hydradb-gate18-driver-versions-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  isolated-version:
+    if: github.repository == 'SladeSouzaSantos/phasscode-platform' && github.ref == 'refs/heads/experiment/hydradb'
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    strategy:
+      fail-fast: false
+      matrix:
+        driver_version: ['5.28.3', '6.0.1', '6.1.0', '6.2.0']
+    env:
+      GATE18_ISOLATION_MODE: github_hosted_ephemeral
+      GATE18_DRIVER_VERSION: ${{ matrix.driver_version }}
+    steps:
+      - name: Require exact isolated scope and approved driver release
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = SladeSouzaSantos/phasscode-platform
+          test "$GITHUB_REF" = refs/heads/experiment/hydradb
+          test "$GATE18_ISOLATION_MODE" = github_hosted_ephemeral
+          case "$GATE18_DRIVER_VERSION" in
+            5.28.3|6.0.1|6.1.0|6.2.0) ;;
+            *) exit 40 ;;
+          esac
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install exact driver in ephemeral private package root
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/hydradb-gate18-js-version-matrix.mjs
+          umask 077
+          ROOT="$RUNNER_TEMP/gate18-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION"
+          test ! -e "$ROOT"
+          mkdir -p "$ROOT/driver" "$ROOT/store" "$ROOT/cache" "$ROOT/neo-data"
+          export GATE18_DRIVER_ROOT="$ROOT"
+          printf '{"name":"gate18-driver-matrix","private":true,"version":"0.0.0"}\n' > "$ROOT/package.json"
+          npm install --prefix "$ROOT" --package-lock-only --ignore-scripts \
+            --audit=false --fund=false --save-exact \
+            "neo4j-driver@$GATE18_DRIVER_VERSION"
+          npm ci --prefix "$ROOT" --ignore-scripts --audit=false --fund=false
+          node -e "const m=require(process.argv[1]+'/node_modules/neo4j-driver/package.json'); if(m.version!==process.argv[2])process.exit(1)" \
+            "$ROOT" "$GATE18_DRIVER_VERSION"
+          echo GATE18_PINNED_DRIVER_INSTALLED
+
+      - name: Start disposable immutable-image HydraDB and Neo4j controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/gate18-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION"
+          test -d "$ROOT" && test ! -L "$ROOT"
+          openssl rand -hex 32 > "$ROOT/hydra-token"
+          printf 'neo4j/%s\n' "$(openssl rand -hex 24)" > "$ROOT/neo-auth"
+          chmod 600 "$ROOT/hydra-token" "$ROOT/neo-auth"
+          sudo chown -R 10001:10001 "$ROOT/store" "$ROOT/cache"
+          sudo install -o 10001 -g 10001 -m 0400 "$ROOT/hydra-token" "$ROOT/hydra-token-container"
+          H="gate18-hydra-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION"
+          N="gate18-neo4j-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION"
+          docker pull ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3 >/dev/null
+          docker pull neo4j@sha256:42ef3ebfd671ebd01fdebb6dcbe80cf7b45eef2aa3d346ef4132f7ef31e67d2f >/dev/null
+          docker run -d --name "$H" \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --pids-limit 256 --memory 2048m --memory-swap 2048m --cpus 1.5 \
+            -e CLOUD_PROVIDER=local \
+            -e LOCAL_PATH=/data/store \
+            -e GRAPH_NAMESPACE=default \
+            -e GRAPH_ID=default \
+            -e GRAPH_CELL_ID=cell-0 \
+            -e GRAPH_CELLS=cell-0 \
+            -e GRAPH_NODE_ID=node-0 \
+            -e GRAPH_BOLT_NODE_ADDRESSES=node-0=127.0.0.1:17687 \
+            -e GRAPH_ADVERTISED_BOLT_ADDR=127.0.0.1:17687 \
+            -e GRAPH_BOLT_ADDR=0.0.0.0:7687 \
+            -e GRAPH_HTTP_ADDR=0.0.0.0:8443 \
+            -e GRAPH_ADMIN_ADDR=0.0.0.0:9090 \
+            -e GRAPH_ALLOW_PLAINTEXT=true \
+            -e GRAPH_AUTH_TOKEN_FILE=/run/secrets/hydra-token \
+            -e GRAPH_DATA_CACHE_DIR=/data/cache \
+            -e RUST_MIN_STACK=33554432 \
+            -e RUST_LOG=warn \
+            -v "$ROOT/store:/data/store" \
+            -v "$ROOT/cache:/data/cache" \
+            -v "$ROOT/hydra-token-container:/run/secrets/hydra-token:ro" \
+            -p 127.0.0.1:18443:8443 \
+            -p 127.0.0.1:19090:9090 \
+            -p 127.0.0.1:17687:7687 \
+            ghcr.io/hydra-db/hydradb@sha256:515ee78600b5d543f9146e62e775c76a8d5d0309773c165b918ed770649a91f3 >/dev/null
+          AUTH="$(cat "$ROOT/neo-auth")"
+          docker run -d --name "$N" \
+            --pids-limit 384 --memory 2048m --memory-swap 2048m --cpus 1.5 \
+            --security-opt no-new-privileges \
+            -e NEO4J_AUTH="$AUTH" \
+            -e NEO4J_server_memory_heap_initial__size=256m \
+            -e NEO4J_server_memory_heap_max__size=512m \
+            -e NEO4J_server_memory_pagecache_size=256m \
+            -v "$ROOT/neo-data:/data" \
+            -p 127.0.0.1:17474:7474 \
+            -p 127.0.0.1:17688:7687 \
+            neo4j@sha256:42ef3ebfd671ebd01fdebb6dcbe80cf7b45eef2aa3d346ef4132f7ef31e67d2f >/dev/null
+          unset AUTH
+          # Never print tokens or container environment to GitHub logs.
+          for i in $(seq 1 100); do
+            if curl --silent --fail --output /dev/null http://127.0.0.1:17474/; then
+              break
+            fi
+            sleep 1
+          done
+          echo GATE18_DISPOSABLE_CONTROLS_STARTED
+
+      - name: Run official documented JS Bolt statement against both engines
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/gate18-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION"
+          export GATE18_DRIVER_ROOT="$ROOT"
+          export GATE18_HYDRA_TOKEN_FILE="$ROOT/hydra-token"
+          export GATE18_NEO_AUTH_FILE="$ROOT/neo-auth"
+          export GATE18_REPORT_FILE="$ROOT/driver-matrix.json"
+          node scripts/hydradb-gate18-js-version-matrix.mjs
+          echo GATE18_VERSION_DIAGNOSTIC_REPORTED
+
+      - name: Upload sanitized per-driver version result and ephemeral dependency lock
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hydradb-gate18-js-v${{ matrix.driver_version }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/gate18-${{ github.run_id }}-${{ matrix.driver_version }}/driver-matrix.json
+            ${{ runner.temp }}/gate18-${{ github.run_id }}-${{ matrix.driver_version }}/package-lock.json
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: On failure report disposable lifecycle only
+        if: failure()
+        shell: bash
+        run: |
+          for ID in "gate18-hydra-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION" "gate18-neo4j-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION"; do
+            docker inspect --format '{{.Name}} status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}}' "$ID" 2>/dev/null || true
+          done
+
+      - name: Remove only this job's temporary containers and files
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker rm -f "gate18-hydra-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION" "gate18-neo4j-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION" >/dev/null 2>&1 || true
+          ROOT="$RUNNER_TEMP/gate18-$GITHUB_RUN_ID-$GATE18_DRIVER_VERSION"
+          test "$ROOT" != "$RUNNER_TEMP" && test "$ROOT" != "/"
+          if [ -d "$ROOT" ] && [ ! -L "$ROOT" ]; then
+            sudo rm -rf -- "$ROOT"
+          fi
+          echo GATE18_DISPOSABLE_CLEANUP_COMPLETE
