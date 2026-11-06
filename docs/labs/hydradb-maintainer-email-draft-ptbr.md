@@ -1,36 +1,38 @@
-# Tradução para revisão — não enviada
+# Tradução para revisão — NÃO ENVIADA (revisão após estudar a documentação v2)
 
 **Para:** nishkarsh@hydradb.app  
-**Assunto:** Re: HydraDB — feedback prático de uma integração Neo4j/GraphRAG
+**Assunto:** Re: HydraDB — feedback técnico com evidências do PoC Orbe/Neo4j GraphRAG
 
 Olá, Nishkarsh!
 
-Obrigado pela mensagem e por ter observado o trabalho com Neo4j no meu portfólio. Fiquei genuinamente feliz com o seu contato — é muito significativo saber que alguém que está desenvolvendo um banco de grafos se interessou pelo que venho construindo.
+Obrigado pelo contato e por ter observado as melhorias que fiz com Neo4j no meu portfólio. Fiquei genuinamente feliz em receber sua mensagem.
 
-Estou desenvolvendo o Orbe, um assistente de IA para meu portfólio profissional que utiliza evidências verificáveis. Nossa integração GraphRAG já usa Neo4j, então sua mensagem me incentivou a testar o HydraDB v0.3.0 com o contrato de uma aplicação real, em vez de apenas executar uma demonstração genérica.
+Estou desenvolvendo o Orbe, um assistente de IA para meu portfólio profissional, fundamentado em evidências. Sua mensagem me incentivou a criar um laboratório isolado para comparar nossa integração existente com o Neo4j ao **motor open-source HydraDB v0.3.0**, em vez de apenas executar uma demonstração genérica.
 
-Preparei um laboratório completamente isolado com Neo4j e HydraDB, utilizando registros públicos do meu portfólio e workflows reproduzíveis no GitHub Actions. Estas foram algumas observações iniciais:
+Testamos o mesmo contrato de evidências nos dois bancos, utilizando sete registros públicos selecionados do meu portfólio:
+- **Paridade funcional:** 88/88 comparações de requisitos e 64/64 consultas de fontes específicas equivalentes com um adapter HydraDB. As 14 claims e 16 fontes selecionadas também sobreviveram aos testes de reinicialização HydraDB/MinIO, inclusive com imagens de contêiner fixadas por digest.
+- **Compatibilidade de migração:** sete das nove operações Cypher originais do Neo4j foram rejeitadas sem adaptação. Os resultados Bolt reproduzidos variaram conforme o cliente: o JavaScript \`neo4j-driver\` 6.2.0 apresentou erros inconsistentes de conexão/consulta, enquanto o driver Python 6.4.1 executou corretamente três leituras \`MATCH\` (inclusive com parâmetro) usando \`default\` ou omitindo a base no mesmo grafo isolado.
+- **Desempenho exploratório:** em uma pequena execução com cache aquecido e HydraDB usando MinIO, a mediana p50 de busca por uma competência foi 2,112 ms no HydraDB/HTTP contra 3,452 ms no Neo4j/Bolt; 1.024 chamadas apresentaram evidências equivalentes. Outra execução confirmou a direção da diferença de latência. Como transporte, formato das consultas e caches diferem, **isso não comprova que o motor HydraDB seja intrinsecamente mais rápido ou mais barato**.
 
-- **Resultados funcionais:** com um adapter específico para HydraDB, IDs numéricos e relacionamentos explícitos entre claims e fontes, reproduzimos **88/88 comparações de requisitos e 64/64 consultas de fontes específicas** de sete registros públicos do portfólio. Em testes delimitados de durabilidade, 14 claims e 16 fontes também sobreviveram a reinicializações do HydraDB e do MinIO.
-- **Diferenças na adaptação:** sete das nossas nove operações Cypher originais do Neo4j foram rejeitadas pelo HydraDB sem modificações.
-- **Investigação Bolt/driver:** o driver JavaScript Neo4j 6.2.0 apresentou resultados inconsistentes entre execuções: sucesso ocasional em `MATCH` simples, mas falhas frequentes `ERR_OUT_OF_RANGE`, `InvalidSyntax` e de roteamento. Em teste independente com o mesmo motor, o **driver Python Neo4j 6.4.1 retornou os três valores esperados (inclusive `MATCH` parametrizado) com a base `default`, com base omitida ou com roteamento para `default`**; com `lab`, falhou. Isso sugere uma interação entre cliente e configuração que merece investigação, e não uma falha geral do Bolt. Temos reproduções mínimas versionadas dos dois clientes.
-- **Documentação:** casos simples positivos e negativos de `IN` e `IS NULL` funcionaram por HTTP, embora a documentação da versão v0.3.0 consultada os liste como não suportados.
-- **Desempenho preliminar F4.3:** em um teste delimitado, com **HydraDB armazenando no MinIO** e cache aquecido, a mediana p50 para uma competência foi **2,112 ms (HydraDB/HTTP) contra 3,452 ms (Neo4j/Bolt)**; para quatro competências, **7,427 contra 11,562 ms**. As **1.024 chamadas medidas** retornaram evidências equivalentes. Uma segunda execução independente com MinIO também passou em 1.024 chamadas, agora com algumas amostras de CPU e memória, insuficientes para determinar custo operacional. Como transporte, consultas e armazenamento diferem, **não estamos afirmando superioridade intrínseca do motor nem menor custo operacional**.
+Antes de responder, consultei também o **[guia BYOG v2 e migração do Neo4j](https://docs.hydradb.com/essentials/v2/bring-your-own-graph)** e a **[documentação dos SDKs v2](https://docs.hydradb.com/api-reference/v2/sdks)**. Esses materiais já explicam Cypher por HTTPS com \`params\`, IDs externos estáveis, importação em lotes com \`MERGE\`, índices e isolamento por collection. São orientações úteis, então não gostaria de perguntar o que já está documentado. Porém, **não testamos a API v2 gerenciada** e não queremos confundi-la com o motor **open-source v0.3.0** executado localmente.
 
-Preparei um estudo de caso técnico com decisões de arquitetura, scripts, workflows, resultados e limitações:  
+Restaram duas perguntas especialmente relevantes:
+1. Para o HydraDB v0.3.0 self-hosted, há uma configuração recomendada de **driver JavaScript Neo4j para Bolt, nome da base e roteamento**, ou as diferenças observadas entre JavaScript e Python já são conhecidas? O BYOG v2 gerenciado seria a alternativa pretendida a essa integração Bolt?
+2. Qual é a correspondência entre os recursos Cypher do **BYOG hospedado v2** e o motor open-source **v0.3.0**? Para esse uso com armazenamento de objetos, quais testes de falha durante escrita, recuperação ou bookmarks você priorizaria além de reinicializações normais?
+
+Documentei a arquitetura, as adaptações do adapter, os testes bem-sucedidos e os erros observados, junto com as reproduções no GitHub Actions:
+
 https://github.com/SladeSouzaSantos/phasscode-platform/blob/experiment/hydradb/docs/labs/hydradb-maintainer-feedback-2026-11-06.md
 
-Gostaria especialmente de conhecer sua orientação sobre o funcionamento esperado do Bolt com diferentes nomes de banco/namespace, o suporte a parâmetros e as estratégias de migração Cypher para aplicações GraphRAG centradas em evidências.
+Uma observação prática: **não falo inglês**, então não conseguiria participar de uma chamada de voz. Gostaria muito de continuar nossa conversa **por e-mail**, usando tradução assistida, e compartilhar as reproduções dos testes.
 
-Uma observação: **não falo inglês**, então uma chamada de voz não seria viável para mim. Ficaria muito satisfeito em continuar nossa conversa **por e-mail**, utilizando tradução assistida, e compartilhar testes adicionais ou reproduções mínimas.
-
-Estou também em transição de carreira, retornando a uma atuação dedicada ao desenvolvimento de software, e continuo estudando alguns aspectos internos dos bancos de grafos. Estou aberto a correções e sugestões para aperfeiçoar meus testes. Minhas observações são do ponto de vista de um desenvolvedor de aplicações, e espero que possam ser úteis ao projeto.
-
-Muito obrigado novamente pelo contato!
+Estou em transição de carreira, voltando a me dedicar integralmente ao desenvolvimento de software, e sigo estudando alguns aspectos internos de bancos de grafos. Fico aberto a correções sobre minha metodologia. Espero que a perspectiva de quem está desenvolvendo uma aplicação seja útil e agradeço mais uma vez pelo interesse no meu trabalho.
 
 Atenciosamente,  
 Pedro Santos
 
 ---
 
-**Status: apenas tradução de referência para revisão pessoal. NADA foi enviado.** O arquivo principal em inglês está em [hydradb-maintainer-email-draft.md](hydradb-maintainer-email-draft.md). Manter as duas versões alinhadas antes do envio.
+**Status:** RASCUNHO / NÃO ENVIADO. Nenhum endpoint gerenciado v2 foi chamado; todos os testes medidos utilizaram HydraDB open-source v0.3.0 em contêineres isolados. Branch \`experiment/hydradb\`; nenhuma alteração/deploy DEV ou MAIN.
+
+**Apoio para revisão:** [matriz oficial v2 versus motor v0.3.0](hydradb-v2-docs-review-2026-11-06.md) · [versão original em inglês](hydradb-maintainer-email-draft.md).
