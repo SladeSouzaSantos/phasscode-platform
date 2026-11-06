@@ -28,6 +28,23 @@ O **PHASSCODE** é um portfólio interativo em pixel art e um assistente profiss
 8. [**Decisões, histórico e status**](decisoes-e-evolucao.md) — módulos antigos, experimentos e ADRs sem confundir com funcionalidades atuais.
 9. [**Como desenvolver e atualizar esta wiki**](guia-do-desenvolvedor.md) — fluxo de contribuição, leitura guiada e critérios para manter as páginas corretas.
 
+## Aprofundamento do código — segunda camada
+
+O [**Mapa do código e das funções**](mapa-do-codigo.md) é o ponto de entrada para seguir a lógica de cada módulo com **referências aos símbolos e às linhas de código**, em vez de apenas uma visão tecnológica.
+
+| Página aprofundada | Pergunta que responde |
+| --- | --- |
+| [\`ChatService.execute\` anotado](modulos/chatservice.md) | Como a pergunta é interpretada, como o Orbe escolhe evidências, precedência, política e resposta? |
+| [API, sessão e autorização](modulos/api-e-sessao.md) | Como o browser, Fastify, ID/token e consentimento mantêm uma conversa? |
+| [PPKS e recuperação](modulos/ppks-e-recuperacao.md) | Como funcionam o ranking lexical, os anchors, os requisitos de vaga e o grafo curado? |
+| [GraphRAG/Reader/Neo4j](modulos/graphrag-e-reader.md) | Como a API consulta grafo privado, valida fontes e abstém quando necessário? |
+| [LLM, orçamento e fallback](modulos/llm-e-orcamento.md) | Como são controlados modelos, contexto, quota Redis, tentativas e falhas? |
+| [PostgreSQL e relatórios](modulos/persistencia-e-relatorios.md) | Como \`runTurn\` usa lock/transação e como funciona o opt-in de métricas? |
+| [Frontend: fluxos e algoritmos](modulos/frontend-fluxos.md) | Como hooks, UI, sessão e navegação animada operam? |
+| [Matriz de testes por módulo](modulos/matriz-testes.md) | Quais testes existem para cada classe/função e o que ainda não foi validado? |
+
+**Situação desta camada:** leitura estática de arquivos centrais do backend e frontend, diagramas e rastreabilidade de caminhos de teste. **Não** foi realizado um levantamento AST completo de todas as funções, execução de testes, validação live ou auditoria dos binários implantados. Os módulos históricos são identificados como tais; a branch \`docs/phasscode-wiki\` permanece separada de \`dev\` e \`main\`.
+
 ## Como ler a documentação
 
 - **Código atual**: afirmações verificadas na árvore das branches examinadas; links apontam para o caminho correspondente.
