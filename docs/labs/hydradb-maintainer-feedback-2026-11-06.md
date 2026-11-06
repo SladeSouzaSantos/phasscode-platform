@@ -10,7 +10,7 @@
 
 Thank you for reaching out. We tested HydraDB v0.3.0 because we already had a real application using Neo4j and wanted to understand how an object-storage-native graph engine would fit an evidence-grounded GraphRAG workload. We deliberately tested **the graph retrieval and provenance contract**, not generic LLM response quality.
 
-There were encouraging results: an adapted, public-PPKS-derived fixture maintained 13/13 logical evidence-query matches across two isolated LAB runs; eight of eleven value-checked adapted Cypher reads agreed between engines; and thirteen tested mutation/postcondition steps behaved as expected. We subsequently built a LAB-only TypeScript repository adapter implementing the **same application interface** as the Neo4j implementation: **20/20 synthetic scenarios and 24/24 individual source lookups matched**, including replay isolation and fallback. A separate MinIO-backed HydraDB test preserved two synthetic graph edges through a node/cache restart and a MinIO+node restart. However, **seven of nine original Orbe Neo4j queries returned HTTP 400 on HydraDB**, and four simple reads through the Neo4j JavaScript Bolt driver failed with `Neo.ClientError.Statement.InvalidSyntax` after connectivity succeeded. This makes HydraDB an interesting prototype target, **not a drop-in Neo4j replacement for this application at v0.3.0**.
+There were encouraging results: an adapted, public-PPKS-derived fixture maintained 13/13 logical evidence-query matches across two isolated LAB runs; eight of eleven value-checked adapted Cypher reads agreed between engines; and thirteen tested mutation/postcondition steps behaved as expected. We subsequently built a LAB-only TypeScript repository adapter implementing the **same application interface** as the Neo4j implementation: **20/20 synthetic scenarios and 24/24 individual source lookups matched**, including replay isolation and fallback. A separate MinIO-backed HydraDB test preserved two synthetic graph edges through a node/cache restart and a MinIO+node restart. However, **seven of nine original Orbe Neo4j queries returned HTTP 400 on HydraDB**, and the initial Neo4j JavaScript Bolt test failed with explicit database selection. A later, narrower Bolt matrix found that **two simple reads worked with no database selected**, while parametrized queries, explicit database selection and routed URI behavior remained problematic. This makes HydraDB an interesting prototype target, **not a drop-in Neo4j replacement for this application at v0.3.0**.
 
 Reproduction: [Gate 9 CI run #42151726372](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42151726372) and the [full compatibility matrix](hydradb-gate9-dynamic-compatibility-2026-11-06.md).
 
@@ -97,7 +97,9 @@ This validates selected evidence/fallback contracts, **not** human-reviewed natu
 | Nine **unmodified** Orbe Cypher operations | **7 HTTP 400**; 2 executed without validating full prune semantics | All 9 executed |
 | Eleven **adapted** read probes, checking returned values | **8/11 matched**; 3 HTTP 400 | 11/11 matched |
 | Thirteen mutation and postcondition steps | **13/13 passed** | 13/13 passed |
-| Four reads via Neo4j JS Bolt driver | `verifyConnectivity` succeeded, but **4/4 returned `InvalidSyntax`** | 4/4 passed |
+| Four reads via Neo4j JS Bolt driver (original, explicit `database:'lab'` setup) | **4/4 failed** | 4/4 passed |
+
+**Gate 14 supersedes any general claim that Bolt cannot read from HydraDB:** [run #42169010048](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42169010048) using JavaScript neo4j-driver **6.2.0** returned **correct values for two simple `MATCH` reads** with a `bolt://` session **without** an explicit database. A parameterized one-hop read still failed with `InvalidSyntax` (the identical Cypher succeeded over HTTP). Explicit database names `lab`/`default` produced `ERR_OUT_OF_RANGE` during connectivity; routed `neo4j://` produced `ServiceUnavailable`. Another literal-only query failed on **both HTTP and Bolt**, indicating a query-language limitation, not a Bolt-only defect. [Minimal matrix and reproducible report](hydradb-gate14-bolt-driver-matrix-2026-11-06.md). These are observations, not root-cause attribution.
 
 The successful mutation tests covered `CREATE`, `MERGE` with repeated-idempotence check, `SET`, `UNWIND`, `DELETE` and `DETACH DELETE` with observable postconditions. The three failed adapted read forms were `WITH ... ORDER BY ... LIMIT`, `toLower()` and `count(n)`.
 
@@ -149,7 +151,7 @@ We captured local HTTP round-trip samples during the earlier MiniMac PPKS experi
 
 - Orbe `main` or `dev` has **not been switched to HydraDB**; no end-to-end recruiter responses were directly compared between a deployed HydraDB Orbe and deployed Neo4j Orbe.
 - A full `EvidenceGraphRepository` implementation in HydraDB is **not yet validated** for all typed entities and the entire current public PPKS snapshot.
-- The driver can establish a Bolt connection on the tested setup, but the four read queries failed: **Bolt query compatibility remains open**.
+- **Bolt query compatibility remains partial**: two simple reads work with implicit database selection; parameterized queries, explicit database naming and routed URI behavior are not yet working in our v0.3.0 JS-driver matrix (Gate 14).
 - The original Neo4j snapshot/transaction, pruning and uniqueness guarantees are **not yet proven equivalent**.
 - **MinIO persistence across node/cache and service restarts passed** first on a tiny synthetic graph (Gate 11) and then on all 14 claims and 16 sources in our selected public PPKS subset (Gate 13). **Interrupted writes, multi-writer fencing, backups, concurrency, authorization/tenancy, bookmarks, operational cost and controlled performance remain open**.
 - Our synthetic labels are not independent human-reviewed gold for an NLP claim.
@@ -158,19 +160,19 @@ For an externally useful conclusion, all of these should remain identified as ga
 
 ## 5. Questions for Nishkarsh / where feedback could help
 
-1. **Bolt v0.3.0**: Is there a recommended Neo4j JavaScript driver version, connection URI, database/namespace or Cypher transport configuration for simple `MATCH` reads? In our minimal case, `verifyConnectivity` succeeded, then four reads failed with `Neo.ClientError.Statement.InvalidSyntax`; an earlier run also saw `ERR_OUT_OF_RANGE` during connectivity. [Reproducer](../../scripts/gate9-disposable-bolt.mjs).
+1. **Bolt v0.3.0 / JS neo4j-driver 6.2.0**: Two fixed `MATCH` reads worked when the database was **omitted**. The same driver returned `ERR_OUT_OF_RANGE` with database `lab` or `default`, `ServiceUnavailable` on a routed `neo4j://` URI, and `InvalidSyntax` for a bound `$id` parameter even though the identical query succeeded over HTTP. What database/namespace routing and parameter handling would you recommend? [Minimal comparison matrix](../../scripts/hydradb-gate14-bolt-matrix.mjs) and [results](hydradb-gate14-bolt-driver-matrix-2026-11-06.md).
 2. **Cypher support contract**: Are simple `IN` and `IS NULL` expressions intentionally supported in the v0.3.0 HTTP query path despite the documentation? Are `WITH ... ORDER BY ... LIMIT`, `toLower` and `count(n)` expected to be added, or should an adapter deliberately avoid them?
 3. **Neo4j migration idioms**: What is the recommended schema/query pattern for string business keys mapped to numeric vertex IDs, claim-to-source provenance edges, deterministic pagination and constrained/idempotent upserts?
 4. **Object-store durability**: Our basic MinIO write→restart→read experiment passed across HydraDB cache and MinIO service replacements. What *next* fault/consistency tests would you recommend for interrupted writes, writer takeover, read-your-writes, bookmarks and recovery? Could the upstream MinIO smoke harness be updated to pull a maintained, publicly accessible image?
 5. **Performance and cost**: What production-representative workload and metrics should we use to compare object storage-backed HydraDB against a similarly provisioned Neo4j instance without misleading results?
 
-We would be happy to discuss the smallest reproductions in a short call, then send follow-up findings. The request is for engineering guidance, not a claim that the database is generally broken.
+Written discussion would be ideal: **I don't speak English, so I cannot comfortably participate in a voice call, but I'd be very glad to continue by email with translation assistance** and share minimal reproductions. I also appreciate that you took the time to notice the Neo4j improvements in my portfolio. I'm transitioning back into dedicated software development and still learning more about graph database internals, so I welcome corrections to my test methodology. The findings are application-level feedback rather than a claim that the engine is generally broken.
 
 ## 6. What remains before calling it a migration
 
 **We now have two reproducible application-interface comparisons: Gate 10's wholly synthetic fixture and Gate 12's selected public PPKS fixture, the latter with 88/88 requirement and 64/64 source parity checks**. Both use the original Neo4j repository and an adapted HydraDB LAB implementation. Replay/idempotence, evidence scoping, source completeness and safe fallback were tested under bounded conditions. **Gate 11 proved minimal MinIO persistence and Gate 13 reproduced restart persistence for the public PPKS claim/source subset.**
 
-Next we intend to **expand beyond the seven public records / first-two-skills-per-record subset**, record immutable OCI digests, investigate the outstanding Bolt issue and test interrupted-write recovery, backups and stronger isolation. Gate 13 has already proven basic MinIO restart persistence of the selected public source dataset, so that check is no longer pending. Controlled performance and cost evaluation come **only after** these semantic and operational questions.
+Next we intend to **expand beyond the seven public records / first-two-skills-per-record subset**, resolve the remaining Bolt parameter/database/routing questions, and test interrupted-write recovery, backups and stronger isolation. Gate 13 has already proven basic MinIO restart persistence of the selected public source dataset, so that check is no longer pending. Controlled performance and cost evaluation come **only after** these semantic and operational questions.
 
 **Verdict remains: HydraDB requires a dedicated adapter; it is not yet a drop-in Neo4j replacement for the deployed Orbe service.** The [acceptance protocol](hydradb-dev-main-parity-plan.md) distinguishes completed synthetic checks from pending real-application and larger-fixture checks.
 
@@ -187,6 +189,8 @@ Next we intend to **expand beyond the seven public records / first-two-skills-pe
 - [Exact Orbe Cypher fixture generator](../../scripts/gate9-runtime-fixture.ts)
 - [Disposable HydraDB/Neo4j GitHub Actions workflow](../../.github/workflows/hydradb-gate9-runtime.yml)
 - [HTTP compatibility + mutation runner](../../scripts/hydradb-gate9-disposable-runtime.py)
+- [Gate 14 — Bolt matrix report (partial positive results)](hydradb-gate14-bolt-driver-matrix-2026-11-06.md)
+- [Gate 14 — real diagnostic run](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42169010048)
 - [Bolt driver reproducer](../../scripts/gate9-disposable-bolt.mjs)
 - [Full original-query and portable-query matrix](hydradb-gate9-dynamic-compatibility-2026-11-06.md)
 - [Read-only OFF/SHADOW workflow](../../.github/workflows/hydradb-lab-validate.yml)
