@@ -1,35 +1,36 @@
 # Draft only — not sent
 
 **To:** nishkarsh@hydradb.app  
-**Subject:** Re: HydraDB — feedback from a hands-on Neo4j/GraphRAG migration PoC
+**Subject:** Re: HydraDB — hands-on feedback from a Neo4j/GraphRAG integration
 
 Hi Nishkarsh,
 
-Thank you for reaching out and for noticing the Neo4j work in my portfolio. I was genuinely happy to receive a message from someone building a graph database — your interest in my work meant a lot to me.
+Thank you for your message and for noticing the Neo4j work in my portfolio. I was genuinely happy to hear from you — it means a lot to know that someone developing a graph database took an interest in what I've been building.
 
-Your object-storage-native graph approach caught my interest because I'm building Orbe, an evidence-grounded AI assistant for my developer portfolio. We already use Neo4j for optional GraphRAG retrieval over a versioned professional evidence base, so I tried adapting our actual graph retrieval contract to HydraDB v0.3.0 rather than just running a generic benchmark.
+I'm working on Orbe, an AI assistant for my developer portfolio that uses verified professional evidence. Our existing GraphRAG integration uses Neo4j, so your message motivated me to test HydraDB v0.3.0 against that real application contract rather than just try a generic demo.
 
-I set up isolated HydraDB and Neo4j 5.26 experiments and documented both the changes needed and the results:
+I put together a fully isolated Neo4j/HydraDB lab, using public portfolio records and reproducible GitHub Actions workflows. Some early findings:
 
-- **What worked:** An adapter using numeric graph IDs, explicit claim→source provenance edges and supported Cypher preserved the same Orbe repository outputs for **88/88 requirement-level comparisons and 64/64 source lookups** on seven public portfolio records. A separate MinIO-backed run recovered **14 claims and 16 sources**, with identical result digests after restarting HydraDB and MinIO.
-- **Where migration was not plug-and-play:** Seven of our nine original Neo4j Cypher operations returned HTTP 400 in HydraDB. The Neo4j JavaScript driver could establish Bolt connectivity, but four basic `MATCH` reads returned `InvalidSyntax`.
-- **A documentation discrepancy:** Simple `IN` and `IS NULL` forms worked in the v0.3.0 HTTP runtime, although the pinned Cypher-support document lists them as unsupported.
-- **One setup issue:** The upstream MinIO smoke script references Docker images that were unavailable from Docker Hub/Quay in our runner. We were able to reproduce the durability test using maintained Chainguard MinIO images.
+- **Functional results:** Using a HydraDB-specific adapter with numeric IDs and explicit claim-to-source relationships, we reproduced **88/88 requirement comparisons and 64/64 individual source lookups** from seven public portfolio records. All 14 claims and 16 sources also survived HydraDB and MinIO restarts in our limited durability tests.
+- **Migration differences:** Seven of our nine original Neo4j Cypher operations were rejected by HydraDB without adaptation.
+- **Bolt/driver detail:** With the JavaScript Neo4j driver 6.2.0, two simple `MATCH` reads worked when no database was specified. However, parameterized `MATCH`, explicit database selection, and routed URI configurations still failed in different ways. We have a minimal reproduction.
+- **Documentation:** Simple positive and negative `IN` and `IS NULL` queries worked over HTTP, although the pinned v0.3.0 documentation lists these forms as unsupported.
+- **Preliminary performance:** The HydraDB HTTP adapter had lower round-trip latencies than our Neo4j Bolt adapter in a small, warm-cache public-PPKS pilot. Because the drivers and query paths differ, we are **not** claiming engine-level superiority or cost savings.
 
-These are deliberately limited functional results, not evidence of a speed/cost advantage or a production-ready replacement for Neo4j. We have not changed our deployed Orbe environment.
-
-I put together a reproducible technical case study with the architecture, adaptation strategy, scripts and GitHub Actions logs:  
+The full case study, technical decisions, reproduction scripts, workflow logs, and limitations are here:  
 https://github.com/SladeSouzaSantos/phasscode-platform/blob/experiment/hydradb/docs/labs/hydradb-maintainer-feedback-2026-11-06.md
 
-I'd particularly appreciate your perspective on the recommended Bolt/JavaScript driver configuration, the intended v0.3.0 Cypher subset and the most useful object-storage failure tests for a workload like this.
+I'd especially appreciate your guidance on the intended Bolt database/namespace behavior, parameter support, and Cypher migration patterns for evidence-heavy GraphRAG applications.
 
-I don't speak English, so a voice call would not work well for me. However, I'd really enjoy continuing the conversation **by email**, with translation assistance, and sharing reproducible examples or testing suggestions whenever useful.
+One note: **I don't speak English**, so a voice call wouldn't work for me. I'd be very happy to continue our conversation **by email**, using translation assistance, and share additional tests or minimal reproductions.
 
-I'm currently transitioning back into a dedicated software-development career and continuing to deepen my experience with graph databases. Please read these as hands-on, application-level observations rather than a formal assessment of the HydraDB engine; I'm very open to corrections or better testing approaches.
+I'm also transitioning back into a dedicated software-development career, and I'm still learning about some graph database internals. I welcome corrections or suggestions to improve how I'm testing. My observations are from an application developer's perspective, and I hope they can be useful to the project.
+
+Thanks again for reaching out!
 
 Best regards,  
 Pedro Santos
 
 ---
 
-**Sending status:** DRAFT ONLY. No email has been sent. Verify the report and final links before sending. The runnable scope is `experiment/hydradb`, not a production migration.
+**Sending status: DRAFT ONLY. NOT SENT.** Review the technical report and recipient before sending. This experiment does not represent an actual migration of Orbe DEV/MAIN. All experiments are in `experiment/hydradb` with isolated test data.
