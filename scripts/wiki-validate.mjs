@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Static documentation-only wiki check: local Markdown links, pinned manifests,
 // generated outputs and expected cross-repository inventory coverage.
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative, resolve, dirname, sep } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join, relative, resolve, dirname } from 'node:path';
 const root = resolve('docs/wiki');
 if (!existsSync(join(root,'README.md'))) throw Error('Missing docs/wiki/README.md');
 const docs=[];
