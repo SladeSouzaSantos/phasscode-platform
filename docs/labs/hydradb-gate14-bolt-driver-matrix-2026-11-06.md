@@ -26,7 +26,23 @@
 | HydraDB routed `neo4j://127.0.0.1:17687` with `lab` | `ServiceUnavailable` |
 | HydraDB routed `neo4j://127.0.0.1:17687` with `default` | `ServiceUnavailable` |
 
-**Correction to Gate 9:** its earlier four failed Bolt queries used an explicit `database:'lab'` session. Gate 14 demonstrates that **two of those types of reads actually work if the database is not explicitly supplied**, while the parameterized pattern fails independently in that tested path. Therefore the simple claim 'all Bolt queries fail in v0.3.0' would be **incorrect**.
+**Correction to Gate 9:** its earlier four failed Bolt queries used an explicit `database:'lab'` session. Gate 14 demonstrates **partial positive Bolt reads in some connection/database configurations**, while parameterization, explicit database behavior and routing remain unresolved. **Neither 'all Bolt fails' nor 'omit database always works' is supported by the two runs.**
+
+## Subsequent digest-pinned run — configuration outcomes were NOT stable across runs
+
+The initial table above describes [run #42169010048](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42169010048) using the `:0.3.0` release tag. We repeated the matrix with **the image pinned by OCI digest** in [run #42170443030 — success](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42170443030), while retaining the same JS driver version **6.2.0** and synthetic fixture.
+
+| HydraDB connection mode | Initial tag-based run | Later pinned-digest run |
+| --- | --- | --- |
+| Direct Bolt, explicit `lab` | `ERR_OUT_OF_RANGE` during connectivity | Connected, but every one of four queries returned `InvalidSyntax` |
+| Direct Bolt, explicit `default` | `ERR_OUT_OF_RANGE` during connectivity | Connected; labeled and 1-hop reads returned correct values, parameterized read and `RETURN 1` rejected |
+| Direct Bolt, **database omitted** | Connected; two simple reads correct; parametrized failed | `ERR_OUT_OF_RANGE` during connectivity |
+| Routed `neo4j://`, explicit `lab` or `default` | `ServiceUnavailable` | `ServiceUnavailable` |
+| Same `MATCH` via HTTP | Correct values for 3/3 supported query forms | Same |
+
+**This matters for the feedback:** it would be **incorrect to recommend 'omit database' as a reliable workaround**, or to assert that `database: default` reliably works. The observed configuration outcome **varied between separate runs**. The initial run used a version tag without its digest recorded; therefore **image drift, startup/readiness, timing and client behavior have not been distinguished**. The pinned image digest alone does not establish the reason for the discrepancy. The bound-parameter failure when Bolt MATCH could run remained reproducible, while the identical query succeeded over HTTP.
+
+A subsequent test was added to run **three fresh JS-driver sessions per variant** within the same pinned-image runner and to compare the independent **Python neo4j-driver 6.4.1**; report their outcome separately before advising the maintainer on the actual root cause.
 
 ## Important limits
 
