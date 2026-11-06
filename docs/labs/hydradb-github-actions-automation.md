@@ -95,3 +95,19 @@ O script fonte do forced command passou a usar 1280 MiB de memória no contêine
 ~~~
 
 Depois dessa confirmação, um novo commit na branch experimental em caminho monitorado pelo workflow acionará a nova rodada. Não rodar sudo, apagar volumes ou alterar o comando do SSH fora deste procedimento.
+
+## Primeira execucao automatizada no MiniMac — SUCESSO
+
+**Comprovacao:** [GitHub Actions #42144901903](https://github.com/SladeSouzaSantos/phasscode-platform/actions/runs/42144901903), SHA de `experiment/hydradb`: `84332fe62dda2446a53f89ae4eeaae74f71a1f18`.
+
+Depois que o operador atualizou a copia fixa do SSH com a memoria de 1280 MiB (heap Node de 768 MiB), ambos os jobs finalizaram como **success**:
+
+- `offline`: GitHub-hosted, typecheck + Vitest + corpus e avaliador OFF aprovados.
+- `minimac-shadow`: Tailscale/SSH autenticado com chave dedicada, host key pinned e forced command; checkout LAB avancou somente ate SHA validado; `npm run typecheck` aprovado; Vitest: 2 arquivos com 14 testes; avaliacao OFF + SHADOW executada com sucesso.
+- **OFF**: 20 casos sinteticos, 30 requisitos, 16 fontes distintas, 38 claims e 103 vinculos de fonte por ocorrencia; 46 decisoes canônicas.
+- **SHADOW**: mesmos 20/30/16/38/103 e equivalencia exata ao canonico; 36 decisoes `graph_verified` e 10 `canonical_fallback` esperadas; 16/16 fontes individuais verificadas.
+- Marcadores: `HYDRADB_LAB_REMOTE_OFF_PASS`, `GATE8_SHADOW_CANONICAL_PARITY_PASS`, `GATE8_SHADOW_SUPPORTED_FIXTURE_VERIFIED_PASS`, `HYDRADB_LAB_REMOTE_SHADOW_PASS`, `HYDRADB_LAB_CI_REMOTE_PASS`.
+
+**Limite epistêmico:** gold humano independente segue pendente (`goldReviewed=false`), e `incrementalSemanticGain=not_measured`. Isto comprova automacao de paridade e seguranca de fallback no LAB, **nao** superioridade semantica nem performance vs Neo4j. Nao houve deploy ou merge em DEV/MAIN.
+
+**Postura operacional:** o operador ativou `HYDRADB_LAB_REMOTE_APPROVED=true`, que permanece habilitado enquanto nao o alterar. Para desabilitar novas execucoes remotas, executar o comando de revogacao acima; a automacao offline continua funcional. O comando forçado permanece uma copia fixa fora do checkout e so muda mediante acao consciente do operador.
