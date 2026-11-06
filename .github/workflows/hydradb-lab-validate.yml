@@ -118,6 +118,11 @@ jobs:
           # OpenSSH restrict,command= on the MiniMac rejects all other requests.
           ssh -F /dev/null -T \
             -o BatchMode=yes \
+            -o PreferredAuthentications=publickey \
+            -o PasswordAuthentication=no \
+            -o KbdInteractiveAuthentication=no \
+            -o ForwardAgent=no \
+            -o ClearAllForwardings=yes \
             -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile="$RUNNER_TEMP/hydradb-lab-known-hosts" \
