@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "state": "draft_requires_independent_review",
+  "purpose": "Gate 8 synthetic recruiter-question gold, not a measured model or candidate result",
+  "fixture": "seven explicitly public PPKS lab records (Gate 7)",
+  "note": "Expected skills are intent annotations for future interpretation experiments; knownClaims are canonical LAB fixture expectations, not full evidence of professional ability. OOV means absent from LAB fixture only.",
+  "knownClaims": {
+    "Java": [
+      {
+        "subjectId": "experiencia-sig",
+        "scope": "professional"
+      },
+      {
+        "subjectId": "webservice-springboot-jpa",
+        "scope": "study"
+      }
+    ],
+    "Flutter": [
+      {
+        "subjectId": "experiencia-greencity",
+        "scope": "mixed_role"
+      },
+      {
+        "subjectId": "greencity-os",
+        "scope": "personal_project"
+      }
+    ],
+    "Node.js": [
+      {
+        "subjectId": "phasscode-platform",
+        "scope": "personal_project"
+      }
+    ],
+    "TypeScript": [
+      {
+        "subjectId": "phasscode-platform",
+        "scope": "personal_project"
+      },
+      {
+        "subjectId": "web-portfolio-v2",
+        "scope": "personal_project"
+      }
+    ],
+    "Go": [],
+    "React": [
+      {
+        "subjectId": "web-portfolio-v2",
+        "scope": "personal_project"
+      }
+    ],
+    "Spring Boot": [
+      {
+        "subjectId": "webservice-springboot-jpa",
+        "scope": "study"
+      }
+    ],
+    "Python": [
+      {
+        "subjectId": "hsp-simulator",
+        "scope": "unknown"
+      }
+    ],
+    "FastAPI": [
+      {
+        "subjectId": "hsp-simulator",
+        "scope": "unknown"
+      }
+    ],
+    "Django": []
+  },
+  "cases": [
+    {
+      "id": "java-profissional",
+      "origin": "synthetic",
+      "question": "Pedro já trabalhou profissionalmente com Java?",
+      "expectedSkills": [
+        "Java"
+      ],
+      "riskTags": [
+        "employment_overclaim",
+        "scope"
+      ]
+    },
+    {
+      "id": "java-estudo",
+      "origin": "synthetic",
+      "question": "Além de emprego, ele fez projeto de estudo em Java?",
+      "expectedSkills": [
+        "Java"
+      ],
+      "riskTags": [
+        "scope",
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "spring-profissional",
+      "origin": "synthetic",
+      "question": "Ele usou Spring Boot em emprego anterior?",
+      "expectedSkills": [
+        "Spring Boot"
+      ],
+      "riskTags": [
+        "employment_overclaim",
+        "scope"
+      ]
+    },
+    {
+      "id": "java-spring-diferenca",
+      "origin": "synthetic",
+      "question": "Qual a diferença entre a experiência Java e o projeto Spring Boot?",
+      "expectedSkills": [
+        "Java",
+        "Spring Boot"
+      ],
+      "riskTags": [
+        "mixed_skills",
+        "scope"
+      ]
+    },
+    {
+      "id": "flutter-greencity",
+      "origin": "synthetic",
+      "question": "O trabalho com Flutter na Greencity foi exclusivamente programação?",
+      "expectedSkills": [
+        "Flutter"
+      ],
+      "riskTags": [
+        "employment_overclaim",
+        "scope"
+      ]
+    },
+    {
+      "id": "flutter-projeto",
+      "origin": "synthetic",
+      "question": "Quais projetos pessoais dele usam Flutter?",
+      "expectedSkills": [
+        "Flutter"
+      ],
+      "riskTags": [
+        "scope"
+      ]
+    },
+    {
+      "id": "node-provas",
+      "origin": "synthetic",
+      "question": "Há código e documentação que comprovem Node.js no backend?",
+      "expectedSkills": [
+        "Node.js"
+      ],
+      "riskTags": [
+        "provenance"
+      ]
+    },
+    {
+      "id": "typescript-fontes",
+      "origin": "synthetic",
+      "question": "TypeScript está em que projetos e que fontes temos?",
+      "expectedSkills": [
+        "TypeScript"
+      ],
+      "riskTags": [
+        "provenance"
+      ]
+    },
+    {
+      "id": "typescript-parafrase",
+      "origin": "synthetic",
+      "question": "Ele desenvolveu alguma aplicação usando TS?",
+      "expectedSkills": [
+        "TypeScript"
+      ],
+      "riskTags": [
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "go-ausente",
+      "origin": "synthetic",
+      "question": "Pedro tem experiência profissional com Go?",
+      "expectedSkills": [
+        "Go"
+      ],
+      "riskTags": [
+        "oov",
+        "employment_overclaim"
+      ]
+    },
+    {
+      "id": "django-ausente",
+      "origin": "synthetic",
+      "question": "Existem evidências de Django?",
+      "expectedSkills": [
+        "Django"
+      ],
+      "riskTags": [
+        "oov",
+        "provenance"
+      ]
+    },
+    {
+      "id": "react-projeto",
+      "origin": "synthetic",
+      "question": "O portfólio usa React em projetos públicos?",
+      "expectedSkills": [
+        "React"
+      ],
+      "riskTags": [
+        "scope"
+      ]
+    },
+    {
+      "id": "hsp-stack",
+      "origin": "synthetic",
+      "question": "No simulador HSP ele usa Python e FastAPI?",
+      "expectedSkills": [
+        "Python",
+        "FastAPI"
+      ],
+      "riskTags": [
+        "mixed_skills"
+      ]
+    },
+    {
+      "id": "java-go",
+      "origin": "synthetic",
+      "question": "A vaga pede Java e Go. O que é comprovado?",
+      "expectedSkills": [
+        "Java",
+        "Go"
+      ],
+      "riskTags": [
+        "mixed_skills",
+        "oov"
+      ]
+    },
+    {
+      "id": "java-flutter-go",
+      "origin": "synthetic",
+      "question": "Compare Java, Flutter e Go para uma seleção técnica.",
+      "expectedSkills": [
+        "Java",
+        "Flutter",
+        "Go"
+      ],
+      "riskTags": [
+        "mixed_skills",
+        "scope",
+        "oov"
+      ]
+    },
+    {
+      "id": "sem-go-mas-java",
+      "origin": "synthetic",
+      "question": "Sem alegar experiência Go, o que ele apresenta com Java?",
+      "expectedSkills": [
+        "Go",
+        "Java"
+      ],
+      "riskTags": [
+        "negation",
+        "oov"
+      ]
+    },
+    {
+      "id": "negacao-django",
+      "origin": "synthetic",
+      "question": "Não invente experiência com Django; há evidências Python?",
+      "expectedSkills": [
+        "Django",
+        "Python"
+      ],
+      "riskTags": [
+        "negation",
+        "oov"
+      ]
+    },
+    {
+      "id": "web-fullstack",
+      "origin": "synthetic",
+      "question": "Ele combina Node.js no backend e TypeScript no portfólio?",
+      "expectedSkills": [
+        "Node.js",
+        "TypeScript"
+      ],
+      "riskTags": [
+        "mixed_skills",
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "mobile-web",
+      "origin": "synthetic",
+      "question": "Que evidências há de Flutter e React?",
+      "expectedSkills": [
+        "Flutter",
+        "React"
+      ],
+      "riskTags": [
+        "mixed_skills",
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "senioridade-sem-extrapolar",
+      "origin": "synthetic",
+      "question": "Java e Spring Boot são ambos experiência profissional remunerada?",
+      "expectedSkills": [
+        "Java",
+        "Spring Boot"
+      ],
+      "riskTags": [
+        "employment_overclaim",
+        "scope",
+        "mixed_skills"
+      ]
+    }
+  ]
+}
