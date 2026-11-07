@@ -23,13 +23,13 @@ A API pública **não** deveria deter credenciais de Neo4j. O [`assertPublicOrbe
 
 ## 2. Do arquivo PPKS ao Neo4j
 
-| Componente | Responsabilidade |
-| --- | --- |
+| Componente                                                                                          | Responsabilidade                                                       |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | [`projectPpksEvidenceGraph`](../../../apps/orbe-node/src/adapters/ppks-evidence-graph.ts#L118-L291) | Converte fichas e cursos em snapshot com nodes, relações e `sourceIds` |
-| [`evidenceGraphSnapshotSchema`](../../../apps/orbe-node/src/domain/evidence-graph.ts#L148-L217) | Rejeita duplicidade, IDs pendentes e ausência de fontes válidas |
-| [`planNeo4jGraphSeed`](../../../apps/orbe-node/src/adapters/neo4j-graph-queries.ts#L55-L89) | Gera plano determinístico de escrita/limpeza e hash de snapshot |
-| [`Neo4jGraphStore.seed`](../../../apps/orbe-node/src/adapters/neo4j-driver-store.ts#L84-L110) | Executa plano Cypher usando driver/conta privados |
-| [`Neo4jEvidenceRepository`](../../../apps/orbe-node/src/adapters/neo4j-graph-queries.ts#L123-L169) | Expõe `findEvidence` e `getSource` por consultas aprovadas |
+| [`evidenceGraphSnapshotSchema`](../../../apps/orbe-node/src/domain/evidence-graph.ts#L148-L217)     | Rejeita duplicidade, IDs pendentes e ausência de fontes válidas        |
+| [`planNeo4jGraphSeed`](../../../apps/orbe-node/src/adapters/neo4j-graph-queries.ts#L55-L89)         | Gera plano determinístico de escrita/limpeza e hash de snapshot        |
+| [`Neo4jGraphStore.seed`](../../../apps/orbe-node/src/adapters/neo4j-driver-store.ts#L84-L110)       | Executa plano Cypher usando driver/conta privados                      |
+| [`Neo4jEvidenceRepository`](../../../apps/orbe-node/src/adapters/neo4j-graph-queries.ts#L123-L169)  | Expõe `findEvidence` e `getSource` por consultas aprovadas             |
 
 O [`Neo4jGraphStore.read`](../../../apps/orbe-node/src/adapters/neo4j-driver-store.ts#L53-L83) aceita apenas queries pertencentes à allowlist. Não é uma API para executar Cypher arbitrário do visitante. O plano de seed gera os nós, relações, poda elementos de snapshots antigos, mas as **fichas versionadas** seguem fonte de verdade.
 
@@ -37,11 +37,11 @@ O [`Neo4jGraphStore.read`](../../../apps/orbe-node/src/adapters/neo4j-driver-sto
 
 [`buildInternalGraphReader`](../../../apps/orbe-node/src/graph-reader/app.ts#L33-L95) monta Fastify privado:
 
-| Endpoint | Entrada | Saída | Limites |
-| --- | --- | --- | --- |
-| `GET /internal/health` | Bearer interno | `{status:'ready'}` | Check do processo Reader |
-| `POST /internal/evidence` | `{ requirements, maxClaimsPerRequirement? }` | `{matches}` | Zod estrito, IDs distintos, 1–20 claims/requisito |
-| `POST /internal/source` | `{ id }` | `{source: ... | null}` | ID validado, fonte pública filtrada |
+| Endpoint                  | Entrada                                      | Saída              | Limites                                           |
+| ------------------------- | -------------------------------------------- | ------------------ | ------------------------------------------------- |
+| `GET /internal/health`    | Bearer interno                               | `{status:'ready'}` | Check do processo Reader                          |
+| `POST /internal/evidence` | `{ requirements, maxClaimsPerRequirement? }` | `{matches}`        | Zod estrito, IDs distintos, 1–20 claims/requisito |
+| `POST /internal/source`   | `{ id }`                                     | `{source: ...      | null}`                                            | ID validado, fonte pública filtrada |
 
 O Reader autentica `Authorization: Bearer …` com fingerprint SHA-256 e comparação de tempo constante; limita body, timeout e taxa. **Não oferece endpoint de escrita, consultas Cypher livres ou administração**. Suas respostas passam por [`PublicGraphEvidenceGateway`](../../../apps/orbe-node/src/application/graph-public-policy.ts#L16-L65).
 

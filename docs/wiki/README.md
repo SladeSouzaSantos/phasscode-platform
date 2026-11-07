@@ -8,13 +8,13 @@
 
 O **PHASSCODE** é um portfólio interativo em pixel art e um assistente profissional (**Orbe**) destinado a apresentar experiência, projetos, formação, competências e alinhamento a vagas **com evidências rastreáveis**. O projeto está dividido em dois repositórios principais:
 
-| Camada | Repositório | Tecnologias-chave | Entrada |
-| --- | --- | --- | --- |
-| Frontend | [web-portfolio-v2](https://github.com/SladeSouzaSantos/web-portfolio-v2) | React, TypeScript, Vite, React Router, Playwright | [`src/App.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/App.tsx) |
-| Backend | [phasscode-platform](https://github.com/SladeSouzaSantos/phasscode-platform) | Node 24, TypeScript, Fastify, LangChain, PostgreSQL, Redis | [`apps/orbe-node/src/main.ts`](../../apps/orbe-node/src/main.ts) |
-| Conhecimento | Backend / `knowledge/` | PPKS, índice de catálogo, relações semânticas curadas | [`knowledge/ppks/README.md`](../../knowledge/ppks/README.md) |
-| GraphRAG opcional | Backend / `apps/orbe-node/` | Neo4j, Reader HTTP privado, LangGraph | [Guia Active DEV](../graph-rag-active-dev.md) |
-| Operação e testes | Dois repositórios | GitHub Actions, Compose, CI, Playwright | [Deploy backend](../deployment/README.md) |
+| Camada            | Repositório                                                                  | Tecnologias-chave                                          | Entrada                                                                                     |
+| ----------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Frontend          | [web-portfolio-v2](https://github.com/SladeSouzaSantos/web-portfolio-v2)     | React, TypeScript, Vite, React Router, Playwright          | [`src/App.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/App.tsx) |
+| Backend           | [phasscode-platform](https://github.com/SladeSouzaSantos/phasscode-platform) | Node 24, TypeScript, Fastify, LangChain, PostgreSQL, Redis | [`apps/orbe-node/src/main.ts`](../../apps/orbe-node/src/main.ts)                            |
+| Conhecimento      | Backend / `knowledge/`                                                       | PPKS, índice de catálogo, relações semânticas curadas      | [`knowledge/ppks/README.md`](../../knowledge/ppks/README.md)                                |
+| GraphRAG opcional | Backend / `apps/orbe-node/`                                                  | Neo4j, Reader HTTP privado, LangGraph                      | [Guia Active DEV](../graph-rag-active-dev.md)                                               |
+| Operação e testes | Dois repositórios                                                            | GitHub Actions, Compose, CI, Playwright                    | [Deploy backend](../deployment/README.md)                                                   |
 
 ## Navegação
 
@@ -32,16 +32,16 @@ O **PHASSCODE** é um portfólio interativo em pixel art e um assistente profiss
 
 O [**Mapa do código e das funções**](mapa-do-codigo.md) é o ponto de entrada para seguir a lógica de cada módulo com **referências aos símbolos e às linhas de código**, em vez de apenas uma visão tecnológica.
 
-| Página aprofundada | Pergunta que responde |
-| --- | --- |
-| [\`ChatService.execute\` anotado](modulos/chatservice.md) | Como a pergunta é interpretada, como o Orbe escolhe evidências, precedência, política e resposta? |
-| [API, sessão e autorização](modulos/api-e-sessao.md) | Como o browser, Fastify, ID/token e consentimento mantêm uma conversa? |
-| [PPKS e recuperação](modulos/ppks-e-recuperacao.md) | Como funcionam o ranking lexical, os anchors, os requisitos de vaga e o grafo curado? |
-| [GraphRAG/Reader/Neo4j](modulos/graphrag-e-reader.md) | Como a API consulta grafo privado, valida fontes e abstém quando necessário? |
-| [LLM, orçamento e fallback](modulos/llm-e-orcamento.md) | Como são controlados modelos, contexto, quota Redis, tentativas e falhas? |
-| [PostgreSQL e relatórios](modulos/persistencia-e-relatorios.md) | Como \`runTurn\` usa lock/transação e como funciona o opt-in de métricas? |
-| [Frontend: fluxos e algoritmos](modulos/frontend-fluxos.md) | Como hooks, UI, sessão e navegação animada operam? |
-| [Matriz de testes por módulo](modulos/matriz-testes.md) | Quais testes existem para cada classe/função e o que ainda não foi validado? |
+| Página aprofundada                                              | Pergunta que responde                                                                             |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [\`ChatService.execute\` anotado](modulos/chatservice.md)       | Como a pergunta é interpretada, como o Orbe escolhe evidências, precedência, política e resposta? |
+| [API, sessão e autorização](modulos/api-e-sessao.md)            | Como o browser, Fastify, ID/token e consentimento mantêm uma conversa?                            |
+| [PPKS e recuperação](modulos/ppks-e-recuperacao.md)             | Como funcionam o ranking lexical, os anchors, os requisitos de vaga e o grafo curado?             |
+| [GraphRAG/Reader/Neo4j](modulos/graphrag-e-reader.md)           | Como a API consulta grafo privado, valida fontes e abstém quando necessário?                      |
+| [LLM, orçamento e fallback](modulos/llm-e-orcamento.md)         | Como são controlados modelos, contexto, quota Redis, tentativas e falhas?                         |
+| [PostgreSQL e relatórios](modulos/persistencia-e-relatorios.md) | Como \`runTurn\` usa lock/transação e como funciona o opt-in de métricas?                         |
+| [Frontend: fluxos e algoritmos](modulos/frontend-fluxos.md)     | Como hooks, UI, sessão e navegação animada operam?                                                |
+| [Matriz de testes por módulo](modulos/matriz-testes.md)         | Quais testes existem para cada classe/função e o que ainda não foi validado?                      |
 
 **Situação desta camada:** leitura estática de arquivos centrais do backend e frontend, diagramas e rastreabilidade de caminhos de teste. **Não** foi realizado um levantamento AST completo de todas as funções, execução de testes, validação live ou auditoria dos binários implantados. Os módulos históricos são identificados como tais; a branch \`docs/phasscode-wiki\` permanece separada de \`dev\` e \`main\`.
 
@@ -49,13 +49,13 @@ O [**Mapa do código e das funções**](mapa-do-codigo.md) é o ponto de entrada
 
 A [**Referência técnica do código**](referencia/README.md) reúne o inventário de símbolos TypeScript/TSX em **backend e frontend, DEV e MAIN**, referências por arquivo/linha, imports diretos de testes, contratos HTTP e tabelas PostgreSQL.
 
-| Referência | Conteúdo |
-| --- | --- |
-| [Catálogo AST + métodos de geração](referencia/README.md) | Símbolos e dependências por módulo, rastreáveis a SHAs Git |
+| Referência                                                           | Conteúdo                                                    |
+| -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| [Catálogo AST + métodos de geração](referencia/README.md)            | Símbolos e dependências por módulo, rastreáveis a SHAs Git  |
 | [Diferenças de código DEV × MAIN](referencia/diferencas-dev-main.md) | Arquivos alterados e funções nomeadas adicionadas/removidas |
-| [Contrato de API pública e histórica](referencia/contratos-api.md) | Rotas realmente disponíveis, headers e modelos Zod |
-| [Migrations PostgreSQL 001–006](referencia/migrations-postgresql.md) | Estrutura persistida, constraints e compatibilidade |
-| [Componentes React e CSS](referencia/componentes-e-css.md) | Design tokens, seções, estilos legados e acessibilidade |
+| [Contrato de API pública e histórica](referencia/contratos-api.md)   | Rotas realmente disponíveis, headers e modelos Zod          |
+| [Migrations PostgreSQL 001–006](referencia/migrations-postgresql.md) | Estrutura persistida, constraints e compatibilidade         |
+| [Componentes React e CSS](referencia/componentes-e-css.md)           | Design tokens, seções, estilos legados e acessibilidade     |
 
 **Nota de versão:** os inventários AST e o comparador são gerados por um workflow da **branch documental** a partir de snapshots Git fixados. Esta camada documenta o código; não substitui validação de runtime implantado, execução integral dos testes, revisão da cobertura e auditoria de segurança.
 
@@ -69,10 +69,10 @@ A [**Referência técnica do código**](referencia/README.md) reúne o inventár
 
 ### Baseline verificado em 06/11/2026
 
-| Repositório | `main` consultado | `dev` consultado | Relação entre branches |
-| --- | --- | --- | --- |
-| Backend | `c302ec4442…` | `747cd8243a…` | `dev` está **3 commits atrás** de `main`; sem arquivos exclusivos em `dev` no compare |
-| Frontend | `5514b5ac66…` | `d8b7bfbc8d…` | `dev` está **37 commits à frente** de `main`; 13 arquivos diferem, sobretudo suítes live DEV e seu preflight |
+| Repositório | `main` consultado | `dev` consultado | Relação entre branches                                                                                       |
+| ----------- | ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------ |
+| Backend     | `c302ec4442…`     | `747cd8243a…`    | `dev` está **3 commits atrás** de `main`; sem arquivos exclusivos em `dev` no compare                        |
+| Frontend    | `5514b5ac66…`     | `d8b7bfbc8d…`    | `dev` está **37 commits à frente** de `main`; 13 arquivos diferem, sobretudo suítes live DEV e seu preflight |
 
 Esses SHAs **são do GitHub**, não uma inspeção de qual versão o servidor está executando. A documentação será atualizada quando o código ou o estado homologado mudar. A branch de elaboração desta wiki é `docs/phasscode-wiki`, separada de ambos os ambientes.
 

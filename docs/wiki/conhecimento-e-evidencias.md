@@ -23,16 +23,16 @@ No grafo tipado, um registro de projeto ou vínculo profissional se relaciona a 
 
 ## 3. Estado da evidência e escopo
 
-| Conceito | Interpretação de produto |
-| --- | --- |
-| `professional` | Fonte vinculada a trabalho documentado |
-| `mixed_role` | Atuação mista em engenharia e software; não chamar de cargo exclusivamente Dev |
-| `professional_project` | Projeto profissional autoral documentado |
-| `personal_project` | Projeto pessoal; não equivale a contratação |
-| `study` | Formação/exercício; não é vínculo de emprego |
-| `unknown` | Natureza ou verificação insuficiente; não promover silenciosamente |
-| `code_reviewed` | Há inspeção de evidência/código conforme ficha curada |
-| `catalog_only` | Declaração/catálogo; não implica auditoria linha a linha |
+| Conceito               | Interpretação de produto                                                       |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| `professional`         | Fonte vinculada a trabalho documentado                                         |
+| `mixed_role`           | Atuação mista em engenharia e software; não chamar de cargo exclusivamente Dev |
+| `professional_project` | Projeto profissional autoral documentado                                       |
+| `personal_project`     | Projeto pessoal; não equivale a contratação                                    |
+| `study`                | Formação/exercício; não é vínculo de emprego                                   |
+| `unknown`              | Natureza ou verificação insuficiente; não promover silenciosamente             |
+| `code_reviewed`        | Há inspeção de evidência/código conforme ficha curada                          |
+| `catalog_only`         | Declaração/catálogo; não implica auditoria linha a linha                       |
 
 A ficha do [PPKS](../../knowledge/ppks/README.md) diferencia `verified`, `declared`, `inferred` e fatos ainda não confirmados. **Inferência de proximidade não comprova trabalho realizado.** Exemplo: Java pode sugerir fundamentos transferíveis de POO para React, mas não substitui evidência de uso de React no projeto.
 

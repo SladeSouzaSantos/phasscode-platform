@@ -6,13 +6,13 @@
 
 Uma sessão de chat permite continuar **um único histórico autorizado** sem login de usuário. `conversationId` identifica; **`conversationToken` autoriza**. A API foi desenhada para não expor tokens a analíticos ou LLM e para recusar sessões inválidas sem revelar conversas de terceiros.
 
-| Origem | Símbolo/linha | Responsabilidade |
-| --- | --- | --- |
+| Origem   | Símbolo/linha                                                                                                                      | Responsabilidade                                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | Frontend | [`createOrbeClient` / `send`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L168-L307) | Validar URL/payload, manter credencial só em memória e chamar HTTP |
-| Frontend | [`useOrbeChat`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useOrbeChat.ts#L28-L200) | Prevenir dupla chamada, abort, histórico visível, retries manuais |
-| Backend | [`buildApp` / rota chat](../../../apps/orbe-node/src/http/app.ts#L280-L325) | CORS, rate-limit, schema, headers e consentimento |
-| Backend | [`ChatService.execute`](../../../apps/orbe-node/src/application/chat.ts#L77-L94) | Gerar/validar ID e token + chamar `runTurn` |
-| Store | [`PostgresConversationStore.runTurn`](../../../apps/orbe-node/src/adapters/postgres-store.ts#L18-L140) | Hash, lock, histórico e transação |
+| Frontend | [`useOrbeChat`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useOrbeChat.ts#L28-L200)                  | Prevenir dupla chamada, abort, histórico visível, retries manuais  |
+| Backend  | [`buildApp` / rota chat](../../../apps/orbe-node/src/http/app.ts#L280-L325)                                                        | CORS, rate-limit, schema, headers e consentimento                  |
+| Backend  | [`ChatService.execute`](../../../apps/orbe-node/src/application/chat.ts#L77-L94)                                                   | Gerar/validar ID e token + chamar `runTurn`                        |
+| Store    | [`PostgresConversationStore.runTurn`](../../../apps/orbe-node/src/adapters/postgres-store.ts#L18-L140)                             | Hash, lock, histórico e transação                                  |
 
 ## 2. Primeira pergunta
 
@@ -56,15 +56,15 @@ O backend valida o cabeçalho e o [formato do token](../../../apps/orbe-node/src
 
 ## 4. Limites e cancelamento
 
-| Condição | Comportamento | Fonte |
-| --- | --- | --- |
-| Mensagem vazia/acima do limite | Erro local antes do envio | [`orbeClient.ts:205–219`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L205-L219) |
-| Corpo acima de 8.192 bytes | Erro de validação no cliente/servidor | `TextEncoder` frontend; `bodyLimit` Fastify |
-| Requisição já ativa | `OrbeClientError('busy')` | [`orbeClient.ts:212–215`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L212-L215) |
-| Timeout de cliente | `AbortController` e `OrbeClientError('timeout')`; default **45 segundos** | [`orbeClient.ts:228–240`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L228-L240) |
-| Timeout de provider | Erro tipado `LLM_TIMEOUT` 504 | [`chat.ts:369–413`](../../../apps/orbe-node/src/application/chat.ts#L369-L413) |
-| Limite/rate limit | 429 ou 503 com retry após erro de quota/Redis, quando aplicável | [`http/app.ts`](../../../apps/orbe-node/src/http/app.ts), [`redis-llm-budget.ts`](../../../apps/orbe-node/src/adapters/redis-llm-budget.ts) |
-| 404 de conversa | Limpa credencial no cliente; nova sessão poderá ser iniciada | [`orbeClient.ts:259–260`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L259-L260) |
+| Condição                       | Comportamento                                                             | Fonte                                                                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mensagem vazia/acima do limite | Erro local antes do envio                                                 | [`orbeClient.ts:205–219`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L205-L219)              |
+| Corpo acima de 8.192 bytes     | Erro de validação no cliente/servidor                                     | `TextEncoder` frontend; `bodyLimit` Fastify                                                                                                 |
+| Requisição já ativa            | `OrbeClientError('busy')`                                                 | [`orbeClient.ts:212–215`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L212-L215)              |
+| Timeout de cliente             | `AbortController` e `OrbeClientError('timeout')`; default **45 segundos** | [`orbeClient.ts:228–240`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L228-L240)              |
+| Timeout de provider            | Erro tipado `LLM_TIMEOUT` 504                                             | [`chat.ts:369–413`](../../../apps/orbe-node/src/application/chat.ts#L369-L413)                                                              |
+| Limite/rate limit              | 429 ou 503 com retry após erro de quota/Redis, quando aplicável           | [`http/app.ts`](../../../apps/orbe-node/src/http/app.ts), [`redis-llm-budget.ts`](../../../apps/orbe-node/src/adapters/redis-llm-budget.ts) |
+| 404 de conversa                | Limpa credencial no cliente; nova sessão poderá ser iniciada              | [`orbeClient.ts:259–260`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L259-L260)              |
 
 **Importante:** abortar o `fetch` **não prova** que o servidor interrompeu sua transação ou a chamada já despachada ao provedor. A UI sinaliza corretamente que a pergunta pode ter sido processada; não deve fazer retry automático em loop.
 
@@ -72,13 +72,13 @@ O backend valida o cabeçalho e o [formato do token](../../../apps/orbe-node/src
 
 [`buildApp` no modo público](../../../apps/orbe-node/src/http/app.ts#L234-L354) reduz o OpenAPI aos seguintes caminhos:
 
-| Rota | Método | Objetivo | Controle |
-| --- | --- | --- | --- |
-| `/health` | GET | Processo disponível | Não prova dependências |
-| `/ready` | GET | Store/Redis prontas ou 503 | Não prova GraphRAG nem verdade factual |
-| `/api/v1/openapi.json` | GET | Contrato público | Não expõe auth/reuniões |
-| `/api/v1/chat` | POST | Novo turno/continuação | Body, token, consentimento, limites |
-| `/api/v1/chat/report-optout` | POST | Retirar consentimento | `conversationId` + token da conversa |
+| Rota                         | Método | Objetivo                   | Controle                               |
+| ---------------------------- | ------ | -------------------------- | -------------------------------------- |
+| `/health`                    | GET    | Processo disponível        | Não prova dependências                 |
+| `/ready`                     | GET    | Store/Redis prontas ou 503 | Não prova GraphRAG nem verdade factual |
+| `/api/v1/openapi.json`       | GET    | Contrato público           | Não expõe auth/reuniões                |
+| `/api/v1/chat`               | POST   | Novo turno/continuação     | Body, token, consentimento, limites    |
+| `/api/v1/chat/report-optout` | POST   | Retirar consentimento      | `conversationId` + token da conversa   |
 
 **Atenção:** código legado de `/auth`, `/meetings` e admin só é registrado quando **não** se usa `publicOnly`; o bootstrap público passa `publicOnly: true` ([`main.ts:127–138`](../../../apps/orbe-node/src/main.ts#L127-L138)).
 

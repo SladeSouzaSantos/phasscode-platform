@@ -16,17 +16,17 @@
 
 Para cada fluxo, preencha uma ficha técnica:
 
-| Campo | Pergunta |
-| --- | --- |
-| Arquivo e símbolo | Qual função/classe implementa a regra? |
-| Entrada | Quem chama, quais parâmetros e esquemas são aceitos? |
-| Pré-condição | Quais flags, serviços, permissões e dados são exigidos? |
-| Algoritmo | Qual sequência de decisões e transformações acontece? |
-| Saída | Qual DTO, efeito colateral ou alteração em banco é produzido? |
-| Erros | Quais códigos, timeouts, limites e fallbacks são previstos? |
-| Testes | Qual caso de teste cobre sucesso, falha, ausência de dados e regressão? |
-| Decisão | Por que foi construída assim e quais alternativas foram rejeitadas? |
-| Fronteira | Existe em DEV, MAIN, laboratório ou apenas em código legado? |
+| Campo             | Pergunta                                                                |
+| ----------------- | ----------------------------------------------------------------------- |
+| Arquivo e símbolo | Qual função/classe implementa a regra?                                  |
+| Entrada           | Quem chama, quais parâmetros e esquemas são aceitos?                    |
+| Pré-condição      | Quais flags, serviços, permissões e dados são exigidos?                 |
+| Algoritmo         | Qual sequência de decisões e transformações acontece?                   |
+| Saída             | Qual DTO, efeito colateral ou alteração em banco é produzido?           |
+| Erros             | Quais códigos, timeouts, limites e fallbacks são previstos?             |
+| Testes            | Qual caso de teste cobre sucesso, falha, ausência de dados e regressão? |
+| Decisão           | Por que foi construída assim e quais alternativas foram rejeitadas?     |
+| Fronteira         | Existe em DEV, MAIN, laboratório ou apenas em código legado?            |
 
 Uma wiki confiável descreve **contrato, execução, limites e motivação**, não apenas o nome das tecnologias.
 
@@ -59,16 +59,16 @@ Os comandos acima são **referência de desenvolvimento**, não uma autorizaçã
 
 ## 4. Alterações por tipo de módulo
 
-| Se você alterar | Atualize também |
-| --- | --- |
-| Contratos HTTP ou DTOs | [Backend](backend.md), [Frontend](frontend.md), OpenAPI e testes de cliente |
-| `ChatService` ou políticas | [Fluxo Orbe](orbe-fluxo-de-resposta.md), rubrica e testes de recrutamento |
-| PPKS / dados profissionais | [Conhecimento](conhecimento-e-evidencias.md), índice PPKS, `src/data/` do frontend e testes de fontes |
-| GraphRAG / Reader / Neo4j | [Arquitetura](arquitetura.md), segurança, fluxos e documentação DEV específica |
-| LLM / limites / Redis | [Backend](backend.md), [Qualidade](qualidade-e-seguranca.md), erros de cliente e testes de falha |
-| Navegação, tema, animações | [Frontend](frontend.md), Playwright e acessibilidade |
-| CI, Compose, deploy | [Ambientes](ambientes-deploy.md), versão do workflow e procedimentos de rollback |
-| Nova estratégia arquitetural | [Decisões](decisoes-e-evolucao.md) e ADR versionado |
+| Se você alterar              | Atualize também                                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Contratos HTTP ou DTOs       | [Backend](backend.md), [Frontend](frontend.md), OpenAPI e testes de cliente                           |
+| `ChatService` ou políticas   | [Fluxo Orbe](orbe-fluxo-de-resposta.md), rubrica e testes de recrutamento                             |
+| PPKS / dados profissionais   | [Conhecimento](conhecimento-e-evidencias.md), índice PPKS, `src/data/` do frontend e testes de fontes |
+| GraphRAG / Reader / Neo4j    | [Arquitetura](arquitetura.md), segurança, fluxos e documentação DEV específica                        |
+| LLM / limites / Redis        | [Backend](backend.md), [Qualidade](qualidade-e-seguranca.md), erros de cliente e testes de falha      |
+| Navegação, tema, animações   | [Frontend](frontend.md), Playwright e acessibilidade                                                  |
+| CI, Compose, deploy          | [Ambientes](ambientes-deploy.md), versão do workflow e procedimentos de rollback                      |
+| Nova estratégia arquitetural | [Decisões](decisoes-e-evolucao.md) e ADR versionado                                                   |
 
 ## 5. Como publicar esta wiki
 

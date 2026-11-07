@@ -18,20 +18,20 @@ A entrada da aplicação pública é [`apps/orbe-node/src/main.ts`](../../apps/o
 
 ## 2. Organização de pastas
 
-| Local | O que significa | Exemplos |
-| --- | --- | --- |
-| [`apps/orbe-node/src/domain`](../../apps/orbe-node/src/domain/) | Tipos, contratos e erros do negócio | `ports.ts`, `security.ts`, `evidence-graph.ts` |
-| [`apps/orbe-node/src/application`](../../apps/orbe-node/src/application/) | Serviços, decisões e políticas de resposta | `chat.ts`, `canonical-claims.ts`, `graph-active-answer.ts` |
-| [`apps/orbe-node/src/adapters`](../../apps/orbe-node/src/adapters/) | Persistência, conhecimento, LLM, Neo4j, Redis | `postgres-store.ts`, `knowledge.ts`, `neo4j-driver-store.ts` |
-| [`apps/orbe-node/src/http`](../../apps/orbe-node/src/http/) | API Fastify, validação e erros | `app.ts` |
-| [`apps/orbe-node/src/graph-reader`](../../apps/orbe-node/src/graph-reader/) | Serviço privado de leitura de grafo | `app.ts`, `main.ts` |
-| [`apps/report-node`](../../apps/report-node/) | Envio opcional de métricas agregadas | `src/main.ts`, `report-format.ts` |
-| [`apps/worker-node`](../../apps/worker-node/) | Código histórico de worker | Não ativo no Orbe público |
-| [`packages/contracts`](../../packages/contracts/) | Contratos de API e esquemas compartilhados | DTOs de conversa, OpenAPI |
-| [`packages/database`](../../packages/database/) | SQL, migrations e pool PostgreSQL | Persistência e evolução do esquema |
-| [`packages/shared-config`](../../packages/shared-config/) | Validação e normalização de configuração | `loadConfig` |
-| [`knowledge`](../../knowledge/) | Catálogo e evidências profissionais | PPKS, relações curadas |
-| [`evaluation`](../../evaluation/) | Cenários de recuperação/recrutamento e indicadores | Rubricas, avaliações offline |
+| Local                                                                       | O que significa                                    | Exemplos                                                     |
+| --------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------ |
+| [`apps/orbe-node/src/domain`](../../apps/orbe-node/src/domain/)             | Tipos, contratos e erros do negócio                | `ports.ts`, `security.ts`, `evidence-graph.ts`               |
+| [`apps/orbe-node/src/application`](../../apps/orbe-node/src/application/)   | Serviços, decisões e políticas de resposta         | `chat.ts`, `canonical-claims.ts`, `graph-active-answer.ts`   |
+| [`apps/orbe-node/src/adapters`](../../apps/orbe-node/src/adapters/)         | Persistência, conhecimento, LLM, Neo4j, Redis      | `postgres-store.ts`, `knowledge.ts`, `neo4j-driver-store.ts` |
+| [`apps/orbe-node/src/http`](../../apps/orbe-node/src/http/)                 | API Fastify, validação e erros                     | `app.ts`                                                     |
+| [`apps/orbe-node/src/graph-reader`](../../apps/orbe-node/src/graph-reader/) | Serviço privado de leitura de grafo                | `app.ts`, `main.ts`                                          |
+| [`apps/report-node`](../../apps/report-node/)                               | Envio opcional de métricas agregadas               | `src/main.ts`, `report-format.ts`                            |
+| [`apps/worker-node`](../../apps/worker-node/)                               | Código histórico de worker                         | Não ativo no Orbe público                                    |
+| [`packages/contracts`](../../packages/contracts/)                           | Contratos de API e esquemas compartilhados         | DTOs de conversa, OpenAPI                                    |
+| [`packages/database`](../../packages/database/)                             | SQL, migrations e pool PostgreSQL                  | Persistência e evolução do esquema                           |
+| [`packages/shared-config`](../../packages/shared-config/)                   | Validação e normalização de configuração           | `loadConfig`                                                 |
+| [`knowledge`](../../knowledge/)                                             | Catálogo e evidências profissionais                | PPKS, relações curadas                                       |
+| [`evaluation`](../../evaluation/)                                           | Cenários de recuperação/recrutamento e indicadores | Rubricas, avaliações offline                                 |
 
 ## 3. O servidor HTTP (`buildApp`)
 

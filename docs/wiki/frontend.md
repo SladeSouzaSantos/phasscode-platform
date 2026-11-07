@@ -20,16 +20,16 @@ flowchart TD
 
 ## Arquivos para estudar
 
-| Código | Papel |
-| --- | --- |
-| [`src/App.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/App.tsx) | Rotas, páginas, seleção de seções e montagem do Orbe |
-| [`Navbar.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/Navbar.tsx) | Navegação e troca de tema |
-| [`useSectionNavigation.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useSectionNavigation.ts) | Traduz hash para seção |
-| [`useSectionTransition.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useSectionTransition.tsx) | Transição circular e controle de navegação |
-| [`useTheme.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useTheme.ts) | Estado de tema |
-| [`sitePreloader.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/lib/sitePreloader.ts) | Preloader inicial |
-| [`src/sections/`](https://github.com/SladeSouzaSantos/web-portfolio-v2/tree/main/src/sections) | Sobre, Projetos, Experiência, Formação e Arquivo de Missões |
-| [`src/data/`](https://github.com/SladeSouzaSantos/web-portfolio-v2/tree/main/src/data) | Dados visíveis, não a fonte canônica do Orbe |
+| Código                                                                                                                          | Papel                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| [`src/App.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/App.tsx)                                     | Rotas, páginas, seleção de seções e montagem do Orbe        |
+| [`Navbar.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/Navbar.tsx)                        | Navegação e troca de tema                                   |
+| [`useSectionNavigation.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useSectionNavigation.ts)   | Traduz hash para seção                                      |
+| [`useSectionTransition.tsx`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useSectionTransition.tsx) | Transição circular e controle de navegação                  |
+| [`useTheme.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useTheme.ts)                           | Estado de tema                                              |
+| [`sitePreloader.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/lib/sitePreloader.ts)                   | Preloader inicial                                           |
+| [`src/sections/`](https://github.com/SladeSouzaSantos/web-portfolio-v2/tree/main/src/sections)                                  | Sobre, Projetos, Experiência, Formação e Arquivo de Missões |
+| [`src/data/`](https://github.com/SladeSouzaSantos/web-portfolio-v2/tree/main/src/data)                                          | Dados visíveis, não a fonte canônica do Orbe                |
 
 A página `/` monta `PortfolioPage`, com quatro seções por hash. `/projetos` abre `ArquivoProjetos`. A rota `/administracao` redireciona para `/#sobre`: **não há painel administrativo público**. Os caminhos antigos têm redirecionamentos de compatibilidade.
 

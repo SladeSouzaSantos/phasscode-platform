@@ -22,16 +22,16 @@ O código foi dividido para permitir **trocar provedores sem reescrever as regra
 
 ## 2. Mapa de funções
 
-| Fonte | Função/contrato | O que controla |
-| --- | --- | --- |
-| [`main.ts`](../../../apps/orbe-node/src/main.ts#L81-L121) | Composição das dependências | Seleciona `mock` ou `LangChainChatProvider`, cria orçamento Redis e fallback opt-in |
-| [`LangChainChatProvider.generate`](../../../apps/orbe-node/src/adapters/langchain-provider.ts#L89-L455) | `GenerationInput → GenerationResult` | Montagem de mensagens, invocação, ferramentas/rounds e extração de fontes |
-| [`prompt v4`](../../../apps/orbe-node/prompts/v4.md) | Instruções da persona/escopo | Apresentar com evidências, respeitando limites |
-| [`createFallbackInvocationFactory`](../../../apps/orbe-node/src/adapters/fallback-llm.ts#L41-L109) | Gerador de invocações por turno | Vários candidatos, tentativa, quotas e cooldown |
-| [`createRedisFallbackInvocationFactory`](../../../apps/orbe-node/src/adapters/fallback-llm.ts#L113-L164) | Fallback real | Cria identidades Redis por provedor sem incluir credenciais em texto aberto |
-| [`LlmInvocationController`](../../../apps/orbe-node/src/adapters/llm-invocation-controller.ts#L196-L395) | Estado de tentativas | Limita tentativas e classifica falhas/transitórios |
-| [`RedisLlmCallBudget.reserve`](../../../apps/orbe-node/src/adapters/redis-llm-budget.ts#L68-L100) | Reserva global/provedor | Impede invocações acima do limite; sem reembolso |
-| [`graph-turn-llm-budget.ts`](../../../apps/orbe-node/src/application/graph-turn-llm-budget.ts) | Orçamento lógico compartilhado | Quando `active` DEV, normalização semântica e resposta não devem ultrapassar limites do mesmo turno |
+| Fonte                                                                                                    | Função/contrato                      | O que controla                                                                                      |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| [`main.ts`](../../../apps/orbe-node/src/main.ts#L81-L121)                                                | Composição das dependências          | Seleciona `mock` ou `LangChainChatProvider`, cria orçamento Redis e fallback opt-in                 |
+| [`LangChainChatProvider.generate`](../../../apps/orbe-node/src/adapters/langchain-provider.ts#L89-L455)  | `GenerationInput → GenerationResult` | Montagem de mensagens, invocação, ferramentas/rounds e extração de fontes                           |
+| [`prompt v4`](../../../apps/orbe-node/prompts/v4.md)                                                     | Instruções da persona/escopo         | Apresentar com evidências, respeitando limites                                                      |
+| [`createFallbackInvocationFactory`](../../../apps/orbe-node/src/adapters/fallback-llm.ts#L41-L109)       | Gerador de invocações por turno      | Vários candidatos, tentativa, quotas e cooldown                                                     |
+| [`createRedisFallbackInvocationFactory`](../../../apps/orbe-node/src/adapters/fallback-llm.ts#L113-L164) | Fallback real                        | Cria identidades Redis por provedor sem incluir credenciais em texto aberto                         |
+| [`LlmInvocationController`](../../../apps/orbe-node/src/adapters/llm-invocation-controller.ts#L196-L395) | Estado de tentativas                 | Limita tentativas e classifica falhas/transitórios                                                  |
+| [`RedisLlmCallBudget.reserve`](../../../apps/orbe-node/src/adapters/redis-llm-budget.ts#L68-L100)        | Reserva global/provedor              | Impede invocações acima do limite; sem reembolso                                                    |
+| [`graph-turn-llm-budget.ts`](../../../apps/orbe-node/src/application/graph-turn-llm-budget.ts)           | Orçamento lógico compartilhado       | Quando `active` DEV, normalização semântica e resposta não devem ultrapassar limites do mesmo turno |
 
 ## 3. Redis: como funciona a janela de chamadas
 
@@ -75,14 +75,14 @@ A presença de uma referência **não prova automaticamente cada frase gerada**;
 
 ## 6. Erros e ações de manutenção
 
-| Erro | Significado no fluxo | Conduta recomendada |
-| --- | --- | --- |
-| `LLM_CONTEXT_LIMIT` / 502 | Documentos/contexto excederam limite ou não cabem | Melhorar seleção; não aumentar artificialmente memória sem testes |
-| `LLM_TIMEOUT` / 504 | Prazo da geração estourou no serviço de chat | Verificar modelo, filas e duração sem registrar prompt |
-| `LLM_UNAVAILABLE` / 502 | Falha não tipada de provedor/geração | Validar upstream e fallback |
-| `LLM_BUDGET_EXHAUSTED` / 429 | Contador global chegou ao teto | Respeitar `Retry-After`; não zerar quotas para contornar |
-| `LLM_BUDGET_UNAVAILABLE` / 503 | Redis ou estado inconsistente | Resolver dependência; não chamar modelo sem proteção |
-| Cooldown por provedor | Candidato temporariamente bloqueado | Não confundir com expiração da quota global |
+| Erro                           | Significado no fluxo                              | Conduta recomendada                                               |
+| ------------------------------ | ------------------------------------------------- | ----------------------------------------------------------------- |
+| `LLM_CONTEXT_LIMIT` / 502      | Documentos/contexto excederam limite ou não cabem | Melhorar seleção; não aumentar artificialmente memória sem testes |
+| `LLM_TIMEOUT` / 504            | Prazo da geração estourou no serviço de chat      | Verificar modelo, filas e duração sem registrar prompt            |
+| `LLM_UNAVAILABLE` / 502        | Falha não tipada de provedor/geração              | Validar upstream e fallback                                       |
+| `LLM_BUDGET_EXHAUSTED` / 429   | Contador global chegou ao teto                    | Respeitar `Retry-After`; não zerar quotas para contornar          |
+| `LLM_BUDGET_UNAVAILABLE` / 503 | Redis ou estado inconsistente                     | Resolver dependência; não chamar modelo sem proteção              |
+| Cooldown por provedor          | Candidato temporariamente bloqueado               | Não confundir com expiração da quota global                       |
 
 ## 7. Testes associados (referências, não evidência de execução)
 
