@@ -2,16 +2,16 @@
 
 [← Índice principal](../README.md) · [Mapa de funções](../mapa-do-codigo.md) · [Guia do desenvolvedor](../guia-do-desenvolvedor.md)
 
-Esta seção é a **terceira camada de documentação**: inventário rastreável de símbolos TypeScript/TSX dos dois repositórios, contratos de API, migrations, componentes CSS e diferenças entre branches. A primeira e a segunda camadas explicam *por que* e *como* o sistema funciona; esta seção indexa *onde* encontrar as implementações.
+Esta seção é a **terceira camada de documentação**: inventário rastreável de símbolos TypeScript/TSX dos dois repositórios, contratos de API, migrations, componentes CSS e diferenças entre branches. A primeira e a segunda camadas explicam _por que_ e _como_ o sistema funciona; esta seção indexa _onde_ encontrar as implementações.
 
 ## Inventários automatizados (fonte rastreável)
 
-| Escopo | Símbolos (AST TypeScript) | Imports diretos de testes | Manifesto JSON |
-| --- | --- | --- | --- |
-| Backend MAIN | [Símbolos](main/simbolos-backend.md) | [Relações declaradas](main/imports-diretos-de-testes.md) | [JSON](main/manifesto-simbolos.json) |
+| Escopo        | Símbolos (AST TypeScript)             | Imports diretos de testes                                | Manifesto JSON                       |
+| ------------- | ------------------------------------- | -------------------------------------------------------- | ------------------------------------ |
+| Backend MAIN  | [Símbolos](main/simbolos-backend.md)  | [Relações declaradas](main/imports-diretos-de-testes.md) | [JSON](main/manifesto-simbolos.json) |
 | Frontend MAIN | [Símbolos](main/simbolos-frontend.md) | [Relações declaradas](main/imports-diretos-de-testes.md) | [JSON](main/manifesto-simbolos.json) |
-| Backend DEV | [Símbolos](dev/simbolos-backend.md) | [Relações declaradas](dev/imports-diretos-de-testes.md) | [JSON](dev/manifesto-simbolos.json) |
-| Frontend DEV | [Símbolos](dev/simbolos-frontend.md) | [Relações declaradas](dev/imports-diretos-de-testes.md) | [JSON](dev/manifesto-simbolos.json) |
+| Backend DEV   | [Símbolos](dev/simbolos-backend.md)   | [Relações declaradas](dev/imports-diretos-de-testes.md)  | [JSON](dev/manifesto-simbolos.json)  |
+| Frontend DEV  | [Símbolos](dev/simbolos-frontend.md)  | [Relações declaradas](dev/imports-diretos-de-testes.md)  | [JSON](dev/manifesto-simbolos.json)  |
 
 [**Comparação dos símbolos e arquivos MAIN vs DEV**](diferencas-dev-main.md).
 
@@ -28,15 +28,15 @@ Os links desta tabela se tornam válidos **após concluir a execução do workfl
 
 ## O que o inventário garante — e o que não garante
 
-| Propriedade | Situação |
-| --- | --- |
-| Símbolo e linha declarados no snapshot selecionado | Gerado por TypeScript AST quando o workflow passa |
-| Conexões explícitas de `import` em testes | Identificação estática, não cobertura |
-| Existência de contrato OpenAPI e scripts SQL | Fontes conferidas na branch `main` |
-| Diferenças de arquivos TS/TSX de DEV e MAIN | Por SHA-256 de conteúdo e conjunto de símbolos (após geração) |
+| Propriedade                                                               | Situação                                                            |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Símbolo e linha declarados no snapshot selecionado                        | Gerado por TypeScript AST quando o workflow passa                   |
+| Conexões explícitas de `import` em testes                                 | Identificação estática, não cobertura                               |
+| Existência de contrato OpenAPI e scripts SQL                              | Fontes conferidas na branch `main`                                  |
+| Diferenças de arquivos TS/TSX de DEV e MAIN                               | Por SHA-256 de conteúdo e conjunto de símbolos (após geração)       |
 | Lógica completa de callbacks anônimos, efeitos React e chamadas dinâmicas | **Fora da abrangência automatizada**; dependem da leitura dos guias |
-| Cobertura de assertions / branches ou testes passando nesta rodada | **Não demonstrada** por documentação |
-| Qual SHA/digest está rodando no MiniMac DEV/MAIN | **Não verificado**; exige auditoria operacional autorizada |
-| Migração HydraDB | **Não realizada**; LAB independente |
+| Cobertura de assertions / branches ou testes passando nesta rodada        | **Não demonstrada** por documentação                                |
+| Qual SHA/digest está rodando no MiniMac DEV/MAIN                          | **Não verificado**; exige auditoria operacional autorizada          |
+| Migração HydraDB                                                          | **Não realizada**; LAB independente                                 |
 
 **Critério de entrega:** páginas fonte + inventários AST de MAIN e DEV gerados com sucesso, relatório de divergências, links locais válidos e nenhuma alteração em `dev`, `main` ou nos serviços implantados. A documentação é suficientemente ampla para servir como guia técnico de referência; **não** significa que cada comportamento tenha sido formalmente verificado por execução.

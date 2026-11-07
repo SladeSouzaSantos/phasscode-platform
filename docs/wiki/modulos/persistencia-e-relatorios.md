@@ -4,13 +4,13 @@
 
 ## Componentes responsáveis
 
-| Símbolo | Contrato | Efeito |
-| --- | --- | --- |
-| [`ConversationStore.runTurn`](../../../apps/orbe-node/src/domain/ports.ts#L96-L105) | `input`, callback async com histórico → `ChatResponse` | Define atomicidade do turno para implementação |
-| [`PostgresConversationStore`](../../../apps/orbe-node/src/adapters/postgres-store.ts#L11-L175) | Store concreta de produção | Tabelas `conversations`, `conversation_messages`, reports opcionais |
-| [`MemoryConversationStore`](../../../apps/orbe-node/src/adapters/memory-store.ts#L11-L54) | Store de teste/desenvolvimento | Dados em memória e perda no reinício |
-| [`classifyInteraction`](../../../apps/orbe-node/src/application/report-classification.ts#L18-L32) | Classificação por padrões fixos | Categorias/intenção **sem persistir texto livre de relatório** |
-| [`report-node`](../../../apps/report-node/src/main.ts) | Processo independente configurável | Envio de relatórios agregados ao Telegram |
+| Símbolo                                                                                           | Contrato                                               | Efeito                                                              |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------- |
+| [`ConversationStore.runTurn`](../../../apps/orbe-node/src/domain/ports.ts#L96-L105)               | `input`, callback async com histórico → `ChatResponse` | Define atomicidade do turno para implementação                      |
+| [`PostgresConversationStore`](../../../apps/orbe-node/src/adapters/postgres-store.ts#L11-L175)    | Store concreta de produção                             | Tabelas `conversations`, `conversation_messages`, reports opcionais |
+| [`MemoryConversationStore`](../../../apps/orbe-node/src/adapters/memory-store.ts#L11-L54)         | Store de teste/desenvolvimento                         | Dados em memória e perda no reinício                                |
+| [`classifyInteraction`](../../../apps/orbe-node/src/application/report-classification.ts#L18-L32) | Classificação por padrões fixos                        | Categorias/intenção **sem persistir texto livre de relatório**      |
+| [`report-node`](../../../apps/report-node/src/main.ts)                                            | Processo independente configurável                     | Envio de relatórios agregados ao Telegram                           |
 
 ## Algoritmo de `PostgresConversationStore.runTurn`
 
@@ -70,13 +70,13 @@ O [endpoint opt-out](../../../apps/orbe-node/src/http/app.ts#L327-L354) exige ID
 
 ## Tabela de estados de erro
 
-| Etapa | Código público | Efeito esperado |
-| --- | --- | --- |
-| Sem capacidade do pool | `CHAT_CAPACITY_REACHED` / 503 | Turno recusado antes de reservar conexão |
-| Banco inacessível | `DB_UNAVAILABLE` / 503 | Falha fechada |
-| Mesmo histórico em processamento | `CONVERSATION_BUSY` / 409 | Transação concorrente recuada |
-| Token/ID inválido ou expirado | Conversa não encontrada | Não revelar existência do histórico |
-| Falha da callback/geração | Erro upstream ou aplicação | `ROLLBACK` antes de liberar client |
+| Etapa                            | Código público                | Efeito esperado                          |
+| -------------------------------- | ----------------------------- | ---------------------------------------- |
+| Sem capacidade do pool           | `CHAT_CAPACITY_REACHED` / 503 | Turno recusado antes de reservar conexão |
+| Banco inacessível                | `DB_UNAVAILABLE` / 503        | Falha fechada                            |
+| Mesmo histórico em processamento | `CONVERSATION_BUSY` / 409     | Transação concorrente recuada            |
+| Token/ID inválido ou expirado    | Conversa não encontrada       | Não revelar existência do histórico      |
+| Falha da callback/geração        | Erro upstream ou aplicação    | `ROLLBACK` antes de liberar client       |
 
 ## Testes a consultar
 

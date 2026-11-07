@@ -6,13 +6,13 @@
 
 ## Rotas realmente registradas no modo público
 
-| Método | Endpoint | Entrada | Saída / erros relevantes |
-| --- | --- | --- | --- |
-| GET | `/health` | Sem body | `200 {status:"ok"}` — liveness, não disponibilidade do banco |
-| GET | `/ready` | Sem body | `200/503`, status `ready/not_ready`, dependências `postgres/redis/phase3` conforme configuração |
-| GET | `/api/v1/openapi.json` | Sem body | Documento 3.1 restrito a estas cinco rotas, sem securitySchemes de auth |
-| POST | `/api/v1/chat` | JSON estrito, `message` de 1 a 2.000 caracteres e `conversationId?` UUID | `ChatResponse` com `answer`, `sources` (máx. 10), `conversationId`, `conversationToken` somente na primeira resposta, `meta` |
-| POST | `/api/v1/chat/report-optout` | JSON estrito `{conversationId}`, header `X-Conversation-Token` | `{withdrawn:true}`; requer sessão válida e store com suporte |
+| Método | Endpoint                     | Entrada                                                                  | Saída / erros relevantes                                                                                                     |
+| ------ | ---------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/health`                    | Sem body                                                                 | `200 {status:"ok"}` — liveness, não disponibilidade do banco                                                                 |
+| GET    | `/ready`                     | Sem body                                                                 | `200/503`, status `ready/not_ready`, dependências `postgres/redis/phase3` conforme configuração                              |
+| GET    | `/api/v1/openapi.json`       | Sem body                                                                 | Documento 3.1 restrito a estas cinco rotas, sem securitySchemes de auth                                                      |
+| POST   | `/api/v1/chat`               | JSON estrito, `message` de 1 a 2.000 caracteres e `conversationId?` UUID | `ChatResponse` com `answer`, `sources` (máx. 10), `conversationId`, `conversationToken` somente na primeira resposta, `meta` |
+| POST   | `/api/v1/chat/report-optout` | JSON estrito `{conversationId}`, header `X-Conversation-Token`           | `{withdrawn:true}`; requer sessão válida e store com suporte                                                                 |
 
 Implementação: [`app.ts:234–354`](../../../apps/orbe-node/src/http/app.ts#L234-L354), contratos de [`chatRequestSchema`/`chatResponseSchema`](../../../packages/contracts/src/index.ts).
 
@@ -31,9 +31,19 @@ type ChatResponse = {
   conversationId: string;
   conversationToken?: string; // somente primeiro turno
   answer: string;
-  sources: Array<{type: 'profile'|'project'|'service'|'platform'; id: string; title: string; url?: string}>; // máximo 10
+  sources: Array<{
+    type: 'profile' | 'project' | 'service' | 'platform';
+    id: string;
+    title: string;
+    url?: string;
+  }>; // máximo 10
   actions?: unknown[]; // campo histórico/condicional, não habilitado no público
-  meta: {provider: 'mock'|'openai'|'openai-compatible'; simulated: boolean; promptVersion: string; deterministic?: boolean};
+  meta: {
+    provider: 'mock' | 'openai' | 'openai-compatible';
+    simulated: boolean;
+    promptVersion: string;
+    deterministic?: boolean;
+  };
 };
 ```
 
@@ -41,15 +51,15 @@ O DTO é apresentado para compreensão, não substitui os schemas Zod. O `ChatSe
 
 ### Tratamento de erros
 
-| Situação | Código observado na implementação | Status |
-| --- | --- | ---: |
-| Body/header inválido | `INVALID_REQUEST` | 400 |
-| Mesmo histórico ocupado | `CONVERSATION_BUSY` | 409 |
-| Rate limit indisponível | `RATE_LIMIT_UNAVAILABLE` | 503 |
-| Budget da LLM esgotado | `LLM_BUDGET_EXHAUSTED` | 429 |
-| Budget da LLM indisponível | `LLM_BUDGET_UNAVAILABLE` | 503 |
-| Timeout de LLM | `LLM_TIMEOUT` | 504 |
-| Falha genérica de LLM | `LLM_UNAVAILABLE` | 502 |
+| Situação                   | Código observado na implementação | Status |
+| -------------------------- | --------------------------------- | -----: |
+| Body/header inválido       | `INVALID_REQUEST`                 |    400 |
+| Mesmo histórico ocupado    | `CONVERSATION_BUSY`               |    409 |
+| Rate limit indisponível    | `RATE_LIMIT_UNAVAILABLE`          |    503 |
+| Budget da LLM esgotado     | `LLM_BUDGET_EXHAUSTED`            |    429 |
+| Budget da LLM indisponível | `LLM_BUDGET_UNAVAILABLE`          |    503 |
+| Timeout de LLM             | `LLM_TIMEOUT`                     |    504 |
+| Falha genérica de LLM      | `LLM_UNAVAILABLE`                 |    502 |
 
 O OpenAPI geral inclui uma coleção de **erros padronizados**; isso não significa que todos os códigos listados sejam produzidos em todas as rotas. Não publicar dumps ou textos internos na resposta.
 

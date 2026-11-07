@@ -4,14 +4,14 @@
 
 ## 1. Pirâmide de validação
 
-| Camada | O que prova | O que **não** prova |
-| --- | --- | --- |
-| Typecheck/lint/format | Consistência estrutural do código | Qualidade semântica das respostas |
-| Unitários | Regras/políticas em cenários delimitados | Integração real com todos os provedores |
-| Integração | PostgreSQL/Redis/API/Neo4j em ambientes de teste | Estado da release implantada |
-| E2E browser mock | UI, navegação, fontes, contrato e erros simulados | Comportamento de LLM real |
-| E2E live DEV autorizado | Contrato/respostas observadas no DEV atual | Ausência de alucinação em todas as vagas |
-| Revisão humana | Plausibilidade factual, tom e cobertura de fontes | Garantia matemática universal |
+| Camada                  | O que prova                                       | O que **não** prova                      |
+| ----------------------- | ------------------------------------------------- | ---------------------------------------- |
+| Typecheck/lint/format   | Consistência estrutural do código                 | Qualidade semântica das respostas        |
+| Unitários               | Regras/políticas em cenários delimitados          | Integração real com todos os provedores  |
+| Integração              | PostgreSQL/Redis/API/Neo4j em ambientes de teste  | Estado da release implantada             |
+| E2E browser mock        | UI, navegação, fontes, contrato e erros simulados | Comportamento de LLM real                |
+| E2E live DEV autorizado | Contrato/respostas observadas no DEV atual        | Ausência de alucinação em todas as vagas |
+| Revisão humana          | Plausibilidade factual, tom e cobertura de fontes | Garantia matemática universal            |
 
 Backend: [`package.json`](../../package.json), [`tests/`](../../tests/), [`evaluation/`](../../evaluation/), [`docs/testing/`](../testing/). Frontend: [`package.json`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/package.json), [`tests/`](https://github.com/SladeSouzaSantos/web-portfolio-v2/tree/main/tests).
 

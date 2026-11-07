@@ -16,16 +16,16 @@
 
 ## 2. Estado e responsabilidades dos componentes
 
-| Símbolo | Estado / entrada | Efeito / consequência |
-| --- | --- | --- |
-| [`PortfolioPage`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/App.tsx#L20-L41) | Tema + seção extraída do hash | Renderiza uma seção, navbar, Orbe e overlay |
-| [`OrbAssistant`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/OrbAssistant.tsx#L17-L295) | UI, `open`, `expanded`, refs de canvas/modal | Abertura, teclado, fontes, mensagem, copiar/cancelar |
-| [`useOrbeChat`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useOrbeChat.ts#L28-L199) | `messages`, `query`, `retryAt`, `reportOptIn` | Valida turno, chama cliente HTTP ou demo e atualiza UI |
-| [`createOrbeClient`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L168-L335) | URL + dependências opcionais | `send`, `reset`, `withdrawReport` com token em closure |
-| [`useSectionTransition`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useSectionTransition.tsx#L19-L132) | Seção ativa e evento de link | Círculo de cobertura e transição visual |
-| [`useSectionNavigation`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useSectionNavigation.ts#L13-L19) | Hash da localização | `SecaoId` corrente |
-| [`getOrbeSources`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeSources.ts#L3-L21) | Referências da API | Exibe links seguros; URLs não HTTP(S) não são tratadas como navegação |
-| [`saveOrbeTranscript`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeTranscript.ts#L48-L70) | Mensagens renderizáveis | Cache recente sem tokens de sessão |
+| Símbolo                                                                                                                              | Estado / entrada                              | Efeito / consequência                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- | --------------------------------------------------------------------- |
+| [`PortfolioPage`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/App.tsx#L20-L41)                                | Tema + seção extraída do hash                 | Renderiza uma seção, navbar, Orbe e overlay                           |
+| [`OrbAssistant`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/OrbAssistant.tsx#L17-L295)            | UI, `open`, `expanded`, refs de canvas/modal  | Abertura, teclado, fontes, mensagem, copiar/cancelar                  |
+| [`useOrbeChat`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useOrbeChat.ts#L28-L199)                    | `messages`, `query`, `retryAt`, `reportOptIn` | Valida turno, chama cliente HTTP ou demo e atualiza UI                |
+| [`createOrbeClient`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeClient.ts#L168-L335)            | URL + dependências opcionais                  | `send`, `reset`, `withdrawReport` com token em closure                |
+| [`useSectionTransition`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useSectionTransition.tsx#L19-L132) | Seção ativa e evento de link                  | Círculo de cobertura e transição visual                               |
+| [`useSectionNavigation`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/hooks/useSectionNavigation.ts#L13-L19)   | Hash da localização                           | `SecaoId` corrente                                                    |
+| [`getOrbeSources`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeSources.ts#L3-L21)                | Referências da API                            | Exibe links seguros; URLs não HTTP(S) não são tratadas como navegação |
+| [`saveOrbeTranscript`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/services/orbeTranscript.ts#L48-L70)        | Mensagens renderizáveis                       | Cache recente sem tokens de sessão                                    |
 
 ## 3. Ao apertar Enter, o que acontece?
 
@@ -96,13 +96,13 @@ Este hook não é o preloader inicial: [`sitePreloader.ts`](https://github.com/S
 
 ## 8. Testes para alteração de cada fluxo
 
-| Área | Arquivos |
-| --- | --- |
-| Chat e respostas do cliente | [`tests/orbe-client.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/orbe-client.spec.ts), [`tests/orbe-public.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/orbe-public.spec.ts) |
-| Navegação e transição | [`tests/routing.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/routing.spec.ts), [`tests/section-circle-transition.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/section-circle-transition.spec.ts) |
-| Carregamento inicial | [`tests/site-loading.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/site-loading.spec.ts) |
-| Projetos/mídia | [`tests/project-gallery.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/project-gallery.spec.ts), [`tests/archive-layout.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/archive-layout.spec.ts) |
-| Formação | [`tests/formacao-cursos.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/formacao-cursos.spec.ts) |
-| Acessibilidade/responsividade | [`tests/accessibility.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/accessibility.spec.ts), [`tests/responsive.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/responsive.spec.ts) |
+| Área                          | Arquivos                                                                                                                                                                                                                                                             |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chat e respostas do cliente   | [`tests/orbe-client.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/orbe-client.spec.ts), [`tests/orbe-public.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/orbe-public.spec.ts)                     |
+| Navegação e transição         | [`tests/routing.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/routing.spec.ts), [`tests/section-circle-transition.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/section-circle-transition.spec.ts) |
+| Carregamento inicial          | [`tests/site-loading.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/site-loading.spec.ts)                                                                                                                                            |
+| Projetos/mídia                | [`tests/project-gallery.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/project-gallery.spec.ts), [`tests/archive-layout.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/archive-layout.spec.ts)       |
+| Formação                      | [`tests/formacao-cursos.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/formacao-cursos.spec.ts)                                                                                                                                      |
+| Acessibilidade/responsividade | [`tests/accessibility.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/accessibility.spec.ts), [`tests/responsive.spec.ts`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/tests/responsive.spec.ts)                   |
 
 **Sem deploy nesta documentação:** as explicações foram extraídas da leitura de fonte `main`, não de inspeção do DOM/servidor publicado neste turno. Para validar DEV live, seguir o [guia específico](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/dev/docs/ORBE-LIVE-PLAYWRIGHT-DEV.md).

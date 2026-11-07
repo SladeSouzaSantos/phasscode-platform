@@ -6,29 +6,29 @@
 
 ## Componentes públicos e responsabilidades
 
-| Área de interface | TSX central | CSS principal | Interações |
-| --- | --- | --- | --- |
-| Composição, rotas | [App.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/App.tsx) | [app.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/app.css) | Hash/Router, cenas, preloader, Orbe |
-| Navegação e tema | [Navbar.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/Navbar.tsx) | [navbar.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/navbar.css) | Seção, tema, teclado |
-| Sobre | [Sobre.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/Sobre.tsx) | [secao_sobre_mim.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/secao_sobre_mim.css) | Perfil, competências |
-| Projetos | [Projetos.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/Projetos.tsx) | [secao_projetos.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/secao_projetos.css) | Cartazes e detalhes |
-| Arquivo de Missões | [ArquivoProjetos.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/ArquivoProjetos.tsx) | [arquivo_projetos.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/arquivo_projetos.css) | Catálogo e filtros |
-| Experiência | [Experiencia.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/Experiencia.tsx) | [secao_experiencia.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/secao_experiencia.css) | Cronologia e fichas |
-| Formação | [Formacao.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/Formacao.tsx) | [secao_academica.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/secao_academica.css) | Cartões, trilhas e modais |
-| Assistente Orbe | [OrbAssistant.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/OrbAssistant.tsx) | [orbe_assistant.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/orbe_assistant.css) | Canvas, chat, histórico e fontes |
-| Projetos 3D/flip | [CartazMissao.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/CartazMissao.tsx) | [projetos-flip.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/projetos-flip.css) | Cartas e efeitos |
+| Área de interface  | TSX central                                                                                                            | CSS principal                                                                                                            | Interações                          |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| Composição, rotas  | [App.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/App.tsx)                                  | [app.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/app.css)                             | Hash/Router, cenas, preloader, Orbe |
+| Navegação e tema   | [Navbar.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/Navbar.tsx)                 | [navbar.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/navbar.css)                       | Seção, tema, teclado                |
+| Sobre              | [Sobre.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/Sobre.tsx)                     | [secao_sobre_mim.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/secao_sobre_mim.css)     | Perfil, competências                |
+| Projetos           | [Projetos.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/Projetos.tsx)               | [secao_projetos.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/secao_projetos.css)       | Cartazes e detalhes                 |
+| Arquivo de Missões | [ArquivoProjetos.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/ArquivoProjetos.tsx) | [arquivo_projetos.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/arquivo_projetos.css)   | Catálogo e filtros                  |
+| Experiência        | [Experiencia.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/Experiencia.tsx)         | [secao_experiencia.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/secao_experiencia.css) | Cronologia e fichas                 |
+| Formação           | [Formacao.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/sections/Formacao.tsx)               | [secao_academica.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/secao_academica.css)     | Cartões, trilhas e modais           |
+| Assistente Orbe    | [OrbAssistant.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/OrbAssistant.tsx)     | [orbe_assistant.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/orbe_assistant.css)       | Canvas, chat, histórico e fontes    |
+| Projetos 3D/flip   | [CartazMissao.tsx](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/components/CartazMissao.tsx)     | [projetos-flip.css](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/projetos-flip.css)         | Cartas e efeitos                    |
 
 ## Design tokens e regras de tipografia
 
 A [`paleta_cores.css`](https://github.com/SladeSouzaSantos/web-portfolio-v2/blob/main/src/styles/paleta_cores.css) define tema **escuro** por `:root`, `body.modo-escuro` e `html.dark`; tema **claro** por `body.modo-claro` e `html:not(.dark)`.
 
-| Família de tokens | Exemplos reais do CSS |
-| --- | --- |
-| Fundos | `--bg-principal`, `--bg-container`, `--bg-card-elevado`, `--bg-overlay-modal` |
-| Bordas | `--borda-suave`, `--borda-foco`, `--borda-moldura-rpg`, `--borda-ouro` |
-| Texto | `--texto-principal`, `--texto-secundario`, `--texto-ciano`, `--texto-verde` |
-| Acentos | `--acento-ouro`, `--acento-ciano`, `--acento-vermelho` |
-| Sombras | `--sombra-projetada` |
+| Família de tokens | Exemplos reais do CSS                                                         |
+| ----------------- | ----------------------------------------------------------------------------- |
+| Fundos            | `--bg-principal`, `--bg-container`, `--bg-card-elevado`, `--bg-overlay-modal` |
+| Bordas            | `--borda-suave`, `--borda-foco`, `--borda-moldura-rpg`, `--borda-ouro`        |
+| Texto             | `--texto-principal`, `--texto-secundario`, `--texto-ciano`, `--texto-verde`   |
+| Acentos           | `--acento-ouro`, `--acento-ciano`, `--acento-vermelho`                        |
+| Sombras           | `--sombra-projetada`                                                          |
 
 Exemplo: tema escuro `--bg-principal: #080d12`, `--texto-principal: #f1f5f9`. Tema claro `--bg-principal: #e2e8f0`, `--texto-principal: #0f172a`. Esses valores são referência documental de **baseline**, não sugestão para alterar o design.
 
