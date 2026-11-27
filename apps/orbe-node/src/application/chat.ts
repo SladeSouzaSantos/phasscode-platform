@@ -25,42 +25,33 @@ import {
   isGreeting,
   isMeetingRequest,
   isOffTopicTask,
-  isContextualFollowUp,
   isSimpleTest,
   simpleTestAnswer,
   isPersonalLifeQuestion,
   personalLifeAnswer,
 } from '../domain/security.js';
-import { eligibleHistory } from './context.js';
 import {
-  isExperienceDurationQuestion,
-  isCareerDurationEllipsis,
-  rewriteCareerDurationEllipsis,
-} from './experience-context.js';
-import {
-  buildVerifiedExperienceDurationResponse,
-  buildVerifiedProfessionalOverviewResponse,
-  isBroadProfessionalExperienceQuestion,
-} from './experience-response.js';
+  calculateExperience,
+  summarizeProfessionalExperience,
+} from './tools/calculate-experience.tool.js';
+import { createOrbeGraph } from './workflows/orbe-graph.js';
 import type { PublicEvidenceReader } from './public-evidence.js';
 import { graphShadowObservationSchema, type GraphShadowPort } from './graph-rag-shadow.js';
 import type { GraphActivePort } from './graph-active-answer.js';
 import { createSharedGraphTurnLlmBudget } from './graph-turn-llm-budget.js';
 import type { LlmInvocationFactory } from '../domain/llm-invocation.js';
-import { knowledgePhrase, mentionedTechnologies } from '../knowledge-matching.js';
+import { mentionedTechnologies } from '../knowledge-matching.js';
 import { buildEvidencePacket, traceEvidence } from './evidence-packet.js';
-import { buildVerifiedRecruiterMatrix } from './recruiter-matrix.js';
-import { buildCompleteAcademicResponse } from './academic-response.js';
+import { evaluateJobMatch } from './tools/evaluate-job-match.tool.js';
+import { getAcademicBackground } from './tools/academic-background.tool.js';
 import { buildDirectGoExperienceResponse } from './go-experience-response.js';
-import {
-  ellipticalTechnology,
-  rewriteEllipticalTechnologyQuestion,
-} from './technology-follow-up.js';
 import { reconcileCanonicalAcademicClaims } from './canonical-claims.js';
 import { documentSource } from './sources.js';
 
 export const PROMPT_VERSION = 'orbe-v4';
 export class ChatService {
+  private readonly turnGraph: ReturnType<typeof createOrbeGraph>;
+
   constructor(
     private readonly store: ConversationStore,
     private readonly provider: ChatProvider,
@@ -72,7 +63,9 @@ export class ChatService {
     private readonly graphShadow?: GraphShadowPort,
     private readonly graphActive?: GraphActivePort,
     private readonly graphModelFactory?: LlmInvocationFactory,
-  ) {}
+  ) {
+    this.turnGraph = createOrbeGraph(knowledge);
+  }
 
   async execute(
     request: ChatRequest,
@@ -92,89 +85,18 @@ export class ChatService {
         ...(options.analyticsConsent ? { analyticsConsent: true } : {}),
       },
       async (history) => {
-        const eligible = eligibleHistory(history);
-        const previous = [...eligible]
-          .reverse()
-          .find(
-            (message) =>
-              message.role === 'user' &&
-              !isContextualFollowUp(message.content) &&
-              !ellipticalTechnology(message.content) &&
-              !isCareerDurationEllipsis(message.content),
-          );
-        const technologyFollowUp = previous ? ellipticalTechnology(request.message) : undefined;
-        const durationFollowUp =
-          previous && isCareerDurationEllipsis(request.message)
-            ? rewriteCareerDurationEllipsis(previous.content)
-            : undefined;
-        const followUp = Boolean(
-          previous &&
-          (isContextualFollowUp(request.message) || technologyFollowUp || durationFollowUp),
-        );
-        // A recruiter who asks "Java?" then "E com Go?" is changing the
-        // technology, not requesting evidence from Java and Go together.
-        // Preserve only the previous intent and the new technical subject.
-        const query =
-          previous && technologyFollowUp
-            ? rewriteEllipticalTechnologyQuestion(previous.content, technologyFollowUp)
-            : durationFollowUp
-              ? durationFollowUp
-              : followUp
-                ? `${previous!.content}\n${request.message}`
-                : request.message;
+        const { context, intent, experienceDocuments, retrieved: initialEvidence } =
+          await this.turnGraph.invoke({ message: request.message, history });
+        const { eligible, previous, technologyFollowUp, followUp, query } = context;
+        const { normalizedQuery, completeCourseCatalog } = intent;
+        const { durationQuestion, broadProfessionalOverview } = intent;
+        let retrieved = initialEvidence;
         const evidenceTraceId = randomUUID();
         const meetingTurn =
           meetingActions &&
           (isMeetingRequest(request.message) ||
             (/\b(?:\d{4}-\d{2}-\d{2}|[\w.+-]+@[\w.-]+\.[a-z]{2,})\b/i.test(request.message) &&
               Boolean(previous && isMeetingRequest(previous.content))));
-        let retrieved = this.knowledge.search(query);
-        const normalizedQuery = knowledgePhrase(query);
-        // Recruiters asking for the complete chronological career need every
-        // verified employer, not just the 5 best lexical search matches.
-        const chronologicalOverview =
-          /\b(?:trajetoria|historico profissional|experiencias profissionais|todas as experiencias|ordem cronologica|empresas em ordem|cada empresa)\b/.test(
-            normalizedQuery,
-          );
-        const completeCourseCatalog =
-          /\b(?:todos os cursos|todos os 42 cursos|42 cursos|lista completa de cursos|cursos por trilha|liste todos os cursos)\b/.test(
-            normalizedQuery,
-          );
-        const durationQuestion = isExperienceDurationQuestion(query);
-        const broadProfessionalOverview = isBroadProfessionalExperienceQuestion(query);
-        const experienceDocuments =
-          durationQuestion || chronologicalOverview || broadProfessionalOverview
-            ? (this.knowledge.experienceDocuments?.() ?? []).sort((a, b) =>
-                (a.experiencePeriod?.start ?? '').localeCompare(b.experiencePeriod?.start ?? ''),
-              )
-            : [];
-        if (experienceDocuments.length) {
-          const broadProgrammingQuestion = /\b(?:programa\w*|desenvolv\w*|software)\b/.test(
-            normalizedQuery,
-          );
-          // The SDGP is a canonical mixed-role project, not a ranked fallback.
-          // Keep this optional lookup compatible with test knowledge adapters.
-          const sdgp = this.knowledge.getDocument?.('greencity-sdgp');
-          const mixedRoleProject = broadProgrammingQuestion && sdgp ? [sdgp] : [];
-          const ordered = chronologicalOverview
-            ? [...experienceDocuments, ...retrieved]
-            : [
-                // Durations must prioritize concise original employment records.
-                // Project evidence must not be discarded after enriched texts fill the budget.
-                ...experienceDocuments,
-                ...mixedRoleProject,
-                ...retrieved,
-              ];
-          retrieved = [...new Map(ordered.map((doc) => [doc.id, doc])).values()];
-          // Duration answers use structured periods, not long prose. Reserve
-          // room for all four employment records plus the mixed-role SDGP proof.
-          if (durationQuestion && broadProgrammingQuestion) {
-            retrieved = retrieved.map((doc) => ({
-              ...doc,
-              content: doc.content.slice(0, 550),
-            }));
-          }
-        }
         // External pages are untrusted data, never instructions. Restrict retrieval to
         // public LinkedIn job postings and known public GitHub project READMEs.
         if (
@@ -201,27 +123,24 @@ export class ChatService {
               'Consulte horários somente com get_meeting_availability. prepare_meeting_request prepara dados para o formulário de confirmação do visitante. Não cria solicitação nem reserva horário. Somente após confirmação HTTP há pedido PENDING; administração aprova e Calendar confirma. Nunca diga que uma proposta já foi registrada ou aprovada.',
           });
         traceEvidence('retrieved', retrieved, 'initial', evidenceTraceId);
-        const verifiedMatrix = buildVerifiedRecruiterMatrix(query, retrieved);
+        const verifiedMatrix = evaluateJobMatch(query, retrieved);
         // A source-complete, transparent duration answer must not discard
         // professional programming performed in mixed engineering/software roles.
         // Compute independently of LLM context truncation, using the canonical
         // structured employment records only (never external page content).
         const verifiedDuration =
           durationQuestion && experienceDocuments.length
-            ? buildVerifiedExperienceDurationResponse(query, experienceDocuments, this.now())
+            ? calculateExperience(query, experienceDocuments, this.now())
             : undefined;
         const verifiedOverview =
           broadProfessionalOverview && experienceDocuments.length
-            ? buildVerifiedProfessionalOverviewResponse(query, experienceDocuments, this.now())
+            ? summarizeProfessionalExperience(query, experienceDocuments, this.now())
             : undefined;
         const verifiedGo = buildDirectGoExperienceResponse(
           technologyFollowUp ? query : request.message,
           this.knowledge,
         );
-        const academicListing = this.knowledge.academicCourseListing?.(query);
-        const verifiedAcademic = academicListing
-          ? buildCompleteAcademicResponse(query, academicListing, retrieved)
-          : undefined;
+        const verifiedAcademic = getAcademicBackground(this.knowledge, query, retrieved);
         // Opt-in DEV-only graph generation: preserve all canonical safety,
         // academic, duration, matrix and conversation-specific fast paths.
         // On abstention or reader outage, the existing PPKS path runs once.

@@ -7,9 +7,7 @@ import {
   ToolMessage,
   type BaseMessage,
 } from '@langchain/core/messages';
-import { tool } from '@langchain/core/tools';
-import { z } from 'zod';
-import { meetingProposalInputSchema } from '../../../../packages/contracts/src/meetings.js';
+import { createToolRegistry } from '../application/tools/tool-registry.js';
 import type { MeetingTools } from '../domain/meeting-tools.js';
 import {
   assertLlmPrivacyEnvironment,
@@ -49,7 +47,6 @@ import {
   MAX_TOOL_ROUNDS_PER_TURN,
 } from '../domain/llm-limits.js';
 
-const searchArgs = z.strictObject({ query: z.string().min(1).max(300) });
 export class LangChainChatProvider implements ChatProvider {
   readonly name: 'openai' | 'openai-compatible';
   private readonly model: ChatOpenAI | undefined;
@@ -282,75 +279,22 @@ export class LangChainChatProvider implements ChatProvider {
     traceEvidence('provider_compacted', documents, 'context_budget', input.evidenceTraceId);
     record(documents);
     let toolCallId = '';
-    // Cada busca é limitada. A ferramenta não aceita URL, ID de usuário ou comandos.
-    const search = tool(
-      ({ query }) => {
-        const docs = this.knowledge
-          .search(query)
-          .map((doc) => ({ ...doc, content: doc.content.slice(0, 2000) }));
-        // Compartilha o mesmo orçamento em TODAS as rodadas; não acumula contexto sem limite.
-        const selected: GenerationInput['documents'] = [];
-        const fits = (content: string) =>
-          contextSize() + messageSize(new ToolMessage({ content, tool_call_id: toolCallId })) <=
-          toolContextTarget;
-        if (!fits('[]')) throw contextLimit();
-        for (const doc of docs) {
-          const candidate = [...selected, doc];
-          if (fits(serialize(candidate))) selected.push(doc);
-        }
-        return record(selected);
+    const registry = createToolRegistry({
+      knowledge: this.knowledge,
+      meetings: this.meetings,
+      meetingActions: input.meetingActions === true,
+      signal: input.signal,
+      actions,
+      serialize,
+      record,
+      fits: (content) =>
+        contextSize() + messageSize(new ToolMessage({ content, tool_call_id: toolCallId })) <=
+        toolContextTarget,
+      setToolCallId: (id) => {
+        toolCallId = id;
       },
-      {
-        name: 'search_portfolio',
-        description: 'Busca fatos públicos do portfólio PHASSCODE. Apenas leitura.',
-        schema: searchArgs,
-      },
-    );
-    const availabilityArgs = z.strictObject({
-      start: z.iso.datetime({ offset: true }),
-      end: z.iso.datetime({ offset: true }),
     });
-    const availability = tool(
-      async ({ start, end }) => {
-        input.signal.throwIfAborted();
-        return JSON.stringify(await this.meetings!.availability(start, end));
-      },
-      {
-        name: 'get_meeting_availability',
-        description:
-          'Consulta intervalos de atendimento reais; nunca retorna detalhes de compromissos privados. Datas ISO com offset, janela de no máximo sete dias.',
-        schema: availabilityArgs,
-      },
-    );
-    const prepare = tool(
-      async (args) => {
-        input.signal.throwIfAborted();
-        if (actions.length)
-          throw new AppError('LLM_TOOL_LIMIT', 502, 'Prepare somente uma proposta por turno.');
-        const proposal = await this.meetings!.prepareProposal(args);
-        actions.push({ type: 'confirm_meeting_request', proposal });
-        // The one-use confirmation secret belongs to the UI, never to model messages/history.
-        return JSON.stringify({
-          summary: {
-            start: proposal.summary.start,
-            end: proposal.summary.end,
-            timeZone: proposal.summary.timeZone,
-          },
-          consentVersion: proposal.consentVersion,
-          expiresAt: proposal.expiresAt,
-          requiresVisitorConfirmation: true,
-          requestCreated: false,
-        });
-      },
-      {
-        name: 'prepare_meeting_request',
-        description:
-          'Prepara proposta com dados informados pelo visitante. NÃO cria solicitação nem reserva horário. O visitante precisa confirmar os dados no formulário do frontend.',
-        schema: meetingProposalInputSchema,
-      },
-    );
-    const tools =
-      this.meetings && input.meetingActions === true ? [search, availability, prepare] : [search];
+    const tools = registry.tools;
     const model = this.model?.bindTools(tools, { strict: true });
     const factory = input.invocationFactoryOverride ?? this.invocationFactory;
     const invoke = factory
@@ -421,26 +365,8 @@ export class LangChainChatProvider implements ChatProvider {
       if (!compactTo(contextTarget)) throw contextLimit();
       traceEvidence('provider_compacted', documents, 'model_tool', input.evidenceTraceId);
       for (const call of response.tool_calls) {
-        const selectedTool = tools.find((candidate) => candidate.name === call.name);
-        if (!selectedTool || !call.id)
-          throw new AppError('LLM_INVALID_TOOL', 502, 'Ferramenta não autorizada.');
-        const args = (
-          call.name === 'search_portfolio'
-            ? searchArgs
-            : call.name === 'get_meeting_availability'
-              ? availabilityArgs
-              : meetingProposalInputSchema
-        ).safeParse(call.args);
-        if (!args.success)
-          throw new AppError('LLM_INVALID_TOOL', 502, 'Parâmetros de ferramenta inválidos.');
-        toolCallId = call.id;
-        // Invoking the selected tool validates its own schema again, before effects.
-        const content =
-          call.name === 'search_portfolio'
-            ? await search.invoke(searchArgs.parse(call.args))
-            : call.name === 'get_meeting_availability'
-              ? await availability.invoke(availabilityArgs.parse(call.args))
-              : await prepare.invoke(meetingProposalInputSchema.parse(call.args));
+        if (!call.id) throw new AppError('LLM_INVALID_TOOL', 502, 'Ferramenta não autorizada.');
+        const content = await registry.execute(call);
         if (
           contextSize() + messageSize(new ToolMessage({ content, tool_call_id: call.id })) >
           toolContextTarget

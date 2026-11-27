@@ -7,6 +7,7 @@ import {
   type VacancyRequirement,
 } from '../domain/evidence-graph.js';
 import { PublicGraphEvidenceGateway } from './graph-public-policy.js';
+import { searchKnowledgeGraph } from './tools/search-knowledge-graph.tool.js';
 
 /**
  * F3.3 off-line LangGraph prototype. No API route, LLM invocation, checkpoint,
@@ -69,16 +70,9 @@ export function createGroundedRecruiterGraph(options: GroundedRecruiterGraphOpti
         .array(vacancyRequirementSchema)
         .parse(await options.identifyRequirements(state.question)),
     }))
-    .addNode('retrieveGraphEvidence', async (state) => {
-      if (!state.requirements.length) return { matches: [], retrievalFailed: false };
-      try {
-        const matches = await publicEvidence.findEvidence(state.requirements);
-        return { matches: [...matches], retrievalFailed: false };
-      } catch {
-        // Do not log private graph details or invent evidence on outages.
-        return { matches: [], retrievalFailed: true };
-      }
-    })
+    .addNode('retrieveGraphEvidence', (state) =>
+      searchKnowledgeGraph(publicEvidence, state.requirements),
+    )
     .addNode('generateGroundedAnswer', (state) => ({
       // Deterministic initial candidate; no unbudgeted second LLM call.
       draft: renderVerifiedMatches(state.matches),
