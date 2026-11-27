@@ -85,12 +85,12 @@ export class ChatService {
         ...(options.analyticsConsent ? { analyticsConsent: true } : {}),
       },
       async (history) => {
-        const { context, intent, experienceDocuments, retrieved: initialEvidence } =
-          await this.turnGraph.invoke({ message: request.message, history });
+        const turn = await this.turnGraph.invoke({ message: request.message, history });
+        const { context, intent, experienceDocuments } = turn;
         const { eligible, previous, technologyFollowUp, followUp, query } = context;
         const { normalizedQuery, completeCourseCatalog } = intent;
         const { durationQuestion, broadProfessionalOverview } = intent;
-        let retrieved = initialEvidence;
+        let retrieved = turn.retrieved;
         const evidenceTraceId = randomUUID();
         const meetingTurn =
           meetingActions &&
